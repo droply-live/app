@@ -58,6 +58,13 @@ class ProfileForm(FlaskForm):
         ('AUD', 'AUD')
     ], default='USD')
     
+    # Social media links
+    linkedin_url = StringField('LinkedIn Profile', validators=[Optional(), Length(max=200)])
+    twitter_url = StringField('Twitter/X Profile', validators=[Optional(), Length(max=200)])
+    youtube_url = StringField('YouTube Channel', validators=[Optional(), Length(max=200)])
+    instagram_url = StringField('Instagram Profile', validators=[Optional(), Length(max=200)])
+    website_url = StringField('Website/Portfolio', validators=[Optional(), Length(max=200)])
+    
     # Availability settings
     is_available = BooleanField('Currently Available for Sessions')
     offers_remote = BooleanField('Offer Remote Sessions')
