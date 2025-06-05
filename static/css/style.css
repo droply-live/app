@@ -538,12 +538,115 @@ footer {
     border: 0;
 }
 
+/* Social Media Links */
+.social-links {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    justify-content: center;
+}
+
+.social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgb(var(--light));
+    border: 1px solid rgb(var(--border));
+    border-radius: 50%;
+    color: rgb(var(--text-muted));
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.social-link:hover {
+    background: rgb(var(--primary));
+    border-color: rgb(var(--primary));
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    text-decoration: none;
+}
+
+.social-link i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Compact Social Links for Cards */
+.social-links-compact {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.social-link-small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: rgb(var(--light));
+    border: 1px solid rgb(var(--border));
+    border-radius: 50%;
+    color: rgb(var(--text-muted));
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.social-link-small:hover {
+    background: rgb(var(--primary));
+    border-color: rgb(var(--primary));
+    color: white;
+    transform: scale(1.1);
+    text-decoration: none;
+}
+
+.social-link-small i {
+    width: 12px;
+    height: 12px;
+}
+
+/* Platform-specific colors */
+.social-link[title*="LinkedIn"]:hover,
+.social-link-small[title*="LinkedIn"]:hover {
+    background: #0077b5;
+    border-color: #0077b5;
+}
+
+.social-link[title*="Twitter"]:hover,
+.social-link-small[title*="Twitter"]:hover {
+    background: #1da1f2;
+    border-color: #1da1f2;
+}
+
+.social-link[title*="YouTube"]:hover,
+.social-link-small[title*="YouTube"]:hover {
+    background: #ff0000;
+    border-color: #ff0000;
+}
+
+.social-link[title*="Instagram"]:hover,
+.social-link-small[title*="Instagram"]:hover {
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    border-color: #dc2743;
+}
+
+.social-link[title*="Website"]:hover,
+.social-link-small[title*="Website"]:hover {
+    background: rgb(var(--success));
+    border-color: rgb(var(--success));
+}
+
 /* Print Styles */
 @media print {
     .btn,
     .navbar,
     footer,
-    .modal {
+    .modal,
+    .social-links,
+    .social-links-compact {
         display: none !important;
     }
     

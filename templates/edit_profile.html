@@ -96,6 +96,45 @@
                             </div>
                         </div>
                         
+                        <!-- Social Media Links -->
+                        <div class="section-header mb-4">
+                            <h5 class="fw-bold text-primary">Social Media & Online Presence</h5>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.linkedin_url.label(class="form-label") }}
+                                {{ form.linkedin_url(class="form-control", placeholder="https://linkedin.com/in/yourprofile") }}
+                                <small class="form-text text-muted">Your LinkedIn profile URL</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.twitter_url.label(class="form-label") }}
+                                {{ form.twitter_url(class="form-control", placeholder="https://twitter.com/yourusername") }}
+                                <small class="form-text text-muted">Your Twitter/X profile URL</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.youtube_url.label(class="form-label") }}
+                                {{ form.youtube_url(class="form-control", placeholder="https://youtube.com/@yourchannel") }}
+                                <small class="form-text text-muted">Your YouTube channel URL</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.instagram_url.label(class="form-label") }}
+                                {{ form.instagram_url(class="form-control", placeholder="https://instagram.com/yourusername") }}
+                                <small class="form-text text-muted">Your Instagram profile URL</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.website_url.label(class="form-label") }}
+                            {{ form.website_url(class="form-control", placeholder="https://yourwebsite.com") }}
+                            <small class="form-text text-muted">Your personal website or portfolio</small>
+                        </div>
+                        
                         <!-- Availability Settings -->
                         <div class="section-header mb-4">
                             <h5 class="fw-bold text-primary">Availability Settings</h5>
