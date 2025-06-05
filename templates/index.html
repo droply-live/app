@@ -118,6 +118,37 @@
                                     <i data-feather="map-pin" style="width: 14px; height: 14px;"></i> {{ user.location }}
                                 </small>
                                 {% endif %}
+                                
+                                <!-- Social Media Links (compact) -->
+                                {% if user.linkedin_url or user.twitter_url or user.youtube_url or user.instagram_url or user.website_url %}
+                                <div class="social-links-compact mt-2">
+                                    {% if user.linkedin_url %}
+                                    <a href="{{ user.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="social-link-small" title="LinkedIn">
+                                        <i data-feather="linkedin"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if user.twitter_url %}
+                                    <a href="{{ user.twitter_url }}" target="_blank" rel="noopener noreferrer" class="social-link-small" title="Twitter/X">
+                                        <i data-feather="twitter"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if user.youtube_url %}
+                                    <a href="{{ user.youtube_url }}" target="_blank" rel="noopener noreferrer" class="social-link-small" title="YouTube">
+                                        <i data-feather="youtube"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if user.instagram_url %}
+                                    <a href="{{ user.instagram_url }}" target="_blank" rel="noopener noreferrer" class="social-link-small" title="Instagram">
+                                        <i data-feather="instagram"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if user.website_url %}
+                                    <a href="{{ user.website_url }}" target="_blank" rel="noopener noreferrer" class="social-link-small" title="Website">
+                                        <i data-feather="globe"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="text-end">
                                 {% if user.hourly_rate > 0 %}

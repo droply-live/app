@@ -55,6 +55,37 @@
                         {% endif %}
                     </div>
                     
+                    <!-- Social Media Links -->
+                    {% if user.linkedin_url or user.twitter_url or user.youtube_url or user.instagram_url or user.website_url %}
+                    <div class="social-links mb-3">
+                        {% if user.linkedin_url %}
+                        <a href="{{ user.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="social-link" title="LinkedIn">
+                            <i data-feather="linkedin"></i>
+                        </a>
+                        {% endif %}
+                        {% if user.twitter_url %}
+                        <a href="{{ user.twitter_url }}" target="_blank" rel="noopener noreferrer" class="social-link" title="Twitter/X">
+                            <i data-feather="twitter"></i>
+                        </a>
+                        {% endif %}
+                        {% if user.youtube_url %}
+                        <a href="{{ user.youtube_url }}" target="_blank" rel="noopener noreferrer" class="social-link" title="YouTube">
+                            <i data-feather="youtube"></i>
+                        </a>
+                        {% endif %}
+                        {% if user.instagram_url %}
+                        <a href="{{ user.instagram_url }}" target="_blank" rel="noopener noreferrer" class="social-link" title="Instagram">
+                            <i data-feather="instagram"></i>
+                        </a>
+                        {% endif %}
+                        {% if user.website_url %}
+                        <a href="{{ user.website_url }}" target="_blank" rel="noopener noreferrer" class="social-link" title="Website">
+                            <i data-feather="globe"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
                     {% if current_user == user %}
                     <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary">
                         <i data-feather="edit" class="me-2"></i>Edit Profile
