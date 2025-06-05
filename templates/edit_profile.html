@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="fw-bold mb-0">
+                        <i data-feather="edit" class="me-2"></i>Edit Profile
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Basic Information -->
+                        <div class="section-header mb-4">
+                            <h5 class="fw-bold text-primary">Basic Information</h5>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.full_name.label(class="form-label") }}
+                                {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else "")) }}
+                                {% if form.full_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.full_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.location.label(class="form-label") }}
+                                {{ form.location(class="form-control", placeholder="e.g. San Francisco, CA") }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.bio.label(class="form-label") }}
+                            {{ form.bio(class="form-control", rows="4", placeholder="Tell potential clients about yourself, your experience, and what you can help them with...") }}
+                        </div>
+                        
+                        <!-- Professional Information -->
+                        <div class="section-header mb-4">
+                            <h5 class="fw-bold text-primary">Professional Information</h5>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.industry.label(class="form-label") }}
+                                {{ form.industry(class="form-select" + (" is-invalid" if form.industry.errors else "")) }}
+                                {% if form.industry.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.industry.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.profession.label(class="form-label") }}
+                                {{ form.profession(class="form-select" + (" is-invalid" if form.profession.errors else "")) }}
+                                {% if form.profession.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.profession.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.expertise.label(class="form-label") }}
+                            {{ form.expertise(class="form-control", placeholder="e.g. Career coaching, Leadership development, Financial planning") }}
+                        </div>
+                        
+                        <!-- Pricing -->
+                        <div class="section-header mb-4">
+                            <h5 class="fw-bold text-primary">Pricing</h5>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.hourly_rate.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.hourly_rate(class="form-control", placeholder="0") }}
+                                </div>
+                                <small class="form-text text-muted">Leave empty or 0 for free sessions</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.currency.label(class="form-label") }}
+                                {{ form.currency(class="form-select") }}
+                            </div>
+                        </div>
+                        
+                        <!-- Availability Settings -->
+                        <div class="section-header mb-4">
+                            <h5 class="fw-bold text-primary">Availability Settings</h5>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_available(class="form-check-input") }}
+                                {{ form.is_available.label(class="form-check-label") }}
+                            </div>
+                            <small class="form-text text-muted">Uncheck this to temporarily hide your profile from search results</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.offers_remote(class="form-check-input") }}
+                                {{ form.offers_remote.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.offers_in_person(class="form-check-input") }}
+                                {{ form.offers_in_person.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i data-feather="save" class="me-2"></i>Save Changes
+                            </button>
+                            <a href="{{ url_for('profile', username=current_user.username) }}" class="btn btn-outline-secondary">
+                                <i data-feather="x" class="me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

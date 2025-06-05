@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Calendar Header -->
+        <div class="col-12 mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold mb-1">
+                        <i data-feather="calendar" class="me-2"></i>My Calendar
+                    </h2>
+                    <p class="text-muted mb-0">Manage your availability and time slots</p>
+                </div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSlotModal">
+                    <i data-feather="plus" class="me-2"></i>Add Time Slot
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Calendar View -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Upcoming Time Slots</h5>
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="viewMode" id="listView" checked>
+                            <label class="btn btn-outline-primary" for="listView">
+                                <i data-feather="list" style="width: 16px; height: 16px;"></i> List
+                            </label>
+                            <input type="radio" class="btn-check" name="viewMode" id="calendarView">
+                            <label class="btn btn-outline-primary" for="calendarView">
+                                <i data-feather="calendar" style="width: 16px; height: 16px;"></i> Calendar
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- List View -->
+                    <div id="listViewContent">
+                        {% if time_slots %}
+                        <div class="row g-3">
+                            {% for slot in time_slots %}
+                            <div class="col-md-6">
+                                <div class="time-slot-card border rounded p-3 {% if not slot.is_available %}bg-light{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="fw-bold mb-1">{{ slot.title }}</h6>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i data-feather="more-horizontal" style="width: 16px; height: 16px;"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#"><i data-feather="edit" class="me-2" style="width: 16px; height: 16px;"></i>Edit</a></li>
+                                                <li><a class="dropdown-item text-danger" href="#"><i data-feather="trash-2" class="me-2" style="width: 16px; height: 16px;"></i>Delete</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="slot-details mb-3">
+                                        <small class="text-muted d-block">
+                                            <i data-feather="calendar" style="width: 14px; height: 14px;"></i>
+                                            {{ slot.start_datetime.strftime('%B %d, %Y') }}
+                                        </small>
+                                        <small class="text-muted d-block">
+                                            <i data-feather="clock" style="width: 14px; height: 14px;"></i>
+                                            {{ slot.start_datetime.strftime('%I:%M %p') }} - {{ slot.end_datetime.strftime('%I:%M %p') }}
+                                        </small>
+                                        <small class="text-muted d-block">
+                                            <i data-feather="{% if slot.location_type == 'remote' %}video{% else %}map-pin{% endif %}" style="width: 14px; height: 14px;"></i>
+                                            {{ slot.location_type|title }}
+                                            {% if slot.location_details %}
+                                            - {{ slot.location_details }}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    
+                                    {% if slot.description %}
+                                    <p class="small text-muted mb-3">{{ slot.description[:100] }}{% if slot.description|length > 100 %}...{% endif %}</p>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            {% if slot.is_available %}
+                                            <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">Booked</span>
+                                            {% endif %}
+                                            
+                                            {% if slot.price > 0 %}
+                                            <span class="badge bg-primary ms-1">${{ "%.0f"|format(slot.price) }}</span>
+                                            {% else %}
+                                            <span class="badge bg-info ms-1">Free</span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if slot.booking %}
+                                        <small class="text-muted">
+                                            Booked by {{ slot.booking.client_name }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i data-feather="calendar-plus" class="text-muted mb-3" style="width: 64px; height: 64px;"></i>
+                            <h5 class="text-muted mb-3">No time slots yet</h5>
+                            <p class="text-muted mb-4">Start by adding your first available time slot to let clients book sessions with you.</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSlotModal">
+                                <i data-feather="plus" class="me-2"></i>Add Your First Time Slot
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Calendar View (placeholder) -->
+                    <div id="calendarViewContent" style="display: none;">
+                        <div class="calendar-grid" id="calendarGrid">
+                            <!-- Calendar will be rendered here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Time Slot Modal -->
+<div class="modal fade" id="addSlotModal" tabindex="-1" aria-labelledby="addSlotModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSlotModalLabel">
+                    <i data-feather="calendar-plus" class="me-2"></i>Add Time Slot
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form method="POST" action="{{ url_for('add_time_slot') }}">
+                <div class="modal-body">
+                    {% if form %}
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            {{ form.title.label(class="form-label fw-bold") }}
+                            {{ form.title(class="form-control", placeholder="e.g. Career Coaching Session") }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.session_type.label(class="form-label fw-bold") }}
+                            {{ form.session_type(class="form-select") }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label fw-bold") }}
+                        {{ form.description(class="form-control", rows="3", placeholder="Describe what this session covers...") }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.start_datetime.label(class="form-label fw-bold") }}
+                            {{ form.start_datetime(class="form-control") }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.end_datetime.label(class="form-label fw-bold") }}
+                            {{ form.end_datetime(class="form-control") }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.location_type.label(class="form-label fw-bold") }}
+                            {{ form.location_type(class="form-select") }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.price.label(class="form-label fw-bold") }}
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.price(class="form-control", placeholder="0") }}
+                            </div>
+                            <small class="form-text text-muted">Leave empty to use your default rate ({{ "$%.0f"|format(current_user.hourly_rate) if current_user.hourly_rate > 0 else "Free" }})</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.location_details.label(class="form-label fw-bold") }}
+                        {{ form.location_details(class="form-control", placeholder="Meeting room, Zoom link, address, etc.") }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-feather="save" class="me-2"></i>Add Time Slot
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+{% endblock %}
