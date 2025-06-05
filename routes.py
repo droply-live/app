@@ -114,6 +114,11 @@ def edit_profile():
         current_user.location = form.location.data
         current_user.hourly_rate = form.hourly_rate.data or 0.0
         current_user.currency = form.currency.data
+        current_user.linkedin_url = form.linkedin_url.data
+        current_user.twitter_url = form.twitter_url.data
+        current_user.youtube_url = form.youtube_url.data
+        current_user.instagram_url = form.instagram_url.data
+        current_user.website_url = form.website_url.data
         current_user.is_available = form.is_available.data
         current_user.offers_remote = form.offers_remote.data
         current_user.offers_in_person = form.offers_in_person.data

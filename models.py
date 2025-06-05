@@ -19,6 +19,13 @@ class User(UserMixin, db.Model):
     hourly_rate = db.Column(db.Float, default=0.0)
     currency = db.Column(db.String(3), default='USD')
     
+    # Social media links
+    linkedin_url = db.Column(db.String(200))
+    twitter_url = db.Column(db.String(200))
+    youtube_url = db.Column(db.String(200))
+    instagram_url = db.Column(db.String(200))
+    website_url = db.Column(db.String(200))
+    
     # Profile settings
     is_available = db.Column(db.Boolean, default=True)
     offers_remote = db.Column(db.Boolean, default=True)
