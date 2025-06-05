@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Dashboard Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold mb-1">
+                <i data-feather="home" class="me-2"></i>Dashboard
+            </h2>
+            <p class="text-muted mb-0">Welcome back, {{ current_user.full_name or current_user.username }}!</p>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="stat-card card text-center">
+                <div class="card-body">
+                    <i data-feather="calendar" class="text-primary mb-2" style="width: 32px; height: 32px;"></i>
+                    <h4 class="fw-bold mb-1">{{ time_slots|length }}</h4>
+                    <small class="text-muted">Time Slots</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="stat-card card text-center">
+                <div class="card-body">
+                    <i data-feather="users" class="text-success mb-2" style="width: 32px; height: 32px;"></i>
+                    <h4 class="fw-bold mb-1">{{ provider_bookings|length }}</h4>
+                    <small class="text-muted">Bookings Received</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="stat-card card text-center">
+                <div class="card-body">
+                    <i data-feather="bookmark" class="text-info mb-2" style="width: 32px; height: 32px;"></i>
+                    <h4 class="fw-bold mb-1">{{ client_bookings|length }}</h4>
+                    <small class="text-muted">Sessions Booked</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="stat-card card text-center">
+                <div class="card-body">
+                    <i data-feather="dollar-sign" class="text-warning mb-2" style="width: 32px; height: 32px;"></i>
+                    <h4 class="fw-bold mb-1">${{ current_user.hourly_rate or 0 }}</h4>
+                    <small class="text-muted">Hourly Rate</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Quick Actions</h5>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSlotModal">
+                            <i data-feather="calendar-plus" class="me-2"></i>Add Time Slot
+                        </button>
+                        <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary">
+                            <i data-feather="edit" class="me-2"></i>Edit Profile
+                        </a>
+                        <a href="{{ url_for('profile', username=current_user.username) }}" class="btn btn-outline-secondary">
+                            <i data-feather="eye" class="me-2"></i>View Public Profile
+                        </a>
+                        <a href="{{ url_for('export_calendar', username=current_user.username) }}" class="btn btn-outline-info">
+                            <i data-feather="download" class="me-2"></i>Export Calendar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Recent Bookings as Provider -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="fw-bold mb-0">
+                        <i data-feather="users" class="me-2"></i>Bookings Received
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if provider_bookings %}
+                    <div class="booking-list">
+                        {% for booking in provider_bookings[:5] %}
+                        <div class="booking-item d-flex justify-content-between align-items-center py-2 {% if not loop.last %}border-bottom{% endif %}">
+                            <div>
+                                <h6 class="mb-1">{{ booking.client_name }}</h6>
+                                <small class="text-muted">{{ booking.time_slot.title }}</small>
+                                <br>
+                                <small class="text-muted">
+                                    <i data-feather="calendar" style="width: 12px; height: 12px;"></i>
+                                    {{ booking.time_slot.start_datetime.strftime('%b %d, %Y at %I:%M %p') }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-{% if booking.status == 'confirmed' %}success{% elif booking.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                                    {{ booking.status|title }}
+                                </span>
+                                {% if booking.payment_amount > 0 %}
+                                <br><small class="text-muted">${{ "%.0f"|format(booking.payment_amount) }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if provider_bookings|length > 5 %}
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-sm btn-outline-primary">View All ({{ provider_bookings|length }})</a>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i data-feather="calendar-x" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
+                        <p class="text-muted mb-0">No bookings received yet</p>
+                        <small class="text-muted">Share your profile link to get started!</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sessions Booked as Client -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="fw-bold mb-0">
+                        <i data-feather="bookmark" class="me-2"></i>My Bookings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if client_bookings %}
+                    <div class="booking-list">
+                        {% for booking in client_bookings[:5] %}
+                        <div class="booking-item d-flex justify-content-between align-items-center py-2 {% if not loop.last %}border-bottom{% endif %}">
+                            <div>
+                                <h6 class="mb-1">{{ booking.time_slot.title }}</h6>
+                                <small class="text-muted">with {{ booking.provider.full_name }}</small>
+                                <br>
+                                <small class="text-muted">
+                                    <i data-feather="calendar" style="width: 12px; height: 12px;"></i>
+                                    {{ booking.time_slot.start_datetime.strftime('%b %d, %Y at %I:%M %p') }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-{% if booking.status == 'confirmed' %}success{% elif booking.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                                    {{ booking.status|title }}
+                                </span>
+                                {% if booking.payment_amount > 0 %}
+                                <br><small class="text-muted">${{ "%.0f"|format(booking.payment_amount) }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if client_bookings|length > 5 %}
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-sm btn-outline-primary">View All ({{ client_bookings|length }})</a>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i data-feather="search" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
+                        <p class="text-muted mb-0">No sessions booked yet</p>
+                        <small class="text-muted">
+                            <a href="{{ url_for('search') }}">Browse experts</a> to book your first session!
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Time Slots -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">
+                            <i data-feather="calendar" class="me-2"></i>Recent Time Slots
+                        </h5>
+                        <a href="{{ url_for('calendar') }}" class="btn btn-sm btn-outline-primary">
+                            <i data-feather="calendar" class="me-1"></i>View Calendar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if time_slots %}
+                    <div class="row g-3">
+                        {% for slot in time_slots[:4] %}
+                        <div class="col-md-6 col-lg-3">
+                            <div class="time-slot-mini border rounded p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-1 small">{{ slot.title }}</h6>
+                                    {% if slot.is_available %}
+                                    <span class="badge bg-success small">Available</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary small">Booked</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <small class="text-muted d-block">
+                                    <i data-feather="calendar" style="width: 12px; height: 12px;"></i>
+                                    {{ slot.start_datetime.strftime('%b %d') }}
+                                </small>
+                                <small class="text-muted d-block">
+                                    <i data-feather="clock" style="width: 12px; height: 12px;"></i>
+                                    {{ slot.start_datetime.strftime('%I:%M %p') }}
+                                </small>
+                                
+                                {% if slot.price > 0 %}
+                                <small class="text-primary fw-bold">${{ "%.0f"|format(slot.price) }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i data-feather="calendar-plus" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
+                        <p class="text-muted mb-3">No time slots created yet</p>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSlotModal">
+                            <i data-feather="plus" class="me-2"></i>Create Your First Time Slot
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Time Slot Modal (Simplified) -->
+<div class="modal fade" id="addSlotModal" tabindex="-1" aria-labelledby="addSlotModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSlotModalLabel">
+                    <i data-feather="calendar-plus" class="me-2"></i>Quick Add Time Slot
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i data-feather="calendar" class="text-primary mb-3" style="width: 48px; height: 48px;"></i>
+                <p class="mb-4">Use the full calendar interface to create and manage your time slots with all available options.</p>
+                <a href="{{ url_for('calendar') }}" class="btn btn-primary">
+                    <i data-feather="calendar" class="me-2"></i>Go to Calendar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

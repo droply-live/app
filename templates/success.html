@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Confirmed - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <!-- Success Icon -->
+                    <div class="success-icon mb-4">
+                        <i data-feather="check-circle" class="text-success" style="width: 64px; height: 64px;"></i>
+                    </div>
+                    
+                    <h2 class="fw-bold text-success mb-3">Booking Confirmed!</h2>
+                    <p class="lead text-muted mb-4">Your session has been successfully booked.</p>
+                    
+                    <!-- Booking Details -->
+                    <div class="booking-summary bg-light rounded p-4 mb-4">
+                        <h5 class="fw-bold mb-3">Session Details</h5>
+                        
+                        <div class="row text-start">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Session</small>
+                                <strong>{{ booking.time_slot.title }}</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Provider</small>
+                                <strong>{{ booking.provider.full_name }}</strong>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="row text-start">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Date</small>
+                                <strong>{{ booking.time_slot.start_datetime.strftime('%B %d, %Y') }}</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Time</small>
+                                <strong>{{ booking.time_slot.start_datetime.strftime('%I:%M %p') }} - {{ booking.time_slot.end_datetime.strftime('%I:%M %p') }}</strong>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="row text-start">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Type</small>
+                                <strong>{{ booking.time_slot.location_type|title }}</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Amount</small>
+                                <strong>
+                                    {% if booking.payment_amount > 0 %}
+                                    ${{ "%.2f"|format(booking.payment_amount) }}
+                                    {% else %}
+                                    Free
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+                        
+                        {% if booking.time_slot.location_details %}
+                        <hr class="my-3">
+                        <div class="text-start">
+                            <small class="text-muted d-block mb-1">Location Details</small>
+                            <strong>{{ booking.time_slot.location_details }}</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- What's Next -->
+                    <div class="alert alert-info text-start">
+                        <h6 class="fw-bold mb-2">
+                            <i data-feather="info" class="me-2"></i>What's Next?
+                        </h6>
+                        <ul class="small mb-0">
+                            <li>You will receive a confirmation email at <strong>{{ booking.client_email }}</strong></li>
+                            <li>The provider will contact you with session details</li>
+                            {% if booking.time_slot.location_type == 'remote' %}
+                            <li>Meeting link will be shared before the session</li>
+                            {% endif %}
+                            <li>Please arrive on time for your scheduled session</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 justify-content-center">
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                            <i data-feather="home" class="me-2"></i>Go to Dashboard
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('profile', username=booking.provider.username) }}" class="btn btn-outline-primary">
+                            <i data-feather="user" class="me-2"></i>View Provider Profile
+                        </a>
+                        
+                        <a href="{{ url_for('search') }}" class="btn btn-outline-secondary">
+                            <i data-feather="search" class="me-2"></i>Find More Experts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

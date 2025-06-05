@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Cancelled - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <!-- Cancel Icon -->
+                    <div class="cancel-icon mb-4">
+                        <i data-feather="x-circle" class="text-warning" style="width: 64px; height: 64px;"></i>
+                    </div>
+                    
+                    <h2 class="fw-bold text-warning mb-3">Booking Cancelled</h2>
+                    <p class="lead text-muted mb-4">Your booking has been cancelled and the time slot is now available again.</p>
+                    
+                    <!-- Booking Details -->
+                    <div class="booking-summary bg-light rounded p-4 mb-4">
+                        <h5 class="fw-bold mb-3">Cancelled Session</h5>
+                        
+                        <div class="row text-start">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Session</small>
+                                <strong>{{ booking.time_slot.title }}</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Provider</small>
+                                <strong>{{ booking.provider.full_name }}</strong>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="row text-start">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Date</small>
+                                <strong>{{ booking.time_slot.start_datetime.strftime('%B %d, %Y') }}</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Time</small>
+                                <strong>{{ booking.time_slot.start_datetime.strftime('%I:%M %p') }} - {{ booking.time_slot.end_datetime.strftime('%I:%M %p') }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Information -->
+                    <div class="alert alert-info text-start">
+                        <h6 class="fw-bold mb-2">
+                            <i data-feather="info" class="me-2"></i>What Happened?
+                        </h6>
+                        <ul class="small mb-0">
+                            <li>Your booking was cancelled and no payment was processed</li>
+                            <li>The time slot is now available for other clients to book</li>
+                            <li>You can try booking a different time slot if available</li>
+                            <li>No further action is required from you</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{{ url_for('profile', username=booking.provider.username) }}" class="btn btn-primary">
+                            <i data-feather="calendar" class="me-2"></i>Try Different Time
+                        </a>
+                        
+                        <a href="{{ url_for('search') }}" class="btn btn-outline-primary">
+                            <i data-feather="search" class="me-2"></i>Find Other Experts
+                        </a>
+                        
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                            <i data-feather="home" class="me-2"></i>Dashboard
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
