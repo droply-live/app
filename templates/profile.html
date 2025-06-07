@@ -1,167 +1,170 @@
 {% extends "base.html" %}
 
-{% block title %}{{ user.full_name }} - Droply{% endblock %}
+{% block title %}{{ user.full_name or user.username }} - Droply{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-4">
     <div class="row">
-        <!-- Profile Info -->
+        <!-- Profile Hero Card -->
         <div class="col-lg-4 mb-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <div class="avatar-placeholder-large mb-3">
-                        <i data-feather="user" class="text-muted" style="width: 80px; height: 80px;"></i>
+            <div class="profile-hero-card">
+                <!-- Background Image Section -->
+                <div class="profile-hero-background" style="{% if user.background_image_url %}background-image: url('{{ user.background_image_url }}');{% else %}background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);{% endif %}">
+                    <div class="profile-hero-overlay">
+                        {% if current_user == user %}
+                        <div class="profile-edit-btn">
+                            <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-light btn-sm">
+                                <i data-feather="edit" style="width: 14px; height: 14px;"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="profile-hero-content">
+                            <h2 class="profile-hero-name">{{ user.full_name or user.username }}</h2>
+                            
+                            {% if user.profession %}
+                            <p class="profile-hero-subtitle">{{ user.profession|title }}</p>
+                            {% endif %}
+                            
+                            <!-- Social Media Icons Below Name -->
+                            {% if user.linkedin_url or user.twitter_url or user.youtube_url or user.instagram_url or user.website_url %}
+                            <div class="profile-hero-social">
+                                {% if user.linkedin_url %}
+                                <a href="{{ user.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="profile-social-icon" title="LinkedIn">
+                                    <i data-feather="linkedin"></i>
+                                </a>
+                                {% endif %}
+                                {% if user.twitter_url %}
+                                <a href="{{ user.twitter_url }}" target="_blank" rel="noopener noreferrer" class="profile-social-icon" title="Twitter/X">
+                                    <i data-feather="twitter"></i>
+                                </a>
+                                {% endif %}
+                                {% if user.youtube_url %}
+                                <a href="{{ user.youtube_url }}" target="_blank" rel="noopener noreferrer" class="profile-social-icon" title="YouTube">
+                                    <i data-feather="youtube"></i>
+                                </a>
+                                {% endif %}
+                                {% if user.instagram_url %}
+                                <a href="{{ user.instagram_url }}" target="_blank" rel="noopener noreferrer" class="profile-social-icon" title="Instagram">
+                                    <i data-feather="instagram"></i>
+                                </a>
+                                {% endif %}
+                                {% if user.website_url %}
+                                <a href="{{ user.website_url }}" target="_blank" rel="noopener noreferrer" class="profile-social-icon" title="Website">
+                                    <i data-feather="globe"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profile Details Section -->
+                <div class="profile-hero-details">
+                    {% if user.bio %}
+                    <p class="profile-bio">{{ user.bio }}</p>
+                    {% endif %}
+                    
+                    <div class="profile-info-grid">
+                        {% if user.hourly_rate > 0 %}
+                        <div class="profile-pricing">
+                            <div class="pricing-label">Rate</div>
+                            <div class="pricing-value">${{ "%.0f"|format(user.hourly_rate) }}/hour</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.location %}
+                        <div class="profile-location">
+                            <div class="location-label">Location</div>
+                            <div class="location-value">
+                                <i data-feather="map-pin" style="width: 14px; height: 14px;"></i>
+                                {{ user.location.replace('-', ', ')|title }}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                     
-                    <h3 class="fw-bold mb-2">{{ user.full_name }}</h3>
-                    
-                    {% if user.profession %}
-                    <p class="text-muted mb-3">{{ user.profession|title }}</p>
-                    {% endif %}
-                    
-                    {% if user.location %}
-                    <p class="text-muted mb-3">
-                        <i data-feather="map-pin" class="me-1" style="width: 16px; height: 16px;"></i>
-                        {{ user.location }}
-                    </p>
-                    {% endif %}
-                    
-                    {% if user.hourly_rate > 0 %}
-                    <div class="pricing-info mb-3">
-                        <h4 class="text-primary fw-bold mb-0">${{ "%.0f"|format(user.hourly_rate) }}/hour</h4>
-                        <small class="text-muted">{{ user.currency }}</small>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="mb-3">
+                    <div class="profile-tags-modern">
                         {% if user.industry %}
-                        <span class="badge bg-primary me-2">{{ user.industry|title }}</span>
+                        <span class="tag-modern primary">{{ user.industry|title }}</span>
                         {% endif %}
                         {% if user.expertise %}
-                        <span class="badge bg-secondary">{{ user.expertise }}</span>
+                        <span class="tag-modern secondary">{{ user.expertise }}</span>
                         {% endif %}
                     </div>
-                    
-
-                    
-                    <!-- Social Media Links -->
-                    {% if user.linkedin_url or user.twitter_url or user.youtube_url or user.instagram_url or user.website_url %}
-                    <div class="social-links mb-3">
-                        {% if user.linkedin_url %}
-                        <a href="{{ user.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="social-link" title="LinkedIn">
-                            <i data-feather="linkedin"></i>
-                        </a>
-                        {% endif %}
-                        {% if user.twitter_url %}
-                        <a href="{{ user.twitter_url }}" target="_blank" rel="noopener noreferrer" class="social-link" title="Twitter/X">
-                            <i data-feather="twitter"></i>
-                        </a>
-                        {% endif %}
-                        {% if user.youtube_url %}
-                        <a href="{{ user.youtube_url }}" target="_blank" rel="noopener noreferrer" class="social-link" title="YouTube">
-                            <i data-feather="youtube"></i>
-                        </a>
-                        {% endif %}
-                        {% if user.instagram_url %}
-                        <a href="{{ user.instagram_url }}" target="_blank" rel="noopener noreferrer" class="social-link" title="Instagram">
-                            <i data-feather="instagram"></i>
-                        </a>
-                        {% endif %}
-                        {% if user.website_url %}
-                        <a href="{{ user.website_url }}" target="_blank" rel="noopener noreferrer" class="social-link" title="Website">
-                            <i data-feather="globe"></i>
-                        </a>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    
-                    {% if current_user == user %}
-                    <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary">
-                        <i data-feather="edit" class="me-2"></i>Edit Profile
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Export Calendar -->
-            <div class="card mt-3">
-                <div class="card-body">
-                    <h6 class="fw-bold mb-3">Calendar Export</h6>
-                    <a href="{{ url_for('export_calendar', username=user.username) }}" class="btn btn-outline-secondary w-100">
-                        <i data-feather="download" class="me-2"></i>Download iCal
-                    </a>
                 </div>
             </div>
         </div>
         
-        <!-- Bio and Sessions -->
+        <!-- Available Time Slots -->
         <div class="col-lg-8">
-            {% if user.bio %}
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="fw-bold mb-3">About</h5>
-                    <p class="card-text">{{ user.bio }}</p>
-                </div>
-            </div>
-            {% endif %}
-            
-            <!-- Available Sessions -->
             <div class="card">
                 <div class="card-header">
-                    <h5 class="fw-bold mb-0">Available Sessions</h5>
+                    <h5 class="mb-0">
+                        <i data-feather="calendar" class="me-2"></i>Available Sessions
+                    </h5>
                 </div>
                 <div class="card-body">
-                    {% if available_slots %}
-                    <div class="row g-3">
-                        {% for slot in available_slots %}
-                        <div class="col-md-6">
-                            <div class="session-card border rounded p-3">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h6 class="fw-bold mb-1">{{ slot.title }}</h6>
-                                    {% if slot.price > 0 %}
-                                    <span class="badge bg-primary">${{ "%.0f"|format(slot.price) }}</span>
-                                    {% else %}
-                                    <span class="badge bg-success">Free</span>
+                    {% if time_slots %}
+                        <div class="row g-3">
+                            {% for slot in time_slots %}
+                            <div class="col-md-6">
+                                <div class="time-slot-card">
+                                    <div class="time-slot-header">
+                                        <h6 class="fw-bold mb-1">{{ slot.title }}</h6>
+                                        <small class="text-muted">{{ slot.session_type|title }}</small>
+                                    </div>
+                                    
+                                    <div class="time-slot-details">
+                                        <div class="slot-datetime">
+                                            <i data-feather="calendar" style="width: 14px; height: 14px;"></i>
+                                            {{ slot.start_datetime.strftime('%B %d, %Y') }}
+                                        </div>
+                                        <div class="slot-time">
+                                            <i data-feather="clock" style="width: 14px; height: 14px;"></i>
+                                            {{ slot.start_datetime.strftime('%I:%M %p') }} - {{ slot.end_datetime.strftime('%I:%M %p') }}
+                                        </div>
+                                        <div class="slot-format">
+                                            <i data-feather="video" style="width: 14px; height: 14px;"></i>
+                                            Video Session
+                                            {% if slot.meeting_details %}
+                                            - {{ slot.meeting_details }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    {% if slot.description %}
+                                    <p class="slot-description">{{ slot.description[:100] }}{% if slot.description|length > 100 %}...{% endif %}</p>
                                     {% endif %}
-                                </div>
-                                
-                                <div class="session-details mb-3">
-                                    <small class="text-muted d-block">
-                                        <i data-feather="calendar" style="width: 14px; height: 14px;"></i>
-                                        {{ slot.start_datetime.strftime('%B %d, %Y') }}
-                                    </small>
-                                    <small class="text-muted d-block">
-                                        <i data-feather="clock" style="width: 14px; height: 14px;"></i>
-                                        {{ slot.start_datetime.strftime('%I:%M %p') }} - {{ slot.end_datetime.strftime('%I:%M %p') }}
-                                    </small>
-                                    <small class="text-muted d-block">
-                                        <i data-feather="video" style="width: 14px; height: 14px;"></i>
-                                        Video Session
-                                        {% if slot.meeting_details %}
-                                        - {{ slot.meeting_details }}
+                                    
+                                    <div class="slot-footer">
+                                        {% if slot.price > 0 %}
+                                        <div class="slot-price">
+                                            <span class="price-amount">${{ "%.0f"|format(slot.price) }}</span>
+                                        </div>
+                                        {% else %}
+                                        <div class="slot-price">
+                                            <span class="price-amount">Free</span>
+                                        </div>
                                         {% endif %}
-                                    </small>
+                                        
+                                        {% if current_user != user %}
+                                        <a href="{{ url_for('book_session', slot_id=slot.id) }}" class="btn btn-primary btn-sm">
+                                            <i data-feather="calendar" class="me-1"></i>Book Session
+                                        </a>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                                
-                                {% if slot.description %}
-                                <p class="small text-muted mb-3">{{ slot.description[:100] }}{% if slot.description|length > 100 %}...{% endif %}</p>
-                                {% endif %}
-                                
-                                {% if current_user != user %}
-                                <a href="{{ url_for('book_session', slot_id=slot.id) }}" class="btn btn-primary btn-sm w-100">
-                                    <i data-feather="calendar" class="me-1"></i>Book Session
-                                </a>
-                                {% endif %}
                             </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
                     {% else %}
-                    <div class="text-center py-4">
-                        <i data-feather="calendar" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
-                        <h6 class="text-muted">No available sessions</h6>
-                        <p class="text-muted small">This expert hasn't added any available time slots yet.</p>
-                    </div>
+                        <div class="empty-state text-center py-5">
+                            <i data-feather="calendar" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+                            <h6 class="text-muted">No available sessions at the moment</h6>
+                            <p class="text-muted small">Check back later for new availability</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
