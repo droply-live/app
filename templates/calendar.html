@@ -72,10 +72,10 @@
                                             {{ slot.start_datetime.strftime('%I:%M %p') }} - {{ slot.end_datetime.strftime('%I:%M %p') }}
                                         </small>
                                         <small class="text-muted d-block">
-                                            <i data-feather="{% if slot.location_type == 'remote' %}video{% else %}map-pin{% endif %}" style="width: 14px; height: 14px;"></i>
-                                            {{ slot.location_type|title }}
-                                            {% if slot.location_details %}
-                                            - {{ slot.location_details }}
+                                            <i data-feather="video" style="width: 14px; height: 14px;"></i>
+                                            Video Session
+                                            {% if slot.meeting_details %}
+                                            - {{ slot.meeting_details }}
                                             {% endif %}
                                         </small>
                                     </div>

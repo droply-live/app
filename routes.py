@@ -224,8 +224,7 @@ def add_time_slot():
             start_datetime=form.start_datetime.data,
             end_datetime=form.end_datetime.data,
             session_type=form.session_type.data,
-            location_type=form.location_type.data,
-            location_details=form.location_details.data,
+            meeting_details=form.location_details.data,
             price=form.price.data or current_user.hourly_rate
         )
         

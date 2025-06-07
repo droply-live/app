@@ -83,7 +83,7 @@ class TimeSlotForm(FlaskForm):
         ('other', 'Other')
     ], default='consultation')
     
-    location_type = HiddenField(default='remote')
+
     
     location_details = StringField('Meeting Details', validators=[Optional(), Length(max=200)])
     price = FloatField('Price', validators=[Optional(), NumberRange(min=0, max=10000)])
