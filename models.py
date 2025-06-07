@@ -29,7 +29,6 @@ class User(UserMixin, db.Model):
     # Profile settings
     is_available = db.Column(db.Boolean, default=True)
     offers_remote = db.Column(db.Boolean, default=True)
-    offers_in_person = db.Column(db.Boolean, default=False)
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

@@ -17,56 +17,39 @@
         <div class="card-body">
             <form method="GET" id="searchForm">
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-8">
                         {{ form.query.label(class="form-label fw-bold") }}
-                        {{ form.query(class="form-control", placeholder="Search by name, expertise, or bio...") }}
+                        {{ form.query(class="form-control form-control-lg", placeholder="Search for coaches, mentors, consultants...") }}
+                        <small class="form-text text-muted">Try searching for skills like "business coaching", "marketing", or "fitness training"</small>
                     </div>
                     
-                    <div class="col-md-2">
+                    <div class="col-md-4">
                         {{ form.industry.label(class="form-label fw-bold") }}
-                        {{ form.industry(class="form-select") }}
-                    </div>
-                    
-                    <div class="col-md-2">
-                        {{ form.profession.label(class="form-label fw-bold") }}
-                        {{ form.profession(class="form-select") }}
-                    </div>
-                    
-                    <div class="col-md-2">
-                        {{ form.location.label(class="form-label fw-bold") }}
-                        {{ form.location(class="form-control", placeholder="City, State") }}
-                    </div>
-                    
-                    <div class="col-md-2">
-                        {{ form.location_type.label(class="form-label fw-bold") }}
-                        {{ form.location_type(class="form-select") }}
+                        {{ form.industry(class="form-select form-select-lg") }}
                     </div>
                 </div>
                 
-                <!-- Advanced Filters (Collapsible) -->
-                <div class="row mt-3">
+                <!-- Popular Categories -->
+                <div class="row mt-4">
                     <div class="col-12">
-                        <a class="btn btn-link p-0 text-decoration-none" data-bs-toggle="collapse" href="#advancedFilters" role="button" aria-expanded="false">
-                            <i data-feather="sliders" class="me-1"></i>Advanced Filters
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="collapse mt-3" id="advancedFilters">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            {{ form.min_rate.label(class="form-label fw-bold") }}
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                {{ form.min_rate(class="form-control", placeholder="0") }}
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-3">
-                            {{ form.max_rate.label(class="form-label fw-bold") }}
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                {{ form.max_rate(class="form-control", placeholder="1000") }}
+                        <div class="popular-categories">
+                            <h6 class="text-muted mb-3">Popular Categories:</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm category-btn" data-category="business">
+                                    <i data-feather="briefcase" style="width: 14px; height: 14px;"></i> Business Coaching
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm category-btn" data-category="technology">
+                                    <i data-feather="monitor" style="width: 14px; height: 14px;"></i> Tech Mentoring
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm category-btn" data-category="marketing">
+                                    <i data-feather="megaphone" style="width: 14px; height: 14px;"></i> Marketing
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm category-btn" data-category="fitness">
+                                    <i data-feather="activity" style="width: 14px; height: 14px;"></i> Fitness & Wellness
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm category-btn" data-category="finance">
+                                    <i data-feather="dollar-sign" style="width: 14px; height: 14px;"></i> Finance
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -139,16 +122,9 @@
                                 {% endif %}
                                 
                                 <div class="mt-2">
-                                    {% if user.offers_remote %}
                                     <span class="badge bg-success me-1">
-                                        <i data-feather="video" style="width: 10px; height: 10px;"></i> Remote
+                                        <i data-feather="video" style="width: 10px; height: 10px;"></i> Remote Sessions
                                     </span>
-                                    {% endif %}
-                                    {% if user.offers_in_person %}
-                                    <span class="badge bg-info">
-                                        <i data-feather="users" style="width: 10px; height: 10px;"></i> In-Person
-                                    </span>
-                                    {% endif %}
                                 </div>
                                 
                                 <!-- Social Media Links (compact) -->
