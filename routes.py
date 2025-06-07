@@ -121,7 +121,7 @@ def edit_profile():
         current_user.website_url = form.website_url.data
         current_user.is_available = form.is_available.data
         current_user.offers_remote = form.offers_remote.data
-        current_user.offers_in_person = form.offers_in_person.data
+
         
         db.session.commit()
         flash('Profile updated successfully!', 'success')
@@ -158,11 +158,8 @@ def search():
         location_term = f"%{form.location.data}%"
         query = query.filter(User.location.ilike(location_term))
     
-    if form.location_type.data:
-        if form.location_type.data == 'remote':
-            query = query.filter(User.offers_remote == True)
-        elif form.location_type.data == 'in_person':
-            query = query.filter(User.offers_in_person == True)
+    # All sessions are remote by default
+    query = query.filter(User.offers_remote == True)
     
     if form.min_rate.data is not None:
         query = query.filter(User.hourly_rate >= form.min_rate.data)
