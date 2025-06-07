@@ -17,15 +17,20 @@
         <div class="card-body">
             <form method="GET" id="searchForm">
                 <div class="row g-3">
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         {{ form.query.label(class="form-label fw-bold") }}
                         {{ form.query(class="form-control form-control-lg", placeholder="Search for coaches, mentors, consultants...") }}
                         <small class="form-text text-muted">Try searching for skills like "business coaching", "marketing", or "fitness training"</small>
                     </div>
                     
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         {{ form.industry.label(class="form-label fw-bold") }}
                         {{ form.industry(class="form-select form-select-lg") }}
+                    </div>
+                    
+                    <div class="col-md-3">
+                        {{ form.location.label(class="form-label fw-bold") }}
+                        {{ form.location(class="form-select form-select-lg") }}
                     </div>
                 </div>
                 
@@ -117,7 +122,7 @@
                             <div class="session-info mb-3">
                                 {% if user.location %}
                                 <small class="text-muted d-block">
-                                    <i data-feather="map-pin" style="width: 14px; height: 14px;"></i> {{ user.location }}
+                                    <i data-feather="map-pin" style="width: 14px; height: 14px;"></i> {{ user.location.replace('-', ', ')|title }}
                                 </small>
                                 {% endif %}
                                 

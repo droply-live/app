@@ -96,6 +96,17 @@
                             </div>
                         </div>
                         
+                        <!-- Profile Appearance -->
+                        <div class="section-header mb-4">
+                            <h5 class="fw-bold text-primary">Profile Appearance</h5>
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.background_image_url.label(class="form-label") }}
+                            {{ form.background_image_url(class="form-control", placeholder="https://example.com/your-background-image.jpg") }}
+                            <small class="form-text text-muted">Add a background image URL for your profile header. Use high-quality images for best results.</small>
+                        </div>
+                        
                         <!-- Social Media Links -->
                         <div class="section-header mb-4">
                             <h5 class="fw-bold text-primary">Social Media & Online Presence</h5>

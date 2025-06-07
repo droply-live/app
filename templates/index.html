@@ -115,7 +115,7 @@
                                 {% endif %}
                                 {% if user.location %}
                                 <small class="text-muted d-block mt-1">
-                                    <i data-feather="map-pin" style="width: 14px; height: 14px;"></i> {{ user.location }}
+                                    <i data-feather="map-pin" style="width: 14px; height: 14px;"></i> {{ user.location.replace('-', ', ')|title }}
                                 </small>
                                 {% endif %}
                                 
