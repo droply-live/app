@@ -16,6 +16,7 @@ class User(UserMixin, db.Model):
     profession = db.Column(db.String(100))
     expertise = db.Column(db.String(200))
     location = db.Column(db.String(100))
+    background_image_url = db.Column(db.String(500))
     hourly_rate = db.Column(db.Float, default=0.0)
     currency = db.Column(db.String(3), default='USD')
     
