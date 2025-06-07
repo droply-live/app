@@ -67,8 +67,7 @@ class ProfileForm(FlaskForm):
     
     # Availability settings
     is_available = BooleanField('Currently Available for Sessions')
-    offers_remote = BooleanField('Offer Remote Sessions')
-    offers_in_person = BooleanField('Offer In-Person Sessions')
+    offers_remote = BooleanField('Available for Remote Sessions', default=True)
 
 class TimeSlotForm(FlaskForm):
     title = StringField('Session Title', validators=[DataRequired(), Length(max=200)])
@@ -84,10 +83,7 @@ class TimeSlotForm(FlaskForm):
         ('other', 'Other')
     ], default='consultation')
     
-    location_type = SelectField('Location Type', choices=[
-        ('remote', 'Remote (Online)'),
-        ('in_person', 'In-Person')
-    ], default='remote')
+    location_type = HiddenField(default='remote')
     
     location_details = StringField('Location Details', validators=[Optional(), Length(max=200)])
     price = FloatField('Price', validators=[Optional(), NumberRange(min=0, max=10000)])
@@ -128,11 +124,7 @@ class SearchForm(FlaskForm):
     ], default='')
     
     location = StringField('Location', validators=[Optional()])
-    location_type = SelectField('Session Type', choices=[
-        ('', 'All Types'),
-        ('remote', 'Remote Only'),
-        ('in_person', 'In-Person Only')
-    ], default='')
+
     
     min_rate = FloatField('Min Rate', validators=[Optional(), NumberRange(min=0)])
     max_rate = FloatField('Max Rate', validators=[Optional(), NumberRange(min=0)])
