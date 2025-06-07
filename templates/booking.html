@@ -39,13 +39,13 @@
                                         </div>
                                         <div class="col-sm-6">
                                             <small class="text-muted d-block">
-                                                <i data-feather="{% if time_slot.location_type == 'remote' %}video{% else %}map-pin{% endif %}" style="width: 14px; height: 14px;"></i>
-                                                <strong>Type:</strong> {{ time_slot.location_type|title }}
+                                                <i data-feather="video" style="width: 14px; height: 14px;"></i>
+                                                <strong>Format:</strong> Video Session
                                             </small>
-                                            {% if time_slot.location_details %}
+                                            {% if time_slot.meeting_details %}
                                             <small class="text-muted d-block">
                                                 <i data-feather="info" style="width: 14px; height: 14px;"></i>
-                                                <strong>Details:</strong> {{ time_slot.location_details }}
+                                                <strong>Meeting:</strong> {{ time_slot.meeting_details }}
                                             </small>
                                             {% endif %}
                                         </div>
