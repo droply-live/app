@@ -119,6 +119,7 @@ def edit_profile():
         current_user.youtube_url = form.youtube_url.data
         current_user.instagram_url = form.instagram_url.data
         current_user.website_url = form.website_url.data
+        current_user.background_image_url = form.background_image_url.data
         current_user.is_available = form.is_available.data
 
 
@@ -155,8 +156,7 @@ def search():
         query = query.filter(User.profession == form.profession.data)
     
     if form.location.data:
-        location_term = f"%{form.location.data}%"
-        query = query.filter(User.location.ilike(location_term))
+        query = query.filter(User.location == form.location.data)
     
 
     
