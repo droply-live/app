@@ -180,11 +180,6 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            {{ form.location_type.label(class="form-label fw-bold") }}
-                            {{ form.location_type(class="form-select") }}
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
                             {{ form.price.label(class="form-label fw-bold") }}
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
@@ -192,11 +187,12 @@
                             </div>
                             <small class="form-text text-muted">Leave empty to use your default rate ({{ "$%.0f"|format(current_user.hourly_rate) if current_user.hourly_rate > 0 else "Free" }})</small>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.location_details.label(class="form-label fw-bold") }}
-                        {{ form.location_details(class="form-control", placeholder="Meeting room, Zoom link, address, etc.") }}
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.location_details.label(class="form-label fw-bold") }}
+                            {{ form.location_details(class="form-control", placeholder="Video meeting link (optional)") }}
+                            <small class="form-text text-muted">This will be shared after booking confirmation</small>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
