@@ -67,7 +67,7 @@ class ProfileForm(FlaskForm):
     
     # Availability settings
     is_available = BooleanField('Currently Available for Sessions')
-    offers_remote = BooleanField('Available for Remote Sessions', default=True)
+
 
 class TimeSlotForm(FlaskForm):
     title = StringField('Session Title', validators=[DataRequired(), Length(max=200)])
@@ -85,7 +85,7 @@ class TimeSlotForm(FlaskForm):
     
     location_type = HiddenField(default='remote')
     
-    location_details = StringField('Location Details', validators=[Optional(), Length(max=200)])
+    location_details = StringField('Meeting Details', validators=[Optional(), Length(max=200)])
     price = FloatField('Price', validators=[Optional(), NumberRange(min=0, max=10000)])
 
 class BookingForm(FlaskForm):
