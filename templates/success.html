@@ -48,8 +48,8 @@
                         
                         <div class="row text-start">
                             <div class="col-sm-6">
-                                <small class="text-muted d-block mb-1">Type</small>
-                                <strong>{{ booking.time_slot.location_type|title }}</strong>
+                                <small class="text-muted d-block mb-1">Format</small>
+                                <strong>Video Session</strong>
                             </div>
                             <div class="col-sm-6">
                                 <small class="text-muted d-block mb-1">Amount</small>
@@ -63,11 +63,11 @@
                             </div>
                         </div>
                         
-                        {% if booking.time_slot.location_details %}
+                        {% if booking.time_slot.meeting_details %}
                         <hr class="my-3">
                         <div class="text-start">
-                            <small class="text-muted d-block mb-1">Location Details</small>
-                            <strong>{{ booking.time_slot.location_details }}</strong>
+                            <small class="text-muted d-block mb-1">Meeting Details</small>
+                            <strong>{{ booking.time_slot.meeting_details }}</strong>
                         </div>
                         {% endif %}
                     </div>
@@ -80,9 +80,7 @@
                         <ul class="small mb-0">
                             <li>You will receive a confirmation email at <strong>{{ booking.client_email }}</strong></li>
                             <li>The provider will contact you with session details</li>
-                            {% if booking.time_slot.location_type == 'remote' %}
                             <li>Meeting link will be shared before the session</li>
-                            {% endif %}
                             <li>Please arrive on time for your scheduled session</li>
                         </ul>
                     </div>
