@@ -120,7 +120,7 @@ def edit_profile():
         current_user.instagram_url = form.instagram_url.data
         current_user.website_url = form.website_url.data
         current_user.is_available = form.is_available.data
-        current_user.offers_remote = form.offers_remote.data
+
 
         
         db.session.commit()
@@ -158,8 +158,7 @@ def search():
         location_term = f"%{form.location.data}%"
         query = query.filter(User.location.ilike(location_term))
     
-    # All sessions are remote by default
-    query = query.filter(User.offers_remote == True)
+
     
     if form.min_rate.data is not None:
         query = query.filter(User.hourly_rate >= form.min_rate.data)

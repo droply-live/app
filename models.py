@@ -28,7 +28,7 @@ class User(UserMixin, db.Model):
     
     # Profile settings
     is_available = db.Column(db.Boolean, default=True)
-    offers_remote = db.Column(db.Boolean, default=True)
+
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -55,8 +55,7 @@ class TimeSlot(db.Model):
     title = db.Column(db.String(200))
     description = db.Column(db.Text)
     session_type = db.Column(db.String(50), default='consultation')  # consultation, coaching, mentoring
-    location_type = db.Column(db.String(20), default='remote')  # remote, in_person
-    location_details = db.Column(db.String(200))
+    meeting_details = db.Column(db.String(200))
     
     # Pricing
     price = db.Column(db.Float, default=0.0)
