@@ -65,7 +65,7 @@
                     <h5 class="fw-bold mb-3">Quick Actions</h5>
                     <div class="d-flex gap-3 flex-wrap">
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSlotModal">
-                            <i data-feather="calendar-plus" class="me-2"></i>Add Time Slot
+                            <i data-feather="plus" class="me-2"></i>Add Time Slot
                         </button>
                         <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary">
                             <i data-feather="edit" class="me-2"></i>Edit Profile
@@ -125,7 +125,7 @@
                     
                     {% else %}
                     <div class="text-center py-4">
-                        <i data-feather="calendar-x" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
+                        <i data-feather="x-circle" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
                         <p class="text-muted mb-0">No bookings received yet</p>
                         <small class="text-muted">Share your profile link to get started!</small>
                     </div>
@@ -235,7 +235,7 @@
                     </div>
                     {% else %}
                     <div class="text-center py-4">
-                        <i data-feather="calendar-plus" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
+                        <i data-feather="plus-circle" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
                         <p class="text-muted mb-3">No time slots created yet</p>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSlotModal">
                             <i data-feather="plus" class="me-2"></i>Create Your First Time Slot
@@ -254,7 +254,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addSlotModalLabel">
-                    <i data-feather="calendar-plus" class="me-2"></i>Quick Add Time Slot
+                    <i data-feather="plus" class="me-2"></i>Quick Add Time Slot
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
