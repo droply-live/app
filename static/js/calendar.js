@@ -1,12 +1,36 @@
 /**
- * Calendar functionality for Droply
+ * Modern Calendar functionality for Droply
  */
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeCalendar();
     initializeViewSwitcher();
     initializeFormValidation();
+    // Add listeners for auto-update
+    document.getElementById('defaultDuration').addEventListener('change', function() {
+        updateTimeSlotRules();
+        generateCalendarView();
+    });
+    document.getElementById('workingHoursStart').addEventListener('change', function() {
+        updateTimeSlotRules();
+        generateCalendarView();
+    });
+    document.getElementById('workingHoursEnd').addEventListener('change', function() {
+        updateTimeSlotRules();
+        generateCalendarView();
+    });
 });
+
+// Global state for time slot rules
+const timeSlotRules = {
+    defaultDuration: 30, // minutes
+    workingHours: {
+        start: 9, // 9 AM
+        end: 17,  // 5 PM
+    },
+    daysOff: [], // Array of dates that are blocked
+    customRules: {} // Specific rules for certain dates
+};
 
 /**
  * Initialize calendar functionality
@@ -60,19 +84,18 @@ function generateCalendarView() {
     const year = now.getFullYear();
     const month = now.getMonth();
     
-    // Clear existing content
     calendarGrid.innerHTML = '';
+    calendarGrid.className = 'calendar-grid';
     
     // Add day headers
     const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     dayHeaders.forEach(day => {
         const header = document.createElement('div');
-        header.className = 'calendar-header text-center fw-bold p-2 bg-light';
+        header.className = 'calendar-header';
         header.textContent = day;
         calendarGrid.appendChild(header);
     });
     
-    // Get first day of month and number of days
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
@@ -82,8 +105,6 @@ function generateCalendarView() {
     for (let i = 0; i < startingDayOfWeek; i++) {
         const emptyDay = document.createElement('div');
         emptyDay.className = 'calendar-day other-month';
-        const prevMonthDate = new Date(year, month, -startingDayOfWeek + i + 1);
-        emptyDay.innerHTML = `<div class="calendar-date">${prevMonthDate.getDate()}</div>`;
         calendarGrid.appendChild(emptyDay);
     }
     
@@ -99,21 +120,81 @@ function generateCalendarView() {
             dayElement.classList.add('today');
         }
         
+        // Check if day has custom rules
+        const dateKey = currentDate.toISOString().split('T')[0];
+        const hasCustomRules = timeSlotRules.customRules[dateKey];
+        
         dayElement.innerHTML = `
-            <div class="calendar-date fw-bold">${day}</div>
-            <div class="calendar-events" id="events-${year}-${month}-${day}"></div>
+            <div class="calendar-date">${day}</div>
+            <div class="calendar-time-slots" id="slots-${dateKey}"></div>
         `;
         
-        // Add click handler for adding events
+        // Add click handler for day customization
         dayElement.addEventListener('click', function() {
-            openAddEventModal(currentDate);
+            openDayCustomizationModal(currentDate);
         });
         
         calendarGrid.appendChild(dayElement);
+        
+        // Generate time slots for this day
+        generateTimeSlotsForDay(currentDate, hasCustomRules);
     }
+}
+
+function generateTimeSlotsForDay(date, customRules) {
+    const dateKey = date.toISOString().split('T')[0];
+    const slotsContainer = document.getElementById(`slots-${dateKey}`);
+    if (!slotsContainer) return;
     
-    // Load and display time slots
-    loadTimeSlots();
+    const rules = customRules || timeSlotRules;
+    const startHour = rules.workingHours.start;
+    const endHour = rules.workingHours.end;
+    const duration = rules.defaultDuration;
+    
+    for (let hour = startHour; hour < endHour; hour += duration / 60) {
+        const slot = document.createElement('div');
+        slot.className = 'time-slot';
+        slot.innerHTML = `
+            <div class="time-slot-time">
+                ${formatTime(hour)} - ${formatTime(hour + duration / 60)}
+            </div>
+        `;
+        slotsContainer.appendChild(slot);
+    }
+}
+
+function formatTime(hour) {
+    const h = Math.floor(hour);
+    const m = Math.round((hour - h) * 60);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+}
+
+function openDayCustomizationModal(date) {
+    const dateKey = date.toISOString().split('T')[0];
+    const modal = new bootstrap.Modal(document.getElementById('dayCustomizationModal'));
+    
+    // Populate modal with current rules
+    const currentRules = timeSlotRules.customRules[dateKey] || timeSlotRules;
+    document.getElementById('customStartTime').value = `${currentRules.workingHours.start.toString().padStart(2, '0')}:00`;
+    document.getElementById('customEndTime').value = `${currentRules.workingHours.end.toString().padStart(2, '0')}:00`;
+    document.getElementById('customDuration').value = currentRules.defaultDuration;
+    
+    // Save button handler
+    document.getElementById('saveCustomRules').onclick = function() {
+        const newRules = {
+            workingHours: {
+                start: parseInt(document.getElementById('customStartTime').value.split(':')[0]),
+                end: parseInt(document.getElementById('customEndTime').value.split(':')[0])
+            },
+            defaultDuration: parseInt(document.getElementById('customDuration').value)
+        };
+        
+        timeSlotRules.customRules[dateKey] = newRules;
+        generateCalendarView();
+        modal.hide();
+    };
+    
+    modal.show();
 }
 
 /**
@@ -394,3 +475,9 @@ function initializeAutoRefresh() {
 
 // Initialize auto-refresh
 initializeAutoRefresh();
+
+function updateTimeSlotRules() {
+    timeSlotRules.defaultDuration = parseInt(document.getElementById('defaultDuration').value);
+    timeSlotRules.workingHours.start = parseInt(document.getElementById('workingHoursStart').value.split(':')[0]);
+    timeSlotRules.workingHours.end = parseInt(document.getElementById('workingHoursEnd').value.split(':')[0]);
+}
