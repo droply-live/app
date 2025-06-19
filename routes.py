@@ -1,12 +1,12 @@
 import os
 import stripe
-from datetime import datetime, timezone, timedelta
-from flask import render_template, request, redirect, url_for, flash, session, make_response
+from datetime import datetime, timezone, timedelta, time
+from flask import render_template, request, redirect, url_for, flash, session, make_response, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_, and_
 from app import app, db
-from models import User, TimeSlot, Booking
+from models import User, TimeSlot, Booking, AvailabilityRule, AvailabilityException
 from forms import RegistrationForm, LoginForm, ProfileForm, TimeSlotForm, BookingForm, SearchForm
 from utils import generate_ical_content
 
@@ -356,6 +356,132 @@ def export_calendar(username):
     response.headers['Content-Disposition'] = f'attachment; filename={username}_calendar.ics'
     
     return response
+
+@app.route('/api/timeslots', methods=['GET'])
+@login_required
+def api_get_timeslots():
+    """Return all time slots for the current user as JSON (for FullCalendar)"""
+    slots = TimeSlot.query.filter_by(user_id=current_user.id).all()
+    events = []
+    for slot in slots:
+        events.append({
+            'id': slot.id,
+            'title': slot.title or 'Available',
+            'start': slot.start_datetime.isoformat(),
+            'end': slot.end_datetime.isoformat(),
+            'color': '#4caf50' if slot.is_available else '#bdbdbd',
+            'editable': slot.is_available,
+        })
+    return jsonify(events)
+
+@app.route('/api/timeslots', methods=['POST'])
+@login_required
+def api_add_timeslot():
+    """Add a new time slot for the current user (from FullCalendar)"""
+    data = request.get_json()
+    start = data.get('start')
+    end = data.get('end')
+    title = data.get('title', 'Available')
+    if not start or not end:
+        return jsonify({'error': 'Missing start or end'}), 400
+    # Prevent overlap
+    start_dt = datetime.fromisoformat(start)
+    end_dt = datetime.fromisoformat(end)
+    overlap = TimeSlot.query.filter(
+        TimeSlot.user_id == current_user.id,
+        TimeSlot.end_datetime > start_dt,
+        TimeSlot.start_datetime < end_dt
+    ).first()
+    if overlap:
+        return jsonify({'error': 'Time slot overlaps with an existing slot'}), 400
+    slot = TimeSlot(
+        user_id=current_user.id,
+        start_datetime=start_dt,
+        end_datetime=end_dt,
+        title=title,
+        is_available=True
+    )
+    db.session.add(slot)
+    db.session.commit()
+    return jsonify({'success': True, 'id': slot.id})
+
+@app.route('/api/timeslots/<int:slot_id>', methods=['DELETE'])
+@login_required
+def api_delete_timeslot(slot_id):
+    """Delete a time slot for the current user (from FullCalendar)"""
+    slot = TimeSlot.query.filter_by(id=slot_id, user_id=current_user.id).first()
+    if not slot:
+        return jsonify({'error': 'Not found'}), 404
+    db.session.delete(slot)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/availability/rules', methods=['GET'])
+@login_required
+def get_availability_rules():
+    rules = AvailabilityRule.query.filter_by(user_id=current_user.id).all()
+    return jsonify([
+        {
+            'weekday': r.weekday,
+            'start': r.start_time.strftime('%H:%M'),
+            'end': r.end_time.strftime('%H:%M')
+        } for r in rules
+    ])
+
+@app.route('/api/availability/rules', methods=['POST'])
+@login_required
+def set_availability_rules():
+    data = request.get_json()
+    # Remove all old rules
+    AvailabilityRule.query.filter_by(user_id=current_user.id).delete()
+    # Add new rules
+    for rule in data.get('rules', []):
+        if not rule.get('enabled'): continue
+        new_rule = AvailabilityRule(
+            user_id=current_user.id,
+            weekday=rule['day'],
+            start_time=time.fromisoformat(rule['start']),
+            end_time=time.fromisoformat(rule['end'])
+        )
+        db.session.add(new_rule)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/availability/exceptions', methods=['GET'])
+@login_required
+def get_availability_exceptions():
+    exceptions = AvailabilityException.query.filter_by(user_id=current_user.id).all()
+    return jsonify([
+        {
+            'id': e.id,
+            'start': e.start_datetime.isoformat(),
+            'end': e.end_datetime.isoformat(),
+            'reason': e.reason
+        } for e in exceptions
+    ])
+
+@app.route('/api/availability/exceptions', methods=['POST'])
+@login_required
+def add_availability_exception():
+    data = request.get_json()
+    from datetime import datetime
+    start = datetime.fromisoformat(data['start'])
+    end = datetime.fromisoformat(data['end'])
+    reason = data.get('reason')
+    ex = AvailabilityException(user_id=current_user.id, start_datetime=start, end_datetime=end, reason=reason)
+    db.session.add(ex)
+    db.session.commit()
+    return jsonify({'success': True, 'id': ex.id})
+
+@app.route('/api/availability/exceptions/<int:ex_id>', methods=['DELETE'])
+@login_required
+def delete_availability_exception(ex_id):
+    ex = AvailabilityException.query.filter_by(id=ex_id, user_id=current_user.id).first()
+    if not ex:
+        return jsonify({'error': 'Not found'}), 404
+    db.session.delete(ex)
+    db.session.commit()
+    return jsonify({'success': True})
 
 @app.errorhandler(404)
 def not_found(error):

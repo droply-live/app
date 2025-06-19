@@ -103,3 +103,17 @@ class Category(db.Model):
     
     def __repr__(self):
         return f'<Category {self.name}>'
+
+class AvailabilityRule(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    weekday = db.Column(db.Integer, nullable=False)  # 0=Monday, 6=Sunday
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+
+class AvailabilityException(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    start_datetime = db.Column(db.DateTime, nullable=False)
+    end_datetime = db.Column(db.DateTime, nullable=False)
+    reason = db.Column(db.String(200))
