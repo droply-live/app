@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTimeSlotRules();
         generateCalendarView();
     });
+    document.getElementById('lockWeekends').addEventListener('change', function() {
+        timeSlotRules.lockWeekends = this.checked;
+        generateCalendarView();
+    });
 });
 
 // Global state for time slot rules
@@ -29,7 +33,9 @@ const timeSlotRules = {
         end: 17,  // 5 PM
     },
     daysOff: [], // Array of dates that are blocked
-    customRules: {} // Specific rules for certain dates
+    customRules: {}, // Specific rules for certain dates
+    lockWeekends: false, // Whether weekends should be locked
+    lockedDays: {} // Track locked days by date key
 };
 
 /**
@@ -80,15 +86,17 @@ function generateCalendarView() {
     const calendarGrid = document.getElementById('calendarGrid');
     if (!calendarGrid) return;
     
+    // Create date at noon to avoid timezone issues
     const now = new Date();
+    now.setHours(12, 0, 0, 0);
     const year = now.getFullYear();
     const month = now.getMonth();
     
     calendarGrid.innerHTML = '';
     calendarGrid.className = 'calendar-grid';
     
-    // Add day headers
-    const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    // Add day headers - starting with Monday (1) to Sunday (0)
+    const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     dayHeaders.forEach(day => {
         const header = document.createElement('div');
         header.className = 'calendar-header';
@@ -96,10 +104,11 @@ function generateCalendarView() {
         calendarGrid.appendChild(header);
     });
     
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    const firstDay = new Date(year, month, 1, 12, 0, 0, 0);
+    const lastDay = new Date(year, month + 1, 0, 12, 0, 0, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+    // Adjust starting day to match our new header order (Monday = 0, Sunday = 6)
+    let startingDayOfWeek = (firstDay.getDay() + 6) % 7;
     
     // Add empty cells for days before month starts
     for (let i = 0; i < startingDayOfWeek; i++) {
@@ -110,10 +119,16 @@ function generateCalendarView() {
     
     // Add days of current month
     for (let day = 1; day <= daysInMonth; day++) {
+        const currentDate = new Date(year, month, day, 12, 0, 0, 0);
+        
+        // Skip past days completely
+        if (currentDate < new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0)) {
+            continue;
+        }
+        
         const dayElement = document.createElement('div');
         dayElement.className = 'calendar-day';
         
-        const currentDate = new Date(year, month, day);
         const isToday = currentDate.toDateString() === now.toDateString();
         
         if (isToday) {
@@ -146,6 +161,14 @@ function generateTimeSlotsForDay(date, customRules) {
     const slotsContainer = document.getElementById(`slots-${dateKey}`);
     if (!slotsContainer) return;
     
+    // Check if it's a weekend (0 = Sunday, 6 = Saturday)
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    
+    // If day is explicitly locked or it's a weekend with weekend locking enabled (and not in custom rules), don't generate slots
+    if (timeSlotRules.lockedDays[dateKey] || (isWeekend && timeSlotRules.lockWeekends && !timeSlotRules.customRules[dateKey])) {
+        return;
+    }
+    
     const rules = customRules || timeSlotRules;
     const startHour = rules.workingHours.start;
     const endHour = rules.workingHours.end;
@@ -170,8 +193,13 @@ function formatTime(hour) {
 }
 
 function openDayCustomizationModal(date) {
+    // Ensure date is at noon to avoid timezone issues
+    date.setHours(12, 0, 0, 0);
     const dateKey = date.toISOString().split('T')[0];
     const modal = new bootstrap.Modal(document.getElementById('dayCustomizationModal'));
+    
+    // Check if it's a weekend (0 = Sunday, 6 = Saturday)
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     
     // Populate modal with current rules
     const currentRules = timeSlotRules.customRules[dateKey] || timeSlotRules;
@@ -179,17 +207,53 @@ function openDayCustomizationModal(date) {
     document.getElementById('customEndTime').value = `${currentRules.workingHours.end.toString().padStart(2, '0')}:00`;
     document.getElementById('customDuration').value = currentRules.defaultDuration;
     
+    // Set lock checkbox state
+    const lockCheckbox = document.getElementById('customLockDay');
+    // For weekends, check if either explicitly locked or weekend locking is enabled
+    const isLocked = timeSlotRules.lockedDays[dateKey] || (isWeekend && timeSlotRules.lockWeekends);
+    lockCheckbox.checked = isLocked;
+    
+    // Disable time inputs if day is locked
+    const timeInputs = document.querySelectorAll('#customStartTime, #customEndTime, #customDuration');
+    timeInputs.forEach(input => {
+        input.disabled = isLocked;
+    });
+    
+    // Add change handler for lock checkbox
+    lockCheckbox.onchange = function() {
+        timeInputs.forEach(input => {
+            input.disabled = this.checked;
+        });
+    };
+    
     // Save button handler
     document.getElementById('saveCustomRules').onclick = function() {
-        const newRules = {
-            workingHours: {
-                start: parseInt(document.getElementById('customStartTime').value.split(':')[0]),
-                end: parseInt(document.getElementById('customEndTime').value.split(':')[0])
-            },
-            defaultDuration: parseInt(document.getElementById('customDuration').value)
-        };
+        const isLocked = document.getElementById('customLockDay').checked;
         
-        timeSlotRules.customRules[dateKey] = newRules;
+        if (isLocked) {
+            // If day is locked, remove any custom rules and mark as locked
+            delete timeSlotRules.customRules[dateKey];
+            timeSlotRules.lockedDays[dateKey] = true;
+        } else {
+            // If day is unlocked, save custom rules and remove from locked days
+            const newRules = {
+                workingHours: {
+                    start: parseInt(document.getElementById('customStartTime').value.split(':')[0]),
+                    end: parseInt(document.getElementById('customEndTime').value.split(':')[0])
+                },
+                defaultDuration: parseInt(document.getElementById('customDuration').value)
+            };
+            
+            timeSlotRules.customRules[dateKey] = newRules;
+            delete timeSlotRules.lockedDays[dateKey];
+            
+            // If it's a weekend and weekend locking is enabled, we need to remove it from the weekend lock
+            if (isWeekend && timeSlotRules.lockWeekends) {
+                // Add to custom rules to prevent it from being re-locked
+                timeSlotRules.customRules[dateKey] = newRules;
+            }
+        }
+        
         generateCalendarView();
         modal.hide();
     };
@@ -480,4 +544,33 @@ function updateTimeSlotRules() {
     timeSlotRules.defaultDuration = parseInt(document.getElementById('defaultDuration').value);
     timeSlotRules.workingHours.start = parseInt(document.getElementById('workingHoursStart').value.split(':')[0]);
     timeSlotRules.workingHours.end = parseInt(document.getElementById('workingHoursEnd').value.split(':')[0]);
+    timeSlotRules.lockWeekends = document.getElementById('lockWeekends').checked;
+    
+    // Update locked days when weekend locking changes
+    if (timeSlotRules.lockWeekends) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+            const dateKey = date.toISOString().split('T')[0];
+            
+            // Only lock weekends that aren't in custom rules
+            if (isWeekend && !timeSlotRules.customRules[dateKey]) {
+                timeSlotRules.lockedDays[dateKey] = true;
+            }
+        }
+    } else {
+        // Remove weekend locks when weekend locking is disabled
+        Object.keys(timeSlotRules.lockedDays).forEach(dateKey => {
+            const date = new Date(dateKey);
+            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+            if (isWeekend) {
+                delete timeSlotRules.lockedDays[dateKey];
+            }
+        });
+    }
 }

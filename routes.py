@@ -18,13 +18,12 @@ if not YOUR_DOMAIN.startswith('http'):
 
 @app.route('/')
 def index():
-    """Homepage with featured providers"""
-    featured_users = User.query.filter(
+    """Homepage with all available providers"""
+    users = User.query.filter(
         User.is_available == True,
         User.full_name.isnot(None)
-    ).limit(6).all()
-    
-    return render_template('index.html', featured_users=featured_users)
+    ).order_by(User.created_at.desc()).all()
+    return render_template('index.html', users=users)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

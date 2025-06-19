@@ -3,172 +3,210 @@
 {% block title %}{{ user.full_name or user.username }} - Droply{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row">
-        <!-- Profile Hero Card -->
-        <div class="col-lg-4 mb-4">
-            <div class="profile-hero-card">
-                <!-- Background Image Section -->
-                <div class="profile-hero-background" style="{% if user.background_image_url %}background-image: url('{{ user.background_image_url }}');{% else %}background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);{% endif %}">
-                    <div class="profile-hero-overlay">
-                        {% if current_user == user %}
-                        <div class="profile-edit-btn">
-                            <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-light btn-sm">
-                                <i data-feather="edit" style="width: 14px; height: 14px;"></i>
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="profile-hero-content">
-                            <h2 class="profile-hero-name">{{ user.full_name or user.username }}</h2>
-                            
-                            {% if user.profession %}
-                            <p class="profile-hero-subtitle">{{ user.profession|title }}</p>
-                            {% endif %}
-                            
-                            <!-- Social Media Icons Below Name -->
-                            {% if user.linkedin_url or user.twitter_url or user.youtube_url or user.instagram_url or user.website_url %}
-                            <div class="profile-hero-social">
-                                {% if user.linkedin_url %}
-                                <a href="{{ user.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="profile-social-icon" title="LinkedIn">
-                                    <i data-feather="linkedin"></i>
-                                </a>
-                                {% endif %}
-                                {% if user.twitter_url %}
-                                <a href="{{ user.twitter_url }}" target="_blank" rel="noopener noreferrer" class="profile-social-icon" title="Twitter/X">
-                                    <i data-feather="twitter"></i>
-                                </a>
-                                {% endif %}
-                                {% if user.youtube_url %}
-                                <a href="{{ user.youtube_url }}" target="_blank" rel="noopener noreferrer" class="profile-social-icon" title="YouTube">
-                                    <i data-feather="youtube"></i>
-                                </a>
-                                {% endif %}
-                                {% if user.instagram_url %}
-                                <a href="{{ user.instagram_url }}" target="_blank" rel="noopener noreferrer" class="profile-social-icon" title="Instagram">
-                                    <i data-feather="instagram"></i>
-                                </a>
-                                {% endif %}
-                                {% if user.website_url %}
-                                <a href="{{ user.website_url }}" target="_blank" rel="noopener noreferrer" class="profile-social-icon" title="Website">
-                                    <i data-feather="globe"></i>
-                                </a>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Profile Details Section -->
-                <div class="profile-hero-details">
-                    {% if user.bio %}
-                    <p class="profile-bio">{{ user.bio }}</p>
-                    {% endif %}
-                    
-                    <div class="profile-info-grid">
-                        {% if user.hourly_rate > 0 %}
-                        <div class="profile-pricing">
-                            <div class="pricing-label">Rate</div>
-                            <div class="pricing-value">${{ "%.0f"|format(user.hourly_rate) }}/hour</div>
-                        </div>
-                        {% endif %}
-                        
-                        {% if user.location %}
-                        <div class="profile-location">
-                            <div class="location-label">Location</div>
-                            <div class="location-value">
-                                <i data-feather="map-pin" style="width: 14px; height: 14px;"></i>
-                                {{ user.location.replace('-', ', ')|title }}
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="profile-tags-modern">
-                        {% if user.industry %}
-                        <span class="tag-modern primary">{{ user.industry|title }}</span>
-                        {% endif %}
-                        {% if user.expertise %}
-                        <span class="tag-modern secondary">{{ user.expertise }}</span>
-                        {% endif %}
-                    </div>
-                </div>
+<div class="container py-5">
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-10">
+            <div class="d-flex justify-content-center mb-4">
+                <ul class="nav nav-pills gap-2" id="profileTab" role="tablist" style="background: #f5f8fd; border-radius: 18px; padding: 6px 12px;">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold px-4 py-2 d-flex align-items-center" id="overview-tab" data-bs-toggle="pill" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true" style="border-radius: 12px;"><span class="me-2">$</span>Overview</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold px-4 py-2 d-flex align-items-center" id="setup-tab" data-bs-toggle="pill" data-bs-target="#setup" type="button" role="tab" aria-controls="setup" aria-selected="false" style="border-radius: 12px;"><i data-feather="user" class="me-2"></i>Profile Setup</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold px-4 py-2 d-flex align-items-center" id="availability-tab" data-bs-toggle="pill" data-bs-target="#availability" type="button" role="tab" aria-controls="availability" aria-selected="false" style="border-radius: 12px;"><i data-feather="calendar" class="me-2"></i>Availability</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold px-4 py-2 d-flex align-items-center" id="settings-tab" data-bs-toggle="pill" data-bs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false" style="border-radius: 12px;"><i data-feather="settings" class="me-2"></i>Settings</button>
+                    </li>
+                </ul>
             </div>
-        </div>
-        
-        <!-- Available Time Slots -->
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i data-feather="calendar" class="me-2"></i>Available Sessions
-                    </h5>
+            <div class="tab-content" id="profileTabContent">
+                <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card p-4 h-100" style="min-height: 120px; border-radius: 18px; background: #fff;">
+                                <div class="fw-bold mb-2">Total Earnings</div>
+                                <div class="fw-bold" style="font-size: 1.5rem;">${{ user.earnings or 0 }}</div>
+                                <div class="text-success small mt-2">+12% from last month</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card p-4 h-100" style="min-height: 120px; border-radius: 18px; background: #fff;">
+                                <div class="fw-bold mb-2">Earnings This Month</div>
+                                <div class="fw-bold" style="font-size: 1.2rem;">${{ user.month_earnings or 0 }}</div>
+                                <div class="text-muted small">{{ user.month_sessions or 0 }} sessions this month</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card p-4 h-100" style="min-height: 120px; border-radius: 18px; background: #fff;">
+                                <div class="fw-bold mb-2">Scheduled</div>
+                                <div class="display-6">{{ user.upcoming_sessions or 0 }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card p-4 h-100" style="min-height: 120px; border-radius: 18px; background: #fff;">
+                                <div class="fw-bold mb-2">Rating</div>
+                                <div class="display-6" style="color: #FFD600; font-size: 2rem;">{{ user.rating or '0.0' }} <span style="font-size: 1.2rem;">&#9733;</span></div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="card p-4 h-100" style="min-height: 120px; border-radius: 18px; background: #fff;">
+                                <div class="fw-bold mb-2">Recent Activities</div>
+                                <ul class="list-unstyled mb-0">
+                                    {% for booking in user.recent_bookings or [] %}
+                                    <li class="mb-2">Session with {{ booking.provider.full_name }} on {{ booking.time_slot.start_datetime.strftime('%b %d, %Y') }}</li>
+                                    {% else %}
+                                    <li class="text-muted">No recent activities</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    {% if time_slots %}
-                        <div class="row g-3">
-                            {% for slot in time_slots %}
-                            <div class="col-md-6">
-                                <div class="time-slot-card">
-                                    <div class="time-slot-header">
-                                        <h6 class="fw-bold mb-1">{{ slot.title }}</h6>
-                                        <small class="text-muted">{{ slot.session_type|title }}</small>
+                <div class="tab-pane fade" id="setup" role="tabpanel" aria-labelledby="setup-tab">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card p-4 h-100" style="min-height: 120px; border-radius: 18px; background: #fff;">
+                                <form id="profile-setup-form">
+                                    <div class="mb-3">
+                                        <label class="form-label">Name</label>
+                                        <input type="text" class="form-control" id="inputName" value="{{ user.full_name or '' }}">
                                     </div>
-                                    
-                                    <div class="time-slot-details">
-                                        <div class="slot-datetime">
-                                            <i data-feather="calendar" style="width: 14px; height: 14px;"></i>
-                                            {{ slot.start_datetime.strftime('%B %d, %Y') }}
-                                        </div>
-                                        <div class="slot-time">
-                                            <i data-feather="clock" style="width: 14px; height: 14px;"></i>
-                                            {{ slot.start_datetime.strftime('%I:%M %p') }} - {{ slot.end_datetime.strftime('%I:%M %p') }}
-                                        </div>
-                                        <div class="slot-format">
-                                            <i data-feather="video" style="width: 14px; height: 14px;"></i>
-                                            Video Session
-                                            {% if slot.meeting_details %}
-                                            - {{ slot.meeting_details }}
-                                            {% endif %}
+                                    <div class="mb-3">
+                                        <label class="form-label">Professional Title</label>
+                                        <input type="text" class="form-control" id="inputTitle" value="{{ user.profession or '' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" rows="2" id="inputDescription">{{ user.bio or '' }}</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Hourly Rate</label>
+                                        <input type="number" class="form-control" id="inputRate" value="{{ user.hourly_rate or 0 }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Category</label>
+                                        <input type="text" class="form-control" id="inputCategory" value="{{ user.industry or '' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Profile URL</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" value="{{ url_for('profile', username=user.username, _external=True) }}" readonly>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ url_for('profile', username=user.username, _external=True) }}')">Copy</button>
                                         </div>
                                     </div>
-                                    
-                                    {% if slot.description %}
-                                    <p class="slot-description">{{ slot.description[:100] }}{% if slot.description|length > 100 %}...{% endif %}</p>
-                                    {% endif %}
-                                    
-                                    <div class="slot-footer">
-                                        {% if slot.price > 0 %}
-                                        <div class="slot-price">
-                                            <span class="price-amount">${{ "%.0f"|format(slot.price) }}</span>
-                                        </div>
-                                        {% else %}
-                                        <div class="slot-price">
-                                            <span class="price-amount">Free</span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        {% if current_user != user %}
-                                        <a href="{{ url_for('book_session', slot_id=slot.id) }}" class="btn btn-primary btn-sm">
-                                            <i data-feather="calendar" class="me-1"></i>Book Session
-                                        </a>
-                                        {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card p-4 h-100" style="min-height: 120px; border-radius: 18px; background: #fff;">
+                                <div class="fw-bold mb-3">Social Media</div>
+                                <form id="social-media-form">
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputLinkedin" placeholder="LinkedIn URL" value="{{ user.linkedin_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputTwitter" placeholder="Twitter URL" value="{{ user.twitter_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputGithub" placeholder="GitHub URL" value="{{ user.github_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputInstagram" placeholder="Instagram URL" value="{{ user.instagram_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputFacebook" placeholder="Facebook URL" value="{{ user.facebook_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputSnapchat" placeholder="Snapchat URL" value="{{ user.snapchat_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputWebsite" placeholder="Website URL" value="{{ user.website_url or '' }}"></div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="card p-4" style="min-height: 320px; border-radius: 18px; background: #fff; display: flex; align-items: center; justify-content: center;">
+                                <!-- Mobile profile preview placeholder -->
+                                <div style="width: 320px; height: 600px; border-radius: 32px; background: #f7faff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 32px 16px;">
+                                    <div style="width: 80px; height: 80px; border-radius: 50%; background: #e3f0ff; margin-bottom: 16px;"></div>
+                                    <div class="fw-bold mb-1" id="previewName" style="font-size: 1.2rem;">{{ user.full_name or 'Your Name' }}</div>
+                                    <div class="text-muted mb-2" id="previewTitle">{{ user.profession or 'Professional Title' }}</div>
+                                    <div class="mb-3" id="previewDescription" style="font-size: 0.95rem; color: #4a6fa1; text-align: center;">{{ user.bio or 'Short description about your expertise...' }}</div>
+                                    <div class="mb-3"><span class="badge bg-primary" id="previewRate">${{ user.hourly_rate or 0 }}/hr</span></div>
+                                    <div class="d-flex gap-2 mb-3" id="previewSocials">
+                                        {% if user.linkedin_url %}<a href="{{ user.linkedin_url }}" target="_blank" id="previewLinkedin"><i data-feather="linkedin"></i></a>{% endif %}
+                                        {% if user.twitter_url %}<a href="{{ user.twitter_url }}" target="_blank" id="previewTwitter"><i data-feather="twitter"></i></a>{% endif %}
+                                        {% if user.github_url %}<a href="{{ user.github_url }}" target="_blank" id="previewGithub"><i data-feather="github"></i></a>{% endif %}
+                                        {% if user.instagram_url %}<a href="{{ user.instagram_url }}" target="_blank" id="previewInstagram"><i data-feather="instagram"></i></a>{% endif %}
+                                        {% if user.facebook_url %}<a href="{{ user.facebook_url }}" target="_blank" id="previewFacebook"><i data-feather="facebook"></i></a>{% endif %}
+                                        {% if user.snapchat_url %}<a href="{{ user.snapchat_url }}" target="_blank" id="previewSnapchat"><i data-feather="user"></i></a>{% endif %}
+                                        {% if user.website_url %}<a href="{{ user.website_url }}" target="_blank" id="previewWebsite"><i data-feather="globe"></i></a>{% endif %}
                                     </div>
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
-                    {% else %}
-                        <div class="empty-state text-center py-5">
-                            <i data-feather="calendar" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
-                            <h6 class="text-muted">No available sessions at the moment</h6>
-                            <p class="text-muted small">Check back later for new availability</p>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="availability" role="tabpanel" aria-labelledby="availability-tab">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="card p-5" style="min-height: 220px; border-radius: 18px; background: #fff;">
+                                <div class="fw-bold mb-2">Set up your calendar and time slots</div>
+                                <p class="text-muted">Easily manage your availability and booking slots here.</p>
+                                <!-- Calendar/time slot UI would go here -->
+                            </div>
                         </div>
-                    {% endif %}
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="card p-4" style="min-height: 120px; border-radius: 18px; background: #fff;">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="availableSwitch" {% if user.is_available %}checked{% endif %}>
+                                    <label class="form-check-label" for="availableSwitch">Available for bookings</label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emailSwitch" checked>
+                                    <label class="form-check-label" for="emailSwitch">Email notifications</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Minimum booking notice (hours)</label>
+                                    <input type="number" class="form-control" value="24">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function updateProfilePreview() {
+    document.getElementById('previewName').textContent = document.getElementById('inputName').value || 'Your Name';
+    document.getElementById('previewTitle').textContent = document.getElementById('inputTitle').value || 'Professional Title';
+    document.getElementById('previewDescription').textContent = document.getElementById('inputDescription').value || 'Short description about your expertise...';
+    document.getElementById('previewRate').textContent = '$' + (document.getElementById('inputRate').value || '0') + '/hr';
+    // Socials
+    const socials = [
+        {id: 'Linkedin', icon: 'linkedin', input: 'inputLinkedin'},
+        {id: 'Twitter', icon: 'twitter', input: 'inputTwitter'},
+        {id: 'Github', icon: 'github', input: 'inputGithub'},
+        {id: 'Instagram', icon: 'instagram', input: 'inputInstagram'},
+        {id: 'Facebook', icon: 'facebook', input: 'inputFacebook'},
+        {id: 'Snapchat', icon: 'user', input: 'inputSnapchat'},
+        {id: 'Website', icon: 'globe', input: 'inputWebsite'}
+    ];
+    const previewSocials = document.getElementById('previewSocials');
+    previewSocials.innerHTML = '';
+    socials.forEach(s => {
+        const url = document.getElementById(s.input).value;
+        if (url) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.innerHTML = `<i data-feather="${s.icon}"></i>`;
+            previewSocials.appendChild(a);
+        }
+    });
+    if (window.feather) feather.replace();
+}
+['inputName','inputTitle','inputDescription','inputRate','inputLinkedin','inputTwitter','inputGithub','inputInstagram','inputFacebook','inputSnapchat','inputWebsite'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateProfilePreview);
+});
+</script>
 {% endblock %}

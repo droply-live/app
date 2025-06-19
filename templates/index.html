@@ -2,190 +2,88 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-section py-5">
+<div class="discover-hero py-5" style="background: linear-gradient(135deg, #e3f0ff 0%, #f7fbff 100%); min-height: 100vh; color: #1a3a6d;">
     <div class="container">
-        <div class="row align-items-center min-vh-50">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">Connect with Expert Coaches & Mentors</h1>
-                <p class="lead mb-4">Discover professionals who can help you grow. Book sessions, schedule meetings, and build meaningful connections.</p>
-                <div class="d-flex gap-3">
-                    <a href="{{ url_for('search') }}" class="btn btn-primary btn-lg">
-                        <i data-feather="search" class="me-2"></i>Find Experts
-                    </a>
-                    <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg">
-                        <i data-feather="user-plus" class="me-2"></i>Join as Expert
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-6 text-center">
-                <div class="hero-illustration">
-                    <svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="50" y="50" width="300" height="200" rx="20" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2"/>
-                        <circle cx="120" cy="120" r="30" fill="#0d6efd"/>
-                        <rect x="170" y="100" width="120" height="8" rx="4" fill="#6c757d"/>
-                        <rect x="170" y="120" width="80" height="6" rx="3" fill="#adb5bd"/>
-                        <rect x="170" y="135" width="100" height="6" rx="3" fill="#adb5bd"/>
-                        <rect x="80" y="180" width="80" height="30" rx="15" fill="#198754"/>
-                        <rect x="180" y="180" width="80" height="30" rx="15" fill="#dc3545"/>
-                    </svg>
-                </div>
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="display-3 fw-bold mb-3" style="letter-spacing: -1px; color: #1a3a6d;">
+                    Find the Right <span style="color: #3c78ff;">Expertise</span>
+                </h1>
+                <p class="lead mb-4" style="color: #4a6fa1;">
+                    Connect with premium experts for personalized consultations, coaching sessions, and mentoring calls
+                </p>
             </div>
         </div>
-    </div>
-</section>
-
-<!-- Features Section -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-lg-8 mx-auto">
-                <h2 class="fw-bold mb-3">Everything You Need in One Platform</h2>
-                <p class="lead text-muted">Simple tools for coaches and mentors to manage their practice</p>
-            </div>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="feature-card text-center p-4">
-                    <div class="feature-icon mb-3">
-                        <i data-feather="calendar" class="text-primary" style="width: 48px; height: 48px;"></i>
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                <form method="GET" id="searchForm">
+                    <div class="input-group input-group-lg mb-3">
+                        <span class="input-group-text bg-white border-0" style="color: #3c78ff;"><i data-feather="search"></i></span>
+                        <input type="text" class="form-control bg-white border-0 text-primary" placeholder="Find expertise: 'someone who understands finance with tech experience'" name="query" style="background: #f7fbff; color: #1a3a6d;">
                     </div>
-                    <h5 class="fw-bold">Built-in Calendar</h5>
-                    <p class="text-muted">Manage your availability and let clients book sessions directly</p>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="feature-card text-center p-4">
-                    <div class="feature-icon mb-3">
-                        <i data-feather="search" class="text-primary" style="width: 48px; height: 48px;"></i>
-                    </div>
-                    <h5 class="fw-bold">Smart Search</h5>
-                    <p class="text-muted">Find the right expert by industry, profession, location, and expertise</p>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="feature-card text-center p-4">
-                    <div class="feature-icon mb-3">
-                        <i data-feather="credit-card" class="text-primary" style="width: 48px; height: 48px;"></i>
-                    </div>
-                    <h5 class="fw-bold">Secure Payments</h5>
-                    <p class="text-muted">Integrated payment processing with Stripe for seamless transactions</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-{% if featured_users %}
-<!-- Featured Experts Section -->
-<section class="py-5">
-    <div class="container">
-        <div class="row mb-4">
-            <div class="col-12">
-                <h2 class="fw-bold mb-3">Featured Experts</h2>
-                <p class="text-muted">Connect with top-rated coaches and mentors</p>
-            </div>
-        </div>
-        
-        <div class="row g-4">
-            {% for user in featured_users %}
-            <div class="col-lg-4 col-md-6">
-                <div class="card expert-card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="avatar-placeholder me-3">
-                                <i data-feather="user" class="text-muted"></i>
-                            </div>
-                            <div>
-                                <h6 class="card-title mb-1">{{ user.full_name }}</h6>
-                                <small class="text-muted">{{ user.profession|title if user.profession }}</small>
-                            </div>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <select class="form-select bg-white border-0 text-primary" name="category" style="background: #f7fbff; color: #1a3a6d;">
+                                <option>All Categories</option>
+                                <!-- Add categories dynamically if needed -->
+                            </select>
                         </div>
-                        
-                        {% if user.bio %}
-                        <p class="card-text text-muted small">{{ user.bio[:100] }}{% if user.bio|length > 100 %}...{% endif %}</p>
-                        {% endif %}
-                        
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="col-md-4">
+                            <select class="form-select bg-white border-0 text-primary" name="price" style="background: #f7fbff; color: #1a3a6d;">
+                                <option>Any Price</option>
+                                <option value="free">Free</option>
+                                <option value="paid">Paid</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select bg-white border-0 text-primary" name="rating" style="background: #f7fbff; color: #1a3a6d;">
+                                <option>Top Rated</option>
+                                <option value="4">4.0+</option>
+                                <option value="4.5">4.5+</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                {% for user in users %}
+                <div class="card mb-4 p-4" style="background: #fff; border: 2px solid #e3f0ff; border-radius: 18px; color: #1a3a6d; box-shadow: 0 2px 12px 0 rgba(60,120,255,0.04);">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <img src="{{ user.profile_image_url or url_for('static', filename='img/default-avatar.png') }}" alt="{{ user.full_name }}" class="rounded-3 me-4" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #3c78ff; background: #e3f0ff;">
                             <div>
-                                {% if user.industry %}
-                                <span class="badge bg-light text-dark">{{ user.industry|title }}</span>
-                                {% endif %}
-                                {% if user.location %}
-                                <small class="text-muted d-block mt-1">
-                                    <i data-feather="map-pin" style="width: 14px; height: 14px;"></i> {{ user.location.replace('-', ', ')|title }}
-                                </small>
-                                {% endif %}
-                                
-                                <!-- Social Media Links (compact) -->
-                                {% if user.linkedin_url or user.twitter_url or user.youtube_url or user.instagram_url or user.website_url %}
-                                <div class="social-links-compact mt-2">
-                                    {% if user.linkedin_url %}
-                                    <a href="{{ user.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="social-link-small" title="LinkedIn">
-                                        <i data-feather="linkedin"></i>
-                                    </a>
-                                    {% endif %}
-                                    {% if user.twitter_url %}
-                                    <a href="{{ user.twitter_url }}" target="_blank" rel="noopener noreferrer" class="social-link-small" title="Twitter/X">
-                                        <i data-feather="twitter"></i>
-                                    </a>
-                                    {% endif %}
-                                    {% if user.youtube_url %}
-                                    <a href="{{ user.youtube_url }}" target="_blank" rel="noopener noreferrer" class="social-link-small" title="YouTube">
-                                        <i data-feather="youtube"></i>
-                                    </a>
-                                    {% endif %}
-                                    {% if user.instagram_url %}
-                                    <a href="{{ user.instagram_url }}" target="_blank" rel="noopener noreferrer" class="social-link-small" title="Instagram">
-                                        <i data-feather="instagram"></i>
-                                    </a>
-                                    {% endif %}
-                                    {% if user.website_url %}
-                                    <a href="{{ user.website_url }}" target="_blank" rel="noopener noreferrer" class="social-link-small" title="Website">
-                                        <i data-feather="globe"></i>
-                                    </a>
+                                <h4 class="mb-1 fw-bold" style="color: #1a3a6d;">{{ user.full_name or '' }}</h4>
+                                <div class="mb-2" style="color: #3c78ff; font-weight: 600; font-size: 1.1rem;">{{ user.profession or '' }}</div>
+                                <div class="text-muted mb-2">{{ (user.bio or '')[:160] }}{% if user.bio and user.bio|length > 160 %}...{% endif %}</div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="fw-bold" style="font-size: 1.25rem; color: #1a3a6d;">${{ '%.2f'|format(user.hourly_rate or 0) }}</span>
+                                    <span class="ms-2" style="color: #4a6fa1; font-size: 1rem;">/hr</span>
+                                    {% if user.is_available %}
+                                    <span class="ms-3" style="color: #1dd75b; font-size: 1rem;"><i class="bi bi-circle-fill" style="font-size: 0.8em;"></i> Available</span>
+                                    {% else %}
+                                    <span class="ms-3" style="color: #FFD600; font-size: 1rem;"><i class="bi bi-circle-fill" style="font-size: 0.8em;"></i> Busy</span>
                                     {% endif %}
                                 </div>
-                                {% endif %}
-                            </div>
-                            <div class="text-end">
-                                {% if user.hourly_rate > 0 %}
-                                <div class="fw-bold text-primary">${{ "%.0f"|format(user.hourly_rate) }}/hr</div>
-                                {% endif %}
                             </div>
                         </div>
-                    </div>
-                    <div class="card-footer bg-white border-0">
-                        <a href="{{ url_for('profile', username=user.username) }}" class="btn btn-outline-primary w-100">View Profile</a>
+                        <div class="d-flex flex-column align-items-end justify-content-between" style="min-width: 120px;">
+                            <div class="mb-3">
+                                <span class="fw-bold" style="color: #FFD600; font-size: 1.3rem;"><i data-feather="star" class="me-1"></i>{{ user.rating or '4.9' }}</span>
+                            </div>
+                            <a href="{{ url_for('profile', username=user.username) }}" class="btn" style="background: #3c78ff; color: #fff; font-weight: 600; border-radius: 8px; min-width: 120px;">Book Now</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <div class="text-center mt-4">
-            <a href="{{ url_for('search') }}" class="btn btn-primary">
-                <i data-feather="search" class="me-2"></i>View All Experts
-            </a>
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- CTA Section -->
-<section class="py-5 bg-primary text-white">
-    <div class="container text-center">
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
-                <h2 class="fw-bold mb-3">Ready to Get Started?</h2>
-                <p class="lead mb-4">Join thousands of professionals using Droply to grow their coaching practice</p>
-                <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
-                    <i data-feather="user-plus" class="me-2"></i>Create Your Profile
-                </a>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i data-feather="users" class="mb-3" style="width: 48px; height: 48px;"></i>
+                    <h5>No experts found. Try adjusting your search or filters.</h5>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
-</section>
+</div>
 {% endblock %}
