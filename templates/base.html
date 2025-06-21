@@ -27,7 +27,7 @@
             <div class="mx-auto">
                 <div style="background: rgba(220, 236, 255, 0.7); border-radius: 32px; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08); padding: 6px 24px; display: flex; gap: 18px; align-items: center;">
                     <a class="nav-link px-4 py-2 fw-semibold d-flex align-items-center" href="{{ url_for('index') }}" style="background: #e3f0ff; border-radius: 24px; color: #1a3a6d; font-size: 1.08rem; box-shadow: 0 2px 8px 0 rgba(60,120,255,0.06); transition: background 0.2s;"><i data-feather='search' class='me-2'></i>Discover</a>
-                    <a class="nav-link px-4 py-2 fw-semibold d-flex align-items-center" href="{{ url_for('dashboard') }}" style="background: #e3f0ff; border-radius: 24px; color: #1a3a6d; font-size: 1.08rem; box-shadow: 0 2px 8px 0 rgba(60,120,255,0.06); transition: background 0.2s;"><i data-feather='calendar' class='me-2'></i>My Bookings</a>
+                    <a class="nav-link px-4 py-2 fw-semibold d-flex align-items-center" href="{{ url_for('bookings') }}" style="background: #e3f0ff; border-radius: 24px; color: #1a3a6d; font-size: 1.08rem; box-shadow: 0 2px 8px 0 rgba(60,120,255,0.06); transition: background 0.2s;"><i data-feather='calendar' class='me-2'></i>My Bookings</a>
                     {% if current_user.is_authenticated %}
                         <a class="nav-link px-4 py-2 fw-semibold d-flex align-items-center" href="{{ url_for('profile', username=current_user.username) }}" style="background: #e3f0ff; border-radius: 24px; color: #1a3a6d; font-size: 1.08rem; box-shadow: 0 2px 8px 0 rgba(60,120,255,0.06); transition: background 0.2s;"><i data-feather='user' class='me-2'></i>Profile</a>
                     {% else %}

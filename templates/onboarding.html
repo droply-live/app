@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Your Profile - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="h2 fw-bold" style="color: #1a3a6d;">Complete Your Profile</h1>
+                <p class="text-muted">Tell us about yourself so others can find you</p>
+            </div>
+            
+            <div class="card" style="border-radius: 18px; border: none; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
+                <div class="card-body p-5">
+                    <form method="POST" id="onboarding-form">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">{{ form.profession.label }}</label>
+                            {{ form.profession(class="form-control form-control-lg", placeholder="e.g., Software Engineer, Business Coach, Marketing Consultant") }}
+                            {% if form.profession.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.profession.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">{{ form.bio.label }}</label>
+                            {{ form.bio(class="form-control", rows="4", placeholder="Tell people about your expertise, experience, and what you can help them with...") }}
+                            {% if form.bio.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.bio.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">{{ form.hourly_rate.label }}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.hourly_rate(class="form-control", placeholder="0") }}
+                                </div>
+                                <div class="form-text">Set to 0 if you offer free sessions</div>
+                                {% if form.hourly_rate.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.hourly_rate.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">{{ form.industry.label }}</label>
+                                {{ form.industry(class="form-select form-select-lg") }}
+                                {% if form.industry.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.industry.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Specialty Tags Section -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Your Specialties & Interests</label>
+                            <p class="text-muted small mb-3">Select the areas where you can help others. This helps people find you.</p>
+                            
+                            <div class="specialties-container">
+                                <div class="specialty-category">
+                                    <h6>Technology</h6>
+                                    <div class="specialty-tags">
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="python">
+                                            <span>Python</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="javascript">
+                                            <span>JavaScript</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="react">
+                                            <span>React</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="ai">
+                                            <span>AI/ML</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="webdev">
+                                            <span>Web Development</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="mobile">
+                                            <span>Mobile Development</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="specialty-category">
+                                    <h6>Business</h6>
+                                    <div class="specialty-tags">
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="strategy">
+                                            <span>Strategy</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="startups">
+                                            <span>Startups</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="fundraising">
+                                            <span>Fundraising</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="operations">
+                                            <span>Operations</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="leadership">
+                                            <span>Leadership</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="specialty-category">
+                                    <h6>Marketing</h6>
+                                    <div class="specialty-tags">
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="digital">
+                                            <span>Digital Marketing</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="social">
+                                            <span>Social Media</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="content">
+                                            <span>Content Marketing</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="seo">
+                                            <span>SEO</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="specialty-category">
+                                    <h6>Health & Wellness</h6>
+                                    <div class="specialty-tags">
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="fitness">
+                                            <span>Fitness</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="nutrition">
+                                            <span>Nutrition</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="mental">
+                                            <span>Mental Health</span>
+                                        </label>
+                                        <label class="specialty-tag">
+                                            <input type="checkbox" name="specialties" value="yoga">
+                                            <span>Yoga</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="custom-specialty mt-3">
+                                <h6>Add your own specialty</h6>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="customSpecialtyInput" placeholder="Enter your specialty">
+                                    <button type="button" class="btn btn-outline-primary" id="addCustomSpecialtyBtn">Add</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" style="background: linear-gradient(135deg, #3c78ff 0%, #1a3a6d 100%); border: none; border-radius: 12px; padding: 12px 32px; font-weight: 600;">
+                                Complete Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p class="text-muted small">You can always update your profile later</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    border-radius: 12px;
+    border: 2px solid #e3f0ff;
+    padding: 12px 16px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #3c78ff;
+    box-shadow: 0 0 0 0.2rem rgba(60, 120, 255, 0.25);
+}
+
+.form-control-lg, .form-select-lg {
+    padding: 16px 20px;
+    font-size: 1.1rem;
+}
+
+.btn-lg {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+}
+
+.specialty-category {
+    margin-bottom: 1.5rem;
+}
+
+.specialty-category h6 {
+    font-weight: 600;
+    color: #1a3a6d;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #e3f0ff;
+}
+
+.specialty-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.specialty-tag {
+    cursor: pointer;
+}
+
+.specialty-tag input {
+    display: none;
+}
+
+.specialty-tag span {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border: 2px solid #e3f0ff;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: #1a3a6d;
+    transition: all 0.2s;
+}
+
+.specialty-tag input:checked + span {
+    background: #3c78ff;
+    color: white;
+    border-color: #3c78ff;
+}
+
+.specialty-tag:hover span {
+    border-color: #3c78ff;
+    background: #e3f0ff;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addCustomBtn = document.getElementById('addCustomSpecialtyBtn');
+    const customInput = document.getElementById('customSpecialtyInput');
+    
+    // Add custom specialty
+    addCustomBtn.addEventListener('click', function() {
+        const value = customInput.value.trim();
+        if (value) {
+            const container = document.querySelector('.specialty-tags');
+            const newTag = document.createElement('label');
+            newTag.className = 'specialty-tag';
+            newTag.innerHTML = `
+                <input type="checkbox" name="specialties" value="${value.toLowerCase().replace(/\s+/g, '_')}" checked>
+                <span>${value}</span>
+            `;
+            container.appendChild(newTag);
+            customInput.value = '';
+        }
+    });
+    
+    // Handle form submission to include specialties
+    document.getElementById('onboarding-form').addEventListener('submit', function(e) {
+        const selectedSpecialties = [];
+        const checkboxes = document.querySelectorAll('input[name="specialties"]:checked');
+        
+        checkboxes.forEach(cb => {
+            selectedSpecialties.push(cb.value);
+        });
+        
+        // Add specialties to form data
+        const specialtiesInput = document.createElement('input');
+        specialtiesInput.type = 'hidden';
+        specialtiesInput.name = 'specialties';
+        specialtiesInput.value = JSON.stringify(selectedSpecialties);
+        this.appendChild(specialtiesInput);
+    });
+});
+</script>
+{% endblock %} 

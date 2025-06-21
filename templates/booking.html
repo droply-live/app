@@ -113,8 +113,8 @@
                         </div>
                         
                         <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('profile', username=time_slot.user.username) }}" class="btn btn-outline-secondary">
-                                <i data-feather="arrow-left" class="me-2"></i>Back to Profile
+                            <a href="{{ request.args.get('next') or url_for('profile', username=time_slot.user.username) }}" class="btn btn-outline-secondary">
+                                <i data-feather="arrow-left" class="me-2"></i>Go Back
                             </a>
                             
                             <button type="submit" class="btn btn-primary btn-lg">

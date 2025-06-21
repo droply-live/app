@@ -23,6 +23,24 @@
                 </ul>
             </div>
             <div class="tab-content" id="profileTabContent">
+                <!-- Profile URL Section -->
+                <div class="row justify-content-center mb-4">
+                    <div class="col-lg-10">
+                        <div class="card p-4" style="border-radius: 18px; background: #fff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: #1a3a6d;">Your Profile URL</h6>
+                                    <p class="text-muted mb-0 small">Share this link with others to showcase your profile</p>
+                                </div>
+                                <div class="input-group" style="max-width: 400px;">
+                                    <input type="text" class="form-control" value="{{ url_for('profile', username=user.username, _external=True) }}" readonly>
+                                    <button class="btn btn-outline-primary" type="button" data-url="{{ url_for('profile', username=user.username, _external=True) }}" onclick="copyProfileUrl(this)">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
                     <div class="row g-4">
                         <div class="col-md-6">
@@ -67,9 +85,45 @@
                 </div>
                 <div class="tab-pane fade" id="setup" role="tabpanel" aria-labelledby="setup-tab">
                     <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="card p-4 h-100" style="min-height: 120px; border-radius: 18px; background: #fff;">
+                        <!-- Left: Form Fields -->
+                        <div class="col-md-4">
+                            <div class="card p-4 h-100" style="min-height: 400px; border-radius: 18px; background: #fff;">
                                 <form id="profile-setup-form">
+                                    <!-- Profile Picture Upload -->
+                                    <div class="mb-4">
+                                        <label class="form-label">Profile Picture</label>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="profile-pic-preview" id="profilePicPreview" style="width: 80px; height: 80px; border-radius: 50%; background: #e3f0ff; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid #e3f0ff; position: relative;">
+                                                {% if user.profile_picture %}
+                                                <img src="{{ user.profile_picture }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" id="deleteProfilePicBtn" title="Delete Photo" style="z-index:2; border-radius:50%; padding:2px 6px; font-size:0.8rem; line-height:1;"><i data-feather="x"></i></button>
+                                                {% else %}
+                                                <i data-feather="user" style="width: 40px; height: 40px; color: #1a3a6d;"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <input type="file" class="form-control" id="profilePicInput" accept="image/*" style="display: none;">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('profilePicInput').click()">
+                                                    <i data-feather="upload" class="me-1"></i>Upload Photo
+                                                </button>
+                                                <div class="small text-muted mt-1">JPG, PNG up to 5MB</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Background Color Picker -->
+                                    <div class="mb-4">
+                                        <label class="form-label">Background Color</label>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <div class="color-option" data-color="#f7faff" style="width: 30px; height: 30px; border-radius: 50%; background: #f7faff; border: 2px solid #3c78ff; cursor: pointer;" onclick="changeBackgroundColor('#f7faff')"></div>
+                                            <div class="color-option" data-color="#fff5f5" style="width: 30px; height: 30px; border-radius: 50%; background: #fff5f5; border: 2px solid #e3f0ff; cursor: pointer;" onclick="changeBackgroundColor('#fff5f5')"></div>
+                                            <div class="color-option" data-color="#f0fff4" style="width: 30px; height: 30px; border-radius: 50%; background: #f0fff4; border: 2px solid #e3f0ff; cursor: pointer;" onclick="changeBackgroundColor('#f0fff4')"></div>
+                                            <div class="color-option" data-color="#fef3c7" style="width: 30px; height: 30px; border-radius: 50%; background: #fef3c7; border: 2px solid #e3f0ff; cursor: pointer;" onclick="changeBackgroundColor('#fef3c7')"></div>
+                                            <div class="color-option" data-color="#f3e8ff" style="width: 30px; height: 30px; border-radius: 50%; background: #f3e8ff; border: 2px solid #e3f0ff; cursor: pointer;" onclick="changeBackgroundColor('#f3e8ff')"></div>
+                                            <div class="color-option" data-color="#e0f2fe" style="width: 30px; height: 30px; border-radius: 50%; background: #e0f2fe; border: 2px solid #e3f0ff; cursor: pointer;" onclick="changeBackgroundColor('#e0f2fe')"></div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="mb-3">
                                         <label class="form-label">Name</label>
                                         <input type="text" class="form-control" id="inputName" value="{{ user.full_name or '' }}">
@@ -91,38 +145,46 @@
                                         <input type="text" class="form-control" id="inputCategory" value="{{ user.industry or '' }}">
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Profile URL</label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" value="{{ url_for('profile', username=user.username, _external=True) }}" readonly>
-                                            <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ url_for('profile', username=user.username, _external=True) }}')">Copy</button>
+                                        <label class="form-label">Specialty Tags</label>
+                                        <div class="specialty-tags-display mb-2">
+                                            {% if user.specialty_tags %}
+                                                {% for tag in user.get_specialty_tags() %}
+                                                <span class="badge bg-primary me-1 mb-1">{{ tag|title }}</span>
+                                                {% endfor %}
+                                            {% else %}
+                                                <span class="text-muted">No specialties added yet</span>
+                                            {% endif %}
                                         </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#specialtyModal">
+                                            <i data-feather="edit-2" class="me-1"></i>Edit Specialties
+                                        </button>
                                     </div>
                                 </form>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card p-4 h-100" style="min-height: 120px; border-radius: 18px; background: #fff;">
-                                <div class="fw-bold mb-3">Social Media</div>
-                                <form id="social-media-form">
-                                    <div class="mb-2"><input type="url" class="form-control" id="inputLinkedin" placeholder="LinkedIn URL" value="{{ user.linkedin_url or '' }}"></div>
-                                    <div class="mb-2"><input type="url" class="form-control" id="inputTwitter" placeholder="Twitter URL" value="{{ user.twitter_url or '' }}"></div>
-                                    <div class="mb-2"><input type="url" class="form-control" id="inputGithub" placeholder="GitHub URL" value="{{ user.github_url or '' }}"></div>
-                                    <div class="mb-2"><input type="url" class="form-control" id="inputInstagram" placeholder="Instagram URL" value="{{ user.instagram_url or '' }}"></div>
-                                    <div class="mb-2"><input type="url" class="form-control" id="inputFacebook" placeholder="Facebook URL" value="{{ user.facebook_url or '' }}"></div>
-                                    <div class="mb-2"><input type="url" class="form-control" id="inputSnapchat" placeholder="Snapchat URL" value="{{ user.snapchat_url or '' }}"></div>
-                                    <div class="mb-2"><input type="url" class="form-control" id="inputWebsite" placeholder="Website URL" value="{{ user.website_url or '' }}"></div>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="card p-4" style="min-height: 320px; border-radius: 18px; background: #fff; display: flex; align-items: center; justify-content: center;">
-                                <!-- Mobile profile preview placeholder -->
-                                <div style="width: 320px; height: 600px; border-radius: 32px; background: #f7faff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 32px 16px;">
-                                    <div style="width: 80px; height: 80px; border-radius: 50%; background: #e3f0ff; margin-bottom: 16px;"></div>
-                                    <div class="fw-bold mb-1" id="previewName" style="font-size: 1.2rem;">{{ user.full_name or 'Your Name' }}</div>
-                                    <div class="text-muted mb-2" id="previewTitle">{{ user.profession or 'Professional Title' }}</div>
-                                    <div class="mb-3" id="previewDescription" style="font-size: 0.95rem; color: #4a6fa1; text-align: center;">{{ user.bio or 'Short description about your expertise...' }}</div>
+                        
+                        <!-- Middle: Mobile Preview -->
+                        <div class="col-md-4">
+                            <div class="card p-4 h-100" style="min-height: 400px; border-radius: 18px; background: #fff; display: flex; align-items: center; justify-content: center;">
+                                <div id="mobilePreview" style="width: 280px; height: 500px; border-radius: 28px; background: #f7faff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 24px 12px; height: 100%; min-height: 400px;">
+                                    <div id="previewProfilePic" style="width: 100px; height: 100px; border-radius: 50%; background: #e3f0ff; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        {% if user.profile_picture %}
+                                        <img src="{{ user.profile_picture }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                                        {% else %}
+                                        <i data-feather="user" style="width: 50px; height: 50px; color: #1a3a6d;"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="fw-bold mb-1" id="previewName" style="font-size: 1.1rem;">{{ user.full_name or 'Your Name' }}</div>
+                                    <div class="text-muted mb-2" id="previewTitle" style="font-size: 0.9rem;">{{ user.profession or 'Professional Title' }}</div>
+                                    <div class="mb-3" id="previewDescription" style="font-size: 0.85rem; color: #4a6fa1; text-align: center;">{{ user.bio or 'Short description about your expertise...' }}</div>
                                     <div class="mb-3"><span class="badge bg-primary" id="previewRate">${{ user.hourly_rate or 0 }}/hr</span></div>
+                                    <div class="mb-3" id="previewSpecialties">
+                                        {% if user.specialty_tags %}
+                                            {% for tag in user.get_specialty_tags() %}
+                                            <span class="badge bg-light text-dark me-1 mb-1" style="font-size: 0.65rem; padding: 0.25rem 0.4rem;">{{ tag|title }}</span>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
                                     <div class="d-flex gap-2 mb-3" id="previewSocials">
                                         {% if user.linkedin_url %}<a href="{{ user.linkedin_url }}" target="_blank" id="previewLinkedin"><i data-feather="linkedin"></i></a>{% endif %}
                                         {% if user.twitter_url %}<a href="{{ user.twitter_url }}" target="_blank" id="previewTwitter"><i data-feather="twitter"></i></a>{% endif %}
@@ -133,6 +195,22 @@
                                         {% if user.website_url %}<a href="{{ user.website_url }}" target="_blank" id="previewWebsite"><i data-feather="globe"></i></a>{% endif %}
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Social Media -->
+                        <div class="col-md-4">
+                            <div class="card p-4 h-100" style="min-height: 400px; border-radius: 18px; background: #fff;">
+                                <div class="fw-bold mb-3">Social Media</div>
+                                <form id="social-media-form">
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputLinkedin" placeholder="LinkedIn URL" value="{{ user.linkedin_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputTwitter" placeholder="Twitter URL" value="{{ user.twitter_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputGithub" placeholder="GitHub URL" value="{{ user.github_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputInstagram" placeholder="Instagram URL" value="{{ user.instagram_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputFacebook" placeholder="Facebook URL" value="{{ user.facebook_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputSnapchat" placeholder="Snapchat URL" value="{{ user.snapchat_url or '' }}"></div>
+                                    <div class="mb-2"><input type="url" class="form-control" id="inputWebsite" placeholder="Website URL" value="{{ user.website_url or '' }}"></div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -211,12 +289,203 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
-<!-- FullCalendar CSS/JS (only loaded on this page) -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js"></script>
+<!-- Specialty Modal -->
+<div class="modal fade" id="specialtyModal" tabindex="-1" aria-labelledby="specialtyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="specialtyModalLabel">Edit Your Specialties</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="specialties-container">
+                    <div class="specialty-category">
+                        <h6>Technology</h6>
+                        <div class="specialty-tags">
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="python">
+                                <span>Python</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="javascript">
+                                <span>JavaScript</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="react">
+                                <span>React</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="ai">
+                                <span>AI/ML</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="webdev">
+                                <span>Web Development</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="mobile">
+                                <span>Mobile Development</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="specialty-category">
+                        <h6>Business</h6>
+                        <div class="specialty-tags">
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="strategy">
+                                <span>Strategy</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="startups">
+                                <span>Startups</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="fundraising">
+                                <span>Fundraising</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="operations">
+                                <span>Operations</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="leadership">
+                                <span>Leadership</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="specialty-category">
+                        <h6>Marketing</h6>
+                        <div class="specialty-tags">
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="digital">
+                                <span>Digital Marketing</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="social">
+                                <span>Social Media</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="content">
+                                <span>Content Marketing</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="seo">
+                                <span>SEO</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="specialty-category">
+                        <h6>Health & Wellness</h6>
+                        <div class="specialty-tags">
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="fitness">
+                                <span>Fitness</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="nutrition">
+                                <span>Nutrition</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="mental">
+                                <span>Mental Health</span>
+                            </label>
+                            <label class="specialty-tag">
+                                <input type="checkbox" name="specialties" value="yoga">
+                                <span>Yoga</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="custom-specialty mt-3">
+                    <h6>Add your own specialty</h6>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="customSpecialtyInput" placeholder="Enter your specialty">
+                        <button type="button" class="btn btn-outline-primary" id="addCustomSpecialtyBtn">Add</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveSpecialtiesBtn">Save Specialties</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.specialty-tags-display .badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+}
+
+.specialty-category {
+    margin-bottom: 1.5rem;
+}
+
+.specialty-category h6 {
+    font-weight: 600;
+    color: #1a3a6d;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #e3f0ff;
+}
+
+.specialty-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.specialty-tag {
+    cursor: pointer;
+}
+
+.specialty-tag input {
+    display: none;
+}
+
+.specialty-tag input:checked + span {
+    background: #3c78ff;
+    color: white;
+    border-color: #3c78ff;
+}
+
+/* Set text color for active tab to white. Bootstrap handles the background. */
+#profileTab .nav-link.active {
+    color: #fff;
+}
+
+/* Set default text color for inactive tabs */
+#profileTab .nav-link:not(.active) {
+    color: #1a3a6d;
+}
+
+/* On hover of an inactive tab, prevent any style changes from Bootstrap */
+#profileTab .nav-link:not(.active):hover {
+    color: #1a3a6d;
+    background-color: transparent;
+}
+
+.save-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #0d6efd;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1050;
+    display: none;
+    font-weight: 500;
+}
+</style>
+
 <script>
 function updateProfilePreview() {
     document.getElementById('previewName').textContent = document.getElementById('inputName').value || 'Your Name';
@@ -247,8 +516,75 @@ function updateProfilePreview() {
     });
     if (window.feather) feather.replace();
 }
-['inputName','inputTitle','inputDescription','inputRate','inputLinkedin','inputTwitter','inputGithub','inputInstagram','inputFacebook','inputSnapchat','inputWebsite'].forEach(id => {
-    document.getElementById(id).addEventListener('input', updateProfilePreview);
+['inputName','inputTitle','inputDescription','inputRate','inputCategory','inputLinkedin','inputTwitter','inputGithub','inputInstagram','inputFacebook','inputSnapchat','inputWebsite'].forEach(id => {
+    const inputElement = document.getElementById(id);
+    if(inputElement) {
+        inputElement.addEventListener('input', updateProfilePreview);
+    }
+});
+
+// --- Auto-save profile changes ---
+let saveTimeout;
+const allProfileInputs = document.querySelectorAll('#profile-setup-form input, #profile-setup-form textarea, #social-media-form input');
+
+allProfileInputs.forEach(input => {
+    input.addEventListener('input', () => {
+        clearTimeout(saveTimeout);
+        // Add a small saving indicator
+        const indicator = document.querySelector('.save-indicator') || document.createElement('div');
+        if (!indicator.classList.contains('save-indicator')) {
+            indicator.className = 'save-indicator';
+            indicator.textContent = 'Saving...';
+            document.body.appendChild(indicator);
+        }
+        indicator.style.display = 'block';
+
+        saveTimeout = setTimeout(() => {
+            const profileData = {
+                name: document.getElementById('inputName').value,
+                title: document.getElementById('inputTitle').value,
+                description: document.getElementById('inputDescription').value,
+                rate: document.getElementById('inputRate').value,
+                category: document.getElementById('inputCategory').value
+            };
+            const socialData = {
+                linkedin: document.getElementById('inputLinkedin').value,
+                twitter: document.getElementById('inputTwitter').value,
+                github: document.getElementById('inputGithub').value,
+                instagram: document.getElementById('inputInstagram').value,
+                facebook: document.getElementById('inputFacebook').value,
+                snapchat: document.getElementById('inputSnapchat').value,
+                website: document.getElementById('inputWebsite').value
+            };
+            const dataToSave = {...profileData, ...socialData};
+
+            fetch('/api/profile/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToSave)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    indicator.textContent = 'Saved!';
+                } else {
+                    indicator.textContent = 'Error saving.';
+                    indicator.style.backgroundColor = '#dc3545';
+                }
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                    indicator.style.backgroundColor = '#0d6efd';
+                }, 2000);
+            }).catch(() => {
+                indicator.textContent = 'Error saving.';
+                indicator.style.backgroundColor = '#dc3545';
+                 setTimeout(() => {
+                    indicator.style.display = 'none';
+                    indicator.style.backgroundColor = '#0d6efd';
+                }, 2000);
+            });
+        }, 1500); // Wait 1.5 seconds after user stops typing
+    });
 });
 
 // --- Weekly Rules UI ---
@@ -347,5 +683,243 @@ document.getElementById('save-rules-btn').onclick = async function() {
 // Initial load
 fetchRules();
 fetchExceptions();
+
+// Copy profile URL function
+function copyProfileUrl(button) {
+    const url = button.getAttribute('data-url');
+    navigator.clipboard.writeText(url).then(function() {
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.classList.add('btn-success');
+        button.classList.remove('btn-outline-secondary');
+        setTimeout(function() {
+            button.textContent = originalText;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+    });
+}
+
+// Profile picture delete functionality
+function setupDeleteButton() {
+    const deleteBtn = document.getElementById('deleteProfilePicBtn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', function() {
+            fetch('/api/profile/picture', {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove image from preview
+                    const preview = document.getElementById('profilePicPreview');
+                    preview.innerHTML = '<i data-feather="user" style="width: 40px; height: 40px; color: #1a3a6d;"></i>';
+                    // Remove from mobile preview
+                    const mobilePreview = document.getElementById('previewProfilePic');
+                    mobilePreview.innerHTML = '<i data-feather="user" style="width: 50px; height: 50px; color: #1a3a6d;"></i>';
+                    if (window.feather) feather.replace();
+                } else {
+                    alert('Error deleting profile picture');
+                }
+            })
+            .catch(() => alert('Error deleting profile picture'));
+        });
+    }
+}
+
+// Setup delete button on page load
+document.addEventListener('DOMContentLoaded', function() {
+    setupDeleteButton();
+});
+
+// Profile picture upload functionality
+document.getElementById('profilePicInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Update preview
+            const preview = document.getElementById('profilePicPreview');
+            preview.innerHTML = `<img src="${e.target.result}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; object-position: center;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" id="deleteProfilePicBtn" title="Delete Photo" style="z-index:2; border-radius:50%; padding:2px 6px; font-size:0.8rem; line-height:1;"><i data-feather="x"></i></button>`;
+            
+            // Update mobile preview
+            const mobilePreview = document.getElementById('previewProfilePic');
+            mobilePreview.innerHTML = `<img src="${e.target.result}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">`;
+            
+            // Setup delete button for the newly added button
+            setupDeleteButton();
+            
+            // Upload to server
+            uploadProfilePicture(file);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+function uploadProfilePicture(file) {
+    const formData = new FormData();
+    formData.append('profile_picture', file);
+    
+    fetch('/api/profile/picture', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Profile picture uploaded successfully');
+        } else {
+            console.error('Error uploading profile picture:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error uploading profile picture:', error);
+    });
+}
+
+// Background color change functionality
+function changeBackgroundColor(color) {
+    // Update mobile preview background
+    const mobilePreview = document.getElementById('mobilePreview');
+    mobilePreview.style.background = color;
+    
+    // Update color option borders
+    document.querySelectorAll('.color-option').forEach(option => {
+        if (option.getAttribute('data-color') === color) {
+            option.style.border = '2px solid #3c78ff';
+        } else {
+            option.style.border = '2px solid #e3f0ff';
+        }
+    });
+    
+    // Save background color preference
+    fetch('/api/profile/background', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ background_color: color })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Background color saved successfully');
+        } else {
+            console.error('Error saving background color:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error saving background color:', error);
+    });
+}
+
+// Specialty modal functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('specialtyModal');
+    const saveBtn = document.getElementById('saveSpecialtiesBtn');
+    const addCustomBtn = document.getElementById('addCustomSpecialtyBtn');
+    const customInput = document.getElementById('customSpecialtyInput');
+    
+    // Load current specialties when modal opens
+    modal.addEventListener('show.bs.modal', function() {
+        const currentSpecialties = JSON.parse('{{ user.get_specialty_tags() | tojson | safe }}');
+        const checkboxes = modal.querySelectorAll('input[name="specialties"]');
+        
+        // Reset all checkboxes
+        checkboxes.forEach(cb => cb.checked = false);
+        
+        // Check current specialties
+        currentSpecialties.forEach(specialty => {
+            const checkbox = modal.querySelector(`input[value="${specialty}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+    });
+    
+    // Add custom specialty
+    addCustomBtn.addEventListener('click', function() {
+        const value = customInput.value.trim();
+        if (value) {
+            const container = modal.querySelector('.specialty-tags');
+            const newTag = document.createElement('label');
+            newTag.className = 'specialty-tag';
+            newTag.innerHTML = `
+                <input type="checkbox" name="specialties" value="${value.toLowerCase().replace(/\s+/g, '_')}" checked>
+                <span>${value}</span>
+            `;
+            container.appendChild(newTag);
+            customInput.value = '';
+        }
+    });
+    
+    // Save specialties
+    saveBtn.addEventListener('click', function() {
+        const selectedSpecialties = [];
+        const checkboxes = modal.querySelectorAll('input[name="specialties"]:checked');
+        
+        checkboxes.forEach(cb => {
+            selectedSpecialties.push(cb.value);
+        });
+        
+        // Send to server
+        fetch('/api/profile/specialties', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ specialties: selectedSpecialties })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update display
+                const displayContainer = document.querySelector('.specialty-tags-display');
+                displayContainer.innerHTML = '';
+                
+                selectedSpecialties.forEach(specialty => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-primary me-1 mb-1';
+                    badge.textContent = specialty.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    displayContainer.appendChild(badge);
+                });
+                
+                if (selectedSpecialties.length === 0) {
+                    displayContainer.innerHTML = '<span class="text-muted">No specialties added yet</span>';
+                }
+                
+                // Update mobile preview
+                const previewContainer = document.getElementById('previewSpecialties');
+                previewContainer.innerHTML = '';
+                
+                selectedSpecialties.forEach(specialty => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-light text-dark me-1 mb-1';
+                    badge.style.fontSize = '0.7rem';
+                    badge.style.padding = '0.3rem 0.5rem';
+                    badge.textContent = specialty.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    previewContainer.appendChild(badge);
+                });
+                
+                // Close modal
+                const modalInstance = bootstrap.Modal.getInstance(modal);
+                modalInstance.hide();
+                
+                // Show success message
+                alert('Specialties updated successfully!');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating specialties');
+        });
+    });
+});
 </script>
+
+{% block extra_scripts %}
+<!-- FullCalendar CSS/JS (only loaded on this page) -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js"></script>
+{% endblock %}
 {% endblock %}
