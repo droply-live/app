@@ -186,7 +186,7 @@ All features are fully mobile-responsive:
 - **Consistent Branding** - Droply color scheme throughout
 - **Accessibility** - Screen reader friendly
 
-## 🔧 Configuration
+## 🔧 Configuration:
 
 ### Environment Variables
 ```bash
@@ -196,7 +196,7 @@ STRIPE_SECRET_KEY=your_stripe_secret_key
 REPLIT_DEV_DOMAIN=your_domain
 REPLIT_DEPLOYMENT=true
 ```
-
+ 
 ### Database Configuration
 The application uses SQLite by default. To switch to PostgreSQL or MySQL:
 1. Update the database URL in `app.py`
