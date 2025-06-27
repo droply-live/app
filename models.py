@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 from sqlalchemy import func
 import json
-import numpy as np
+# import numpy as np
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -64,13 +64,14 @@ class User(UserMixin, db.Model):
         self.specialty_tags = json.dumps(tags)
     
     def set_embedding(self, embedding_array):
-        """Store numpy array as binary"""
-        self.embedding = embedding_array.tobytes()
+        """Store numpy array as binary - Temporarily disabled"""
+        # self.embedding = embedding_array.tobytes()
+        pass
     
     def get_embedding(self):
-        """Retrieve numpy array from binary"""
-        if self.embedding:
-            return np.frombuffer(self.embedding, dtype=np.float32)
+        """Retrieve numpy array from binary - Temporarily disabled"""
+        # if self.embedding:
+        #     return np.frombuffer(self.embedding, dtype=np.float32)
         return None
     
     def get_location_display(self):

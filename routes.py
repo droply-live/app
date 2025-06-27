@@ -10,9 +10,9 @@ from models import User, TimeSlot, Booking
 from forms import RegistrationForm, LoginForm, ProfileForm, TimeSlotForm, BookingForm, SearchForm, OnboardingForm
 from utils import generate_ical_content
 import json
-import faiss
-from sentence_transformers import SentenceTransformer
-import numpy as np
+# import faiss
+# from sentence_transformers import SentenceTransformer
+# import numpy as np
 import time
 
 # Configure Stripe
@@ -22,11 +22,12 @@ if not YOUR_DOMAIN.startswith('http'):
     YOUR_DOMAIN = f"https://{YOUR_DOMAIN}" if os.environ.get('REPLIT_DEPLOYMENT') else f"http://{YOUR_DOMAIN}"
 
 # Load the model once when the app starts
-try:
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-except Exception as e:
-    print(f"Error loading SentenceTransformer model: {e}")
-    model = None
+# try:
+#     model = SentenceTransformer('all-MiniLM-L6-v2')
+# except Exception as e:
+#     print(f"Error loading SentenceTransformer model: {e}")
+#     model = None
+model = None
 
 @app.route('/')
 def index():
@@ -39,36 +40,8 @@ def index():
     search_query = request.args.get('query', '').strip()
 
     if search_query and model:
-        # SEMANTIC SEARCH LOGIC
-        users_with_embeddings = User.query.filter(User.embedding.isnot(None)).all()
-        
-        if users_with_embeddings:
-            user_embeddings = np.array([user.get_embedding() for user in users_with_embeddings]).astype('float32')
-            user_ids = [user.id for user in users_with_embeddings]
-            
-            if user_embeddings.shape[0] > 0:
-                d = user_embeddings.shape[1]
-                index = faiss.IndexFlatL2(d)
-                index = faiss.IndexIDMap(index)
-                index.add_with_ids(user_embeddings, np.array(user_ids))
-                
-                query_embedding = model.encode([search_query], convert_to_numpy=True).astype('float32')
-                
-                # Search for top 50 results
-                k = min(50, len(users_with_embeddings))
-                distances, found_ids = index.search(query_embedding, k)
-                
-                # Filter out -1s which indicate no result
-                found_ids = [uid for uid in found_ids[0] if uid != -1]
-
-                if found_ids:
-                    # Order the results based on the search
-                    whens = {found_ids[i]: i for i in range(len(found_ids))}
-                    ordering = case(whens, value=User.id)
-                    query_obj = query_obj.filter(User.id.in_(found_ids)).order_by(ordering)
-                else:
-                    # No semantic matches, return no users
-                    query_obj = query_obj.filter(User.id == -1) 
+        # SEMANTIC SEARCH LOGIC - Temporarily disabled
+        pass
     elif search_query:
         # FALLBACK TO KEYWORD SEARCH
         search_term = f"%{search_query}%"
@@ -78,7 +51,7 @@ def index():
                 User.profession.ilike(search_term),
                 User.industry.ilike(search_term),
                 User.bio.ilike(search_term),
-                User.specialty_tags.ilike(search_term)
+                User.specialty_tags.ilike(search_term) if User.specialty_tags else False
             )
         )
 
