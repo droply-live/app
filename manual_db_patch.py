@@ -7,7 +7,13 @@ columns = [
     ("twitter_url", "VARCHAR(200)"),
     ("youtube_url", "VARCHAR(200)"),
     ("instagram_url", "VARCHAR(200)"),
-    ("website_url", "VARCHAR(200)")
+    ("website_url", "VARCHAR(200)"),
+    ("rating_count", "INTEGER DEFAULT 0"),
+    ("is_top_expert", "BOOLEAN DEFAULT 0"),
+    ("donation_text", "TEXT"),
+    ("github_url", "VARCHAR(200)"),
+    ("facebook_url", "VARCHAR(200)"),
+    ("snapchat_url", "VARCHAR(200)")
 ]
 
 def column_exists(engine, table, column):

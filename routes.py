@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case
 from app import app, db
-from models import User
+from models import User, AvailabilityRule, AvailabilityException
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm
 import json
 import faiss
@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import os
 import time
+from datetime import datetime
 
 # Load the model once when the app starts
 try:
@@ -337,28 +338,208 @@ def api_profile_background():
 @app.route('/api/availability/rules', methods=['GET', 'POST'])
 @login_required
 def api_availability_rules():
-    """Get or update availability rules"""
     if request.method == 'GET':
-        # Return empty list for now since we don't have availability rules table yet
-        return jsonify([])
+        username = request.args.get('username')
+        if username:
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return jsonify([])
+            user_id = user.id
+        else:
+            user_id = current_user.id
+        rules = AvailabilityRule.query.filter_by(user_id=user_id).all()
+        return jsonify([
+            {
+                'id': r.id,
+                'weekday': r.weekday,
+                'start': r.start.strftime('%H:%M'),
+                'end': r.end.strftime('%H:%M')
+            } for r in rules
+        ])
     else:
-        # POST - save rules (placeholder for now)
+        data = request.get_json()
+        rules = data.get('rules', [])
+        AvailabilityRule.query.filter_by(user_id=current_user.id).delete()
+        for r in rules:
+            if r.get('enabled'):
+                db.session.add(AvailabilityRule(
+                    user_id=current_user.id,
+                    weekday=r['weekday'],
+                    start=datetime.strptime(r['start'], '%H:%M').time(),
+                    end=datetime.strptime(r['end'], '%H:%M').time()
+                ))
+        db.session.commit()
         return jsonify({'success': True})
 
 @app.route('/api/availability/exceptions', methods=['GET', 'POST'])
 @login_required
 def api_availability_exceptions():
-    """Get or update availability exceptions"""
     if request.method == 'GET':
-        # Return empty list for now since we don't have exceptions table yet
-        return jsonify([])
+        username = request.args.get('username')
+        if username:
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return jsonify([])
+            user_id = user.id
+        else:
+            user_id = current_user.id
+        exceptions = AvailabilityException.query.filter_by(user_id=user_id).all()
+        return jsonify([
+            {
+                'id': e.id,
+                'start': e.start.isoformat(),
+                'end': e.end.isoformat(),
+                'reason': e.reason
+            } for e in exceptions
+        ])
     else:
-        # POST - save exception (placeholder for now)
+        data = request.get_json()
+        ex = AvailabilityException(
+            user_id=current_user.id,
+            start=datetime.fromisoformat(data['start']),
+            end=datetime.fromisoformat(data['end']),
+            reason=data.get('reason', '')
+        )
+        db.session.add(ex)
+        db.session.commit()
         return jsonify({'success': True})
 
 @app.route('/api/availability/exceptions/<int:exception_id>', methods=['DELETE'])
 @login_required
 def api_availability_exception_delete(exception_id):
-    """Delete availability exception"""
-    # Placeholder for now
-    return jsonify({'success': True}) 
+    ex = AvailabilityException.query.filter_by(id=exception_id, user_id=current_user.id).first()
+    if ex:
+        db.session.delete(ex)
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'error': 'Not found'}), 404
+
+@app.route('/booking/confirm', methods=['GET', 'POST'])
+@login_required
+def booking_confirmation():
+    """Booking confirmation page with payment"""
+    if request.method == 'GET':
+        # Get booking details from query parameters
+        expert_username = request.args.get('expert')
+        datetime_str = request.args.get('datetime')
+        duration = request.args.get('duration', 30)
+        
+        if not expert_username or not datetime_str:
+            flash('Missing booking information', 'error')
+            return redirect(url_for('index'))
+        
+        # Get expert details
+        expert = User.query.filter_by(username=expert_username).first()
+        if not expert:
+            flash('Expert not found', 'error')
+            return redirect(url_for('index'))
+        
+        # Parse datetime
+        try:
+            from datetime import datetime
+            booking_datetime = datetime.fromisoformat(datetime_str)
+        except ValueError:
+            flash('Invalid date/time format', 'error')
+            return redirect(url_for('index'))
+        
+        # Calculate pricing
+        duration = int(duration)
+        hourly_rate = expert.hourly_rate or 0
+        session_fee = (hourly_rate * duration) / 60  # Convert to per-minute rate
+        platform_fee = max(5.0, session_fee * 0.10)  # 10% platform fee, minimum $5
+        total_amount = session_fee + platform_fee
+        
+        return render_template('booking_confirmation.html',
+                             expert=expert,
+                             booking_date=booking_datetime.strftime('%B %d, %Y'),
+                             booking_time=booking_datetime.strftime('%I:%M %p'),
+                             duration=duration,
+                             session_fee=f"{session_fee:.2f}",
+                             platform_fee=f"{platform_fee:.2f}",
+                             total_amount=f"{total_amount:.2f}")
+    
+    else:
+        # Handle POST request for payment processing
+        # This will be integrated with your payment system
+        flash('Payment processing will be handled here', 'info')
+        return redirect(url_for('bookings'))
+
+@app.route('/api/availability/times', methods=['GET'])
+def api_availability_times():
+    """Get available times for a user, with default 9-5 availability if no rules set"""
+    username = request.args.get('username')
+    if not username:
+        return jsonify({'error': 'Username required'}), 400
+    
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    # Check if user is available for bookings
+    if not user.is_available:
+        return jsonify({'available': False, 'message': 'User is currently unavailable'})
+    
+    # Get explicit availability rules
+    rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
+    
+    # If no explicit rules, provide default 9-5 availability for all weekdays
+    if not rules:
+        default_times = []
+        # Generate times for next 7 days, 9 AM to 5 PM, every 30 minutes
+        from datetime import datetime, timedelta
+        now = datetime.now()
+        
+        for day_offset in range(7):
+            date = now + timedelta(days=day_offset)
+            # Skip weekends (5=Saturday, 6=Sunday)
+            if date.weekday() < 5:  # Monday to Friday
+                for hour in range(9, 17):  # 9 AM to 5 PM
+                    for minute in [0, 30]:  # Every 30 minutes
+                        time_slot = date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                        # Only show future times
+                        if time_slot > now:
+                            default_times.append({
+                                'date': time_slot.strftime('%Y-%m-%d'),
+                                'time': time_slot.strftime('%H:%M'),
+                                'datetime': time_slot.isoformat(),
+                                'day_name': time_slot.strftime('%A'),
+                                'formatted': time_slot.strftime('%I:%M %p')
+                            })
+        
+        return jsonify({
+            'available': True,
+            'has_rules': False,
+            'times': default_times[:20]  # Limit to first 20 slots
+        })
+    else:
+        # Use explicit rules to generate times
+        # This is a simplified version - you might want to implement more complex logic
+        from datetime import datetime, timedelta
+        now = datetime.now()
+        available_times = []
+        
+        for rule in rules:
+            # Generate times for next 7 days based on this rule
+            for day_offset in range(7):
+                date = now + timedelta(days=day_offset)
+                if date.weekday() == rule.weekday:
+                    # Generate time slots between start and end
+                    current_time = datetime.combine(date.date(), rule.start)
+                    end_time = datetime.combine(date.date(), rule.end)
+                    
+                    while current_time < end_time:
+                        if current_time > now:  # Only future times
+                            available_times.append({
+                                'date': current_time.strftime('%Y-%m-%d'),
+                                'time': current_time.strftime('%H:%M'),
+                                'datetime': current_time.isoformat(),
+                                'day_name': current_time.strftime('%A'),
+                                'formatted': current_time.strftime('%I:%M %p')
+                            })
+                        current_time += timedelta(minutes=30)  # 30-minute slots
+        
+        return jsonify({
+            'available': True,
+            'has_rules': True,
+            'times': available_times[:20]  # Limit to first 20 slots
+        }) 
