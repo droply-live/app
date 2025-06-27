@@ -26,6 +26,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # initialize the app with the extension
 db.init_app(app)

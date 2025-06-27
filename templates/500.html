@@ -3,24 +3,9 @@
 {% block title %}Server Error - Droply{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-6 text-center">
-            <div class="error-page">
-                <h1 class="display-1 fw-bold text-danger">500</h1>
-                <h2 class="mb-3">Internal Server Error</h2>
-                <p class="lead text-muted mb-4">Something went wrong on our end. Please try again later.</p>
-                
-                <div class="d-flex gap-3 justify-content-center">
-                    <a href="{{ url_for('index') }}" class="btn btn-primary">
-                        <i data-feather="home" class="me-2"></i>Go Home
-                    </a>
-                    <button onclick="window.location.reload()" class="btn btn-outline-primary">
-                        <i data-feather="refresh-cw" class="me-2"></i>Try Again
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="container py-5 text-center">
+    <h1 class="display-4">500</h1>
+    <p class="lead">Internal Server Error. Please try again later.</p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary mt-3"><i data-feather="home" class="me-2"></i>Go Home</a>
 </div>
 {% endblock %}

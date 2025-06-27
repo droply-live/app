@@ -14,118 +14,55 @@
                     </h2>
                     <p class="text-muted mb-0">Manage your availability and time slots</p>
                 </div>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSlotModal">
-                    <i data-feather="plus" class="me-2"></i>Add Time Slot
-                </button>
             </div>
         </div>
     </div>
-    
+    <!-- Time Slot Rules Panel -->
+    <div class="row">
+        <div class="col-12">
+            <div class="time-slot-rules mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Time Slot Rules</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Default Duration</label>
+                                <select class="form-select" id="defaultDuration">
+                                    <option value="30">30 minutes</option>
+                                    <option value="60">1 hour</option>
+                                    <option value="90">1.5 hours</option>
+                                    <option value="120">2 hours</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Working Hours Start</label>
+                                <input type="time" class="form-control" id="workingHoursStart" value="09:00">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Working Hours End</label>
+                                <input type="time" class="form-control" id="workingHoursEnd" value="17:00">
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="lockWeekends">
+                                    <label class="form-check-label" for="lockWeekends">
+                                        Lock Weekends (Empty Availability)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Calendar View -->
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Upcoming Time Slots</h5>
-                        <div class="btn-group" role="group">
-                            <input type="radio" class="btn-check" name="viewMode" id="listView" checked>
-                            <label class="btn btn-outline-primary" for="listView">
-                                <i data-feather="list" style="width: 16px; height: 16px;"></i> List
-                            </label>
-                            <input type="radio" class="btn-check" name="viewMode" id="calendarView">
-                            <label class="btn btn-outline-primary" for="calendarView">
-                                <i data-feather="calendar" style="width: 16px; height: 16px;"></i> Calendar
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="card-body">
-                    <!-- List View -->
-                    <div id="listViewContent">
-                        {% if time_slots %}
-                        <div class="row g-3">
-                            {% for slot in time_slots %}
-                            <div class="col-md-6">
-                                <div class="time-slot-card border rounded p-3 {% if not slot.is_available %}bg-light{% endif %}">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h6 class="fw-bold mb-1">{{ slot.title }}</h6>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i data-feather="more-horizontal" style="width: 16px; height: 16px;"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#"><i data-feather="edit" class="me-2" style="width: 16px; height: 16px;"></i>Edit</a></li>
-                                                <li><a class="dropdown-item text-danger" href="#"><i data-feather="trash-2" class="me-2" style="width: 16px; height: 16px;"></i>Delete</a></li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="slot-details mb-3">
-                                        <small class="text-muted d-block">
-                                            <i data-feather="calendar" style="width: 14px; height: 14px;"></i>
-                                            {{ slot.start_datetime.strftime('%B %d, %Y') }}
-                                        </small>
-                                        <small class="text-muted d-block">
-                                            <i data-feather="clock" style="width: 14px; height: 14px;"></i>
-                                            {{ slot.start_datetime.strftime('%I:%M %p') }} - {{ slot.end_datetime.strftime('%I:%M %p') }}
-                                        </small>
-                                        <small class="text-muted d-block">
-                                            <i data-feather="video" style="width: 14px; height: 14px;"></i>
-                                            Video Session
-                                            {% if slot.meeting_details %}
-                                            - {{ slot.meeting_details }}
-                                            {% endif %}
-                                        </small>
-                                    </div>
-                                    
-                                    {% if slot.description %}
-                                    <p class="small text-muted mb-3">{{ slot.description[:100] }}{% if slot.description|length > 100 %}...{% endif %}</p>
-                                    {% endif %}
-                                    
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            {% if slot.is_available %}
-                                            <span class="badge bg-success">Available</span>
-                                            {% else %}
-                                            <span class="badge bg-secondary">Booked</span>
-                                            {% endif %}
-                                            
-                                            {% if slot.price > 0 %}
-                                            <span class="badge bg-primary ms-1">${{ "%.0f"|format(slot.price) }}</span>
-                                            {% else %}
-                                            <span class="badge bg-info ms-1">Free</span>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        {% if slot.booking %}
-                                        <small class="text-muted">
-                                            Booked by {{ slot.booking.client_name }}
-                                        </small>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% else %}
-                        <div class="text-center py-5">
-                            <i data-feather="plus-circle" class="text-muted mb-3" style="width: 64px; height: 64px;"></i>
-                            <h5 class="text-muted mb-3">No time slots yet</h5>
-                            <p class="text-muted mb-4">Start by adding your first available time slot to let clients book sessions with you.</p>
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSlotModal">
-                                <i data-feather="plus" class="me-2"></i>Add Your First Time Slot
-                            </button>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Calendar View (placeholder) -->
-                    <div id="calendarViewContent" style="display: none;">
-                        <div class="calendar-grid" id="calendarGrid">
-                            <!-- Calendar will be rendered here by JavaScript -->
-                        </div>
+                    <div id="calendarGrid" class="calendar-grid-pro">
+                        <!-- Calendar will be rendered here by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -133,80 +70,164 @@
     </div>
 </div>
 
-<!-- Add Time Slot Modal -->
-<div class="modal fade" id="addSlotModal" tabindex="-1" aria-labelledby="addSlotModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<!-- Day Customization Modal -->
+<div class="modal fade" id="dayCustomizationModal" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addSlotModalLabel">
-                    <i data-feather="plus" class="me-2"></i>Add Time Slot
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Customize Day</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            
-            <form method="POST" action="{{ url_for('add_time_slot') }}">
-                <div class="modal-body">
-                    {% if form %}
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="row">
-                        <div class="col-md-8 mb-3">
-                            {{ form.title.label(class="form-label fw-bold") }}
-                            {{ form.title(class="form-control", placeholder="e.g. Career Coaching Session") }}
-                        </div>
-                        
-                        <div class="col-md-4 mb-3">
-                            {{ form.session_type.label(class="form-label fw-bold") }}
-                            {{ form.session_type(class="form-select") }}
-                        </div>
-                    </div>
-                    
+            <div class="modal-body">
+                <form id="dayCustomizationForm">
                     <div class="mb-3">
-                        {{ form.description.label(class="form-label fw-bold") }}
-                        {{ form.description(class="form-control", rows="3", placeholder="Describe what this session covers...") }}
+                        <label class="form-label">Working Hours Start</label>
+                        <input type="time" class="form-control" id="customStartTime">
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.start_datetime.label(class="form-label fw-bold") }}
-                            {{ form.start_datetime(class="form-control") }}
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            {{ form.end_datetime.label(class="form-label fw-bold") }}
-                            {{ form.end_datetime(class="form-control") }}
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Working Hours End</label>
+                        <input type="time" class="form-control" id="customEndTime">
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.price.label(class="form-label fw-bold") }}
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                {{ form.price(class="form-control", placeholder="0") }}
-                            </div>
-                            <small class="form-text text-muted">Leave empty to use your default rate ({{ "$%.0f"|format(current_user.hourly_rate) if current_user.hourly_rate > 0 else "Free" }})</small>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Meeting Details</label>
-                            {{ form.location_details(class="form-control", placeholder="Video meeting link (optional)") }}
-                            <small class="form-text text-muted">Meeting link will be shared after booking confirmation</small>
+                    <div class="mb-3">
+                        <label class="form-label">Time Slot Duration</label>
+                        <select class="form-select" id="customDuration">
+                            <option value="30">30 minutes</option>
+                            <option value="60">1 hour</option>
+                            <option value="90">1.5 hours</option>
+                            <option value="120">2 hours</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="customLockDay">
+                            <label class="form-check-label" for="customLockDay">
+                                Lock Day (Empty Availability)
+                            </label>
                         </div>
                     </div>
-                    {% endif %}
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i data-feather="save" class="me-2"></i>Add Time Slot
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCustomRules">Save Changes</button>
+            </div>
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block styles %}
+<style>
+.calendar-grid-pro {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1.5rem;
+    background: none;
+    padding: 1rem 0;
+}
+
+.calendar-header {
+    background: #f8f9fa;
+    padding: 0.75rem 0;
+    text-align: center;
+    font-weight: 700;
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 1.1rem;
+    letter-spacing: 0.03em;
+}
+
+.calendar-day {
+    background: #fff;
+    min-height: 180px;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(60,72,88,0.07);
+    border: 1px solid #e9ecef;
+    padding: 1rem 0.5rem 0.5rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    transition: box-shadow 0.2s, border 0.2s;
+    cursor: pointer;
+    position: relative;
+}
+
+.calendar-day:hover {
+    box-shadow: 0 4px 16px rgba(60,72,88,0.13);
+    border: 1.5px solid #339af0;
+    z-index: 2;
+}
+
+.calendar-day.today {
+    border: 2px solid #339af0;
+    background: #e7f5ff;
+}
+
+.calendar-day.other-month {
+    background: #f8f9fa;
+    color: #adb5bd;
+    border: 1px dashed #dee2e6;
+}
+
+.calendar-date {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #1971c2;
+    margin-bottom: 0.5rem;
+    align-self: center;
+}
+
+.calendar-time-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    width: 100%;
+    max-height: 120px;
+    overflow-y: auto;
+    margin-top: 0.25rem;
+}
+
+.time-slot {
+    background: #f1f3f5;
+    border-radius: 1.5rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.95rem;
+    color: #1971c2;
+    font-weight: 500;
+    border: 1px solid #d0ebff;
+    display: inline-block;
+    transition: background 0.2s, color 0.2s;
+}
+
+.time-slot:hover {
+    background: #339af0;
+    color: #fff;
+    border-color: #339af0;
+}
+
+@media (max-width: 900px) {
+    .calendar-grid-pro {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    .calendar-day {
+        min-height: 120px;
+        padding: 0.5rem;
+    }
+}
+@media (max-width: 600px) {
+    .calendar-grid-pro {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    .calendar-day {
+        min-height: 80px;
+        padding: 0.25rem;
+    }
+}
+</style>
 {% endblock %}
 
 {% block extra_scripts %}
