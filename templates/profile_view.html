@@ -4,366 +4,250 @@
 
 {% block content %}
 <div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8">
-            <!-- Mobile-style Profile Card -->
-            <div class="profile-card">
-                <!-- Profile Header -->
-                <div class="profile-header">
-                    <div class="profile-avatar">
-                        {% if user.background_image_url %}
-                            <img src="{{ user.background_image_url }}" alt="{{ user.full_name }}" class="avatar-image">
-                        {% else %}
-                            <div class="avatar-placeholder">
-                                <i data-feather="user"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="profile-info">
-                        <h1 class="profile-name">{{ user.full_name or user.username }}</h1>
-                        <p class="profile-title">{{ user.profession|title if user.profession else 'Professional' }}</p>
-                        
-                        {% if user.get_location_display() %}
-                        <div class="profile-location">
-                            <i data-feather="map-pin" class="location-icon"></i>
-                            <span>{{ user.get_location_display() }}</span>
-                        </div>
-                        {% endif %}
-                        
-                        {% if user.hourly_rate and user.hourly_rate > 0 %}
-                        <div class="profile-rate">
-                            <span class="rate-badge">${{ "%.0f"|format(user.hourly_rate) }}/hr</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Profile Bio -->
-                {% if user.bio %}
-                <div class="profile-section">
-                    <h3 class="section-title">About</h3>
-                    <p class="profile-bio">{{ user.bio }}</p>
-                </div>
-                {% endif %}
-
-                <!-- Skills & Specialties -->
-                {% if user.specialty_tags %}
-                <div class="profile-section">
-                    <h3 class="section-title">Skills & Expertise</h3>
-                    <div class="skills-container">
-                        {% for tag in user.get_specialty_tags() %}
-                        <span class="skill-tag">{{ tag|title }}</span>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Industry & Experience -->
-                {% if user.industry or user.expertise %}
-                <div class="profile-section">
-                    <h3 class="section-title">Experience</h3>
-                    <div class="experience-info">
-                        {% if user.industry %}
-                        <div class="experience-item">
-                            <i data-feather="briefcase" class="experience-icon"></i>
-                            <span>{{ user.industry|title }}</span>
-                        </div>
-                        {% endif %}
-                        {% if user.expertise %}
-                        <div class="experience-item">
-                            <i data-feather="award" class="experience-icon"></i>
-                            <span>{{ user.expertise }}</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Social Media Links -->
-                {% if user.linkedin_url or user.twitter_url or user.github_url or user.instagram_url or user.facebook_url or user.snapchat_url or user.website_url %}
-                <div class="profile-section">
-                    <h3 class="section-title">Connect</h3>
-                    <div class="social-links">
-                        {% if user.linkedin_url %}
-                        <a href="{{ user.linkedin_url }}" target="_blank" class="social-link" title="LinkedIn">
-                            <i data-feather="linkedin"></i>
-                        </a>
-                        {% endif %}
-                        {% if user.twitter_url %}
-                        <a href="{{ user.twitter_url }}" target="_blank" class="social-link" title="Twitter/X">
-                            <i data-feather="twitter"></i>
-                        </a>
-                        {% endif %}
-                        {% if user.github_url %}
-                        <a href="{{ user.github_url }}" target="_blank" class="social-link" title="GitHub">
-                            <i data-feather="github"></i>
-                        </a>
-                        {% endif %}
-                        {% if user.instagram_url %}
-                        <a href="{{ user.instagram_url }}" target="_blank" class="social-link" title="Instagram">
-                            <i data-feather="instagram"></i>
-                        </a>
-                        {% endif %}
-                        {% if user.facebook_url %}
-                        <a href="{{ user.facebook_url }}" target="_blank" class="social-link" title="Facebook">
-                            <i data-feather="facebook"></i>
-                        </a>
-                        {% endif %}
-                        {% if user.snapchat_url %}
-                        <a href="{{ user.snapchat_url }}" target="_blank" class="social-link" title="Snapchat">
-                            <i data-feather="user"></i>
-                        </a>
-                        {% endif %}
-                        {% if user.website_url %}
-                        <a href="{{ user.website_url }}" target="_blank" class="social-link" title="Website">
-                            <i data-feather="globe"></i>
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Action Buttons -->
-                <div class="profile-actions">
-                    {% if current_user.is_authenticated and current_user.id != user.id %}
-                    <a href="{{ url_for('index') }}?specialty={{ user.get_specialty_tags()|first if user.get_specialty_tags() else '' }}" class="btn btn-outline-primary">
-                        <i data-feather="search" class="me-2"></i>Find Similar Experts
-                    </a>
-                    {% endif %}
-                    
-                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
-                        <i data-feather="arrow-left" class="me-2"></i>Back to Discover
-                    </a>
-                </div>
-            </div>
+  <div class="row justify-content-center">
+    <!-- Left: Mobile Profile UI -->
+    <div class="col-lg-5 col-md-7 mb-4">
+      <div class="card p-4" style="border-radius: 18px; background: #fff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
+        <div id="mobileProfilePreview" style="width: 280px; height: 500px; border-radius: 28px; background: {{ user.background_color or '#f7faff' }}; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 24px 12px; margin: 0 auto;">
+          <!-- Profile Picture -->
+          <div style="width: 100px; height: 100px; border-radius: 50%; background: #e3f0ff; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+            {% else %}
+            <i data-feather="user" style="width: 50px; height: 50px; color: #1a3a6d;"></i>
+            {% endif %}
+          </div>
+          
+          <!-- Name and Title -->
+          <div class="fw-bold mb-1" style="font-size: 1.1rem;">{{ user.full_name or user.username }}</div>
+          <div class="text-muted mb-2" style="font-size: 0.9rem;">{{ user.profession|title if user.profession else 'Professional' }}</div>
+          
+          <!-- Rating -->
+          <div class="mb-3">
+            <span class="fw-bold">{{ user.rating or '0.0' }}</span>
+            <span style="color: #FFD600;">⭐</span>
+            {% if user.rating_count and user.rating_count > 0 %}
+            <span class="text-muted ms-1">({{ user.rating_count }})</span>
+            {% endif %}
+          </div>
+          
+          <!-- Bio -->
+          <div class="mb-3" style="font-size: 0.85rem; color: #4a6fa1; text-align: center;">{{ user.bio or 'No bio yet.' }}</div>
+          
+          <!-- Hourly Rate -->
+          {% if user.hourly_rate and user.hourly_rate > 0 %}
+          <div class="mb-3"><span class="badge bg-primary">${{ user.hourly_rate }}/hr</span></div>
+          {% endif %}
+          
+          <!-- Specialty Tags -->
+          <div class="mb-3" style="text-align: center;">
+            {% if user.specialty_tags %}
+              {% for tag in user.get_specialty_tags() %}
+              <span class="badge bg-light text-dark me-1 mb-1" style="font-size: 0.65rem; padding: 0.25rem 0.4rem;">{{ tag|title }}</span>
+              {% endfor %}
+            {% endif %}
+          </div>
+          
+          <!-- Social Media Links -->
+          <div class="d-flex gap-2 mb-3">
+            {% if user.linkedin_url %}<a href="{{ user.linkedin_url }}" target="_blank"><i data-feather="linkedin"></i></a>{% endif %}
+            {% if user.twitter_url %}<a href="{{ user.twitter_url }}" target="_blank"><i data-feather="twitter"></i></a>{% endif %}
+            {% if user.github_url %}<a href="{{ user.github_url }}" target="_blank"><i data-feather="github"></i></a>{% endif %}
+            {% if user.instagram_url %}<a href="{{ user.instagram_url }}" target="_blank"><i data-feather="instagram"></i></a>{% endif %}
+            {% if user.facebook_url %}<a href="{{ user.facebook_url }}" target="_blank"><i data-feather="facebook"></i></a>{% endif %}
+            {% if user.snapchat_url %}<a href="{{ user.snapchat_url }}" target="_blank"><i data-feather="user"></i></a>{% endif %}
+            {% if user.website_url %}<a href="{{ user.website_url }}" target="_blank"><i data-feather="globe"></i></a>{% endif %}
+          </div>
         </div>
+      </div>
     </div>
+    
+    <!-- Right: Booking & Availability -->
+    <div class="col-lg-5 col-md-7 mb-4">
+      <div class="card booking-card p-4 mb-3" style="border-radius: 18px; background: #fff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
+        <div class="fw-bold mb-2">Book a video call</div>
+        <div class="mb-2">1:1 Video Consultation</div>
+        <div class="mb-2 text-muted">Book a 1:1 live video consultation & get personalized advice</div>
+        {% if user.hourly_rate and user.hourly_rate > 0 %}
+        <div class="mb-2"><span class="fw-bold">Starting at ${{ user.hourly_rate }}</span> <span class="ms-2">⭐ {{ user.rating or '0.0' }} {% if user.rating_count and user.rating_count > 0 %}({{ user.rating_count }}){% endif %}</span></div>
+        {% else %}
+        <div class="mb-2"><span class="fw-bold">Rate not set</span> <span class="ms-2">⭐ {{ user.rating or '0.0' }} {% if user.rating_count and user.rating_count > 0 %}({{ user.rating_count }}){% endif %}</span></div>
+        {% endif %}
+        
+        <!-- Availability Status -->
+        <div class="mb-2 text-muted">
+          {% if user.is_available %}
+            <span class="text-success">● Available for bookings</span>
+          {% else %}
+            <span class="text-danger">● Currently unavailable</span>
+          {% endif %}
+        </div>
+        
+        <button class="btn btn-primary w-100" id="see-times-btn" {% if not user.is_available %}disabled{% endif %}>See times</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<style>
-.profile-card {
-    background: white;
-    border-radius: 24px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    margin-bottom: 2rem;
-}
+<!-- Booking Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="bookingModalLabel">Book a video call</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <div class="btn-group w-100" role="group" aria-label="Session duration">
+            <button type="button" class="btn btn-outline-primary duration-btn active" data-duration="30">Regular – 30 Min</button>
+          </div>
+        </div>
+        <div id="available-times-section" style="max-height: 350px; overflow-y: auto;">
+          <!-- Times will be rendered here by JS -->
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-primary w-100" id="booking-next-btn">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-.profile-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 3rem 2rem 2rem;
-    text-align: center;
-    position: relative;
-}
+<!-- Login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="loginModalLabel">Create an account, or log in</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="login-form">
+          <div class="mb-3">
+            <label for="login-phone" class="form-label">Mobile number</label>
+            <div class="input-group">
+              <span class="input-group-text">+1</span>
+              <input type="tel" class="form-control" id="login-phone" placeholder="Enter mobile number" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Continue</button>
+        </form>
+        <div class="mt-3 text-muted small">By continuing you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
 
-.profile-avatar {
-    margin-bottom: 1.5rem;
-}
-
-.avatar-image {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-}
-
-.avatar-placeholder {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-}
-
-.avatar-placeholder i {
-    width: 48px;
-    height: 48px;
-    color: white;
-}
-
-.profile-name {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.profile-title {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    margin-bottom: 1rem;
-}
-
-.profile-location {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    font-size: 0.95rem;
-}
-
-.location-icon {
-    width: 16px;
-    height: 16px;
-}
-
-.profile-rate {
-    margin-top: 1rem;
-}
-
-.rate-badge {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.profile-section {
-    padding: 2rem;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.profile-section:last-of-type {
-    border-bottom: none;
-}
-
-.section-title {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #1a3a6d;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.profile-bio {
-    color: #4a6fa1;
-    line-height: 1.6;
-    margin: 0;
-}
-
-.skills-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.skill-tag {
-    background: #e3f0ff;
-    color: #3c78ff;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    border: 1px solid #d1e7ff;
-}
-
-.experience-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.experience-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: #4a6fa1;
-}
-
-.experience-icon {
-    width: 18px;
-    height: 18px;
-    color: #3c78ff;
-}
-
-.social-links {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-}
-
-.social-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    background: #f8f9fa;
-    border-radius: 12px;
-    color: #4a6fa1;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border: 1px solid #e3f0ff;
-}
-
-.social-link:hover {
-    background: #3c78ff;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(60, 120, 255, 0.3);
-}
-
-.social-link i {
-    width: 20px;
-    height: 20px;
-}
-
-.profile-actions {
-    padding: 2rem;
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    background: #f8f9fa;
-}
-
-.profile-actions .btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 12px;
-    font-weight: 500;
-}
-
-@media (max-width: 768px) {
-    .profile-header {
-        padding: 2rem 1.5rem 1.5rem;
-    }
-    
-    .profile-name {
-        font-size: 1.75rem;
-    }
-    
-    .profile-section {
-        padding: 1.5rem;
-    }
-    
-    .profile-actions {
-        flex-direction: column;
-        padding: 1.5rem;
-    }
-    
-    .social-links {
-        gap: 0.75rem;
-    }
-    
-    .social-link {
-        width: 44px;
-        height: 44px;
-    }
-}
-</style>
-
+{% block scripts %}
+{{ super() }}
 <script>
+// Assume this is set by the backend (true/false)
+window.isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
+
 document.addEventListener('DOMContentLoaded', function() {
-    feather.replace();
+  feather.replace();
+
+  // Open booking modal
+  const seeTimesBtn = document.getElementById('see-times-btn');
+  if (seeTimesBtn) {
+    seeTimesBtn.onclick = function() {
+      var bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+      bookingModal.show();
+      renderAvailableTimes(); // call with no argument, defaults to 30
+    };
+  }
+
+  // Render available times based on actual availability
+  function renderAvailableTimes(duration = 30) {
+    const section = document.getElementById('available-times-section');
+    
+    // Fetch actual availability from the backend
+    fetch(`/api/availability/times?username={{ user.username }}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.available && data.times && data.times.length > 0) {
+          // Group times by day, and filter by duration
+          const timesByDay = {};
+          data.times.forEach(timeSlot => {
+            // Only include slots that match the selected duration
+            if (parseInt(timeSlot.duration) === duration) {
+              const dayKey = timeSlot.day_name;
+              if (!timesByDay[dayKey]) {
+                timesByDay[dayKey] = [];
+              }
+              timesByDay[dayKey].push(timeSlot);
+            }
+          });
+          let html = '<div class="mb-2 fw-bold">Available Times</div>';
+          // Show each day's times
+          Object.keys(timesByDay).forEach(day => {
+            html += `<div class="mb-2 fw-bold">${day}</div>`;
+            html += '<div class="d-flex flex-wrap gap-2 mb-3">';
+            timesByDay[day].forEach(timeSlot => {
+              html += `<button class="btn btn-outline-primary time-btn" data-datetime="${timeSlot.datetime}">${timeSlot.formatted}</button>`;
+            });
+            html += '</div>';
+          });
+          if (Object.keys(timesByDay).length === 0) {
+            html += `<div class='alert alert-info'>No available times for this duration. Please try another duration or day.</div>`;
+          }
+          section.innerHTML = html;
+        } else if (!data.available) {
+          section.innerHTML = `
+            <div class='alert alert-warning'>
+              ${data.message || 'User is currently unavailable for bookings.'}
+            </div>
+          `;
+        } else {
+          section.innerHTML = `
+            <div class='alert alert-info'>
+              No available times found. Please try again later.
+            </div>
+          `;
+        }
+        // Time selection
+        section.querySelectorAll('.time-btn').forEach(btn => {
+          btn.onclick = function() {
+            section.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+          };
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching availability:', error);
+        section.innerHTML = `
+          <div class='alert alert-warning'>
+            Unable to load availability. Please try again later.
+          </div>
+        `;
+      });
+  }
+
+  // Booking Next button
+  document.getElementById('booking-next-btn').onclick = function() {
+    if (!window.isAuthenticated) {
+      var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+      loginModal.show();
+    } else {
+      // Get selected time and duration
+      const selectedTimeBtn = document.querySelector('.time-btn.active');
+      const selectedDurationBtn = document.querySelector('.duration-btn.active');
+      
+      if (!selectedTimeBtn) {
+        alert('Please select a time slot first.');
+        return;
+      }
+      
+      const selectedDateTime = selectedTimeBtn.dataset.datetime;
+      const selectedDuration = selectedDurationBtn ? selectedDurationBtn.dataset.duration : 30;
+      
+      // Redirect to booking confirmation
+      const confirmUrl = `/booking/confirm?expert={{ user.username }}&datetime=${selectedDateTime}&duration=${selectedDuration}`;
+      window.location.href = confirmUrl;
+    }
+  };
 });
 </script>
 {% endblock %} 
