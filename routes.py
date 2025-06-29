@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case
 from app import app, db
 from models import User, AvailabilityRule, AvailabilityException, Booking
-from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm
+from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm
 import json
 import faiss
 from sentence_transformers import SentenceTransformer
@@ -14,7 +14,7 @@ from datetime import datetime, timezone, timedelta
 import time
 
 # Configure Stripe
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_default')
+stripe.api_key = 'sk_test_4eC39HqLyjWDarjtT1zdp7dc'  # Stripe official public test secret key
 YOUR_DOMAIN = os.environ.get('REPLIT_DEV_DOMAIN', 'localhost:5000')
 if not YOUR_DOMAIN.startswith('http'):
     YOUR_DOMAIN = f"https://{YOUR_DOMAIN}" if os.environ.get('REPLIT_DEPLOYMENT') else f"http://{YOUR_DOMAIN}"
@@ -362,14 +362,20 @@ def create_checkout_session(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     
     try:
+        # Get expert details for the checkout session
+        expert = User.query.get(booking.expert_id)
+        if not expert:
+            flash('Expert not found', 'error')
+            return redirect(url_for('index'))
+        
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
-                    'currency': booking.provider.currency.lower(),
+                    'currency': 'usd',  # Default to USD for now
                     'product_data': {
-                        'name': f'Session with {booking.provider.full_name}',
-                        'description': booking.time_slot.title,
+                        'name': f'Session with {expert.full_name or expert.username}',
+                        'description': f'{booking.duration}-minute video consultation on {booking.start_time.strftime("%B %d, %Y at %I:%M %p")}',
                     },
                     'unit_amount': int(booking.payment_amount * 100),  # Amount in cents
                 },
@@ -390,7 +396,7 @@ def create_checkout_session(booking_id):
         
     except Exception as e:
         flash(f'Payment error: {str(e)}', 'error')
-        return redirect(url_for('profile', username=booking.provider.username))
+        return redirect(url_for('profile', username=expert.username))
 
 @app.route('/booking/success/<int:booking_id>')
 def booking_success(booking_id):
@@ -407,9 +413,9 @@ def booking_cancel(booking_id):
     """Booking cancel page"""
     booking = Booking.query.get_or_404(booking_id)
     
-    # Restore time slot availability
-    booking.time_slot.is_available = True
+    # Mark booking as cancelled
     booking.status = 'cancelled'
+    booking.payment_status = 'cancelled'
     
     db.session.commit()
     
@@ -697,21 +703,23 @@ def booking_confirmation():
                              total_amount=f"{total_amount:.2f}")
     
     else:
-        # Handle POST request for payment processing
-        # This will be integrated with your payment system
-        # Create a booking record
+        # Handle POST request - create booking and redirect to Stripe
         expert_username = request.args.get('expert')
         datetime_str = request.args.get('datetime')
         duration = int(request.args.get('duration', 30))
+        
         if not expert_username or not datetime_str:
             flash('Missing booking information', 'error')
             return redirect(url_for('index'))
+        
         expert = User.query.filter_by(username=expert_username).first()
         if not expert:
             flash('Expert not found', 'error')
             return redirect(url_for('index'))
+        
         start_time = datetime.fromisoformat(datetime_str)
         end_time = start_time + timedelta(minutes=duration)
+        
         # Prevent double booking: check for any overlapping bookings
         conflict = Booking.query.filter(
             (Booking.expert_id == expert.id) &
@@ -722,21 +730,37 @@ def booking_confirmation():
                 ((start_time <= Booking.start_time) & (end_time >= Booking.end_time))
             )
         ).first()
+        
         if conflict:
             flash('This time slot has already been booked. Please choose another time.', 'error')
             return redirect(url_for('bookings'))
+        
+        # Calculate pricing
+        hourly_rate = expert.hourly_rate or 0
+        if duration == 30:
+            session_fee = hourly_rate * 0.5
+        else:
+            session_fee = (hourly_rate * duration) / 60
+        platform_fee = max(5.0, session_fee * 0.10)
+        total_amount = session_fee + platform_fee
+        
+        # Create booking with pending payment status
         booking = Booking(
             user_id=current_user.id,
             expert_id=expert.id,
             start_time=start_time,
             end_time=end_time,
             duration=duration,
-            status='confirmed'
+            status='pending',
+            payment_status='pending',
+            payment_amount=total_amount
         )
+        
         db.session.add(booking)
         db.session.commit()
-        flash('Payment processing will be handled here. Your session is booked!', 'info')
-        return redirect(url_for('bookings'))
+        
+        # Redirect to Stripe checkout
+        return redirect(url_for('create_checkout_session', booking_id=booking.id))
 
 @app.route('/api/availability/times', methods=['GET'])
 def api_availability_times():
