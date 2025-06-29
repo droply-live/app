@@ -73,16 +73,18 @@
           </div>
         </div>
 
-        <!-- Payment Button -->
-        <div class="text-center">
-          <button class="btn btn-primary btn-lg px-5" id="pay-now-btn" style="border-radius: 12px;">
-            <i data-feather="credit-card" class="me-2"></i>
-            Pay Now - ${{ total_amount }}
-          </button>
-          <div class="mt-2">
-            <small class="text-muted">You'll be redirected to complete your payment</small>
+        <!-- Payment Form -->
+        <form method="POST" action="{{ url_for('booking_confirmation', expert=request.args.get('expert'), datetime=request.args.get('datetime'), duration=request.args.get('duration')) }}">
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary btn-lg px-5" id="pay-now-btn" style="border-radius: 12px;">
+              <i data-feather="credit-card" class="me-2"></i>
+              Pay Now - ${{ total_amount }}
+            </button>
+            <div class="mt-2">
+              <small class="text-muted">You'll be redirected to complete your payment</small>
+            </div>
           </div>
-        </div>
+        </form>
 
         <!-- Cancellation Policy -->
         <div class="mt-4 p-3" style="background: #fff3cd; border-radius: 12px; border: 1px solid #ffeaa7;">
@@ -103,18 +105,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   feather.replace();
-
-  // Pay Now button handler
-  document.getElementById('pay-now-btn').addEventListener('click', function() {
-    // This will be replaced with actual payment integration
-    alert('Payment integration will be handled here. Redirecting to payment processor...');
-    
-    // For now, just show a success message
-    setTimeout(() => {
-      alert('Payment successful! Your booking has been confirmed.');
-      window.location.href = '/bookings'; // Redirect to bookings page
-    }, 1000);
-  });
 });
 </script>
 {% endblock %} 

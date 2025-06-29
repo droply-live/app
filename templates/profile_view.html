@@ -100,13 +100,10 @@
       <div class="modal-body">
         <div class="mb-3">
           <div class="btn-group w-100" role="group" aria-label="Session duration">
-            <button type="button" class="btn btn-outline-primary duration-btn active" data-duration="15">Quick – 15 Min</button>
-            <button type="button" class="btn btn-outline-primary duration-btn" data-duration="30">Regular – 30 Min</button>
-            <button type="button" class="btn btn-outline-primary duration-btn" data-duration="45">Extra – 45 Min</button>
-            <button type="button" class="btn btn-outline-primary duration-btn" data-duration="60">All Access – 60 Min</button>
+            <button type="button" class="btn btn-outline-primary duration-btn active" data-duration="30">Regular – 30 Min</button>
           </div>
         </div>
-        <div id="available-times-section">
+        <div id="available-times-section" style="max-height: 350px; overflow-y: auto;">
           <!-- Times will be rendered here by JS -->
         </div>
       </div>
@@ -158,21 +155,12 @@ document.addEventListener('DOMContentLoaded', function() {
     seeTimesBtn.onclick = function() {
       var bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
       bookingModal.show();
-      renderAvailableTimes(15); // default duration
+      renderAvailableTimes(); // call with no argument, defaults to 30
     };
   }
 
-  // Duration selection
-  document.querySelectorAll('.duration-btn').forEach(btn => {
-    btn.onclick = function() {
-      document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      renderAvailableTimes(parseInt(this.dataset.duration));
-    };
-  });
-
   // Render available times based on actual availability
-  function renderAvailableTimes(duration) {
+  function renderAvailableTimes(duration = 30) {
     const section = document.getElementById('available-times-section');
     
     // Fetch actual availability from the backend
@@ -180,18 +168,19 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(response => response.json())
       .then(data => {
         if (data.available && data.times && data.times.length > 0) {
-          // Group times by day
+          // Group times by day, and filter by duration
           const timesByDay = {};
           data.times.forEach(timeSlot => {
-            const dayKey = timeSlot.day_name;
-            if (!timesByDay[dayKey]) {
-              timesByDay[dayKey] = [];
+            // Only include slots that match the selected duration
+            if (parseInt(timeSlot.duration) === duration) {
+              const dayKey = timeSlot.day_name;
+              if (!timesByDay[dayKey]) {
+                timesByDay[dayKey] = [];
+              }
+              timesByDay[dayKey].push(timeSlot);
             }
-            timesByDay[dayKey].push(timeSlot);
           });
-          
           let html = '<div class="mb-2 fw-bold">Available Times</div>';
-          
           // Show each day's times
           Object.keys(timesByDay).forEach(day => {
             html += `<div class="mb-2 fw-bold">${day}</div>`;
@@ -201,7 +190,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             html += '</div>';
           });
-          
+          if (Object.keys(timesByDay).length === 0) {
+            html += `<div class='alert alert-info'>No available times for this duration. Please try another duration or day.</div>`;
+          }
           section.innerHTML = html;
         } else if (!data.available) {
           section.innerHTML = `
@@ -216,7 +207,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
           `;
         }
-        
         // Time selection
         section.querySelectorAll('.time-btn').forEach(btn => {
           btn.onclick = function() {

@@ -79,3 +79,17 @@ class AvailabilityException(db.Model):
     start = db.Column(db.DateTime, nullable=False)
     end = db.Column(db.DateTime, nullable=False)
     reason = db.Column(db.String(255))
+
+class Booking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The person who booked
+    expert_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The expert
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
+    duration = db.Column(db.Integer, nullable=False)  # in minutes
+    status = db.Column(db.String(32), default='confirmed')  # confirmed, cancelled, completed, etc.
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='bookings_as_user')
+    expert = db.relationship('User', foreign_keys=[expert_id], backref='bookings_as_expert')

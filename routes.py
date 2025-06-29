@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case
 from app import app, db
-from models import User, AvailabilityRule, AvailabilityException
+from models import User, AvailabilityRule, AvailabilityException, Booking
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm
 import json
 import faiss
@@ -10,7 +10,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Load the model once when the app starts
 try:
@@ -216,7 +216,19 @@ def profile(username):
 @login_required
 def bookings():
     """View user's bookings and calendar"""
-    return render_template('bookings.html', user=current_user)
+    from models import Booking, User
+    from datetime import datetime
+    now = datetime.now()
+    # Bookings where the user is the booker or the expert
+    upcoming = Booking.query.filter(
+        ((Booking.user_id == current_user.id) | (Booking.expert_id == current_user.id)) &
+        (Booking.start_time >= now)
+    ).order_by(Booking.start_time.asc()).all()
+    past = Booking.query.filter(
+        ((Booking.user_id == current_user.id) | (Booking.expert_id == current_user.id)) &
+        (Booking.start_time < now)
+    ).order_by(Booking.start_time.desc()).all()
+    return render_template('bookings.html', user=current_user, upcoming=upcoming, past=past)
 
 @app.errorhandler(404)
 def not_found(error):
@@ -445,7 +457,11 @@ def booking_confirmation():
         # Calculate pricing
         duration = int(duration)
         hourly_rate = expert.hourly_rate or 0
-        session_fee = (hourly_rate * duration) / 60  # Convert to per-minute rate
+        # For 30-minute sessions, session fee is always 50% of hourly rate
+        if duration == 30:
+            session_fee = hourly_rate * 0.5
+        else:
+            session_fee = (hourly_rate * duration) / 60  # fallback for other durations
         platform_fee = max(5.0, session_fee * 0.10)  # 10% platform fee, minimum $5
         total_amount = session_fee + platform_fee
         
@@ -461,7 +477,47 @@ def booking_confirmation():
     else:
         # Handle POST request for payment processing
         # This will be integrated with your payment system
-        flash('Payment processing will be handled here', 'info')
+        # Create a booking record
+        expert_username = request.args.get('expert')
+        datetime_str = request.args.get('datetime')
+        duration = int(request.args.get('duration', 30))
+        if not expert_username or not datetime_str:
+            flash('Missing booking information', 'error')
+            return redirect(url_for('index'))
+        expert = User.query.filter_by(username=expert_username).first()
+        if not expert:
+            flash('Expert not found', 'error')
+            return redirect(url_for('index'))
+        from datetime import datetime, timedelta
+        start_time = datetime.fromisoformat(datetime_str)
+        end_time = start_time + timedelta(minutes=duration)
+        # Prevent double booking: check for any overlapping bookings
+        conflict = Booking.query.filter(
+            (Booking.expert_id == expert.id) &
+            (Booking.status == 'confirmed') &
+            (
+                # Check for any overlap: new booking starts during existing booking
+                ((start_time >= Booking.start_time) & (start_time < Booking.end_time)) |
+                # Or new booking ends during existing booking
+                ((end_time > Booking.start_time) & (end_time <= Booking.end_time)) |
+                # Or new booking completely contains existing booking
+                ((start_time <= Booking.start_time) & (end_time >= Booking.end_time))
+            )
+        ).first()
+        if conflict:
+            flash('This time slot has already been booked. Please choose another time.', 'error')
+            return redirect(url_for('bookings'))
+        booking = Booking(
+            user_id=current_user.id,
+            expert_id=expert.id,
+            start_time=start_time,
+            end_time=end_time,
+            duration=duration,
+            status='confirmed'
+        )
+        db.session.add(booking)
+        db.session.commit()
+        flash('Payment processing will be handled here. Your session is booked!', 'info')
         return redirect(url_for('bookings'))
 
 @app.route('/api/availability/times', methods=['GET'])
@@ -479,6 +535,26 @@ def api_availability_times():
     if not user.is_available:
         return jsonify({'available': False, 'message': 'User is currently unavailable'})
     
+    # Get existing bookings for this user (as expert) to exclude booked times
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    existing_bookings = Booking.query.filter(
+        (Booking.expert_id == user.id) &
+        (Booking.start_time >= now) &
+        (Booking.status == 'confirmed')
+    ).all()
+    
+    # Create a set of booked time slots for quick lookup
+    booked_slots = set()
+    for booking in existing_bookings:
+        # Add the exact start time and any overlapping times
+        start_time = booking.start_time
+        end_time = booking.end_time
+        current = start_time
+        while current < end_time:
+            booked_slots.add(current.replace(second=0, microsecond=0))
+            current += timedelta(minutes=30)
+    
     # Get explicit availability rules
     rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
     
@@ -486,9 +562,6 @@ def api_availability_times():
     if not rules:
         default_times = []
         # Generate times for next 7 days, 9 AM to 5 PM, every 30 minutes
-        from datetime import datetime, timedelta
-        now = datetime.now()
-        
         for day_offset in range(7):
             date = now + timedelta(days=day_offset)
             # Skip weekends (5=Saturday, 6=Sunday)
@@ -496,14 +569,15 @@ def api_availability_times():
                 for hour in range(9, 17):  # 9 AM to 5 PM
                     for minute in [0, 30]:  # Every 30 minutes
                         time_slot = date.replace(hour=hour, minute=minute, second=0, microsecond=0)
-                        # Only show future times
-                        if time_slot > now:
+                        # Only show future times and not already booked
+                        if time_slot > now and time_slot not in booked_slots:
                             default_times.append({
                                 'date': time_slot.strftime('%Y-%m-%d'),
                                 'time': time_slot.strftime('%H:%M'),
                                 'datetime': time_slot.isoformat(),
                                 'day_name': time_slot.strftime('%A'),
-                                'formatted': time_slot.strftime('%I:%M %p')
+                                'formatted': time_slot.strftime('%I:%M %p'),
+                                'duration': 30
                             })
         
         return jsonify({
@@ -514,8 +588,6 @@ def api_availability_times():
     else:
         # Use explicit rules to generate times
         # This is a simplified version - you might want to implement more complex logic
-        from datetime import datetime, timedelta
-        now = datetime.now()
         available_times = []
         
         for rule in rules:
@@ -528,13 +600,15 @@ def api_availability_times():
                     end_time = datetime.combine(date.date(), rule.end)
                     
                     while current_time < end_time:
-                        if current_time > now:  # Only future times
+                        # Only show future times and not already booked
+                        if current_time > now and current_time not in booked_slots:
                             available_times.append({
                                 'date': current_time.strftime('%Y-%m-%d'),
                                 'time': current_time.strftime('%H:%M'),
                                 'datetime': current_time.isoformat(),
                                 'day_name': current_time.strftime('%A'),
-                                'formatted': current_time.strftime('%I:%M %p')
+                                'formatted': current_time.strftime('%I:%M %p'),
+                                'duration': 30
                             })
                         current_time += timedelta(minutes=30)  # 30-minute slots
         
