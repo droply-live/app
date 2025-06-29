@@ -1,10 +1,11 @@
-# Use Python 3.11
-FROM python:3.11
+# Use Python 3.11 slim
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV FLASK_APP=app.py
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -23,4 +24,4 @@ COPY . .
 EXPOSE 5000
 
 # Command to run the application
-CMD ["flask", "run", "--host=0.0.0.0"] 
+CMD ["python", "-m", "flask", "run", "--host=0.0.0.0"] 
