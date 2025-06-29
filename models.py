@@ -11,8 +11,6 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
-    
-    # Profile information
     full_name = db.Column(db.String(100))
     bio = db.Column(db.Text)
     industry = db.Column(db.String(100))
@@ -23,31 +21,23 @@ class User(UserMixin, db.Model):
     hourly_rate = db.Column(db.Float, default=0.0)
     currency = db.Column(db.String(3), default='USD')
     rating = db.Column(db.Float, default=0.0)
-    
-    # Social media links
-    linkedin_url = db.Column(db.String(200))
-    twitter_url = db.Column(db.String(200))
-    youtube_url = db.Column(db.String(200))
-    instagram_url = db.Column(db.String(200))
-    website_url = db.Column(db.String(200))
-    
-    # Profile settings
+    rating_count = db.Column(db.Integer, default=0)
     is_available = db.Column(db.Boolean, default=True)
-    
-    # New fields from redesigned website
+    is_top_expert = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     specialty_tags = db.Column(db.Text)  # JSON string of specialty tags
     profile_picture = db.Column(db.String(255))  # Path to profile picture
     background_color = db.Column(db.String(7), default='#f7faff')  # Hex color code
+    donation_text = db.Column(db.Text)  # Text for donation/booking info
     embedding = db.Column(db.LargeBinary)  # Store numpy array as binary
-    
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    
-    # Relationships
-    time_slots = db.relationship('TimeSlot', backref='user', lazy=True, cascade='all, delete-orphan')
-    bookings_as_provider = db.relationship('Booking', foreign_keys='Booking.provider_id', backref='provider', lazy=True)
-    bookings_as_client = db.relationship('Booking', foreign_keys='Booking.client_id', backref='client', lazy=True)
+    # Social media URLs
+    linkedin_url = db.Column(db.String(200))
+    twitter_url = db.Column(db.String(200))
+    github_url = db.Column(db.String(200))
+    instagram_url = db.Column(db.String(200))
+    facebook_url = db.Column(db.String(200))
+    snapchat_url = db.Column(db.String(200))
+    website_url = db.Column(db.String(200))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -81,54 +71,40 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
-class TimeSlot(db.Model):
+class AvailabilityRule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
-    # Time information
-    start_datetime = db.Column(db.DateTime, nullable=False)
-    end_datetime = db.Column(db.DateTime, nullable=False)
-    is_available = db.Column(db.Boolean, default=True)
-    
-    # Session details
-    title = db.Column(db.String(200))
-    description = db.Column(db.Text)
-    session_type = db.Column(db.String(50), default='consultation')  # consultation, coaching, mentoring
-    meeting_details = db.Column(db.String(200))
-    
-    # Pricing
-    price = db.Column(db.Float, default=0.0)
-    
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    
-    # Relationships
-    booking = db.relationship('Booking', backref='time_slot', uselist=False, cascade='all, delete-orphan')
+    weekday = db.Column(db.Integer, nullable=False)  # 0=Monday, 6=Sunday
+    start = db.Column(db.Time, nullable=False)
+    end = db.Column(db.Time, nullable=False)
 
-    def __repr__(self):
-        return f'<TimeSlot {self.start_datetime} - {self.end_datetime}>'
+class AvailabilityException(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    start = db.Column(db.DateTime, nullable=False)
+    end = db.Column(db.DateTime, nullable=False)
+    reason = db.Column(db.String(255))
 
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    time_slot_id = db.Column(db.Integer, db.ForeignKey('time_slot.id'), nullable=False)
-    provider_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
-    # Booking details
-    status = db.Column(db.String(20), default='pending')  # pending, confirmed, cancelled, completed
-    client_name = db.Column(db.String(100))
-    client_email = db.Column(db.String(120))
-    client_message = db.Column(db.Text)
-    
-    # Payment information
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The person who booked
+    expert_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The expert
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
+    duration = db.Column(db.Integer, nullable=False)  # in minutes
+    status = db.Column(db.String(32), default='confirmed')  # confirmed, cancelled, completed, etc.
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    # Payment and client info fields from payment-integration branch
     payment_status = db.Column(db.String(20), default='pending')  # pending, paid, refunded
     payment_amount = db.Column(db.Float)
     stripe_payment_intent_id = db.Column(db.String(100))
     stripe_session_id = db.Column(db.String(100))
-    
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    client_name = db.Column(db.String(100))
+    client_email = db.Column(db.String(120))
+    client_message = db.Column(db.Text)
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='bookings_as_user')
+    expert = db.relationship('User', foreign_keys=[expert_id], backref='bookings_as_expert')
 
     def __repr__(self):
         return f'<Booking {self.id} - {self.status}>'

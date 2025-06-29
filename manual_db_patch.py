@@ -7,7 +7,21 @@ columns = [
     ("twitter_url", "VARCHAR(200)"),
     ("youtube_url", "VARCHAR(200)"),
     ("instagram_url", "VARCHAR(200)"),
-    ("website_url", "VARCHAR(200)")
+    ("website_url", "VARCHAR(200)"),
+    ("rating_count", "INTEGER DEFAULT 0"),
+    ("is_top_expert", "BOOLEAN DEFAULT 0"),
+    ("donation_text", "TEXT"),
+    ("github_url", "VARCHAR(200)"),
+    ("facebook_url", "VARCHAR(200)"),
+    ("snapchat_url", "VARCHAR(200)"),
+    ("rating", "FLOAT DEFAULT 0.0"),
+    ("currency", "VARCHAR(3) DEFAULT 'USD'"),
+    ("expertise", "VARCHAR(200)"),
+    ("location", "VARCHAR(100)"),
+    ("profile_picture", "VARCHAR(255)"),
+    ("background_color", "VARCHAR(7) DEFAULT '#f7faff'"),
+    ("embedding", "LARGEBINARY"),
+    ("specialty_tags", "TEXT")
 ]
 
 def column_exists(engine, table, column):
