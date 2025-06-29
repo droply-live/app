@@ -5,9 +5,9 @@ from app import app, db
 from models import User, AvailabilityRule, AvailabilityException, Booking
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm
 import json
-import faiss
-from sentence_transformers import SentenceTransformer
-import numpy as np
+# import faiss  # Temporarily disabled
+# from sentence_transformers import SentenceTransformer  # Temporarily disabled
+# import numpy as np  # Temporarily disabled
 import os
 import stripe
 from datetime import datetime, timezone, timedelta
@@ -20,11 +20,12 @@ if not YOUR_DOMAIN.startswith('http'):
     YOUR_DOMAIN = f"https://{YOUR_DOMAIN}" if os.environ.get('REPLIT_DEPLOYMENT') else f"http://{YOUR_DOMAIN}"
 
 # Load the model once when the app starts
-try:
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-except Exception as e:
-    print(f"Error loading SentenceTransformer model: {e}")
-    model = None
+# try:
+#     model = SentenceTransformer('all-MiniLM-L6-v2')
+# except Exception as e:
+#     print(f"Error loading SentenceTransformer model: {e}")
+#     model = None
+model = None  # Temporarily disabled
 
 @app.route('/')
 def index():
