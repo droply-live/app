@@ -14,7 +14,7 @@ from datetime import datetime, timezone, timedelta
 import time
 
 # Configure Stripe
-stripe.api_key = 'sk_test_4eC39HqLyjWDarjtT1zdp7dc'  # Stripe official public test secret key
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_4eC39HqLyjWDarjtT1zdp7dc')  # Use environment variable or fallback
 YOUR_DOMAIN = os.environ.get('REPLIT_DEV_DOMAIN', 'localhost:5000')
 if not YOUR_DOMAIN.startswith('http'):
     YOUR_DOMAIN = f"https://{YOUR_DOMAIN}" if os.environ.get('REPLIT_DEPLOYMENT') else f"http://{YOUR_DOMAIN}"
