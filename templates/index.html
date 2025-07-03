@@ -62,7 +62,22 @@
                              <span class="fw-bold ms-2" style="font-size: 1.1rem; color: #1a3a6d;">${{ '%.0f'|format(user.hourly_rate or 0) }}/hr</span>
                         </div>
 
-                        <p class="card-text text-muted small mb-4">{{ (user.bio or '')[:100] }}{% if user.bio and user.bio|length > 100 %}...{% endif %}</p>
+                        <p class="card-text text-muted small mb-3">{{ (user.bio or '')[:100] }}{% if user.bio and user.bio|length > 100 %}...{% endif %}</p>
+                        
+                        <!-- Tags Section -->
+                        {% set tags = user.get_specialty_tags() %}
+                        {% if tags %}
+                        <div class="mb-3">
+                            <div class="d-flex flex-wrap justify-content-center gap-1">
+                                {% for tag in tags[:5] %}
+                                <span class="badge" style="background: #e3f0ff; color: #3c78ff; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 500;">{{ tag }}</span>
+                                {% endfor %}
+                                {% if tags|length > 5 %}
+                                <span class="badge" style="background: #f0f0f0; color: #666; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 500;">+{{ tags|length - 5 }} more</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
                         
                         <div class="mt-auto">
                              <a href="{{ url_for('profile', username=user.username, next=request.full_path) }}" class="btn w-100" style="background: #3c78ff; color: #fff; font-weight: 600; border-radius: 8px;">View Profile</a>

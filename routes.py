@@ -1,9 +1,11 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case
 from app import app, db
 from models import User, AvailabilityRule, AvailabilityException, Booking
-from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm
+from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm, TimeSlotForm, BookingForm
+from utils import generate_ical_content
+from keyword_mappings import get_search_keywords, search_in_text
 import json
 # import faiss  # Temporarily disabled
 # from sentence_transformers import SentenceTransformer  # Temporarily disabled
@@ -37,37 +39,42 @@ def index():
 
     search_query = request.args.get('query', '').strip()
 
-    if search_query and model:
-        # SEMANTIC SEARCH LOGIC - Temporarily disabled
-        pass
-    elif search_query:
-        # FALLBACK TO KEYWORD SEARCH
-        search_term = f"%{search_query}%"
-        query_obj = query_obj.filter(
-            or_(
-                User.full_name.ilike(search_term),
-                User.profession.ilike(search_term),
-                User.industry.ilike(search_term),
-                User.bio.ilike(search_term),
-                User.specialty_tags.ilike(search_term) if User.specialty_tags else False
+    users = []
+    if search_query:
+        # SMART KEYWORD SEARCH
+        search_keywords = get_search_keywords(search_query)
+        
+        # Build OR conditions for each keyword
+        search_conditions = []
+        for keyword in search_keywords:
+            keyword_term = f"%{keyword}%"
+            search_conditions.append(
+                or_(
+                    User.full_name.ilike(keyword_term),
+                    User.profession.ilike(keyword_term),
+                    User.industry.ilike(keyword_term),
+                    User.bio.ilike(keyword_term),
+                    User.expertise.ilike(keyword_term)
+                )
             )
-        )
-
-    # Apply advanced filters
-    if request.args.get('category') and request.args.get('category') != 'All Categories':
-        category_term = f"%{request.args['category']}%"
-        query_obj = query_obj.filter(User.industry.ilike(category_term))
-
-    if request.args.get('price') and request.args.get('price') != 'Any Price':
-        if request.args['price'] == 'free':
-            query_obj = query_obj.filter(User.hourly_rate == 0)
-        elif request.args['price'] == 'paid':
-            query_obj = query_obj.filter(User.hourly_rate > 0)
-
-    if request.args.get('rating') and request.args.get('rating') == 'Top Rated':
-        query_obj = query_obj.filter(User.rating >= 4.5)
-
-    users = query_obj.all()
+        
+        # Combine all conditions with OR
+        if search_conditions:
+            query_obj = query_obj.filter(or_(*search_conditions))
+        # Fetch users and filter by tags in Python
+        all_users = query_obj.all()
+        user_ids = set(u.id for u in all_users)
+        # Now, also include users whose tags match, even if not in SQL result
+        tag_users = User.query.filter(User.is_available == True, User.full_name.isnot(None)).all()
+        for user in tag_users:
+            tags = user.get_specialty_tags() if hasattr(user, 'get_specialty_tags') else []
+            tag_match = any(tag.lower() in search_keywords for tag in tags)
+            if tag_match and user.id not in user_ids:
+                users.append(user)
+        # Add the SQL-matched users
+        users.extend(all_users)
+    else:
+        users = query_obj.all()
     
     # Get unique industries for dropdown
     industries = sorted([res[0] for res in db.session.query(User.industry).filter(User.industry.isnot(None)).distinct().all()])
@@ -220,31 +227,55 @@ def search():
     query = User.query.filter(User.is_available == True, User.full_name.isnot(None))
     
     if form.query.data:
-        search_term = f"%{form.query.data}%"
-        query = query.filter(
-            or_(
-                User.full_name.ilike(search_term),
-                User.bio.ilike(search_term),
-                User.expertise.ilike(search_term)
+        # SMART KEYWORD SEARCH
+        search_keywords = get_search_keywords(form.query.data)
+        
+        # Build OR conditions for each keyword
+        search_conditions = []
+        for keyword in search_keywords:
+            keyword_term = f"%{keyword}%"
+            search_conditions.append(
+                or_(
+                    User.full_name.ilike(keyword_term),
+                    User.profession.ilike(keyword_term),
+                    User.industry.ilike(keyword_term),
+                    User.bio.ilike(keyword_term),
+                    User.expertise.ilike(keyword_term)
+                )
             )
-        )
+        
+        # Combine all conditions with OR
+        if search_conditions:
+            query = query.filter(or_(*search_conditions))
+        # Fetch users and filter by tags in Python
+        all_users = query.all()
+        user_ids = set(u.id for u in all_users)
+        tag_users = User.query.filter(User.is_available == True, User.full_name.isnot(None)).all()
+        for user in tag_users:
+            tags = user.get_specialty_tags() if hasattr(user, 'get_specialty_tags') else []
+            tag_match = any(tag.lower() in search_keywords for tag in tags)
+            if tag_match and user.id not in user_ids:
+                users.append(user)
+        users.extend(all_users)
+    else:
+        users = query.all()
     
     if form.industry.data:
-        query = query.filter(User.industry == form.industry.data)
+        users = [u for u in users if u.industry == form.industry.data]
     
     if form.profession.data:
-        query = query.filter(User.profession == form.profession.data)
+        users = [u for u in users if u.profession == form.profession.data]
     
     if form.location.data:
-        query = query.filter(User.location == form.location.data)
+        users = [u for u in users if u.location == form.location.data]
     
     if form.min_rate.data is not None:
-        query = query.filter(User.hourly_rate >= form.min_rate.data)
+        users = [u for u in users if u.hourly_rate >= form.min_rate.data]
     
     if form.max_rate.data is not None:
-        query = query.filter(User.hourly_rate <= form.max_rate.data)
+        users = [u for u in users if u.hourly_rate <= form.max_rate.data]
     
-    users = query.order_by(User.created_at.desc()).all()
+    users = sorted(users, key=lambda u: u.created_at, reverse=True)
     
     return render_template('search.html', form=form, users=users)
 
@@ -253,109 +284,32 @@ def search():
 def dashboard():
     """User dashboard"""
     # Get upcoming bookings as provider
-    provider_bookings = Booking.query.filter_by(provider_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
+    provider_bookings = Booking.query.filter_by(expert_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
     
     # Get upcoming bookings as client
-    client_bookings = Booking.query.filter_by(client_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
-    
-    # Get recent time slots
-    time_slots = TimeSlot.query.filter_by(user_id=current_user.id).order_by(TimeSlot.start_datetime.desc()).limit(10).all()
+    client_bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
     
     return render_template('dashboard.html', 
                          provider_bookings=provider_bookings,
-                         client_bookings=client_bookings,
-                         time_slots=time_slots)
+                         client_bookings=client_bookings)
 
-@app.route('/calendar')
-@login_required
-def calendar():
-    """Calendar view"""
-    # Get time slots for the current month
-    now = datetime.now(timezone.utc)
-    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    end_of_month = (start_of_month + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-    
-    time_slots = TimeSlot.query.filter(
-        TimeSlot.user_id == current_user.id,
-        TimeSlot.start_datetime >= start_of_month,
-        TimeSlot.start_datetime <= end_of_month
-    ).order_by(TimeSlot.start_datetime).all()
-    
-    return render_template('calendar.html', time_slots=time_slots)
+# @app.route('/calendar')
+# @login_required
+# def calendar():
+#     """Calendar view - Temporarily disabled due to missing TimeSlot model"""
+#     return render_template('calendar.html', time_slots=[])
 
-@app.route('/calendar/add', methods=['GET', 'POST'])
-@login_required
-def add_time_slot():
-    """Add new time slot"""
-    form = TimeSlotForm()
-    
-    if form.validate_on_submit():
-        # Validate that end time is after start time
-        if form.end_datetime.data <= form.start_datetime.data:
-            flash('End time must be after start time.', 'error')
-            return render_template('calendar.html', form=form)
-        
-        time_slot = TimeSlot(
-            user_id=current_user.id,
-            title=form.title.data,
-            description=form.description.data,
-            start_datetime=form.start_datetime.data,
-            end_datetime=form.end_datetime.data,
-            session_type=form.session_type.data,
-            meeting_details=form.location_details.data,
-            price=form.price.data or current_user.hourly_rate
-        )
-        
-        db.session.add(time_slot)
-        db.session.commit()
-        
-        flash('Time slot added successfully!', 'success')
-        return redirect(url_for('calendar'))
-    
-    return render_template('calendar.html', form=form)
+# @app.route('/calendar/add', methods=['GET', 'POST'])
+# @login_required
+# def add_time_slot():
+#     """Add new time slot - Temporarily disabled due to missing TimeSlot model"""
+#     return redirect(url_for('dashboard'))
 
-@app.route('/booking/<int:slot_id>', methods=['GET', 'POST'])
-def book_session(slot_id):
-    """Book a session"""
-    time_slot = TimeSlot.query.get_or_404(slot_id)
-    
-    if not time_slot.is_available:
-        flash('This time slot is no longer available.', 'error')
-        return redirect(url_for('profile', username=time_slot.user.username))
-    
-    form = BookingForm()
-    form.time_slot_id.data = slot_id
-    
-    if form.validate_on_submit():
-        # Create booking
-        booking = Booking(
-            time_slot_id=slot_id,
-            provider_id=time_slot.user_id,
-            client_id=current_user.id if current_user.is_authenticated else None,
-            client_name=form.client_name.data,
-            client_email=form.client_email.data,
-            client_message=form.client_message.data,
-            payment_amount=time_slot.price
-        )
-        
-        db.session.add(booking)
-        
-        # Mark time slot as unavailable
-        time_slot.is_available = False
-        
-        db.session.commit()
-        
-        # Redirect to payment if price > 0
-        if time_slot.price > 0:
-            return redirect(url_for('create_checkout_session', booking_id=booking.id))
-        else:
-            booking.payment_status = 'paid'
-            booking.status = 'confirmed'
-            db.session.commit()
-            flash('Booking confirmed!', 'success')
-            return redirect(url_for('booking_success', booking_id=booking.id))
-    
-    return render_template('booking.html', form=form, time_slot=time_slot)
+# @app.route('/booking/<int:slot_id>', methods=['GET', 'POST'])
+# def book_session(slot_id):
+#     """Book a session - Temporarily disabled due to missing TimeSlot model"""
+#     flash('Booking functionality is temporarily unavailable.', 'error')
+#     return redirect(url_for('index'))
 
 @app.route('/create-checkout-session/<int:booking_id>', methods=['POST', 'GET'])
 def create_checkout_session(booking_id):
@@ -422,25 +376,11 @@ def booking_cancel(booking_id):
     
     return render_template('cancel.html', booking=booking)
 
-@app.route('/export/calendar/<username>')
-def export_calendar(username):
-    """Export user calendar as iCal"""
-    user = User.query.filter_by(username=username).first_or_404()
-    
-    # Get all future time slots
-    now = datetime.now(timezone.utc)
-    time_slots = TimeSlot.query.filter(
-        TimeSlot.user_id == user.id,
-        TimeSlot.start_datetime > now
-    ).order_by(TimeSlot.start_datetime).all()
-    
-    ical_content = generate_ical_content(time_slots, user)
-    
-    response = make_response(ical_content)
-    response.headers['Content-Type'] = 'text/calendar'
-    response.headers['Content-Disposition'] = f'attachment; filename={username}_calendar.ics'
-    
-    return response
+# @app.route('/export/calendar/<username>')
+# def export_calendar(username):
+#     """Export user calendar as iCal - Temporarily disabled due to missing TimeSlot model"""
+#     flash('Calendar export is temporarily unavailable.', 'error')
+#     return redirect(url_for('profile', username=username))
 
 @app.route('/bookings')
 @login_required
