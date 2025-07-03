@@ -171,24 +171,20 @@ KEYWORD_CATEGORIES = {
 def get_search_keywords(query):
     """
     Expand a search query with related keywords from all categories.
-    Returns a list of keywords to search for.
+    Supports comma-separated keywords and returns a flat list of all unique expanded keywords.
     """
-    query_lower = query.lower().strip()
-    search_keywords = [query_lower]  # Always include the original query
-    
-    # Check if the query matches any category keywords
-    for category, keywords in KEYWORD_CATEGORIES.items():
-        # Check primary keywords
-        if query_lower in keywords['primary']:
-            search_keywords.extend(keywords['primary'])
-            search_keywords.extend(keywords['related'])
-        # Check related keywords
-        elif query_lower in keywords['related']:
-            search_keywords.extend(keywords['primary'])
-            search_keywords.extend(keywords['related'])
-    
-    # Remove duplicates and return
-    return list(set(search_keywords))
+    # Split by comma, trim, and ignore empty
+    raw_keywords = [kw.strip().lower() for kw in query.split(',') if kw.strip()]
+    search_keywords = set()
+    for kw in raw_keywords:
+        # Always include the original keyword
+        search_keywords.add(kw)
+        # Check if the keyword matches any category keywords
+        for category, keywords in KEYWORD_CATEGORIES.items():
+            if kw in keywords['primary'] or kw in keywords['related']:
+                search_keywords.update(keywords['primary'])
+                search_keywords.update(keywords['related'])
+    return list(search_keywords)
 
 def get_category_for_keyword(keyword):
     """

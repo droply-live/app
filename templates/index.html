@@ -19,71 +19,72 @@
                 <form method="GET" action="{{ url_for('index') }}" id="searchForm">
                     <div class="input-group input-group-lg mb-3">
                         <span class="input-group-text bg-white border-0" style="color: #3c78ff;"><i data-feather="search"></i></span>
-                        <input type="text" class="form-control bg-white border-0 text-primary" placeholder="Find expertise: 'someone who understands finance with tech experience'" name="query" style="background: #f7fbff; color: #1a3a6d;">
+                        <input type="text" class="form-control bg-white border-0 text-primary" placeholder="Enter keywords separated by commas (e.g., finance, sports, tech)" name="query" value="{{ request.args.get('query', '') }}" style="background: #f7fbff; color: #1a3a6d;">
                     </div>
-                    <div class="row g-2">
-                        <div class="col-md-4">
-                            <select class="form-select bg-white border-0 text-primary" name="category" style="background: #f7fbff; color: #1a3a6d;">
-                                <option>All Categories</option>
-                                <!-- Add categories dynamically if needed -->
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <select class="form-select bg-white border-0 text-primary" name="price" style="background: #f7fbff; color: #1a3a6d;">
-                                <option>Any Price</option>
-                                <option value="free">Free</option>
-                                <option value="paid">Paid</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <select class="form-select bg-white border-0 text-primary" name="rating" style="background: #f7fbff; color: #1a3a6d;">
-                                <option>Top Rated</option>
-                                <option value="4">4.0+</option>
-                                <option value="4.5">4.5+</option>
-                            </select>
+                    
+                    <!-- Category Bubbles -->
+                    <div class="category-bubbles-container mb-3">
+                        <div class="category-bubbles-scroll">
+                            <button type="button" class="category-bubble" data-category="finance">Finance</button>
+                            <button type="button" class="category-bubble" data-category="technology">Technology</button>
+                            <button type="button" class="category-bubble" data-category="business">Business</button>
+                            <button type="button" class="category-bubble" data-category="marketing">Marketing</button>
+                            <button type="button" class="category-bubble" data-category="healthcare">Healthcare</button>
+                            <button type="button" class="category-bubble" data-category="education">Education</button>
+                            <button type="button" class="category-bubble" data-category="consulting">Consulting</button>
+                            <button type="button" class="category-bubble" data-category="creative">Creative</button>
+                            <button type="button" class="category-bubble" data-category="fitness">Fitness</button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
-        <div class="row mt-4 g-4">
+        <div class="row mt-4 g-4 justify-content-center">
             {% for user in users %}
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100" style="background: #fff; border: 2px solid #e3f0ff; border-radius: 18px; color: #1a3a6d; box-shadow: 0 2px 12px 0 rgba(60,120,255,0.04); display: flex; flex-direction: column;">
-                    <div class="card-body d-flex flex-column text-center">
-                        <img src="{{ user.profile_image_url or url_for('static', filename='img/default-avatar.png') }}" alt="{{ user.full_name }}" class="rounded-circle mx-auto mb-3" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #3c78ff; background: #e3f0ff;">
-                        
-                        <h5 class="card-title fw-bold mb-1" style="color: #1a3a6d;">{{ user.full_name or '' }}</h5>
-                        <p class="card-text mb-2" style="color: #3c78ff; font-weight: 600;">{{ user.profession or '' }}</p>
-                        
-                        <div class="d-flex justify-content-center align-items-center mb-3">
-                             <span class="fw-bold me-2" style="color: #FFD600; font-size: 1.1rem;"><i data-feather="star" style="width:18px; height:18px;"></i> {{ user.rating or 'N/A' }}</span>
-                             <span class="text-muted">|</span>
-                             <span class="fw-bold ms-2" style="font-size: 1.1rem; color: #1a3a6d;">${{ '%.0f'|format(user.hourly_rate or 0) }}/hr</span>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <a href="{{ url_for('profile', username=user.username, next=request.full_path) }}" class="user-discover-link" style="text-decoration: none; color: inherit;">
+                <div class="card user-discover-card position-relative overflow-hidden h-100 p-0">
+                    <!-- Profile Image -->
+                    <div class="user-card-img-wrapper position-relative">
+                        <img src="{{ user.profile_picture or url_for('static', filename='img/default-avatar.png') }}" alt="{{ user.full_name }}" class="w-100 h-100">
+                        <!-- Heart Icon -->
+                        <span class="position-absolute top-0 end-0 m-2" style="z-index: 2;">
+                            <i data-feather="heart" style="width: 24px; height: 24px; color: #fff; stroke-width: 2.5; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.12));"></i>
+                        </span>
+                        {% if user.is_top_expert %}
+                        <span class="position-absolute top-0 start-0 m-2 px-2 py-1 fw-bold" style="background: #fff; color: #1a3a6d; border-radius: 10px; font-size: 0.95rem; box-shadow: 0 2px 8px 0 rgba(60,120,255,0.08);">Top Expert</span>
+                        {% endif %}
+                    </div>
+                    <!-- Hover Overlay - Now covers entire card -->
+                    <div class="user-card-hover-overlay d-flex align-items-center justify-content-center">
+                        <span class="view-profile-btn">View Profile</span>
+                    </div>
+                    <div class="card-body d-flex flex-column text-start p-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="fw-bold">{{ user.full_name or '' }}</span>
+                            {% if user.is_verified %}
+                            <span class="ms-2" title="Verified"><i data-feather="check-circle" style="color: #FFD600; width: 16px; height: 16px;"></i></span>
+                            {% endif %}
                         </div>
-
-                        <p class="card-text text-muted small mb-3">{{ (user.bio or '')[:100] }}{% if user.bio and user.bio|length > 100 %}...{% endif %}</p>
-                        
+                        <div class="mb-2 price-tag">${{ '%.0f'|format(user.hourly_rate or 0) }} <span class="text-muted">/session</span></div>
+                        <div class="mb-3 text-muted bio-text">{{ (user.bio or '')[:60] }}{% if user.bio and user.bio|length > 60 %}...{% endif %}</div>
                         <!-- Tags Section -->
                         {% set tags = user.get_specialty_tags() %}
                         {% if tags %}
-                        <div class="mb-3">
-                            <div class="d-flex flex-wrap justify-content-center gap-1">
-                                {% for tag in tags[:5] %}
-                                <span class="badge" style="background: #e3f0ff; color: #3c78ff; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 500;">{{ tag }}</span>
+                        <div class="mt-auto">
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for tag in tags[:3] %}
+                                <span class="badge">{{ tag }}</span>
                                 {% endfor %}
-                                {% if tags|length > 5 %}
-                                <span class="badge" style="background: #f0f0f0; color: #666; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 500;">+{{ tags|length - 5 }} more</span>
+                                {% if tags|length > 3 %}
+                                <span class="badge badge-secondary">+{{ tags|length - 3 }}</span>
                                 {% endif %}
                             </div>
                         </div>
                         {% endif %}
-                        
-                        <div class="mt-auto">
-                             <a href="{{ url_for('profile', username=user.username, next=request.full_path) }}" class="btn w-100" style="background: #3c78ff; color: #fff; font-weight: 600; border-radius: 8px;">View Profile</a>
-                        </div>
                     </div>
                 </div>
+                </a>
             </div>
             {% else %}
             <div class="col-12">
@@ -96,4 +97,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search.js', v='1.4') }}"></script>
 {% endblock %}

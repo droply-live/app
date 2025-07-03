@@ -38,15 +38,20 @@ def index():
     query_obj = User.query.filter(User.is_available == True, User.full_name.isnot(None))
 
     search_query = request.args.get('query', '').strip()
+    selected_category = request.args.get('category', '').strip().lower()
 
     users = []
+    all_keywords = []
     if search_query:
-        # SMART KEYWORD SEARCH
-        search_keywords = get_search_keywords(search_query)
-        
-        # Build OR conditions for each keyword
+        all_keywords.extend(get_search_keywords(search_query))
+    if selected_category and selected_category != '':
+        all_keywords.extend(get_search_keywords(selected_category))
+    all_keywords = list(set([kw for kw in all_keywords if kw]))
+
+    if all_keywords:
+        # SMART KEYWORD SEARCH (original working version)
         search_conditions = []
-        for keyword in search_keywords:
+        for keyword in all_keywords:
             keyword_term = f"%{keyword}%"
             search_conditions.append(
                 or_(
@@ -57,24 +62,20 @@ def index():
                     User.expertise.ilike(keyword_term)
                 )
             )
-        
-        # Combine all conditions with OR
         if search_conditions:
             query_obj = query_obj.filter(or_(*search_conditions))
-        # Fetch users and filter by tags in Python
         all_users = query_obj.all()
         user_ids = set(u.id for u in all_users)
-        # Now, also include users whose tags match, even if not in SQL result
         tag_users = User.query.filter(User.is_available == True, User.full_name.isnot(None)).all()
         for user in tag_users:
             tags = user.get_specialty_tags() if hasattr(user, 'get_specialty_tags') else []
-            tag_match = any(tag.lower() in search_keywords for tag in tags)
+            tag_match = any(tag.lower() in all_keywords for tag in tags)
             if tag_match and user.id not in user_ids:
                 users.append(user)
-        # Add the SQL-matched users
         users.extend(all_users)
     else:
-        users = query_obj.all()
+        # If no keywords, show all users (no filtering)
+        users = User.query.filter(User.is_available == True, User.full_name.isnot(None)).all()
     
     # Get unique industries for dropdown
     industries = sorted([res[0] for res in db.session.query(User.industry).filter(User.industry.isnot(None)).distinct().all()])

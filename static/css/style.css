@@ -880,3 +880,340 @@ footer {
         color: #000 !important;
     }
 }
+
+/* --- User Discover Card Redesign (Updated) --- */
+.user-discover-card {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  background: #fff;
+  min-height: 320px;
+  max-width: 280px;
+  margin: 0 auto;
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.user-discover-card:hover {
+  box-shadow: 0 8px 25px 0 rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+.user-discover-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+}
+.user-discover-card .user-card-img-wrapper {
+  height: 160px;
+  overflow: hidden;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  position: relative;
+  background: #f8f9fa;
+}
+.user-discover-card .user-card-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  min-height: 160px;
+  display: block;
+  transition: transform 0.3s ease;
+}
+.user-discover-card:hover .user-card-img-wrapper img {
+  transform: scale(1.05);
+}
+.user-discover-card .user-card-hover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+}
+.user-discover-card:hover .user-card-hover-overlay {
+  opacity: 1;
+}
+.user-discover-card .view-profile-btn {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+}
+.user-discover-card:hover .view-profile-btn {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.user-discover-card .position-absolute.top-0.end-0 {
+  z-index: 4;
+}
+.user-discover-card .position-absolute.top-0.start-0 {
+  z-index: 4;
+}
+.user-discover-card .badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: #f0f4ff;
+  color: #3c78ff;
+}
+.user-discover-card .badge.badge-secondary {
+  background: #f5f5f5;
+  color: #666;
+}
+.user-discover-card .card-body {
+  background: #fff;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 2;
+}
+.user-discover-card .card-body .fw-bold {
+  font-size: 1rem;
+  color: #1a3a6d;
+  line-height: 1.2;
+  font-weight: 600;
+}
+.user-discover-card .card-body .text-muted {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.user-discover-card .price-tag {
+  font-size: 0.95rem;
+  color: #3c78ff;
+  font-weight: 600;
+}
+.user-discover-card .price-tag .text-muted {
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+.user-discover-card .bio-text {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #6c757d;
+}
+
+/* Category Bubbles */
+.category-bubbles-container {
+    width: 100%;
+    overflow: hidden;
+}
+
+.category-bubbles-scroll {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding: 0.25rem 0;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.category-bubbles-scroll::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.category-bubble {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    color: #495057;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: fit-content;
+}
+
+.category-bubble:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    color: #212529;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.category-bubble.active {
+    background: #3c78ff;
+    border-color: #3c78ff;
+    color: white;
+    box-shadow: 0 2px 8px rgba(60, 120, 255, 0.3);
+}
+
+.category-bubble.active:hover {
+    background: #2d5bb8;
+    border-color: #2d5bb8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(60, 120, 255, 0.4);
+}
+
+/* Search Results Animation */
+.row.mt-4.g-4.justify-content-center {
+    transition: opacity 0.15s ease-in-out;
+}
+
+/* Loading Animation */
+.search-loading {
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Modern Notification System */
+.modern-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e1e5e9;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+}
+
+.modern-notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.modern-notification-info {
+    border-left: 4px solid #3b82f6;
+}
+
+.modern-notification-success {
+    border-left: 4px solid #10b981;
+}
+
+.modern-notification-warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.modern-notification-error {
+    border-left: 4px solid #ef4444;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    gap: 12px;
+}
+
+.notification-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f0f9ff;
+    color: #3b82f6;
+}
+
+.modern-notification-info .notification-icon {
+    background: #f0f9ff;
+    color: #3b82f6;
+}
+
+.modern-notification-success .notification-icon {
+    background: #f0fdf4;
+    color: #10b981;
+}
+
+.modern-notification-warning .notification-icon {
+    background: #fffbeb;
+    color: #f59e0b;
+}
+
+.modern-notification-error .notification-icon {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.notification-message {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    line-height: 1.4;
+}
+
+.notification-close {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.notification-close:hover {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.notification-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Animation for notification entrance */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
