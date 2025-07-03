@@ -401,13 +401,13 @@ def create_checkout_session(booking_id):
 
 @app.route('/booking/success/<int:booking_id>')
 def booking_success(booking_id):
-    """Booking success page"""
+    """Booking success page - redirects to bookings with success message"""
     booking = Booking.query.get_or_404(booking_id)
     booking.payment_status = 'paid'
-    booking.status = 'confirmed'
+    # Do NOT auto-confirm; leave as 'pending' for expert to accept/decline
     db.session.commit()
-    
-    return render_template('success.html', booking=booking)
+    flash('🎉 Payment successful! Your booking request has been sent to the expert for approval.', 'success')
+    return redirect(url_for('bookings'))
 
 @app.route('/booking/cancel/<int:booking_id>')
 def booking_cancel(booking_id):
@@ -449,16 +449,92 @@ def bookings():
     from models import Booking, User
     from datetime import datetime
     now = datetime.now()
-    # Bookings where the user is the booker or the expert
-    upcoming = Booking.query.filter(
-        ((Booking.user_id == current_user.id) | (Booking.expert_id == current_user.id)) &
+    
+    # Bookings where the user is the booker (client)
+    upcoming_as_client = Booking.query.filter(
+        (Booking.user_id == current_user.id) &
         (Booking.start_time >= now)
     ).order_by(Booking.start_time.asc()).all()
-    past = Booking.query.filter(
-        ((Booking.user_id == current_user.id) | (Booking.expert_id == current_user.id)) &
+    
+    past_as_client = Booking.query.filter(
+        (Booking.user_id == current_user.id) &
         (Booking.start_time < now)
     ).order_by(Booking.start_time.desc()).all()
-    return render_template('bookings.html', user=current_user, upcoming=upcoming, past=past)
+    
+    # Bookings where the user is the expert (provider)
+    upcoming_as_expert = Booking.query.filter(
+        (Booking.expert_id == current_user.id) &
+        (Booking.start_time >= now)
+    ).order_by(Booking.start_time.asc()).all()
+    
+    past_as_expert = Booking.query.filter(
+        (Booking.expert_id == current_user.id) &
+        (Booking.start_time < now)
+    ).order_by(Booking.start_time.desc()).all()
+    
+    return render_template('bookings.html', 
+                         user=current_user, 
+                         upcoming_as_client=upcoming_as_client,
+                         past_as_client=past_as_client,
+                         upcoming_as_expert=upcoming_as_expert,
+                         past_as_expert=past_as_expert)
+
+@app.route('/booking/accept/<int:booking_id>')
+@login_required
+def accept_booking(booking_id):
+    """Accept a booking request"""
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.expert_id != current_user.id:
+        flash('You are not authorized to accept this booking.', 'error')
+        return redirect(url_for('bookings'))
+    if booking.status != 'pending':
+        flash('This booking cannot be accepted.', 'error')
+        return redirect(url_for('bookings'))
+    booking.status = 'confirmed'
+    db.session.commit()
+    flash('✅ Booking accepted! The client has been notified.', 'success')
+    return redirect(url_for('bookings'))
+
+@app.route('/booking/decline/<int:booking_id>')
+@login_required
+def decline_booking(booking_id):
+    """Decline a booking request"""
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.expert_id != current_user.id:
+        flash('You are not authorized to decline this booking.', 'error')
+        return redirect(url_for('bookings'))
+    if booking.status != 'pending':
+        flash('This booking cannot be declined.', 'error')
+        return redirect(url_for('bookings'))
+    booking.status = 'declined'
+    booking.payment_status = 'refunded'
+    db.session.commit()
+    flash('❌ Booking declined. Payment will be refunded to the client.', 'warning')
+    return redirect(url_for('bookings'))
+
+@app.route('/booking/cancel-by-client/<int:booking_id>')
+@login_required
+def cancel_booking_by_client(booking_id):
+    """Cancel a booking by the client who made it"""
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.user_id != current_user.id:
+        flash('You are not authorized to cancel this booking.', 'error')
+        return redirect(url_for('bookings'))
+    if booking.status not in ['pending', 'confirmed']:
+        flash('This booking cannot be cancelled.', 'error')
+        return redirect(url_for('bookings'))
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    time_until_booking = booking.start_time - now
+    if time_until_booking < timedelta(hours=24):
+        flash('Bookings cannot be cancelled within 24 hours of the session.', 'error')
+        return redirect(url_for('bookings'))
+    booking.status = 'cancelled'
+    if booking.payment_status == 'paid':
+        booking.payment_status = 'refunded'
+    db.session.commit()
+    flash('❌ Booking cancelled. Payment will be refunded if applicable.', 'warning')
+    return redirect(url_for('bookings'))
 
 @app.errorhandler(404)
 def not_found(error):
