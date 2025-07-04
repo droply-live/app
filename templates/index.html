@@ -1,104 +1,255 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="discover-hero py-5" style="background: linear-gradient(135deg, #e3f0ff 0%, #f7fbff 100%); min-height: 100vh; color: #1a3a6d;">
-    <div class="container">
-        <div class="row mb-5">
-            <div class="col-12 text-center">
-                <h1 class="display-3 fw-bold mb-3" style="letter-spacing: -1px; color: #1a3a6d;">
-                    Find Your Perfect Coach or Mentor
+<!-- Modern Gen Z Discover Interface -->
+<div class="discover-container">
+    <!-- Hero Section with Liquid Glass -->
+    <div class="hero-section-liquid">
+        <div class="liquid-background">
+            <div class="liquid-shape liquid-shape-1"></div>
+            <div class="liquid-shape liquid-shape-2"></div>
+            <div class="liquid-shape liquid-shape-3"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-text">🔥 Trending Now</span>
+                </div>
+                <h1 class="hero-title">
+                    Discover <span class="gradient-text">Amazing People</span>
                 </h1>
-                <p class="lead mb-4" style="color: #4a6fa1;">
-                    Search through our network of verified professionals
+                <p class="hero-subtitle">
+                    Connect with creators, mentors & experts who get you
                 </p>
+                
+                <!-- Smart Search Bar -->
+                <div class="smart-search-container">
+                    <div class="search-bar-liquid">
+                        <div class="search-icon">
+                            <i data-feather="search"></i>
+                        </div>
+                        <input type="text" 
+                               class="search-input" 
+                               placeholder="What are you looking for?" 
+                               name="query" 
+                               value="{{ request.args.get('query', '') }}"
+                               id="smartSearch">
+                        <div class="search-suggestions" id="searchSuggestions"></div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ users|length }}+</span>
+                        <span class="stat-label">Creators</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Available</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">4.9★</span>
+                        <span class="stat-label">Rating</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="row justify-content-center mb-4">
-            <div class="col-lg-8">
-                <form method="GET" action="{{ url_for('index') }}" id="searchForm">
-                    <div class="input-group input-group-lg mb-3">
-                        <span class="input-group-text bg-white border-0" style="color: #3c78ff;"><i data-feather="search"></i></span>
-                        <input type="text" class="form-control bg-white border-0 text-primary" placeholder="Enter keywords separated by commas (e.g., finance, sports, tech)" name="query" value="{{ request.args.get('query', '') }}" style="background: #f7fbff; color: #1a3a6d;">
-                    </div>
+    </div>
+
+    <!-- Category Tabs with Liquid Glass -->
+    <div class="category-tabs-section">
+        <div class="container">
+            <div class="category-tabs-liquid">
+                <div class="tab-item active" data-category="all">
+                    <div class="tab-icon">🌟</div>
+                    <span>All</span>
+                </div>
+                <div class="tab-item" data-category="tech">
+                    <div class="tab-icon">💻</div>
+                    <span>Tech</span>
+                </div>
+                <div class="tab-item" data-category="creative">
+                    <div class="tab-icon">🎨</div>
+                    <span>Creative</span>
+                </div>
+                <div class="tab-item" data-category="business">
+                    <div class="tab-icon">💼</div>
+                    <span>Business</span>
+                </div>
+                <div class="tab-item" data-category="fitness">
+                    <div class="tab-icon">💪</div>
+                    <span>Fitness</span>
+                </div>
+                <div class="tab-item" data-category="lifestyle">
+                    <div class="tab-icon">✨</div>
+                    <span>Lifestyle</span>
+                </div>
+                <div class="tab-item" data-category="education">
+                    <div class="tab-icon">📚</div>
+                    <span>Education</span>
+                </div>
+                <div class="tab-item" data-category="finance">
+                    <div class="tab-icon">💰</div>
+                    <span>Finance</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profiles Grid with Infinite Scroll -->
+    <div class="profiles-section">
+        <div class="container">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-sort="trending">
+                        <i data-feather="trending-up"></i>
+                        Trending
+                    </button>
+                    <button class="filter-btn" data-sort="recent">
+                        <i data-feather="clock"></i>
+                        Recent
+                    </button>
+                    <button class="filter-btn" data-sort="rating">
+                        <i data-feather="star"></i>
+                        Top Rated
+                    </button>
+                </div>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid">
+                        <i data-feather="grid"></i>
+                    </button>
+                    <button class="view-btn" data-view="list">
+                        <i data-feather="list"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profiles Grid -->
+            <div class="profiles-grid" id="profilesGrid">
+                {% for user in users %}
+                <div class="profile-card-liquid" 
+                     data-categories="{{ user.get_specialty_tags()|join(',')|lower }}"
+                     data-search="{{ (user.full_name or user.username)|lower }} {{ (user.bio or '')|lower }} {{ user.get_specialty_tags()|join(' ')|lower }}"
+                     data-name="{{ (user.full_name or user.username)|lower }}"
+                     data-bio="{{ (user.bio or '')|lower }}"
+                     data-tags="{{ user.get_specialty_tags()|join(' ')|lower }}">
+                    <!-- Card Background with Liquid Effect -->
+                    <div class="card-liquid-bg"></div>
                     
-                    <!-- Category Bubbles -->
-                    <div class="category-bubbles-container mb-3">
-                        <div class="category-bubbles-scroll">
-                            <button type="button" class="category-bubble" data-category="finance">Finance</button>
-                            <button type="button" class="category-bubble" data-category="technology">Technology</button>
-                            <button type="button" class="category-bubble" data-category="business">Business</button>
-                            <button type="button" class="category-bubble" data-category="marketing">Marketing</button>
-                            <button type="button" class="category-bubble" data-category="healthcare">Healthcare</button>
-                            <button type="button" class="category-bubble" data-category="education">Education</button>
-                            <button type="button" class="category-bubble" data-category="consulting">Consulting</button>
-                            <button type="button" class="category-bubble" data-category="creative">Creative</button>
-                            <button type="button" class="category-bubble" data-category="fitness">Fitness</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="row mt-4 g-4 justify-content-center">
-            {% for user in users %}
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <a href="{{ url_for('profile', username=user.username, next=request.full_path) }}" class="user-discover-link" style="text-decoration: none; color: inherit;">
-                <div class="card user-discover-card position-relative overflow-hidden h-100 p-0">
-                    <!-- Profile Image -->
-                    <div class="user-card-img-wrapper position-relative">
-                        <img src="{{ user.profile_picture or url_for('static', filename='img/default-avatar.png') }}" alt="{{ user.full_name }}" class="w-100 h-100">
-                        <!-- Heart Icon -->
-                        <span class="position-absolute top-0 end-0 m-2" style="z-index: 2;">
-                            <i data-feather="heart" style="width: 24px; height: 24px; color: #fff; stroke-width: 2.5; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.12));"></i>
-                        </span>
-                        {% if user.is_top_expert %}
-                        <span class="position-absolute top-0 start-0 m-2 px-2 py-1 fw-bold" style="background: #fff; color: #1a3a6d; border-radius: 10px; font-size: 0.95rem; box-shadow: 0 2px 8px 0 rgba(60,120,255,0.08);">Top Expert</span>
-                        {% endif %}
-                    </div>
-                    <!-- Hover Overlay - Now covers entire card -->
-                    <div class="user-card-hover-overlay d-flex align-items-center justify-content-center">
-                        <span class="view-profile-btn">View Profile</span>
-                    </div>
-                    <div class="card-body d-flex flex-column text-start p-3">
-                        <div class="d-flex align-items-center mb-2">
-                            <span class="fw-bold">{{ user.full_name or '' }}</span>
-                            {% if user.is_verified %}
-                            <span class="ms-2" title="Verified"><i data-feather="check-circle" style="color: #FFD600; width: 16px; height: 16px;"></i></span>
-                            {% endif %}
-                        </div>
-                        <div class="mb-2 price-tag">${{ '%.0f'|format(user.hourly_rate or 0) }} <span class="text-muted">/session</span></div>
-                        <div class="mb-3 text-muted bio-text">{{ (user.bio or '')[:60] }}{% if user.bio and user.bio|length > 60 %}...{% endif %}</div>
-                        <!-- Tags Section -->
-                        {% set tags = user.get_specialty_tags() %}
-                        {% if tags %}
-                        <div class="mt-auto">
-                            <div class="d-flex flex-wrap gap-1">
-                                {% for tag in tags[:3] %}
-                                <span class="badge">{{ tag }}</span>
-                                {% endfor %}
-                                {% if tags|length > 3 %}
-                                <span class="badge badge-secondary">+{{ tags|length - 3 }}</span>
-                                {% endif %}
+                    <!-- Profile Image with Hover Effect -->
+                    <div class="profile-image-container">
+                        <img src="{{ user.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
+                             alt="{{ user.full_name }}" 
+                             class="profile-image">
+                        <div class="profile-overlay">
+                            <div class="overlay-content">
+                                <button class="quick-action-btn like-btn" data-user-id="{{ user.id }}">
+                                    <i data-feather="heart"></i>
+                                </button>
+                                <button class="quick-action-btn message-btn" data-user-id="{{ user.id }}">
+                                    <i data-feather="message-circle"></i>
+                                </button>
                             </div>
                         </div>
+                        
+                        <!-- Status Badge -->
+                        {% if user.is_online %}
+                        <div class="status-badge online">
+                            <div class="status-dot"></div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Verification Badge -->
+                        {% if user.is_verified %}
+                        <div class="verification-badge">
+                            <i data-feather="check-circle"></i>
+                        </div>
                         {% endif %}
                     </div>
+
+                    <!-- Profile Info -->
+                    <div class="profile-info">
+                        <div class="profile-header">
+                            <h3 class="profile-name">{{ user.full_name or user.username }}</h3>
+                            <div class="profile-rating">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-text">4.9</span>
+                            </div>
+                        </div>
+                        
+                        <p class="profile-tagline">{{ (user.bio or 'Amazing creator')[:50] }}{% if user.bio and user.bio|length > 50 %}...{% endif %}</p>
+                        
+                        <!-- Tags -->
+                        {% set tags = user.get_specialty_tags() %}
+                        {% if tags %}
+                        <div class="profile-tags">
+                            {% for tag in tags[:3] %}
+                            <span class="tag-liquid">{{ tag }}</span>
+                            {% endfor %}
+                            {% if tags|length > 3 %}
+                            <span class="tag-liquid more">+{{ tags|length - 3 }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Price & Action -->
+                        <div class="profile-footer">
+                            <div class="price-info">
+                                <span class="price-amount">${{ '%.0f'|format(user.hourly_rate or 50) }}</span>
+                                <span class="price-unit">/session</span>
+                            </div>
+                            <a href="{{ url_for('profile', username=user.username, next=request.full_path) }}" 
+                               class="view-profile-btn-liquid">
+                                View Profile
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                </a>
-            </div>
-            {% else %}
-            <div class="col-12">
-                <div class="text-center text-muted py-5">
-                    <i data-feather="users" class="mb-3" style="width: 48px; height: 48px;"></i>
-                    <h5>No experts found. Try adjusting your search or filters.</h5>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <h3>No creators found</h3>
+                    <p>Try adjusting your search or explore different categories</p>
+                    <button class="btn-liquid" onclick="resetFilters()">Show All</button>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+
+            <!-- Load More Button -->
+            <div class="load-more-container">
+                <button class="load-more-btn" id="loadMoreBtn">
+                    <span class="btn-text">Load More</span>
+                    <div class="loading-spinner" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                </button>
+            </div>
         </div>
+    </div>
+</div>
+
+<!-- Floating Action Button -->
+<div class="fab-container">
+    <button class="fab-main" id="fabMain">
+        <i data-feather="plus"></i>
+    </button>
+    <div class="fab-options">
+        <button class="fab-option" data-action="filter">
+            <i data-feather="filter"></i>
+        </button>
+        <button class="fab-option" data-action="favorites">
+            <i data-feather="heart"></i>
+        </button>
+        <button class="fab-option" data-action="share">
+            <i data-feather="share-2"></i>
+        </button>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/search.js', v='1.4') }}"></script>
+<script src="{{ url_for('static', filename='js/discover.js', v='1.0') }}"></script>
 {% endblock %}
