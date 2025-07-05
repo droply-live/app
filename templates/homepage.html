@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Monetize Your Time | Droply{% endblock %}
+
+{% block content %}
+<!-- Hero Section: Stan-style, two-column, improved -->
+<section class="hero-section d-flex align-items-center" style="min-height: 80vh; background: linear-gradient(120deg, #6C63FF 0%, #48C6EF 100%); color: #fff;">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- Left: Big Text & CTA -->
+            <div class="col-lg-6 col-12 mb-5 mb-lg-0">
+                <h1 class="display-1 fw-bold mb-4" style="line-height: 1.05; letter-spacing: -3px; font-size: clamp(3rem, 7vw, 5.5rem);">
+                    Monetize Your Time
+                </h1>
+                <p class="lead mb-4" style="font-size: 1.25rem; opacity: 0.9;">
+                    Turn your expertise into income. Book sessions and share your profile link so people can book you instantly.
+                </p>
+                <a href="/register" class="btn btn-lg btn-success px-5 py-3 fw-bold hero-cta-animate" style="background: #00ffb8; border: none; color: #222; font-size: 1.45rem; font-weight: 900; border-radius: 2.5rem; transition: border-radius 0.3s cubic-bezier(.4,2,.6,1), font-size 0.3s, font-weight 0.3s;">Start Earning Instantly</a>
+            </div>
+            <!-- Right: Mockup Image -->
+            <div class="col-lg-6 col-12 text-center" style="display: flex; justify-content: flex-end;">
+                <div class="hero-mockup position-relative" style="max-width: 420px; width: 100%; margin-left: 0.3rem;">
+                    <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Droply Profile Mockup" class="img-fluid rounded-4" style="width: 100%; transform: rotate(10deg);">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Dashboard Video Showcase Section (now section 2) -->
+<section class="dashboard-video-section py-5">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Create Your Profile in Seconds</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="video-container text-center">
+                    <div class="video-wrapper">
+                        <video 
+                            class="dashboard-video" 
+                            autoplay 
+                            muted 
+                            loop
+                            style="width: 100%; border-radius: 1.5rem; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+                            <source src="{{ url_for('static', filename='videos/dashboard-demo.mp4') }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Fake Profiles Showcase (Carousel) - now section 3 -->
+<section class="profiles-section py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Discover Amazing People Today</h2>
+        <div class="profile-carousel-wrapper">
+            <div class="profile-carousel d-flex align-items-stretch gap-4">
+                {% set fake_profiles = [
+                    {"name": "Alexandra Silva", "username": "alexsilva", "avatar": url_for('static', filename='img/default-avatar.png')},
+                    {"name": "Jordan Lee", "username": "jordanlee", "avatar": url_for('static', filename='img/default-avatar.png')},
+                    {"name": "Maya Patel", "username": "mayapatel", "avatar": url_for('static', filename='img/default-avatar.png')},
+                    {"name": "Chris Evans", "username": "chrisevans", "avatar": url_for('static', filename='img/default-avatar.png')},
+                    {"name": "Sophie Turner", "username": "sophieturner", "avatar": url_for('static', filename='img/default-avatar.png')},
+                    {"name": "Liam Wong", "username": "liamwong", "avatar": url_for('static', filename='img/default-avatar.png')},
+                    {"name": "Priya Singh", "username": "priyasingh", "avatar": url_for('static', filename='img/default-avatar.png')},
+                    {"name": "Noah Kim", "username": "noahkim", "avatar": url_for('static', filename='img/default-avatar.png')},
+                    {"name": "Emma Rossi", "username": "emmarossi", "avatar": url_for('static', filename='img/default-avatar.png')},
+                    {"name": "Lucas Meyer", "username": "lucasmeyer", "avatar": url_for('static', filename='img/default-avatar.png')}
+                ] %}
+                {% for profile in fake_profiles %}
+                <div class="profile-card-carousel text-center p-4 bg-white rounded-4 shadow-sm flex-shrink-0">
+                    <img src="{{ profile.avatar }}" alt="{{ profile.name }}" class="mb-3 rounded-circle" style="width: 72px; height: 72px; object-fit: cover;">
+                    <div class="fw-bold fs-5">{{ profile.name }}</div>
+                    <div class="text-muted small">@{{ profile.username }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

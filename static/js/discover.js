@@ -1,6 +1,33 @@
 // Discover Page Interactive Features
 document.addEventListener('DOMContentLoaded', function() {
     initializeDiscover();
+    const carousel = document.querySelector('.profile-carousel-wrapper');
+    if (!carousel) return;
+    let scrollAmount = 1.2; // px per frame
+    let direction = 1;
+    let pause = false;
+    let pauseTimeout = null;
+    function autoScroll() {
+        if (pause) return;
+        carousel.scrollLeft += scrollAmount * direction;
+        // Pause at ends
+        if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 2) {
+            direction = -1;
+            pause = true;
+            pauseTimeout = setTimeout(() => { pause = false; }, 1200);
+        } else if (carousel.scrollLeft <= 2) {
+            direction = 1;
+            pause = true;
+            pauseTimeout = setTimeout(() => { pause = false; }, 1200);
+        }
+        requestAnimationFrame(autoScroll);
+    }
+    // Pause on user interaction
+    carousel.addEventListener('mouseenter', () => { pause = true; });
+    carousel.addEventListener('mouseleave', () => { pause = false; autoScroll(); });
+    carousel.addEventListener('touchstart', () => { pause = true; });
+    carousel.addEventListener('touchend', () => { pause = false; autoScroll(); });
+    autoScroll();
 });
 
 function initializeDiscover() {

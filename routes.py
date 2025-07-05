@@ -1,7 +1,8 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case
-from app import app, db
+from app import app
+from extensions import db
 from models import User, AvailabilityRule, AvailabilityException, Booking
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm, TimeSlotForm, BookingForm
 from utils import generate_ical_content
@@ -30,57 +31,8 @@ if not YOUR_DOMAIN.startswith('http'):
 model = None  # Temporarily disabled
 
 @app.route('/')
-def index():
-    """Homepage with search and filtering for providers"""
-    form = SearchForm(request.args)
-    
-    # Base query for available users
-    query_obj = User.query.filter(User.is_available == True, User.full_name.isnot(None))
-
-    search_query = request.args.get('query', '').strip()
-    selected_category = request.args.get('category', '').strip().lower()
-
-    users = []
-    all_keywords = []
-    if search_query:
-        all_keywords.extend(get_search_keywords(search_query))
-    if selected_category and selected_category != '':
-        all_keywords.extend(get_search_keywords(selected_category))
-    all_keywords = list(set([kw for kw in all_keywords if kw]))
-
-    if all_keywords:
-        # SMART KEYWORD SEARCH (original working version)
-        search_conditions = []
-        for keyword in all_keywords:
-            keyword_term = f"%{keyword}%"
-            search_conditions.append(
-                or_(
-                    User.full_name.ilike(keyword_term),
-                    User.profession.ilike(keyword_term),
-                    User.industry.ilike(keyword_term),
-                    User.bio.ilike(keyword_term),
-                    User.expertise.ilike(keyword_term)
-                )
-            )
-        if search_conditions:
-            query_obj = query_obj.filter(or_(*search_conditions))
-        all_users = query_obj.all()
-        user_ids = set(u.id for u in all_users)
-        tag_users = User.query.filter(User.is_available == True, User.full_name.isnot(None)).all()
-        for user in tag_users:
-            tags = user.get_specialty_tags() if hasattr(user, 'get_specialty_tags') else []
-            tag_match = any(tag.lower() in all_keywords for tag in tags)
-            if tag_match and user.id not in user_ids:
-                users.append(user)
-        users.extend(all_users)
-    else:
-        # If no keywords, show all users (no filtering)
-        users = User.query.filter(User.is_available == True, User.full_name.isnot(None)).all()
-    
-    # Get unique industries for dropdown
-    industries = sorted([res[0] for res in db.session.query(User.industry).filter(User.industry.isnot(None)).distinct().all()])
-
-    return render_template('index.html', users=users, form=form, industries=industries)
+def homepage():
+    return render_template('homepage.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -220,20 +172,26 @@ def edit_profile():
 
 @app.route('/search')
 def search():
-    """Search for providers"""
     form = SearchForm(request.args)
+    
+    # Base query for available users
+    query_obj = User.query.filter(User.is_available == True, User.full_name.isnot(None))
+
+    search_query = request.args.get('query', '').strip()
+    selected_category = request.args.get('category', '').strip().lower()
+
     users = []
-    
-    # Build query
-    query = User.query.filter(User.is_available == True, User.full_name.isnot(None))
-    
-    if form.query.data:
-        # SMART KEYWORD SEARCH
-        search_keywords = get_search_keywords(form.query.data)
-        
-        # Build OR conditions for each keyword
+    all_keywords = []
+    if search_query:
+        all_keywords.extend(get_search_keywords(search_query))
+    if selected_category and selected_category != '':
+        all_keywords.extend(get_search_keywords(selected_category))
+    all_keywords = list(set([kw for kw in all_keywords if kw]))
+
+    if all_keywords:
+        # SMART KEYWORD SEARCH (original working version)
         search_conditions = []
-        for keyword in search_keywords:
+        for keyword in all_keywords:
             keyword_term = f"%{keyword}%"
             search_conditions.append(
                 or_(
@@ -244,41 +202,25 @@ def search():
                     User.expertise.ilike(keyword_term)
                 )
             )
-        
-        # Combine all conditions with OR
         if search_conditions:
-            query = query.filter(or_(*search_conditions))
-        # Fetch users and filter by tags in Python
-        all_users = query.all()
+            query_obj = query_obj.filter(or_(*search_conditions))
+        all_users = query_obj.all()
         user_ids = set(u.id for u in all_users)
         tag_users = User.query.filter(User.is_available == True, User.full_name.isnot(None)).all()
         for user in tag_users:
             tags = user.get_specialty_tags() if hasattr(user, 'get_specialty_tags') else []
-            tag_match = any(tag.lower() in search_keywords for tag in tags)
+            tag_match = any(tag.lower() in all_keywords for tag in tags)
             if tag_match and user.id not in user_ids:
                 users.append(user)
         users.extend(all_users)
     else:
-        users = query.all()
+        # If no keywords, show all users (no filtering)
+        users = User.query.filter(User.is_available == True, User.full_name.isnot(None)).all()
     
-    if form.industry.data:
-        users = [u for u in users if u.industry == form.industry.data]
-    
-    if form.profession.data:
-        users = [u for u in users if u.profession == form.profession.data]
-    
-    if form.location.data:
-        users = [u for u in users if u.location == form.location.data]
-    
-    if form.min_rate.data is not None:
-        users = [u for u in users if u.hourly_rate >= form.min_rate.data]
-    
-    if form.max_rate.data is not None:
-        users = [u for u in users if u.hourly_rate <= form.max_rate.data]
-    
-    users = sorted(users, key=lambda u: u.created_at, reverse=True)
-    
-    return render_template('search.html', form=form, users=users)
+    # Get unique industries for dropdown
+    industries = sorted([res[0] for res in db.session.query(User.industry).filter(User.industry.isnot(None)).distinct().all()])
+
+    return render_template('index.html', users=users, form=form, industries=industries)
 
 @app.route('/dashboard')
 @login_required
