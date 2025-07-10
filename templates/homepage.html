@@ -57,23 +57,47 @@
         </div>
     </section>
 
-    <!-- Hero Section 2 - Spinning Circle (Inverted Layout) -->
-    <section class="hero-section">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-animation">
-                    <div class="hero-images-spin">
-                        <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Expert 1" class="spin-image">
-                        <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Expert 2" class="spin-image">
-                        <img src="{{ url_for('static', filename='img/generated-icon.png') }}" alt="Expert 3" class="spin-image">
-                    </div>
-                </div>
-                <div class="hero-text">
-                    <h1>Start Earning Today</h1>
-                    <p>Join thousands of professionals who are already monetizing their expertise on Droply. From consultants to coaches, creators to consultants - everyone can earn.</p>
-                    <div class="hero-buttons">
-                        <a href="{{ url_for('register') }}" class="btn btn-outline">Join Now</a>
-                    </div>
+    <!-- Hero Section 2 - Centered, White Background, Large Animated Box -->
+    <section class="hero-section hero-section-white-bg">
+        <div class="hero-stepper-layout">
+            <div class="hero-stepper-side">
+                <ul class="stepper-list connected-stepper">
+                    <li class="stepper-tab active" data-step="0">
+                        <span class="stepper-label"><span class="stepper-icon">📅</span> Connect your calendars</span>
+                        <div class="stepper-desc">Sync up to six calendars for real-time scheduling availability.</div>
+                        <div class="step-timer-bar"></div>
+                    </li>
+                    <li class="stepper-tab" data-step="1">
+                        <span class="stepper-label"><span class="stepper-icon">⏰</span> Add your availability</span>
+                        <div class="stepper-desc">Set your available hours so people can only book you when you want.</div>
+                        <div class="step-timer-bar"></div>
+                    </li>
+                    <li class="stepper-tab" data-step="2">
+                        <span class="stepper-label"><span class="stepper-icon">🔗</span> Connect conferencing tools</span>
+                        <div class="stepper-desc">Integrate Zoom, Google Meet, or Teams for seamless video calls.</div>
+                        <div class="step-timer-bar"></div>
+                    </li>
+                    <li class="stepper-tab" data-step="3">
+                        <span class="stepper-label"><span class="stepper-icon">📝</span> Customize your event types</span>
+                        <div class="stepper-desc">Create and personalize different event types for your meetings.</div>
+                        <div class="step-timer-bar"></div>
+                    </li>
+                    <li class="stepper-tab" data-step="4">
+                        <span class="stepper-label"><span class="stepper-icon">🔗</span> Share your scheduling link</span>
+                        <div class="stepper-desc">Share your unique link to let others book you easily.</div>
+                        <div class="step-timer-bar"></div>
+                    </li>
+                </ul>
+            </div>
+            <div class="hero-step-image-animated-box">
+                <div class="image-animated-bg-large">
+                    <svg width="520" height="420" viewBox="0 0 520 420" fill="none" xmlns="http://www.w3.org/2000/svg" class="animated-shapes">
+                        <circle class="anim-circle" cx="120" cy="120" r="48" fill="#a18cd1"/>
+                        <rect class="anim-rect" x="350" y="80" width="72" height="72" rx="16" fill="#fbc2eb"/>
+                        <circle class="anim-circle2" cx="420" cy="340" r="32" fill="#fbc2eb"/>
+                        <rect class="anim-rect2" x="160" y="320" width="56" height="56" rx="12" fill="#a18cd1"/>
+                    </svg>
+                    <img id="step-image" src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Step Image" class="step-image-large pop-in">
                 </div>
             </div>
         </div>
@@ -204,5 +228,8 @@
             lastScrollTop = scrollTop;
         });
     </script>
+    {% block scripts %}
+    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+    {% endblock %}
 </body>
 </html> 

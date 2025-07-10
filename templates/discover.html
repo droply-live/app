@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Compact Search Header -->
+<div class="discover-header">
+    <div class="search-container-compact">
+        <form method="GET" action="{{ url_for('discover') }}">
+            <input type="text" 
+                   name="search" 
+                   class="form-control search-input-compact" 
+                   placeholder="Search by name, expertise, or keywords..."
+                   value="{{ request.args.get('search', '') }}">
+        </form>
+    </div>
+</div>
+
+<!-- Compact Experts Grid -->
+<div class="container">
+    <div class="experts-grid">
+        {% if experts %}
+            <div class="row">
+                {% for expert in experts %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="expert-card-compact" onclick="window.location.href='{{ url_for('profile', username=expert.username) }}'">
+                        <div class="expert-card-header">
+                            {% if expert.profile_picture %}
+                                <img src="{{ url_for('static', filename='uploads/' + expert.profile_picture) }}" 
+                                     alt="{{ expert.username }}" 
+                                     class="expert-avatar-compact">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/default-avatar.png') }}" 
+                                     alt="{{ expert.username }}" 
+                                     class="expert-avatar-compact">
+                            {% endif %}
+                            <div class="expert-info">
+                                <div class="expert-name-compact">{{ expert.username }}</div>
+                                <div class="expert-title-compact">{{ expert.expertise or 'Expert' }}</div>
+                            </div>
+                        </div>
+                        {% if expert.bio %}
+                            <div class="expert-bio-compact">{{ expert.bio[:80] }}{% if expert.bio|length > 80 %}...{% endif %}</div>
+                        {% endif %}
+                        <div class="expert-footer">
+                            <div class="expert-rating-compact">
+                                {% for i in range(5) %}
+                                    {% if i < (expert.rating or 0) %}
+                                        ⭐
+                                    {% else %}
+                                        ☆
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="expert-price-compact">${{ expert.hourly_rate or 50 }}/hr</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center">
+                <div class="card">
+                    <h3>No experts found</h3>
+                    <p class="text-muted">
+                        {% if request.args.get('search') %}
+                            No experts match your search criteria. Try different keywords.
+                        {% else %}
+                            No experts are currently available. Check back later!
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

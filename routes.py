@@ -32,7 +32,38 @@ model = None  # Temporarily disabled
 
 @app.route('/')
 def homepage():
+    # Redirect authenticated users to dashboard
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
     return render_template('homepage.html')
+
+@app.route('/discover')
+def discover():
+    # Get search query
+    search_query = request.args.get('search', '').strip()
+    
+    # Base query for available users
+    query = User.query.filter(User.is_available == True, User.full_name.isnot(None))
+    
+    # Apply search filter if provided
+    if search_query:
+        query = query.filter(
+            or_(
+                User.username.ilike(f'%{search_query}%'),
+                User.full_name.ilike(f'%{search_query}%'),
+                User.expertise.ilike(f'%{search_query}%'),
+                User.bio.ilike(f'%{search_query}%'),
+                User.profession.ilike(f'%{search_query}%')
+            )
+        )
+    
+    # Get all experts
+    experts = query.all()
+    
+    # Import datetime for template
+    from datetime import datetime, timedelta
+    
+    return render_template('discover.html', experts=experts, now=datetime.now(), timedelta=timedelta)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -126,7 +157,7 @@ def logout():
     """User logout"""
     logout_user()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('index'))
+    return redirect(url_for('homepage'))
 
 @app.route('/profile/<username>')
 @login_required
@@ -319,11 +350,15 @@ def booking_cancel(booking_id):
     
     return render_template('cancel.html', booking=booking)
 
-# @app.route('/export/calendar/<username>')
-# def export_calendar(username):
-#     """Export user calendar as iCal - Temporarily disabled due to missing TimeSlot model"""
-#     flash('Calendar export is temporarily unavailable.', 'error')
-#     return redirect(url_for('profile', username=username))
+@app.route('/export/calendar/<username>')
+def export_calendar(username):
+    """Export user calendar as iCal"""
+    user = User.query.filter_by(username=username).first_or_404()
+    
+    # For now, just redirect to the user's profile
+    # In the future, this could generate an actual iCal file
+    flash('Calendar export feature coming soon!', 'info')
+    return redirect(url_for('profile', username=username))
 
 @app.route('/bookings')
 @login_required
