@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Expert Dashboard - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <!-- Earnings Overview -->
+    <div class="col-lg-4 mb-4">
+      <div class="card h-100" style="border-radius: 18px; background: #fff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3">
+            <i data-feather="dollar-sign" class="me-2 text-success"></i>
+            Earnings Overview
+          </h5>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted">Outstanding Balance</span>
+              <span class="fw-bold text-primary" id="outstanding-balance">${{ "%.2f"|format(current_user.pending_balance) }}</span>
+              <button class="btn btn-link p-0 ms-2" id="see-details-btn" data-bs-toggle="modal" data-bs-target="#payoutDetailsModal" style="font-size: 0.95rem;">See details</button>
+            </div>
+            <div class="mb-2">
+              <form method="POST" action="{{ url_for('request_payout') }}">
+                <button type="submit" class="btn btn-success w-100 mb-2" {% if not current_user.payout_enabled or current_user.stripe_account_status != 'active' %}disabled{% endif %}>
+                  <i data-feather="download" class="me-2"></i>
+                  Withdraw
+                </button>
+              </form>
+              {% if not current_user.payout_enabled %}
+                <div class="text-muted small mb-2">Withdrawals are only available after completing payout setup and Stripe approval.</div>
+              {% endif %}
+              {% if not current_user.stripe_account_id or current_user.stripe_account_status != 'active' %}
+                <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-warning w-100 mb-2">
+                  <i data-feather="link" class="me-2"></i>
+                  Complete Payout Setup
+                </a>
+              {% else %}
+                <a href="https://connect.stripe.com/express/{{ current_user.stripe_account_id }}/settings" target="_blank" class="btn btn-outline-primary w-100 mb-2">
+                  <i data-feather="settings" class="me-2"></i>
+                  Manage Payouts
+                </a>
+              {% endif %}
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted">Total Earnings</span>
+              <span class="fw-bold">${{ "%.2f"|format(current_user.total_earnings) }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted">Total Payouts</span>
+              <span class="fw-bold">${{ "%.2f"|format(current_user.total_payouts) }}</span>
+            </div>
+          </div>
+          <div class="border-top pt-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted">Account Status</span>
+              <span class="badge bg-{{ 'success' if current_user.stripe_account_status == 'active' else 'warning' }}">
+                {{ current_user.stripe_account_status|title }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recent Bookings -->
+    <div class="col-lg-8 mb-4">
+      <div class="card" style="border-radius: 18px; background: #fff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">
+              <i data-feather="calendar" class="me-2 text-primary"></i>
+              Recent Bookings
+            </h5>
+            <a href="{{ url_for('bookings') }}" class="btn btn-outline-primary btn-sm">
+              View All
+            </a>
+          </div>
+          
+          {% if recent_bookings %}
+          <div class="list-group list-group-flush">
+            {% for booking in recent_bookings %}
+            <div class="list-group-item d-flex justify-content-between align-items-center p-3 border-0">
+              <div>
+                <h6 class="fw-bold mb-1">{{ booking.user.full_name or booking.user.username }}</h6>
+                <small class="text-muted">
+                  {{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}
+                </small>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' }}">
+                  {{ booking.status|title }}
+                </span>
+                {% if booking.payment_amount %}
+                <div class="mt-1">
+                  <small class="text-muted">${{ "%.2f"|format(booking.payment_amount) }}</small>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4">
+            <i data-feather="calendar" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+            <p class="text-muted mb-0">No recent bookings</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Recent Payouts -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card" style="border-radius: 18px; background: #fff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">
+              <i data-feather="credit-card" class="me-2 text-success"></i>
+              Recent Payouts
+            </h5>
+            <a href="{{ url_for('expert_payouts') }}" class="btn btn-outline-success btn-sm">
+              View All
+            </a>
+          </div>
+          
+          {% if recent_payouts %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Paid Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for payout in recent_payouts %}
+                <tr>
+                  <td>{{ payout.created_at.strftime('%b %d, %Y') }}</td>
+                  <td class="fw-bold">${{ "%.2f"|format(payout.amount / 100) }}</td>
+                  <td>
+                    <span class="badge bg-{{ 'success' if payout.status == 'paid' else 'warning' if payout.status == 'pending' else 'danger' }}">
+                      {{ payout.status|title }}
+                    </span>
+                  </td>
+                  <td>
+                    {% if payout.paid_at %}
+                    {{ payout.paid_at.strftime('%b %d, %Y') }}
+                    {% else %}
+                    -
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-4">
+            <i data-feather="credit-card" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+            <p class="text-muted mb-0">No payouts yet</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payout Details Modal -->
+<div class="modal fade" id="payoutDetailsModal" tabindex="-1" aria-labelledby="payoutDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="payoutDetailsModalLabel">Your balance</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex justify-content-between mb-2">
+          <span>On the way to your bank</span>
+          <span id="on-the-way">$0.00</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span>Upcoming payouts (estimated)</span>
+          <span id="upcoming-payouts">$0.00</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span>Available in your balance</span>
+          <span id="available-balance">$0.00</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2 border-top pt-2">
+          <span>Total balance</span>
+          <span id="total-balance">$0.00</span>
+        </div>
+        <div class="mt-3 small">
+          <span id="payout-method-info">Your available funds are automatically paid out to your bank account.</span>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm mt-3" id="update-payout-settings" disabled>Update payout settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  feather.replace();
+  var payoutDetailsModal = document.getElementById('payoutDetailsModal');
+  payoutDetailsModal.addEventListener('show.bs.modal', function (event) {
+    fetch('/expert/payout-details')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('on-the-way').textContent = data.on_the_way;
+        document.getElementById('upcoming-payouts').textContent = data.upcoming_payouts;
+        document.getElementById('available-balance').textContent = data.available_balance;
+        document.getElementById('total-balance').textContent = data.total_balance;
+        document.getElementById('payout-method-info').innerHTML =
+          `Your available funds are automatically paid out ${data.payout_schedule ? 'on a <b>' + data.payout_schedule + '</b> schedule' : ''} to <b>${data.payout_method || 'your bank account'}</b>.`;
+      });
+  });
+});
+</script>
+{% endblock %} 

@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case
 from app import app, db
-from models import User, AvailabilityRule, AvailabilityException, Booking
+from models import User, AvailabilityRule, AvailabilityException, Booking, Payout
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm
 import json
 # import faiss  # Temporarily disabled
@@ -253,10 +253,10 @@ def search():
 def dashboard():
     """User dashboard"""
     # Get upcoming bookings as provider
-    provider_bookings = Booking.query.filter_by(provider_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
+    provider_bookings = Booking.query.filter_by(expert_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
     
     # Get upcoming bookings as client
-    client_bookings = Booking.query.filter_by(client_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
+    client_bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
     
     # Get recent time slots
     time_slots = TimeSlot.query.filter_by(user_id=current_user.id).order_by(TimeSlot.start_datetime.desc()).limit(10).all()
@@ -330,8 +330,8 @@ def book_session(slot_id):
         # Create booking
         booking = Booking(
             time_slot_id=slot_id,
-            provider_id=time_slot.user_id,
-            client_id=current_user.id if current_user.is_authenticated else None,
+            expert_id=time_slot.user_id,
+            user_id=current_user.id if current_user.is_authenticated else None,
             client_name=form.client_name.data,
             client_email=form.client_email.data,
             client_message=form.client_message.data,
@@ -922,3 +922,247 @@ def api_availability_times():
             'has_rules': True,
             'times': available_times[:20]
         })
+
+# ============================================================================
+# STRIPE CONNECT ROUTES FOR EXPERT PAYOUTS
+# ============================================================================
+
+@app.route('/expert/onboard-stripe', methods=['GET', 'POST'])
+@login_required
+def expert_stripe_onboarding():
+    """Onboard expert to Stripe Connect for payouts"""
+    if request.method == 'GET':
+        return render_template('expert_stripe_onboarding.html')
+    
+    try:
+        # Create Stripe Connect Express account
+        account = stripe.Account.create(
+            type='express',
+            country='US',  # You can make this dynamic based on user location
+            email=current_user.email,
+            capabilities={
+                'card_payments': {'requested': True},
+                'transfers': {'requested': True},
+            },
+            business_type='individual',
+            business_profile={
+                'url': f'{YOUR_DOMAIN}/profile/{current_user.username}',
+                'mcc': '7399',  # Business Services - Not Elsewhere Classified
+            },
+        )
+        
+        # Update user with Stripe account info
+        current_user.stripe_account_id = account.id
+        current_user.stripe_account_status = account.charges_enabled and 'active' or 'pending'
+        db.session.commit()
+        
+        # Create account link for onboarding
+        account_link = stripe.AccountLink.create(
+            account=account.id,
+            refresh_url=f'{YOUR_DOMAIN}/expert/onboard-stripe',
+            return_url=f'{YOUR_DOMAIN}/expert/dashboard',
+            type='account_onboarding',
+        )
+        
+        return redirect(account_link.url)
+        
+    except Exception as e:
+        flash(f'Error creating Stripe account: {str(e)}', 'error')
+        return redirect(url_for('expert_stripe_onboarding'))
+
+@app.route('/expert/dashboard')
+@login_required
+def expert_dashboard():
+    """Expert dashboard with earnings and payout info"""
+    if current_user.stripe_account_id:
+        try:
+            account = stripe.Account.retrieve(current_user.stripe_account_id)
+            current_user.stripe_account_status = account.charges_enabled and 'active' or 'pending'
+            current_user.payout_enabled = account.payouts_enabled
+
+            # Total earnings: all completed and paid bookings (historical)
+            completed_bookings = Booking.query.filter(
+                (Booking.expert_id == current_user.id) &
+                (Booking.status == 'completed') &
+                (Booking.payment_status == 'paid')
+            ).all()
+            total_earnings = sum(booking.payment_amount for booking in completed_bookings)
+            current_user.total_earnings = total_earnings
+
+            # Pending balance: all confirmed or completed and paid bookings, not yet paid out
+            pending_bookings = Booking.query.filter(
+                (Booking.expert_id == current_user.id) &
+                (Booking.status.in_(['confirmed', 'completed'])) &
+                (Booking.payment_status == 'paid')
+            ).all()
+            pending_gross = sum(booking.payment_amount for booking in pending_bookings)
+            platform_fees = sum(booking.payment_amount * 0.10 for booking in pending_bookings)
+            # Subtract payouts already made
+            total_payouts = current_user.total_payouts or 0.0
+            current_user.pending_balance = pending_gross - platform_fees - total_payouts
+
+            db.session.commit()
+        except Exception as e:
+            flash(f'Error fetching Stripe account info: {str(e)}', 'error')
+
+    recent_bookings = Booking.query.filter(
+        (Booking.expert_id == current_user.id) &
+        (Booking.status.in_(['pending', 'confirmed']))
+    ).order_by(Booking.start_time.desc()).limit(5).all()
+    recent_payouts = Payout.query.filter_by(expert_id=current_user.id).order_by(Payout.created_at.desc()).limit(5).all()
+    return render_template('expert_dashboard.html', 
+                         recent_bookings=recent_bookings,
+                         recent_payouts=recent_payouts)
+
+@app.route('/expert/request-payout', methods=['POST'])
+@login_required
+def request_payout():
+    """Request a payout to expert's bank account"""
+    if not current_user.stripe_account_id:
+        flash('You need to complete Stripe onboarding first', 'error')
+        return redirect(url_for('expert_dashboard'))
+    
+    if not current_user.payout_enabled:
+        flash('Payouts are not enabled for your account', 'error')
+        return redirect(url_for('expert_dashboard'))
+    
+    if current_user.pending_balance <= 0:
+        flash('No pending balance to payout', 'error')
+        return redirect(url_for('expert_dashboard'))
+    
+    try:
+        # Create payout in Stripe
+        payout = stripe.Payout.create(
+            amount=int(current_user.pending_balance * 100),  # Convert to cents
+            currency='usd',
+            stripe_account=current_user.stripe_account_id,
+        )
+        
+        # Create payout record in database
+        payout_record = Payout(
+            expert_id=current_user.id,
+            amount=current_user.pending_balance * 100,  # Store in cents
+            stripe_payout_id=payout.id,
+            status='pending'
+        )
+        db.session.add(payout_record)
+        
+        # Update user's payout totals
+        current_user.total_payouts += current_user.pending_balance
+        current_user.pending_balance = 0.0
+        
+        db.session.commit()
+        
+        flash(f'Payout of ${current_user.total_payouts:.2f} requested successfully!', 'success')
+        
+    except Exception as e:
+        flash(f'Error requesting payout: {str(e)}', 'error')
+    
+    return redirect(url_for('expert_dashboard'))
+
+@app.route('/stripe/webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhooks for payment confirmations and payouts"""
+    payload = request.get_data()
+    sig_header = request.headers.get('Stripe-Signature')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.environ.get('STRIPE_WEBHOOK_SECRET', 'whsec_test')
+        )
+    except ValueError as e:
+        return 'Invalid payload', 400
+    except stripe.error.SignatureVerificationError as e:
+        return 'Invalid signature', 400
+    
+    # Handle the event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        booking_id = session.get('metadata', {}).get('booking_id')
+        
+        if booking_id:
+            booking = Booking.query.get(booking_id)
+            if booking:
+                booking.payment_status = 'paid'
+                db.session.commit()
+                
+                # Update expert's earnings
+                expert = User.query.get(booking.expert_id)
+                if expert:
+                    expert.total_earnings += booking.payment_amount
+                    expert.pending_balance += booking.payment_amount * 0.90  # After platform fee
+                    db.session.commit()
+    
+    elif event['type'] == 'payout.paid':
+        payout = event['data']['object']
+        payout_record = Payout.query.filter_by(stripe_payout_id=payout.id).first()
+        
+        if payout_record:
+            payout_record.status = 'paid'
+            payout_record.paid_at = datetime.now(timezone.utc)
+            db.session.commit()
+    
+    elif event['type'] == 'payout.failed':
+        payout = event['data']['object']
+        payout_record = Payout.query.filter_by(stripe_payout_id=payout.id).first()
+        
+        if payout_record:
+            payout_record.status = 'failed'
+            db.session.commit()
+    
+    return 'OK', 200
+
+@app.route('/expert/payouts')
+@login_required
+def expert_payouts():
+    """Show expert's payout history"""
+    payouts = Payout.query.filter_by(expert_id=current_user.id).order_by(Payout.created_at.desc()).all()
+    return render_template('expert_payouts.html', payouts=payouts)
+
+@app.route('/expert/payout-details')
+@login_required
+def expert_payout_details():
+    # On the way to your bank: payouts with status 'pending'
+    pending_payouts = Payout.query.filter_by(expert_id=current_user.id, status='pending').all()
+    on_the_way = sum(payout.amount for payout in pending_payouts) / 100  # convert cents to dollars
+    # Upcoming payouts: (for now, same as on_the_way unless you have scheduled payouts)
+    upcoming_payouts = on_the_way
+    # Available in your balance: pending_balance
+    available_balance = current_user.pending_balance
+    # Total balance: total_earnings
+    total_balance = current_user.total_earnings
+    # Payout method: get from Stripe
+    payout_method = None
+    payout_schedule = current_user.payout_schedule
+    if current_user.stripe_account_id:
+        try:
+            account = stripe.Account.retrieve(current_user.stripe_account_id)
+            # Get external accounts (bank info)
+            if account.external_accounts and account.external_accounts.data:
+                ext = account.external_accounts.data[0]
+                payout_method = f"{ext['bank_name']} ••••{ext['last4']}" if 'bank_name' in ext and 'last4' in ext else ext['id']
+        except Exception as e:
+            payout_method = None
+    return jsonify({
+        'on_the_way': f"${on_the_way:.2f}",
+        'upcoming_payouts': f"${upcoming_payouts:.2f}",
+        'available_balance': f"${available_balance:.2f}",
+        'total_balance': f"${total_balance:.2f}",
+        'payout_method': payout_method,
+        'payout_schedule': payout_schedule
+    })
+
+@app.route('/admin/update-bookings-status')
+def update_bookings_status():
+    """Update all bookings whose end_time is in the past and status is 'confirmed' to 'completed'."""
+    now = datetime.now(timezone.utc)
+    updated = 0
+    bookings = Booking.query.filter(
+        Booking.status == 'confirmed',
+        Booking.end_time < now
+    ).all()
+    for booking in bookings:
+        booking.status = 'completed'
+        updated += 1
+    db.session.commit()
+    return jsonify({'updated': updated, 'message': f'{updated} bookings updated to completed.'})

@@ -10,6 +10,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_login import LoginManager
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime, timezone
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -45,6 +47,26 @@ login_manager.login_message = 'Please log in to access this page.'
 def load_user(user_id):
     from models import User
     return User.query.get(int(user_id))
+
+def update_past_bookings():
+    from models import Booking
+    from app import db
+    now = datetime.now(timezone.utc)
+    bookings = Booking.query.filter(
+        Booking.status == 'confirmed',
+        Booking.end_time < now
+    ).all()
+    updated = 0
+    for booking in bookings:
+        booking.status = 'completed'
+        updated += 1
+    if updated > 0:
+        db.session.commit()
+        print(f"[APScheduler] Updated {updated} bookings to completed.")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(update_past_bookings, 'interval', minutes=5)
+scheduler.start()
 
 with app.app_context():
     # Make sure to import the models here or their tables won't be created

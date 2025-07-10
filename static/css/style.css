@@ -880,3 +880,13 @@ footer {
         color: #000 !important;
     }
 }
+
+/* Disabled button style fix */
+.btn:disabled, .btn.disabled {
+  background-color: #bdbdbd !important;
+  border-color: #bdbdbd !important;
+  color: #fff !important;
+  opacity: 0.65;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}

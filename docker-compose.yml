@@ -8,23 +8,13 @@ services:
     volumes:
       - .:/app
     environment:
-      - FLASK_APP=app.py
       - FLASK_ENV=development
       - FLASK_DEBUG=1
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-    depends_on:
-      - db
+      - REPLIT_DEV_DOMAIN=${REPLIT_DEV_DOMAIN}
+    command: python main.py
 
-  db:
-    image: postgres:16
-    environment:
-      - POSTGRES_USER=droply
-      - POSTGRES_PASSWORD=droply
-      - POSTGRES_DB=droply
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+# Removed db service and depends_on
 
-volumes:
-  postgres_data: 
+# volumes:
+#   postgres_data: 

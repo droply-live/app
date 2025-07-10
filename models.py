@@ -39,6 +39,15 @@ class User(UserMixin, db.Model):
     snapchat_url = db.Column(db.String(200))
     website_url = db.Column(db.String(200))
 
+    # Stripe Connect fields for expert payouts
+    stripe_account_id = db.Column(db.String(100))  # Stripe Connect account ID
+    stripe_account_status = db.Column(db.String(50), default='pending')  # pending, active, restricted, disabled
+    payout_enabled = db.Column(db.Boolean, default=False)  # Whether expert can receive payouts
+    payout_schedule = db.Column(db.String(20), default='weekly')  # daily, weekly, monthly
+    total_earnings = db.Column(db.Float, default=0.0)  # Total earnings before platform fees
+    total_payouts = db.Column(db.Float, default=0.0)  # Total amount paid out
+    pending_balance = db.Column(db.Float, default=0.0)  # Current pending balance
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
@@ -117,3 +126,21 @@ class Category(db.Model):
     
     def __repr__(self):
         return f'<Category {self.name}>'
+
+class Payout(db.Model):
+    """Track payouts to experts"""
+    id = db.Column(db.Integer, primary_key=True)
+    expert_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)  # Amount in cents
+    currency = db.Column(db.String(3), default='usd')
+    stripe_transfer_id = db.Column(db.String(100))  # Stripe transfer ID
+    stripe_payout_id = db.Column(db.String(100))  # Stripe payout ID
+    status = db.Column(db.String(20), default='pending')  # pending, paid, failed
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    paid_at = db.Column(db.DateTime)  # When payout was actually paid
+    
+    # Relationships
+    expert = db.relationship('User', backref='payouts')
+    
+    def __repr__(self):
+        return f'<Payout {self.id} - ${self.amount/100:.2f} - {self.status}>'
