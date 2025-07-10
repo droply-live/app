@@ -11,6 +11,7 @@ body {
     color: #1a1a1a;
     background: #ffffff;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 /* Navigation - Floating Oval */
@@ -333,8 +334,8 @@ body {
 /* Section 3: Staggered Cards Animation */
 .hero-images-cube {
     position: relative;
-    width: 400px;
-    height: 300px;
+    width: 600px;
+    height: 450px;
     margin: 0 auto;
     will-change: transform;
 }
@@ -348,8 +349,8 @@ body {
 
 .cube-face {
     position: absolute;
-    width: 140px;
-    height: 140px;
+    width: 220px;
+    height: 220px;
     border-radius: 16px;
     object-fit: cover;
     box-shadow: 0 8px 24px rgba(0,0,0,0.2);
@@ -358,12 +359,12 @@ body {
 }
 
 .cube-face:nth-child(1) { 
-    top: 10%;
-    left: 10%;
+    top: 5%;
+    left: 5%;
     animation: stagger1 6s ease-in-out infinite;
 }
 .cube-face:nth-child(2) { 
-    top: 30%;
+    top: 25%;
     left: 60%;
     animation: stagger2 6s ease-in-out infinite;
     animation-delay: -1s;
@@ -376,7 +377,7 @@ body {
 }
 .cube-face:nth-child(4) { 
     top: 70%;
-    left: 70%;
+    left: 60%;
     animation: stagger4 6s ease-in-out infinite;
     animation-delay: -3s;
 }
@@ -387,8 +388,8 @@ body {
     animation-delay: -4s;
 }
 .cube-face:nth-child(6) { 
-    top: 20%;
-    left: 80%;
+    top: 15%;
+    left: 65%;
     animation: stagger6 6s ease-in-out infinite;
     animation-delay: -5s;
 }
@@ -1620,4 +1621,27 @@ body {
 .stepper-label {
     display: flex;
     align-items: center;
+}
+
+.hero-section-cube {
+    background: #f8f9fa !important;
+}
+
+.section-divider {
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    overflow: hidden;
+    z-index: 1;
+}
+.section-divider svg {
+    display: block;
+    width: 100vw;
+    height: 80px;
 }
