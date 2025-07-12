@@ -121,7 +121,7 @@
                                         <small class="text-muted">{{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="badge bg-secondary">{{ booking.status|title }}</span>
+                                        <span class="badge bg-secondary">Completed</span>
                                         {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
                                         <div class="mt-1">
                                             <small class="text-muted">${{ "%.2f"|format(booking.payment_amount) }}</small>
@@ -215,30 +215,30 @@
                             </div>
                         </div>
                         {% endif %}
-                        <!-- Past Sessions -->
+                        <!-- Past Sessions for client -->
                         {% if past_as_client %}
                         <div>
-                            <h6 class="fw-bold text-muted mb-3">
-                                <i data-feather="clock" class="me-2"></i>Past Sessions ({{ past_as_client|length }})
-                            </h6>
-                            <div class="list-group list-group-flush">
-                            {% for booking in past_as_client %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                    <div>
-                                        <h6 class="fw-bold mb-1">With {{ booking.expert.full_name or booking.expert.username }}</h6>
-                                        <small class="text-muted">{{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <span class="badge bg-secondary">{{ booking.status|title }}</span>
-                                        {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
-                                        <div class="mt-1">
-                                            <small class="text-muted">${{ "%.2f"|format(booking.payment_amount) }}</small>
-                                        </div>
-                                        {% endif %}
-                                    </div>
+                          <h6 class="fw-bold text-muted mb-3">
+                            <i data-feather="clock" class="me-2"></i>Past Sessions ({{ past_as_client|length }})
+                          </h6>
+                          <div class="list-group list-group-flush">
+                          {% for booking in past_as_client %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                              <div>
+                                <h6 class="fw-bold mb-1">With {{ booking.expert.full_name or booking.expert.username }}</h6>
+                                <small class="text-muted">{{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</small>
+                              </div>
+                              <div class="text-end">
+                                <span class="badge bg-secondary">Completed</span>
+                                {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
+                                <div class="mt-1">
+                                  <small class="text-muted">${{ "%.2f"|format(booking.payment_amount) }}</small>
                                 </div>
-                            {% endfor %}
+                                {% endif %}
+                              </div>
                             </div>
+                          {% endfor %}
+                          </div>
                         </div>
                         {% endif %}
                     {% endif %}

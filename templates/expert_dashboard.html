@@ -29,33 +29,52 @@
               {% if not current_user.payout_enabled %}
                 <div class="text-muted small mb-2">Withdrawals are only available after completing payout setup and Stripe approval.</div>
               {% endif %}
-              {% if not current_user.stripe_account_id or current_user.stripe_account_status != 'active' %}
+              {% if not current_user.stripe_account_id %}
+                <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary w-100 mb-2">
+                  <i data-feather="link" class="me-2"></i>
+                  Create Payout Account
+                </a>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-muted">Account Status</span>
+                  <span class="badge bg-secondary">Not Started</span>
+                </div>
+              {% elif current_user.stripe_account_status != 'active' %}
                 <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-warning w-100 mb-2">
                   <i data-feather="link" class="me-2"></i>
                   Complete Payout Setup
                 </a>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-muted">Account Status</span>
+                  <span class="badge bg-warning">Pending</span>
+                </div>
               {% else %}
                 <a href="https://connect.stripe.com/express/{{ current_user.stripe_account_id }}/settings" target="_blank" class="btn btn-outline-primary w-100 mb-2">
                   <i data-feather="settings" class="me-2"></i>
                   Manage Payouts
                 </a>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-muted">Account Status</span>
+                  <span class="badge bg-success">Active</span>
+                </div>
               {% endif %}
             </div>
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="text-muted">Total Earnings</span>
+              <span class="text-muted">Total Earnings
+                <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" title="All money you’ve earned from completed sessions, before fees and payouts."></i>
+              </span>
               <span class="fw-bold">${{ "%.2f"|format(current_user.total_earnings) }}</span>
             </div>
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="text-muted">Total Payouts</span>
+              <span class="text-muted">Withdrawn
+                <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" title="Total amount paid out to your bank account."></i>
+              </span>
               <span class="fw-bold">${{ "%.2f"|format(current_user.total_payouts) }}</span>
             </div>
-          </div>
-          <div class="border-top pt-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="text-muted">Account Status</span>
-              <span class="badge bg-{{ 'success' if current_user.stripe_account_status == 'active' else 'warning' }}">
-                {{ current_user.stripe_account_status|title }}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted">Potential Earnings
+                <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" title="Earnings from confirmed bookings for upcoming sessions. These will become available after the session is completed."></i>
               </span>
+              <span class="fw-bold text-warning">${{ "%.2f"|format(potential_earnings) }}</span>
             </div>
           </div>
         </div>
@@ -223,6 +242,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('payout-method-info').innerHTML =
           `Your available funds are automatically paid out ${data.payout_schedule ? 'on a <b>' + data.payout_schedule + '</b> schedule' : ''} to <b>${data.payout_method || 'your bank account'}</b>.`;
       });
+  });
+  // Enable Bootstrap tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+    new bootstrap.Tooltip(tooltipTriggerEl);
   });
 });
 </script>

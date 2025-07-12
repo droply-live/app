@@ -1005,6 +1005,16 @@ def expert_dashboard():
         except Exception as e:
             flash(f'Error fetching Stripe account info: {str(e)}', 'error')
 
+    # Calculate potential earnings: sum of all confirmed, upcoming bookings (not yet completed)
+    from datetime import datetime
+    now = datetime.now()
+    potential_earnings_bookings = Booking.query.filter(
+        (Booking.expert_id == current_user.id) &
+        (Booking.status == 'confirmed') &
+        (Booking.start_time > now)
+    ).all()
+    potential_earnings = sum(booking.payment_amount for booking in potential_earnings_bookings)
+
     recent_bookings = Booking.query.filter(
         (Booking.expert_id == current_user.id) &
         (Booking.status.in_(['pending', 'confirmed']))
@@ -1012,7 +1022,8 @@ def expert_dashboard():
     recent_payouts = Payout.query.filter_by(expert_id=current_user.id).order_by(Payout.created_at.desc()).limit(5).all()
     return render_template('expert_dashboard.html', 
                          recent_bookings=recent_bookings,
-                         recent_payouts=recent_payouts)
+                         recent_payouts=recent_payouts,
+                         potential_earnings=potential_earnings)
 
 @app.route('/expert/request-payout', methods=['POST'])
 @login_required
