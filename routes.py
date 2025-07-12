@@ -39,26 +39,102 @@ def homepage():
 
 @app.route('/discover')
 def discover():
-    # Get search query
+    # Get search query and category
     search_query = request.args.get('search', '').strip()
+    category = request.args.get('category', '').strip().lower()
     
     # Base query for available users
     query = User.query.filter(User.is_available == True, User.full_name.isnot(None))
     
-    # Apply search filter if provided
-    if search_query:
-        query = query.filter(
-            or_(
-                User.username.ilike(f'%{search_query}%'),
-                User.full_name.ilike(f'%{search_query}%'),
-                User.expertise.ilike(f'%{search_query}%'),
-                User.bio.ilike(f'%{search_query}%'),
-                User.profession.ilike(f'%{search_query}%')
-            )
-        )
+    # Apply category filter if provided
+    if category:
+        # Map category names to search terms
+        category_mapping = {
+            'tech': ['tech', 'technology', 'programming', 'software', 'developer', 'engineer', 'coding', 'web', 'app', 'mobile', 'ai', 'machine learning', 'data science'],
+            'business': ['business', 'consulting', 'strategy', 'management', 'entrepreneur', 'startup', 'finance', 'marketing', 'sales'],
+            'design': ['design', 'ui', 'ux', 'graphic', 'visual', 'creative', 'art', 'branding', 'illustration'],
+            'marketing': ['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand', 'growth', 'content'],
+            'finance': ['finance', 'accounting', 'investment', 'financial', 'tax', 'budget', 'money', 'wealth'],
+            'health': ['health', 'fitness', 'wellness', 'nutrition', 'medical', 'therapy', 'coaching', 'mental health'],
+            'education': ['education', 'teaching', 'tutoring', 'training', 'learning', 'academic', 'course', 'mentor']
+        }
+        
+        if category in category_mapping:
+            search_terms = category_mapping[category]
+            category_conditions = []
+            for term in search_terms:
+                category_conditions.append(
+                    or_(
+                        User.expertise.ilike(f'%{term}%'),
+                        User.profession.ilike(f'%{term}%'),
+                        User.industry.ilike(f'%{term}%'),
+                        User.bio.ilike(f'%{term}%'),
+                        User.specialty_tags.ilike(f'%{term}%')
+                    )
+                )
+            if category_conditions:
+                query = query.filter(or_(*category_conditions))
     
-    # Get all experts
+    # Apply semantic search if provided
+    if search_query:
+        # Split search query into keywords for better matching
+        search_keywords = search_query.lower().split()
+        
+        # Create search conditions for each keyword
+        search_conditions = []
+        for keyword in search_keywords:
+            if len(keyword) > 2:  # Only search for keywords with 3+ characters
+                keyword_term = f'%{keyword}%'
+                search_conditions.append(
+                    or_(
+                        User.username.ilike(keyword_term),
+                        User.full_name.ilike(keyword_term),
+                        User.expertise.ilike(keyword_term),
+                        User.profession.ilike(keyword_term),
+                        User.industry.ilike(keyword_term),
+                        User.bio.ilike(keyword_term),
+                        User.specialty_tags.ilike(keyword_term),
+                        User.location.ilike(keyword_term)
+                    )
+                )
+        
+        if search_conditions:
+            query = query.filter(or_(*search_conditions))
+    
+    # Get all experts and sort by relevance
     experts = query.all()
+    
+    # Sort experts by relevance (those with more matches come first)
+    if search_query:
+        def relevance_score(expert):
+            score = 0
+            search_lower = search_query.lower()
+            
+            # Check exact matches first
+            if search_lower in (expert.full_name or '').lower():
+                score += 10
+            if search_lower in (expert.expertise or '').lower():
+                score += 8
+            if search_lower in (expert.profession or '').lower():
+                score += 6
+            if search_lower in (expert.bio or '').lower():
+                score += 4
+            
+            # Check keyword matches
+            for keyword in search_query.lower().split():
+                if len(keyword) > 2:
+                    if keyword in (expert.full_name or '').lower():
+                        score += 3
+                    if keyword in (expert.expertise or '').lower():
+                        score += 2
+                    if keyword in (expert.profession or '').lower():
+                        score += 2
+                    if keyword in (expert.bio or '').lower():
+                        score += 1
+            
+            return score
+        
+        experts = sorted(experts, key=relevance_score, reverse=True)
     
     # Import datetime for template
     from datetime import datetime, timedelta
