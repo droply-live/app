@@ -1,89 +1,172 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.full_name or user.username }} - Droply</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box;
+            background: transparent !important;
+            min-height: 100vh;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .profile-hero {
+            margin-top: 0 !important;
+            padding-top: 140px !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            background-position: top !important;
+            min-height: 100vh !important;
+        }
+        @media (max-width: 768px) {
+            .profile-hero {
+                padding-top: 110px !important;
+            }
+        }
+        /* Remove hover effect from booking card on profile view */
+        .booking-card:hover {
+            transform: none !important;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1) !important;
+        }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('discover') }}" class="back-to-discover">
+        <span class="arrow">&#8592;</span> Discover more
+    </a>
 
-{% block title %}{{ user.full_name or user.username }} - Droply{% endblock %}
-
-{% block content %}
-<div class="container py-4">
-  <div class="row justify-content-center">
-    <!-- Left: Mobile Profile UI -->
-    <div class="col-lg-5 col-md-7 mb-4">
-      <div class="card p-4" style="border-radius: 18px; background: #fff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
-        <div id="mobileProfilePreview" style="width: 280px; height: 500px; border-radius: 28px; background: {{ user.background_color or '#f7faff' }}; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 24px 12px; margin: 0 auto;">
-          <!-- Profile Picture -->
-          <div style="width: 100px; height: 100px; border-radius: 50%; background: #e3f0ff; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-            {% if user.profile_picture %}
-            <img src="{{ user.profile_picture }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
-            {% else %}
-            <i data-feather="user" style="width: 50px; height: 50px; color: #1a3a6d;"></i>
-            {% endif %}
+    <!-- Hero Section with Profile -->
+    <div class="profile-hero" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem 0;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10 col-md-12">
+        <div class="row">
+          <!-- Left Column: Profile Info -->
+          <div class="col-lg-6 col-md-12 mb-4">
+            <div class="profile-card d-flex flex-column justify-content-between" style="background: white; border-radius: 18px; padding: 1.3rem 1.3rem 1rem 1.3rem; box-shadow: 0 10px 32px rgba(0,0,0,0.08); min-height: 370px; max-width: 340px; margin: 0 auto; height: 370px;">
+              <!-- Profile Picture -->
+              <div style="text-align: center; margin-bottom: 1rem;">
+                <div style="width: 72px; height: 72px; border-radius: 50%; background: white; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border: 3px solid white;">
+                  {% if user.profile_picture %}
+                  <img src="{{ user.profile_picture }}" alt="{{ user.full_name or user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                  {% else %}
+                  <img src="/static/img/default-avatar.png" alt="{{ user.full_name or user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                  {% endif %}
+                </div>
+              </div>
+              <!-- Name and Title -->
+              <div style="text-align: center; margin-bottom: 0.7rem;">
+                <h1 style="font-size: 1.1rem; font-weight: 800; color: #1a1a1a; margin-bottom: 0.2rem;">{{ user.full_name or user.username }}</h1>
+                <p style="font-size: 0.95rem; color: #667eea; font-weight: 600; margin-bottom: 0.2rem;">{{ user.profession|title if user.profession else 'Professional' }}</p>
+                {% if user.rating and user.rating > 0 %}
+                <div style="margin-bottom: 0.2rem;">
+                  <span style="font-size: 0.95rem; font-weight: 700; color: #1a1a1a;">{{ "%.1f"|format(user.rating) }}</span>
+                  <span style="color: #ffc107; font-size: 1rem;">⭐</span>
+                  {% if user.rating_count and user.rating_count > 0 %}
+                  <span style="color: #666; margin-left: 0.3rem; font-size: 0.9rem;">({{ user.rating_count }} reviews)</span>
+                  {% endif %}
+                </div>
+                {% else %}
+                <div style="height: 1.2rem;"></div>
+                {% endif %}
+              </div>
+              <!-- About Me Section -->
+              <div style="margin-bottom: 0.6rem; min-height: 36px;">
+                <h3 style="font-size: 0.98rem; font-weight: 700; color: #1a1a1a; margin-bottom: 0.2rem;">About me</h3>
+                {% if user.bio %}
+                <p style="font-size: 0.92rem; color: #666; line-height: 1.4; margin-bottom: 0;">{{ user.bio }}</p>
+                {% else %}
+                <p style="font-size: 0.92rem; color: #bbb; line-height: 1.4; margin-bottom: 0;">No bio available yet.</p>
+                {% endif %}
+              </div>
+              <!-- Expertise Section -->
+              <div style="margin-bottom: 0.6rem; min-height: 28px;">
+                <h4 style="font-size: 0.93rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.2rem;">Expertise</h4>
+                {% if user.specialty_tags %}
+                  {% for tag in user.get_specialty_tags() %}
+                  <span style="background: #f0f2ff; color: #667eea; padding: 0.18rem 0.5rem; border-radius: 12px; font-size: 0.85rem; font-weight: 500; margin: 0.05rem; display: inline-block;">{{ tag|title }}</span>
+                  {% endfor %}
+                {% else %}
+                  <span style="color: #bbb; font-size: 0.9rem;">No expertise listed.</span>
+                {% endif %}
+              </div>
+              <!-- Location Section -->
+              <div style="margin-bottom: 0.6rem; min-height: 20px;">
+                <h4 style="font-size: 0.93rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.1rem;">Location</h4>
+                {% if user.location %}
+                <p style="color: #666; font-size: 0.92rem; margin-bottom: 0;">
+                  <i data-feather="map-pin" style="width: 13px; height: 13px; margin-right: 0.3rem;"></i>
+                  {{ user.location }}
+                </p>
+                {% else %}
+                <span style="color: #bbb; font-size: 0.9rem;">No location set.</span>
+                {% endif %}
+              </div>
+              <!-- Social Links Section -->
+              <div style="margin-bottom: 0; min-height: 20px;">
+                <h4 style="font-size: 0.93rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.1rem;">Connect</h4>
+                <div>
+                  {% if user.linkedin_url %}
+                  <a href="{{ user.linkedin_url }}" target="_blank" style="color: #0077b5; margin: 0 0.2rem; text-decoration: none;"><i data-feather="linkedin" style="width: 16px; height: 16px;"></i></a>
+                  {% endif %}
+                  {% if user.twitter_url %}
+                  <a href="{{ user.twitter_url }}" target="_blank" style="color: #1da1f2; margin: 0 0.2rem; text-decoration: none;"><i data-feather="twitter" style="width: 16px; height: 16px;"></i></a>
+                  {% endif %}
+                  {% if user.website_url %}
+                  <a href="{{ user.website_url }}" target="_blank" style="color: #667eea; margin: 0 0.2rem; text-decoration: none;"><i data-feather="globe" style="width: 16px; height: 16px;"></i></a>
+                  {% endif %}
+                  {% if user.instagram_url %}
+                  <a href="{{ user.instagram_url }}" target="_blank" style="color: #e4405f; margin: 0 0.2rem; text-decoration: none;"><i data-feather="instagram" style="width: 16px; height: 16px;"></i></a>
+                  {% endif %}
+                  {% if not (user.linkedin_url or user.twitter_url or user.website_url or user.instagram_url) %}
+                  <span style="color: #bbb; font-size: 0.9rem;">No social links.</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <!-- Name and Title -->
-          <div class="fw-bold mb-1" style="font-size: 1.1rem;">{{ user.full_name or user.username }}</div>
-          <div class="text-muted mb-2" style="font-size: 0.9rem;">{{ user.profession|title if user.profession else 'Professional' }}</div>
-          
-          <!-- Rating -->
-          <div class="mb-3">
-            <span class="fw-bold">{{ user.rating or '0.0' }}</span>
-            <span style="color: #FFD600;">⭐</span>
-            {% if user.rating_count and user.rating_count > 0 %}
-            <span class="text-muted ms-1">({{ user.rating_count }})</span>
-            {% endif %}
-          </div>
-          
-          <!-- Bio -->
-          <div class="mb-3" style="font-size: 0.85rem; color: #4a6fa1; text-align: center;">{{ user.bio or 'No bio yet.' }}</div>
-          
-          <!-- Hourly Rate -->
-          {% if user.hourly_rate and user.hourly_rate > 0 %}
-          <div class="mb-3"><span class="badge bg-primary">${{ user.hourly_rate }}/hr</span></div>
-          {% endif %}
-          
-          <!-- Specialty Tags -->
-          <div class="mb-3" style="text-align: center;">
-            {% if user.specialty_tags %}
-              {% for tag in user.get_specialty_tags() %}
-              <span class="badge bg-light text-dark me-1 mb-1" style="font-size: 0.65rem; padding: 0.25rem 0.4rem;">{{ tag|title }}</span>
-              {% endfor %}
-            {% endif %}
-          </div>
-          
-          <!-- Social Media Links -->
-          <div class="d-flex gap-2 mb-3">
-            {% if user.linkedin_url %}<a href="{{ user.linkedin_url }}" target="_blank"><i data-feather="linkedin"></i></a>{% endif %}
-            {% if user.twitter_url %}<a href="{{ user.twitter_url }}" target="_blank"><i data-feather="twitter"></i></a>{% endif %}
-            {% if user.github_url %}<a href="{{ user.github_url }}" target="_blank"><i data-feather="github"></i></a>{% endif %}
-            {% if user.instagram_url %}<a href="{{ user.instagram_url }}" target="_blank"><i data-feather="instagram"></i></a>{% endif %}
-            {% if user.facebook_url %}<a href="{{ user.facebook_url }}" target="_blank"><i data-feather="facebook"></i></a>{% endif %}
-            {% if user.snapchat_url %}<a href="{{ user.snapchat_url }}" target="_blank"><i data-feather="user"></i></a>{% endif %}
-            {% if user.website_url %}<a href="{{ user.website_url }}" target="_blank"><i data-feather="globe"></i></a>{% endif %}
+          <!-- Right Column: Booking -->
+          <div class="col-lg-6 col-md-12">
+            <div class="booking-card" style="background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.1); min-height: 350px; max-width: 420px; margin: 0 auto;">
+              <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.3rem; font-weight: 700; color: #1a1a1a; margin-bottom: 0.3rem;">Book a Video Call</h2>
+                <p style="color: #666; font-size: 1rem;">Get personalized advice and insights</p>
+              </div>
+              <!-- Pricing -->
+              <div style="background: #f8f9fa; border-radius: 10px; padding: 1rem; margin-bottom: 1.2rem; text-align: center;">
+                {% if user.hourly_rate and user.hourly_rate > 0 %}
+                <div style="font-size: 1.5rem; font-weight: 800; color: #667eea; margin-bottom: 0.3rem;">${{ user.hourly_rate }}/hr</div>
+                {% else %}
+                <div style="font-size: 1.1rem; font-weight: 600; color: #666; margin-bottom: 0.3rem;">Rate not set</div>
+                {% endif %}
+                <div style="color: #666; font-size: 0.85rem;">30-minute sessions available</div>
+              </div>
+              <!-- Availability Status -->
+              <div style="text-align: center; margin-bottom: 1.2rem;">
+                {% if user.is_available %}
+                <div style="color: #28a745; font-weight: 600; margin-bottom: 1rem;">
+                  <span style="background: #28a745; color: white; padding: 0.2rem 0.7rem; border-radius: 12px; font-size: 0.85rem;">● Available for bookings</span>
+                </div>
+                <button class="btn btn-primary" id="see-times-btn" style="padding: 0.8rem 1.5rem; font-size: 1rem; font-weight: 600; border-radius: 10px; min-width: 180px;">See Available Times</button>
+                {% else %}
+                <div style="color: #dc3545; font-weight: 600; margin-bottom: 1rem;">
+                  <span style="background: #dc3545; color: white; padding: 0.2rem 0.7rem; border-radius: 12px; font-size: 0.85rem;">● Currently unavailable</span>
+                </div>
+                <button class="btn btn-secondary" disabled style="padding: 0.8rem 1.5rem; font-size: 1rem; font-weight: 600; border-radius: 10px; min-width: 180px;">Not Available</button>
+                {% endif %}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    
-    <!-- Right: Booking & Availability -->
-    <div class="col-lg-5 col-md-7 mb-4">
-      <div class="card booking-card p-4 mb-3" style="border-radius: 18px; background: #fff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
-        <div class="fw-bold mb-2">Book a video call</div>
-        <div class="mb-2">1:1 Video Consultation</div>
-        <div class="mb-2 text-muted">Book a 1:1 live video consultation & get personalized advice</div>
-        {% if user.hourly_rate and user.hourly_rate > 0 %}
-        <div class="mb-2"><span class="fw-bold">Starting at ${{ user.hourly_rate }}</span> <span class="ms-2">⭐ {{ user.rating or '0.0' }} {% if user.rating_count and user.rating_count > 0 %}({{ user.rating_count }}){% endif %}</span></div>
-        {% else %}
-        <div class="mb-2"><span class="fw-bold">Rate not set</span> <span class="ms-2">⭐ {{ user.rating or '0.0' }} {% if user.rating_count and user.rating_count > 0 %}({{ user.rating_count }}){% endif %}</span></div>
-        {% endif %}
-        
-        <!-- Availability Status -->
-        <div class="mb-2 text-muted">
-          {% if user.is_available %}
-            <span class="text-success">● Available for bookings</span>
-          {% else %}
-            <span class="text-danger">● Currently unavailable</span>
-          {% endif %}
-        </div>
-        
-        <button class="btn btn-primary w-100" id="see-times-btn" {% if not user.is_available %}disabled{% endif %}>See times</button>
       </div>
     </div>
   </div>
@@ -91,24 +174,25 @@
 
 <!-- Booking Modal -->
 <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header border-0">
-        <h5 class="modal-title" id="bookingModalLabel">Book a video call</h5>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="border-radius: 16px; border: none;">
+      <div class="modal-header border-0" style="padding: 2rem 2rem 1rem 2rem;">
+        <h5 class="modal-title" id="bookingModalLabel" style="font-size: 1.5rem; font-weight: 700;">Book a Video Call</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <div class="mb-3">
+      <div class="modal-body" style="padding: 0 2rem 2rem 2rem;">
+        <div class="mb-4">
+          <label class="form-label fw-bold mb-2">Session Duration</label>
           <div class="btn-group w-100" role="group" aria-label="Session duration">
-            <button type="button" class="btn btn-outline-primary duration-btn active" data-duration="30">Regular – 30 Min</button>
+            <button type="button" class="btn btn-outline-primary duration-btn active" data-duration="30" style="border-radius: 8px; padding: 0.75rem;">30 Minutes</button>
           </div>
         </div>
-        <div id="available-times-section" style="max-height: 350px; overflow-y: auto;">
+        <div id="available-times-section" style="max-height: 400px; overflow-y: auto;">
           <!-- Times will be rendered here by JS -->
         </div>
       </div>
-      <div class="modal-footer border-0">
-        <button type="button" class="btn btn-primary w-100" id="booking-next-btn">Next</button>
+      <div class="modal-footer border-0" style="padding: 0 2rem 2rem 2rem;">
+        <button type="button" class="btn btn-primary w-100" id="booking-next-btn" style="padding: 1rem; font-weight: 600; border-radius: 12px;">Continue to Booking</button>
       </div>
     </div>
   </div>
@@ -117,137 +201,152 @@
 <!-- Login Modal -->
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header border-0">
-        <h5 class="modal-title" id="loginModalLabel">Create an account, or log in</h5>
+    <div class="modal-content" style="border-radius: 16px; border: none;">
+      <div class="modal-header border-0" style="padding: 2rem 2rem 1rem 2rem;">
+        <h5 class="modal-title" id="loginModalLabel" style="font-size: 1.5rem; font-weight: 700;">Create an Account or Log In</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <form id="login-form">
-          <div class="mb-3">
-            <label for="login-phone" class="form-label">Mobile number</label>
-            <div class="input-group">
-              <span class="input-group-text">+1</span>
-              <input type="tel" class="form-control" id="login-phone" placeholder="Enter mobile number" required>
-            </div>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Continue</button>
-        </form>
-        <div class="mt-3 text-muted small">By continuing you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</div>
+      <div class="modal-body" style="padding: 0 2rem 2rem 2rem;">
+        <p style="color: #666; margin-bottom: 1.5rem;">Sign up or log in to book your session with {{ user.full_name or user.username }}</p>
+        <div class="d-grid gap-2">
+          <a href="/login?next={{ request.path }}" class="btn btn-primary" style="padding: 1rem; font-weight: 600; border-radius: 12px;">Log In</a>
+          <a href="/register?next={{ request.path }}" class="btn btn-outline-primary" style="padding: 1rem; font-weight: 600; border-radius: 12px;">Create Account</a>
+        </div>
+        <div class="mt-3 text-muted small text-center">By continuing you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</div>
       </div>
     </div>
-  </div>
-</div>
-{% endblock %}
+          </div>
+    </div>
 
-{% block scripts %}
-{{ super() }}
-<script>
-// Assume this is set by the backend (true/false)
-window.isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
-
-document.addEventListener('DOMContentLoaded', function() {
-  feather.replace();
-
-  // Open booking modal
-  const seeTimesBtn = document.getElementById('see-times-btn');
-  if (seeTimesBtn) {
-    seeTimesBtn.onclick = function() {
-      var bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
-      bookingModal.show();
-      renderAvailableTimes(); // call with no argument, defaults to 30
-    };
-  }
-
-  // Render available times based on actual availability
-  function renderAvailableTimes(duration = 30) {
-    const section = document.getElementById('available-times-section');
-    
-    // Fetch actual availability from the backend
-    fetch(`/api/availability/times?username={{ user.username }}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.available && data.times && data.times.length > 0) {
-          // Group times by day, and filter by duration
-          const timesByDay = {};
-          data.times.forEach(timeSlot => {
-            // Only include slots that match the selected duration
-            if (parseInt(timeSlot.duration) === duration) {
-              const dayKey = timeSlot.day_name;
-              if (!timesByDay[dayKey]) {
-                timesByDay[dayKey] = [];
-              }
-              timesByDay[dayKey].push(timeSlot);
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        feather.replace();
+        
+        // Navigation scroll behavior
+        let lastScrollTop = 0;
+        const navbar = document.querySelector('.navbar');
+        
+        window.addEventListener('scroll', function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (scrollTop > lastScrollTop && scrollTop > 100) {
+                // Scrolling down - hide navbar
+                navbar.classList.add('navbar-hidden');
+            } else {
+                // Scrolling up - show navbar
+                navbar.classList.remove('navbar-hidden');
             }
-          });
-          let html = '<div class="mb-2 fw-bold">Available Times</div>';
-          // Show each day's times
-          Object.keys(timesByDay).forEach(day => {
-            html += `<div class="mb-2 fw-bold">${day}</div>`;
-            html += '<div class="d-flex flex-wrap gap-2 mb-3">';
-            timesByDay[day].forEach(timeSlot => {
-              html += `<button class="btn btn-outline-primary time-btn" data-datetime="${timeSlot.datetime}">${timeSlot.formatted}</button>`;
-            });
-            html += '</div>';
-          });
-          if (Object.keys(timesByDay).length === 0) {
-            html += `<div class='alert alert-info'>No available times for this duration. Please try another duration or day.</div>`;
+            
+            lastScrollTop = scrollTop;
+        });
+
+        // Assume this is set by the backend (true/false)
+        window.isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
+
+        document.addEventListener('DOMContentLoaded', function() {
+          feather.replace();
+
+          // Open booking modal
+          const seeTimesBtn = document.getElementById('see-times-btn');
+          if (seeTimesBtn) {
+            seeTimesBtn.onclick = function() {
+              var bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+              bookingModal.show();
+              renderAvailableTimes(); // call with no argument, defaults to 30
+            };
           }
-          section.innerHTML = html;
-        } else if (!data.available) {
-          section.innerHTML = `
-            <div class='alert alert-warning'>
-              ${data.message || 'User is currently unavailable for bookings.'}
-            </div>
-          `;
-        } else {
-          section.innerHTML = `
-            <div class='alert alert-info'>
-              No available times found. Please try again later.
-            </div>
-          `;
-        }
-        // Time selection
-        section.querySelectorAll('.time-btn').forEach(btn => {
-          btn.onclick = function() {
-            section.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
+
+          // Render available times based on actual availability
+          function renderAvailableTimes(duration = 30) {
+            const section = document.getElementById('available-times-section');
+            
+            // Fetch actual availability from the backend
+            fetch(`/api/availability/times?username={{ user.username }}`)
+              .then(response => response.json())
+              .then(data => {
+                if (data.available && data.times && data.times.length > 0) {
+                  // Group times by day, and filter by duration
+                  const timesByDay = {};
+                  data.times.forEach(timeSlot => {
+                    // Only include slots that match the selected duration
+                    if (parseInt(timeSlot.duration) === duration) {
+                      const dayKey = timeSlot.day_name;
+                      if (!timesByDay[dayKey]) {
+                        timesByDay[dayKey] = [];
+                      }
+                      timesByDay[dayKey].push(timeSlot);
+                    }
+                  });
+                  let html = '<div class="mb-3 fw-bold" style="font-size: 1.1rem;">Available Times</div>';
+                  // Show each day's times
+                  Object.keys(timesByDay).forEach(day => {
+                    html += `<div class="mb-2 fw-bold" style="color: #667eea;">${day}</div>`;
+                    html += '<div class="d-flex flex-wrap gap-2 mb-3">';
+                    timesByDay[day].forEach(timeSlot => {
+                      html += `<button class="btn btn-outline-primary time-btn" data-datetime="${timeSlot.datetime}" style="border-radius: 8px; padding: 0.5rem 1rem;">${timeSlot.formatted}</button>`;
+                    });
+                    html += '</div>';
+                  });
+                  if (Object.keys(timesByDay).length === 0) {
+                    html += `<div class='alert alert-info' style="border-radius: 8px;">No available times for this duration. Please try another duration or day.</div>`;
+                  }
+                  section.innerHTML = html;
+                } else if (!data.available) {
+                  section.innerHTML = `
+                    <div class='alert alert-warning' style="border-radius: 8px;">
+                      ${data.message || 'User is currently unavailable for bookings.'}
+                    </div>
+                  `;
+                } else {
+                  section.innerHTML = `
+                    <div class='alert alert-info' style="border-radius: 8px;">
+                      No available times found. Please try again later.
+                    </div>
+                  `;
+                }
+                // Time selection
+                section.querySelectorAll('.time-btn').forEach(btn => {
+                  btn.onclick = function() {
+                    section.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                  };
+                });
+              })
+              .catch(error => {
+                console.error('Error fetching availability:', error);
+                section.innerHTML = `
+                  <div class='alert alert-warning' style="border-radius: 8px;">
+                    Unable to load availability. Please try again later.
+                  </div>
+                `;
+              });
+          }
+
+          // Booking Next button
+          document.getElementById('booking-next-btn').onclick = function() {
+            if (!window.isAuthenticated) {
+              var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+              loginModal.show();
+            } else {
+              // Get selected time and duration
+              const selectedTimeBtn = document.querySelector('.time-btn.active');
+              const selectedDurationBtn = document.querySelector('.duration-btn.active');
+              
+              if (!selectedTimeBtn) {
+                alert('Please select a time slot first.');
+                return;
+              }
+              
+              const selectedDateTime = selectedTimeBtn.dataset.datetime;
+              const selectedDuration = selectedDurationBtn ? selectedDurationBtn.dataset.duration : 30;
+              
+              // Redirect to booking confirmation
+              const confirmUrl = `/booking/confirm?expert={{ user.username }}&datetime=${selectedDateTime}&duration=${selectedDuration}`;
+              window.location.href = confirmUrl;
+            }
           };
         });
-      })
-      .catch(error => {
-        console.error('Error fetching availability:', error);
-        section.innerHTML = `
-          <div class='alert alert-warning'>
-            Unable to load availability. Please try again later.
-          </div>
-        `;
-      });
-  }
-
-  // Booking Next button
-  document.getElementById('booking-next-btn').onclick = function() {
-    if (!window.isAuthenticated) {
-      var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-      loginModal.show();
-    } else {
-      // Get selected time and duration
-      const selectedTimeBtn = document.querySelector('.time-btn.active');
-      const selectedDurationBtn = document.querySelector('.duration-btn.active');
-      
-      if (!selectedTimeBtn) {
-        alert('Please select a time slot first.');
-        return;
-      }
-      
-      const selectedDateTime = selectedTimeBtn.dataset.datetime;
-      const selectedDuration = selectedDurationBtn ? selectedDurationBtn.dataset.duration : 30;
-      
-      // Redirect to booking confirmation
-      const confirmUrl = `/booking/confirm?expert={{ user.username }}&datetime=${selectedDateTime}&duration=${selectedDuration}`;
-      window.location.href = confirmUrl;
-    }
-  };
-});
-</script>
-{% endblock %} 
+    </script>
+</body>
+</html> 

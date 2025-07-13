@@ -1,13 +1,18 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, FloatField, BooleanField, PasswordField, DateTimeLocalField, HiddenField, IntegerField
-from wtforms.validators import DataRequired, Email, Length, NumberRange, Optional
+from wtforms import StringField, TextAreaField, SelectField, FloatField, BooleanField, PasswordField, DateTimeLocalField, HiddenField, IntegerField, SubmitField
+from wtforms.validators import DataRequired, Email, Length, NumberRange, Optional, EqualTo
 from models import Category
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=64)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        DataRequired(),
+        EqualTo('password', message='Passwords must match')
+    ])
     full_name = StringField('Full Name', validators=[DataRequired(), Length(max=100)])
+    submit = SubmitField('Sign Up')
 
 class OnboardingForm(FlaskForm):
     profession = StringField('Professional Title', validators=[DataRequired(), Length(max=100)])
@@ -29,6 +34,8 @@ class OnboardingForm(FlaskForm):
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember Me')
+    submit = SubmitField('Sign In')
 
 class ProfileForm(FlaskForm):
     full_name = StringField('Full Name', validators=[DataRequired(), Length(max=100)])

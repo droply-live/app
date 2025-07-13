@@ -1,0 +1,41 @@
+<aside id="sidebar" class="sidebar d-flex flex-column justify-content-between">
+  <div>
+    <div class="sidebar-logo text-center py-4 mb-3">
+      <a href="{{ url_for('dashboard') }}" class="sidebar-logo-link" style="font-size: 2rem; font-weight: 900; color: #667eea; text-decoration: none; letter-spacing: -1px;">Droply</a>
+    </div>
+    <nav class="sidebar-nav flex-grow-1">
+      <ul class="list-unstyled mb-0">
+        <li class="mb-2">
+          <a href="{{ url_for('dashboard') }}" class="sidebar-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            Dashboard
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('find_experts') }}" class="sidebar-link {% if request.endpoint == 'find_experts' %}active{% endif %}">
+            Find Experts
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('bookings') }}" class="sidebar-link {% if request.endpoint == 'bookings' %}active{% endif %}">
+            My Bookings
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('profile_setup') }}" class="sidebar-link {% if request.endpoint == 'profile_setup' %}active{% endif %}">
+            Profile Setup
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('account_settings') }}" class="sidebar-link {% if request.endpoint == 'account_settings' %}active{% endif %}">
+            Account Settings
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <div class="sidebar-account py-4 px-3 border-top">
+    <div class="fw-bold">{{ current_user.full_name or current_user.username }}</div>
+    <a href="{{ url_for('logout') }}" class="sidebar-link small">Log out</a>
+  </div>
+  <button id="sidebar-burger" class="d-md-none sidebar-burger" aria-label="Open sidebar">&#9776;</button>
+</aside> 

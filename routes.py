@@ -15,6 +15,7 @@ import os
 import stripe
 from datetime import datetime, timezone, timedelta
 import time
+from app import oauth, google
 
 # Configure Stripe
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_4eC39HqLyjWDarjtT1zdp7dc')  # Use environment variable or fallback
@@ -236,98 +237,193 @@ def logout():
     return redirect(url_for('homepage'))
 
 @app.route('/profile/<username>')
-@login_required
 def profile(username):
-    """View user profile"""
+    """View user profile - public route"""
     user = User.query.filter_by(username=username).first_or_404()
     
-    # If viewing own profile, show the profile edit page
-    if current_user.username == username:
-        return render_template('profile.html', user=user)
+    # If user is logged in and viewing own profile, redirect to profile setup
+    if current_user.is_authenticated and current_user.username == username:
+        return redirect(url_for('profile_setup'))
     
-    # If viewing someone else's profile, show the public profile view
+    # Otherwise show the public profile view (for both logged in and anonymous users)
     return render_template('profile_view.html', user=user)
 
 @app.route('/edit-profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
     """Edit user profile"""
-    form = ProfileForm(obj=current_user)
-    
-    if form.validate_on_submit():
-        current_user.full_name = form.full_name.data
-        current_user.bio = form.bio.data
-        current_user.industry = form.industry.data
-        current_user.profession = form.profession.data
-        current_user.expertise = form.expertise.data
-        current_user.location = form.location.data
-        current_user.hourly_rate = form.hourly_rate.data or 0.0
-        current_user.currency = form.currency.data
-        current_user.linkedin_url = form.linkedin_url.data
-        current_user.twitter_url = form.twitter_url.data
-        current_user.youtube_url = form.youtube_url.data
-        current_user.instagram_url = form.instagram_url.data
-        current_user.website_url = form.website_url.data
-        current_user.background_image_url = form.background_image_url.data
-        current_user.is_available = form.is_available.data
-
+    if request.method == 'POST':
+        # Update basic information
+        current_user.full_name = request.form.get('full_name', '')
+        current_user.profession = request.form.get('profession', '')
+        current_user.bio = request.form.get('bio', '')
+        current_user.hourly_rate = float(request.form.get('hourly_rate', 0) or 0)
+        current_user.industry = request.form.get('industry', '')
+        current_user.location = request.form.get('location', '')
+        current_user.expertise = request.form.get('expertise', '')
+        
+        # Update social media links
+        current_user.linkedin_url = request.form.get('linkedin', '')
+        current_user.twitter_url = request.form.get('twitter', '')
+        current_user.github_url = request.form.get('github', '')
+        current_user.website_url = request.form.get('website', '')
+        current_user.instagram_url = request.form.get('instagram', '')
+        current_user.facebook_url = request.form.get('facebook', '')
+        
+        # Update availability
+        current_user.is_available = 'is_available' in request.form
+        
+        # Handle profile picture upload
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file and file.filename:
+                # Save the file
+                filename = f"profile_{current_user.id}_{int(time.time())}.{file.filename.split('.')[-1]}"
+                filepath = os.path.join('static', 'uploads', filename)
+                file.save(filepath)
+                current_user.profile_picture = f"/static/uploads/{filename}"
+        
         db.session.commit()
         flash('Profile updated successfully!', 'success')
-        return redirect(url_for('profile', username=current_user.username))
+        return redirect(url_for('dashboard'))
     
-    return render_template('edit_profile.html', form=form)
+    return redirect(url_for('profile_setup'))
 
-@app.route('/search')
-def search():
-    form = SearchForm(request.args)
+@app.route('/profile/setup')
+@login_required
+def profile_setup():
+    """Profile setup page for signed-in users"""
+    return render_template('profile_setup.html')
+
+@app.route('/profile/preview/<username>')
+@login_required
+def profile_preview(username):
+    """Preview profile as a visitor would see it"""
+    user = User.query.filter_by(username=username).first_or_404()
+    
+    # Only allow users to preview their own profile
+    if current_user.username != username:
+        flash('You can only preview your own profile.', 'error')
+        return redirect(url_for('profile_setup'))
+    
+    # Show the public profile view (same as profile_view.html)
+    return render_template('profile_view.html', user=user)
+
+
+
+@app.route('/account/settings')
+@login_required
+def account_settings():
+    """Account settings page"""
+    return render_template('account_settings.html')
+
+@app.route('/find-experts')
+@login_required
+def find_experts():
+    """Compact discover page for signed-in users"""
+    # Get search query and category
+    search_query = request.args.get('search', '').strip()
+    category = request.args.get('category', '').strip().lower()
     
     # Base query for available users
-    query_obj = User.query.filter(User.is_available == True, User.full_name.isnot(None))
-
-    search_query = request.args.get('query', '').strip()
-    selected_category = request.args.get('category', '').strip().lower()
-
-    users = []
-    all_keywords = []
-    if search_query:
-        all_keywords.extend(get_search_keywords(search_query))
-    if selected_category and selected_category != '':
-        all_keywords.extend(get_search_keywords(selected_category))
-    all_keywords = list(set([kw for kw in all_keywords if kw]))
-
-    if all_keywords:
-        # SMART KEYWORD SEARCH (original working version)
-        search_conditions = []
-        for keyword in all_keywords:
-            keyword_term = f"%{keyword}%"
-            search_conditions.append(
-                or_(
-                    User.full_name.ilike(keyword_term),
-                    User.profession.ilike(keyword_term),
-                    User.industry.ilike(keyword_term),
-                    User.bio.ilike(keyword_term),
-                    User.expertise.ilike(keyword_term)
-                )
-            )
-        if search_conditions:
-            query_obj = query_obj.filter(or_(*search_conditions))
-        all_users = query_obj.all()
-        user_ids = set(u.id for u in all_users)
-        tag_users = User.query.filter(User.is_available == True, User.full_name.isnot(None)).all()
-        for user in tag_users:
-            tags = user.get_specialty_tags() if hasattr(user, 'get_specialty_tags') else []
-            tag_match = any(tag.lower() in all_keywords for tag in tags)
-            if tag_match and user.id not in user_ids:
-                users.append(user)
-        users.extend(all_users)
-    else:
-        # If no keywords, show all users (no filtering)
-        users = User.query.filter(User.is_available == True, User.full_name.isnot(None)).all()
+    query = User.query.filter(User.is_available == True, User.full_name.isnot(None))
     
-    # Get unique industries for dropdown
-    industries = sorted([res[0] for res in db.session.query(User.industry).filter(User.industry.isnot(None)).distinct().all()])
+    # Apply category filter if provided
+    if category:
+        # Map category names to search terms
+        category_mapping = {
+            'tech': ['tech', 'technology', 'programming', 'software', 'developer', 'engineer', 'coding', 'web', 'app', 'mobile', 'ai', 'machine learning', 'data science'],
+            'business': ['business', 'consulting', 'strategy', 'management', 'entrepreneur', 'startup', 'finance', 'marketing', 'sales'],
+            'design': ['design', 'ui', 'ux', 'graphic', 'visual', 'creative', 'art', 'branding', 'illustration'],
+            'marketing': ['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand', 'growth', 'content'],
+            'finance': ['finance', 'accounting', 'investment', 'financial', 'tax', 'budget', 'money', 'wealth'],
+            'health': ['health', 'fitness', 'wellness', 'nutrition', 'medical', 'therapy', 'coaching', 'mental health'],
+            'education': ['education', 'teaching', 'tutoring', 'training', 'learning', 'academic', 'course', 'mentor']
+        }
+        
+        if category in category_mapping:
+            search_terms = category_mapping[category]
+            category_conditions = []
+            for term in search_terms:
+                category_conditions.append(
+                    or_(
+                        User.expertise.ilike(f'%{term}%'),
+                        User.profession.ilike(f'%{term}%'),
+                        User.industry.ilike(f'%{term}%'),
+                        User.bio.ilike(f'%{term}%'),
+                        User.specialty_tags.ilike(f'%{term}%')
+                    )
+                )
+            if category_conditions:
+                query = query.filter(or_(*category_conditions))
+    
+    # Apply semantic search if provided
+    if search_query:
+        # Split search query into keywords for better matching
+        search_keywords = search_query.lower().split()
+        
+        # Create search conditions for each keyword
+        search_conditions = []
+        for keyword in search_keywords:
+            if len(keyword) > 2:  # Only search for keywords with 3+ characters
+                keyword_term = f'%{keyword}%'
+                search_conditions.append(
+                    or_(
+                        User.username.ilike(keyword_term),
+                        User.full_name.ilike(keyword_term),
+                        User.expertise.ilike(keyword_term),
+                        User.profession.ilike(keyword_term),
+                        User.industry.ilike(keyword_term),
+                        User.bio.ilike(keyword_term),
+                        User.specialty_tags.ilike(keyword_term),
+                        User.location.ilike(keyword_term)
+                    )
+                )
+        
+        if search_conditions:
+            query = query.filter(or_(*search_conditions))
+    
+    # Get all experts and sort by relevance
+    experts = query.all()
+    
+    # Sort experts by relevance (those with more matches come first)
+    if search_query:
+        def relevance_score(expert):
+            score = 0
+            search_lower = search_query.lower()
+            
+            # Check exact matches first
+            if search_lower in (expert.full_name or '').lower():
+                score += 10
+            if search_lower in (expert.expertise or '').lower():
+                score += 8
+            if search_lower in (expert.profession or '').lower():
+                score += 6
+            if search_lower in (expert.bio or '').lower():
+                score += 4
+            
+            # Check keyword matches
+            for keyword in search_query.lower().split():
+                if len(keyword) > 2:
+                    if keyword in (expert.full_name or '').lower():
+                        score += 3
+                    if keyword in (expert.expertise or '').lower():
+                        score += 2
+                    if keyword in (expert.profession or '').lower():
+                        score += 2
+                    if keyword in (expert.bio or '').lower():
+                        score += 1
+            
+            return score
+        
+        experts = sorted(experts, key=relevance_score, reverse=True)
+    
+    # Import datetime for template
+    from datetime import datetime, timedelta
+    
+    return render_template('find_experts.html', experts=experts, now=datetime.now(), timedelta=timedelta)
 
-    return render_template('index.html', users=users, form=form, industries=industries)
+
 
 @app.route('/dashboard')
 @login_required
@@ -840,3 +936,28 @@ def api_availability_times():
             'has_rules': True,
             'times': available_times[:20]
         })
+
+@app.route('/auth/google')
+def auth_google():
+    redirect_uri = url_for('auth_google_callback', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+@app.route('/auth/google/callback')
+def auth_google_callback():
+    token = google.authorize_access_token()
+    user_info = google.userinfo()
+    email = user_info.get('email')
+    username = user_info.get('name') or email.split('@')[0]
+    if not email:
+        flash('Google account did not return an email.', 'error')
+        return redirect(url_for('login'))
+    # Check if user exists
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        # Register new user
+        user = User(username=username, email=email, full_name=user_info.get('name'))
+        db.session.add(user)
+        db.session.commit()
+    login_user(user)
+    flash('Logged in with Google!', 'success')
+    return redirect(url_for('dashboard'))

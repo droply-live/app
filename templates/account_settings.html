@@ -1,0 +1,148 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Account Settings - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="mb-4">Account Settings</h4>
+                    
+                    <!-- Profile Information -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Profile Information</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" value="{{ current_user.email }}" readonly>
+                                <small class="text-muted">Email cannot be changed</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" value="{{ current_user.username }}" readonly>
+                                <small class="text-muted">Username cannot be changed</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Availability Settings -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Availability</h6>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="isAvailable" {{ 'checked' if current_user.is_available else '' }}>
+                            <label class="form-check-label" for="isAvailable">
+                                Available for bookings
+                            </label>
+                        </div>
+                        <small class="text-muted">When enabled, other users can book sessions with you</small>
+                    </div>
+                    
+                    <!-- Notification Settings -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Notifications</h6>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                            <label class="form-check-label" for="emailNotifications">
+                                Email notifications
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="bookingReminders" checked>
+                            <label class="form-check-label" for="bookingReminders">
+                                Booking reminders
+                            </label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="marketingEmails">
+                            <label class="form-check-label" for="marketingEmails">
+                                Marketing emails
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Privacy Settings -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Privacy</h6>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="profilePublic" {{ 'checked' if current_user.is_available else '' }}>
+                            <label class="form-check-label" for="profilePublic">
+                                Public profile
+                            </label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="showEmail" checked>
+                            <label class="form-check-label" for="showEmail">
+                                Show email to clients
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Danger Zone -->
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-danger">Danger Zone</h6>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                Delete Account
+                            </button>
+                            <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary">Logout</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Save Button -->
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+                <p class="text-danger">All your data, including bookings and profile information, will be permanently deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger">Delete Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveSettings() {
+    // Get form values
+    const isAvailable = document.getElementById('isAvailable').checked;
+    const emailNotifications = document.getElementById('emailNotifications').checked;
+    const bookingReminders = document.getElementById('bookingReminders').checked;
+    const marketingEmails = document.getElementById('marketingEmails').checked;
+    const profilePublic = document.getElementById('profilePublic').checked;
+    const showEmail = document.getElementById('showEmail').checked;
+    
+    // Here you would typically send these settings to the server
+    console.log('Settings to save:', {
+        isAvailable,
+        emailNotifications,
+        bookingReminders,
+        marketingEmails,
+        profilePublic,
+        showEmail
+    });
+    
+    // Show success message
+    alert('Settings saved successfully!');
+}
+</script>
+{% endblock %} 

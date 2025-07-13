@@ -1,80 +1,96 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Droply</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div style="padding: 1.5rem 0 0 1.5rem;">
+        <a href="{{ url_for('homepage') }}" class="btn btn-link">&larr; Back</a>
+    </div>
+    <div class="auth-center-container">
+        <div class="auth-card auth-card-compact">
+            <div class="text-center mb-3">
+                <h1 class="h3 mb-1">Create Your Account</h1>
+                <p class="text-muted mb-0">Join thousands of users connecting with experts</p>
+            </div>
 
-{% block title %}Sign Up - Droply{% endblock %}
-
-{% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="card">
-                <div class="text-center mb-4">
-                    <h1 class="h3">Create Your Account</h1>
-                    <p class="text-muted">Join thousands of users connecting with experts</p>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group form-group-compact">
+                    {{ form.username.label(class="form-label form-label-compact") }}
+                    {{ form.username(class="form-control form-control-compact", placeholder="Choose a username") }}
+                    {% if form.username.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {% for error in form.username.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
 
-                <form method="POST">
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="form-group">
-                        {{ form.username.label(class="form-label") }}
-                        {{ form.username(class="form-control", placeholder="Choose a username") }}
-                        {% if form.username.errors %}
-                            <div class="alert alert-danger mt-2">
-                                {% for error in form.username.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control", placeholder="Enter your email") }}
-                        {% if form.email.errors %}
-                            <div class="alert alert-danger mt-2">
-                                {% for error in form.email.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control", placeholder="Create a password") }}
-                        {% if form.password.errors %}
-                            <div class="alert alert-danger mt-2">
-                                {% for error in form.password.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.confirm_password.label(class="form-label") }}
-                        {{ form.confirm_password(class="form-control", placeholder="Confirm your password") }}
-                        {% if form.confirm_password.errors %}
-                            <div class="alert alert-danger mt-2">
-                                {% for error in form.confirm_password.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="d-grid">
-                        {{ form.submit(class="btn btn-primary") }}
-                    </div>
-                </form>
-
-                <div class="text-center mt-4">
-                    <p class="mb-0">Already have an account? 
-                        <a href="{{ url_for('login') }}" class="text-decoration-none">Sign in</a>
-                    </p>
+                <div class="form-group form-group-compact">
+                    {{ form.email.label(class="form-label form-label-compact") }}
+                    {{ form.email(class="form-control form-control-compact", placeholder="Enter your email") }}
+                    {% if form.email.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {% for error in form.email.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
+
+                <div class="form-group form-group-compact">
+                    {{ form.password.label(class="form-label form-label-compact") }}
+                    {{ form.password(class="form-control form-control-compact", placeholder="Create a password") }}
+                    {% if form.password.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {% for error in form.password.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group form-group-compact">
+                    {{ form.confirm_password.label(class="form-label form-label-compact") }}
+                    {{ form.confirm_password(class="form-control form-control-compact", placeholder="Confirm your password") }}
+                    {% if form.confirm_password.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {% for error in form.confirm_password.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="d-grid">
+                    {{ form.submit(class="btn btn-primary btn-compact") }}
+                </div>
+            </form>
+
+            <!-- Divider -->
+            <div class="divider-container my-3">
+                <div class="divider-line"></div>
+                <span class="divider-text">or</span>
+                <div class="divider-line"></div>
+            </div>
+
+            <!-- Google OAuth Button -->
+            <a href="{{ url_for('auth_google') }}" class="btn btn-google btn-google-compact w-100">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" style="height: 18px; vertical-align: middle; margin-right: 8px;"> Sign up with Google
+            </a>
+
+            <div class="text-center mt-3">
+                <p class="mb-0">Already have an account? 
+                    <a href="{{ url_for('login') }}" class="text-decoration-none">Sign in</a>
+                </p>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>

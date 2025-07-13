@@ -8,13 +8,31 @@ load_dotenv()
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 from extensions import db, login_manager
+from authlib.integrations.flask_client import OAuth
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
 # create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
+app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')
+app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-12345')
+
+# Debug: Print loaded credentials (remove in production)
+print(f"Loaded GOOGLE_CLIENT_ID: {app.config['GOOGLE_CLIENT_ID']}")
+print(f"Loaded GOOGLE_CLIENT_SECRET: {app.config['GOOGLE_CLIENT_SECRET'][:10]}..." if app.config['GOOGLE_CLIENT_SECRET'] != 'YOUR_GOOGLE_CLIENT_SECRET' else "Using placeholder secret")
+
+# OAuth setup
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=app.config['GOOGLE_CLIENT_ID'],
+    client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'},
+)
+
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
 
 # configure the database
