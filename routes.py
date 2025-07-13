@@ -222,7 +222,7 @@ def login():
             login_user(user)
             next_page = request.args.get('next')
             flash('Login successful!', 'success')
-            return redirect(next_page) if next_page else redirect(url_for('index'))
+            return redirect(next_page) if next_page else redirect(url_for('homepage'))
         else:
             flash('Invalid username or password.', 'error')
     
@@ -455,7 +455,7 @@ def dashboard():
 # def book_session(slot_id):
 #     """Book a session - Temporarily disabled due to missing TimeSlot model"""
 #     flash('Booking functionality is temporarily unavailable.', 'error')
-#     return redirect(url_for('index'))
+        #     return redirect(url_for('homepage'))
 
 @app.route('/create-checkout-session/<int:booking_id>', methods=['POST', 'GET'])
 def create_checkout_session(booking_id):
@@ -467,7 +467,7 @@ def create_checkout_session(booking_id):
         expert = User.query.get(booking.expert_id)
         if not expert:
             flash('Expert not found', 'error')
-            return redirect(url_for('index'))
+            return redirect(url_for('homepage'))
         
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -758,20 +758,20 @@ def booking_confirmation():
         
         if not expert_username or not datetime_str:
             flash('Missing booking information', 'error')
-            return redirect(url_for('index'))
+            return redirect(url_for('homepage'))
         
         # Get expert details
         expert = User.query.filter_by(username=expert_username).first()
         if not expert:
             flash('Expert not found', 'error')
-            return redirect(url_for('index'))
+            return redirect(url_for('homepage'))
         
         # Parse datetime
         try:
             booking_datetime = datetime.fromisoformat(datetime_str)
         except ValueError:
             flash('Invalid date/time format', 'error')
-            return redirect(url_for('index'))
+            return redirect(url_for('homepage'))
         
         # Calculate pricing
         duration = int(duration)
@@ -801,12 +801,12 @@ def booking_confirmation():
         
         if not expert_username or not datetime_str:
             flash('Missing booking information', 'error')
-            return redirect(url_for('index'))
+            return redirect(url_for('homepage'))
         
         expert = User.query.filter_by(username=expert_username).first()
         if not expert:
             flash('Expert not found', 'error')
-            return redirect(url_for('index'))
+            return redirect(url_for('homepage'))
         
         start_time = datetime.fromisoformat(datetime_str)
         end_time = start_time + timedelta(minutes=duration)
