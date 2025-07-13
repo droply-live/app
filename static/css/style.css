@@ -2324,8 +2324,71 @@ body {
 }
 
 .sidebar-account {
-    background: var(--money-lighter);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 64px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
     border-top: 1px solid #e5e5e5 !important;
+}
+
+.sidebar-account .dropdown {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+    box-sizing: border-box;
+}
+
+.sidebar-account .dropdown-toggle {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    display: block;
+    text-align: center;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #222;
+    padding: 0.75rem 0.5rem;
+    border-radius: 12px;
+    transition: background 0.15s, box-shadow 0.15s;
+    box-shadow: none;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    margin: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.sidebar-account .dropdown-menu {
+    width: 100% !important;
+    min-width: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    box-sizing: border-box;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.sidebar-account .dropdown-item {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    color: #333;
+    transition: background-color 0.2s ease;
+}
+
+.sidebar-account .dropdown-item:hover {
+    background-color: var(--money-lighter);
+    color: var(--money-primary);
+}
+
+.sidebar-account .dropdown-item.text-danger:hover {
+    background-color: #fee;
+    color: #dc3545;
 }
 
 .sidebar-burger {
@@ -2413,4 +2476,92 @@ body {
         padding-top: 110px !important;
         margin-top: 0 !important;
     }
+}
+
+/* --- Compact Profile Setup Accordion --- */
+.compact-accordion .accordion-item {
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.compact-accordion .accordion-header {
+  font-size: 1rem;
+}
+.compact-accordion .accordion-button {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+}
+.compact-accordion .accordion-body {
+  padding: 0.5rem 1rem;
+}
+.compact-accordion .form-label,
+.compact-accordion .form-check-label {
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+.compact-accordion .form-control,
+.compact-accordion .form-select {
+  font-size: 0.95rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+}
+.compact-accordion .form-control-sm,
+.compact-accordion .form-select-sm {
+  font-size: 0.92rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+.compact-accordion .btn-sm {
+  font-size: 0.98rem;
+  padding: 0.35rem 1.1rem;
+  border-radius: 8px;
+}
+
+/* --- Live Profile Preview Card --- */
+#profilePreview {
+  min-height: 520px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#profilePreview .profile-card {
+  background: white;
+  border-radius: 24px;
+  padding: 2.8rem 2.8rem 2.2rem 2.8rem;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.08);
+  min-height: 480px;
+  max-width: 900px;
+  margin: 0 auto;
+  height: auto;
+  font-size: 1.18rem;
+}
+#profilePreview h1, #profilePreview h3, #profilePreview h4 {
+  margin-bottom: 0.4rem;
+  font-size: 1.18rem;
+}
+#profilePreview p {
+  margin-bottom: 0.3rem;
+  font-size: 1.05rem;
+}
+#profilePreview .rounded-circle {
+  border-radius: 50% !important;
+  width: 100px !important;
+  height: 100px !important;
+}
+#profilePreview .profile-card > div[style*="text-align: center; margin-bottom: 1rem;"] > div {
+  width: 100px !important;
+  height: 100px !important;
+}
+#profilePreview .preview-tag {
+  font-size: 1rem;
+  padding: 0.22rem 0.7rem;
+}
+
+/* Remove hover bounce/transform from cards and accordion */
+.card:hover, .accordion-item:hover, .profile-card:hover, #profilePreview .profile-card:hover {
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
 }

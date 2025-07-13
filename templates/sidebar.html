@@ -25,17 +25,20 @@
             Profile Setup
           </a>
         </li>
-        <li class="mb-2">
-          <a href="{{ url_for('account_settings') }}" class="sidebar-link {% if request.endpoint == 'account_settings' %}active{% endif %}">
-            Account Settings
-          </a>
-        </li>
       </ul>
     </nav>
   </div>
   <div class="sidebar-account py-4 px-3 border-top">
-    <div class="fw-bold">{{ current_user.full_name or current_user.username }}</div>
-    <a href="{{ url_for('logout') }}" class="sidebar-link small">Log out</a>
+    <div class="dropdown">
+      <button class="btn btn-link dropdown-toggle p-0 text-decoration-none fw-bold" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: #333;">
+        {{ current_user.full_name or current_user.username }}
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="userDropdown">
+        <li><a class="dropdown-item" href="{{ url_for('settings') }}">Settings</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Log out</a></li>
+      </ul>
+    </div>
   </div>
   <button id="sidebar-burger" class="d-md-none sidebar-burger" aria-label="Open sidebar">&#9776;</button>
 </aside> 

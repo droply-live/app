@@ -1,6 +1,6 @@
 {% extends "base_signed_in.html" %}
 
-{% block title %}Account Settings - Droply{% endblock %}
+{% block title %}Settings - Droply{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -8,7 +8,7 @@
         <div class="col-lg-8">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="mb-4">Account Settings</h4>
+                    <h4 class="mb-4">Settings</h4>
                     
                     <!-- Profile Information -->
                     <div class="mb-4">
@@ -86,7 +86,6 @@
                             <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
                                 Delete Account
                             </button>
-                            <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary">Logout</a>
                         </div>
                     </div>
                     

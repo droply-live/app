@@ -311,11 +311,11 @@ def profile_preview(username):
 
 
 
-@app.route('/account/settings')
+@app.route('/settings')
 @login_required
-def account_settings():
-    """Account settings page"""
-    return render_template('account_settings.html')
+def settings():
+    """Settings page"""
+    return render_template('settings.html')
 
 @app.route('/find-experts')
 @login_required
