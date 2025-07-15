@@ -123,7 +123,7 @@
                                 
                                 <div class="expert-info-enhanced">
                                     <h3 class="expert-name-enhanced">{{ expert.full_name or expert.username }}</h3>
-                                    <p class="expert-title-enhanced">{{ expert.expertise or expert.profession or 'Expert' }}</p>
+                                    <p class="expert-title-enhanced">{{ expert.expertise_1 or expert.profession or 'Expert' }}</p>
                                     {% if expert.industry %}
                                         <p class="expert-industry">{{ expert.industry }}</p>
                                     {% endif %}
@@ -138,9 +138,17 @@
                             {% endif %}
 
                             <!-- Expert Tags -->
-                            {% if expert.expertise %}
+                            {% if expert.expertise_1 or expert.expertise_2 or expert.expertise_3 %}
                                 <div class="expert-tags">
-                                    <span class="expert-tag">{{ expert.expertise }}</span>
+                                    {% if expert.expertise_1 %}
+                                        <span class="expert-tag">{{ expert.expertise_1 }}</span>
+                                    {% endif %}
+                                    {% if expert.expertise_2 %}
+                                        <span class="expert-tag">{{ expert.expertise_2 }}</span>
+                                    {% endif %}
+                                    {% if expert.expertise_3 %}
+                                        <span class="expert-tag">{{ expert.expertise_3 }}</span>
+                                    {% endif %}
                                 </div>
                             {% endif %}
                         </div>

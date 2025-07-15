@@ -16,7 +16,7 @@
       display: flex;
     }
     .sidebar {
-      width: 240px;
+      width: 280px;
       min-width: 200px;
       background: #fff;
       box-shadow: 2px 0 16px rgba(102,126,234,0.07);
@@ -34,26 +34,23 @@
     .sidebar-nav ul { padding-left: 0; }
     .sidebar-link {
       display: block;
-      padding: 0.7rem 1.2rem;
-      border-radius: 10px;
-      color: #333;
+      padding: 0.75rem 1.5rem;
+      color: #666;
       text-decoration: none;
       font-weight: 500;
-      transition: background 0.2s, color 0.2s;
+      transition: all 0.2s ease;
+      border-radius: 8px;
+      margin: 0 0.5rem;
     }
     .sidebar-link:hover {
-      background: #E8F4FD;
-      color: #4A90E2;
+      background: var(--money-lighter);
+      color: var(--money-primary);
       text-decoration: none;
     }
     .sidebar-link.active {
-      background: #4A90E2;
+      background: var(--money-primary);
       color: white;
-      text-decoration: none;
-      font-weight: 600;
-      box-shadow: 0 2px 8px rgba(74,144,226,0.15);
-      border-left: 4px solid #2E5BBA;
-      padding-left: calc(1.2rem - 4px);
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
     }
     .sidebar-logo-link { display: inline-block; }
     .sidebar-account { font-size: 1rem; }
@@ -70,7 +67,7 @@
       z-index: 1200;
       display: none;
     }
-    @media (max-width: 991px) {
+    @media (max-width: 767px) {
       .sidebar {
         transform: translateX(-110%);
         box-shadow: none;
@@ -86,10 +83,16 @@
         margin-left: 0 !important;
       }
     }
-    @media (min-width: 992px) {
-      .sidebar-burger { display: none; }
+    @media (min-width: 768px) {
+      .sidebar {
+        transform: translateX(0);
+        box-shadow: 2px 0 16px rgba(102,126,234,0.07);
+      }
+      .sidebar-burger { 
+        display: none; 
+      }
       .main-content {
-        margin-left: 240px;
+        margin-left: 280px;
         padding: 2.5rem 2rem 2rem 2rem;
         width: 100%;
       }
@@ -98,7 +101,7 @@
       min-height: 100vh;
       width: 100%;
       padding: 2.5rem 2rem 2rem 2rem;
-      margin-left: 240px;
+      margin-left: 280px;
       transition: margin-left 0.3s;
     }
   </style>
@@ -120,10 +123,44 @@
     }
     // Close sidebar on click outside (mobile)
     document.addEventListener('click', function(e) {
-      if (window.innerWidth < 992 && sidebar.classList.contains('open')) {
+      if (window.innerWidth < 768 && sidebar.classList.contains('open')) {
         if (!sidebar.contains(e.target) && e.target !== burger) {
           sidebar.classList.remove('open');
         }
+      }
+    });
+    
+    // Simple dropdown toggle for sidebar account
+    document.addEventListener('DOMContentLoaded', function() {
+      const userDropdown = document.getElementById('userDropdown');
+      const dropdownMenu = userDropdown.nextElementSibling;
+      
+      if (userDropdown && dropdownMenu) {
+        userDropdown.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Toggle dropdown visibility
+          if (dropdownMenu.classList.contains('show')) {
+            dropdownMenu.classList.remove('show');
+          } else {
+            dropdownMenu.classList.add('show');
+          }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!userDropdown.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.classList.remove('show');
+          }
+        });
+        
+        // Close dropdown when clicking on dropdown items
+        dropdownMenu.querySelectorAll('.dropdown-item').forEach(function(item) {
+          item.addEventListener('click', function() {
+            dropdownMenu.classList.remove('show');
+          });
+        });
       }
     });
   </script>

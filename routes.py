@@ -253,39 +253,56 @@ def profile(username):
 def edit_profile():
     """Edit user profile"""
     if request.method == 'POST':
-        # Update basic information
-        current_user.full_name = request.form.get('full_name', '')
-        current_user.profession = request.form.get('profession', '')
-        current_user.bio = request.form.get('bio', '')
-        current_user.hourly_rate = float(request.form.get('hourly_rate', 0) or 0)
-        current_user.industry = request.form.get('industry', '')
-        current_user.location = request.form.get('location', '')
-        current_user.expertise = request.form.get('expertise', '')
-        
-        # Update social media links
-        current_user.linkedin_url = request.form.get('linkedin', '')
-        current_user.twitter_url = request.form.get('twitter', '')
-        current_user.github_url = request.form.get('github', '')
-        current_user.website_url = request.form.get('website', '')
-        current_user.instagram_url = request.form.get('instagram', '')
-        current_user.facebook_url = request.form.get('facebook', '')
-        
-        # Update availability
-        current_user.is_available = 'is_available' in request.form
-        
-        # Handle profile picture upload
-        if 'profile_picture' in request.files:
-            file = request.files['profile_picture']
-            if file and file.filename:
-                # Save the file
-                filename = f"profile_{current_user.id}_{int(time.time())}.{file.filename.split('.')[-1]}"
-                filepath = os.path.join('static', 'uploads', filename)
-                file.save(filepath)
-                current_user.profile_picture = f"/static/uploads/{filename}"
-        
-        db.session.commit()
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('dashboard'))
+        try:
+            # Update basic information
+            current_user.full_name = request.form.get('full_name', '')
+            current_user.profession = request.form.get('profession', '')
+            current_user.bio = request.form.get('bio', '')
+            current_user.hourly_rate = float(request.form.get('hourly_rate', 0) or 0)
+            current_user.industry = request.form.get('industry', '')
+            current_user.location = request.form.get('location', '')
+            current_user.expertise = request.form.get('expertise', '')  # Legacy field
+            current_user.expertise_1 = request.form.get('expertise_1', '')
+            current_user.expertise_2 = request.form.get('expertise_2', '')
+            current_user.expertise_3 = request.form.get('expertise_3', '')
+            
+            # Update social media links
+            current_user.linkedin_url = request.form.get('linkedin', '')
+            current_user.twitter_url = request.form.get('twitter', '')
+            current_user.github_url = request.form.get('github', '')
+            current_user.website_url = request.form.get('website', '')
+            current_user.instagram_url = request.form.get('instagram', '')
+            current_user.facebook_url = request.form.get('facebook', '')
+            
+            # Update availability
+            current_user.is_available = 'is_available' in request.form
+            
+            # Handle profile picture upload
+            if 'profile_picture' in request.files:
+                file = request.files['profile_picture']
+                if file and file.filename:
+                    # Save the file
+                    filename = f"profile_{current_user.id}_{int(time.time())}.{file.filename.split('.')[-1]}"
+                    filepath = os.path.join('static', 'uploads', filename)
+                    file.save(filepath)
+                    current_user.profile_picture = f"/static/uploads/{filename}"
+            
+            db.session.commit()
+            
+            # Check if this is an AJAX request (auto-save)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': True, 'message': 'Profile updated successfully'})
+            
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('dashboard'))
+            
+        except Exception as e:
+            db.session.rollback()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'message': str(e)}), 400
+            
+            flash('Error updating profile. Please try again.', 'error')
+            return redirect(url_for('profile_setup'))
     
     return redirect(url_for('profile_setup'))
 

@@ -4,6 +4,123 @@ document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('profileForm');
   const preview = document.getElementById('profilePreview');
 
+  // Auto-save functionality
+  let saveTimeout;
+  let hasUnsavedChanges = false;
+  const SAVE_DELAY = 1000; // Save after 1 second of inactivity
+
+  function autoSave() {
+    clearTimeout(saveTimeout);
+    hasUnsavedChanges = true;
+    saveTimeout = setTimeout(() => {
+      saveProfile();
+    }, SAVE_DELAY);
+  }
+
+  function saveProfile() {
+    const formData = new FormData();
+    
+    // Collect all form data
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      if (input.type === 'file') {
+        if (input.files && input.files[0]) {
+          formData.append(input.name, input.files[0]);
+        }
+      } else {
+        formData.append(input.name, input.value);
+      }
+    });
+
+    // Show saving indicator
+    showSavingIndicator();
+
+    fetch('/edit-profile', {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: formData
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Save failed');
+      }
+    })
+    .then(data => {
+      if (data.success) {
+        hasUnsavedChanges = false;
+        showSavedIndicator();
+      } else {
+        showErrorIndicator(data.message || 'Save failed');
+      }
+    })
+    .catch(error => {
+      console.error('Save error:', error);
+      showErrorIndicator('Save failed');
+    });
+  }
+
+  function showSavingIndicator() {
+    // Remove existing indicators
+    document.querySelectorAll('.save-indicator').forEach(el => el.remove());
+    
+    const indicator = document.createElement('div');
+    indicator.className = 'save-indicator saving';
+    indicator.innerHTML = `
+      <div class="indicator-content">
+        <div class="indicator-icon">⏳</div>
+        <div class="indicator-text">Saving...</div>
+      </div>
+    `;
+    document.body.appendChild(indicator);
+    
+    setTimeout(() => {
+      indicator.style.opacity = '1';
+      indicator.style.transform = 'translateY(0)';
+    }, 10);
+  }
+
+  function showSavedIndicator() {
+    const indicator = document.querySelector('.save-indicator');
+    if (indicator) {
+      indicator.className = 'save-indicator saved';
+      indicator.innerHTML = `
+        <div class="indicator-content">
+          <div class="indicator-icon">✅</div>
+          <div class="indicator-text">Saved!</div>
+        </div>
+      `;
+      
+      setTimeout(() => {
+        indicator.style.opacity = '0';
+        indicator.style.transform = 'translateY(-10px)';
+        setTimeout(() => indicator.remove(), 300);
+      }, 1500);
+    }
+  }
+
+  function showErrorIndicator(message) {
+    const indicator = document.querySelector('.save-indicator');
+    if (indicator) {
+      indicator.className = 'save-indicator error';
+      indicator.innerHTML = `
+        <div class="indicator-content">
+          <div class="indicator-icon">❌</div>
+          <div class="indicator-text">${message}</div>
+        </div>
+      `;
+      
+      setTimeout(() => {
+        indicator.style.opacity = '0';
+        indicator.style.transform = 'translateY(-10px)';
+        setTimeout(() => indicator.remove(), 300);
+      }, 3000);
+    }
+  }
+
   // Helper: get value or fallback
   function val(id) {
     const el = document.getElementById(id);
@@ -22,9 +139,80 @@ document.addEventListener('DOMContentLoaded', function() {
     return img ? img.src : '/static/img/default-avatar.png';
   }
 
+  // Field mapping for highlighting - ordered to match preview layout
+  const fieldMapping = {
+    'collapsePic': ['profile_pic'],
+    'collapseBasic': ['name', 'profession'],
+    'collapseBio': ['bio'],
+    'collapseExpertise': ['expertise'],
+    'collapseLocation': ['location'],
+    'collapseSocial': ['social_links'],
+    'collapseIndustry': ['industry'],
+    'collapseRate': ['hourly_rate']
+  };
+
+  function highlightPreviewFields(collapseId) {
+    // Remove all existing highlights
+    document.querySelectorAll('.preview-highlight').forEach(el => {
+      el.classList.remove('preview-highlight');
+    });
+
+    const fieldsToHighlight = fieldMapping[collapseId] || [];
+    
+    fieldsToHighlight.forEach(fieldType => {
+      let elements = [];
+      
+      switch(fieldType) {
+        case 'name':
+          elements = preview.querySelectorAll('h1');
+          break;
+        case 'profession':
+          elements = preview.querySelectorAll('p[style*="color: #667eea"]');
+          break;
+        case 'bio':
+          elements = preview.querySelectorAll('p[style*="font-size: 0.92rem; color: #666; line-height: 1.4"]');
+          break;
+        case 'expertise':
+          // Only target the expertise tags, not the location or connect sections
+          elements = preview.querySelectorAll('.preview-tag');
+          break;
+        case 'location':
+          // Target the location text specifically, not the icon
+          elements = preview.querySelectorAll('p[style*="color: #666; font-size: 0.92rem"]');
+          break;
+        case 'industry':
+          // Only target the industry badge, not the hourly rate
+          elements = preview.querySelectorAll('span[style*="background: #f8f9fa; color: #667eea"]');
+          break;
+        case 'hourly_rate':
+          // Target the hourly rate specifically
+          elements = preview.querySelectorAll('span[style*="font-size: 1.1rem; font-weight: 700; color: #667eea"]');
+          break;
+        case 'profile_pic':
+          // Target the profile image container
+          elements = preview.querySelectorAll('img[alt="Profile picture"]');
+          break;
+        case 'social_links':
+          // Target only the social links section, not expertise or location
+          const connectSection = preview.querySelector('div[style*="margin-bottom: 0; min-height: 20px;"]');
+          if (connectSection) {
+            elements = [connectSection];
+          }
+          break;
+      }
+      
+      elements.forEach(el => {
+        el.classList.add('preview-highlight');
+      });
+    });
+  }
+
   function renderPreview() {
-    // Build tags from expertise (comma separated)
-    const tags = val('expertise').split(',').map(t => t.trim()).filter(Boolean);
+    // Build tags from three expertise fields
+    const expertise1 = val('expertise_1');
+    const expertise2 = val('expertise_2');
+    const expertise3 = val('expertise_3');
+    const tags = [expertise1, expertise2, expertise3].filter(Boolean);
     // Social links
     const socials = [
       {id: 'linkedin', icon: 'linkedin', color: '#0077b5'},
@@ -90,48 +278,99 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Listen to all relevant inputs
   [
-    'full_name', 'profession', 'industry', 'hourly_rate', 'location', 'expertise',
-    'bio', 'linkedin', 'twitter', 'github', 'website', 'instagram', 'facebook', 'is_available'
+    'full_name', 'profession', 'industry', 'hourly_rate', 'location', 'expertise_1', 'expertise_2', 'expertise_3',
+    'bio', 'linkedin', 'twitter', 'github', 'website', 'instagram', 'facebook'
   ].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      el.addEventListener('input', renderPreview);
-      el.addEventListener('change', renderPreview);
+      el.addEventListener('input', () => {
+        renderPreview();
+        autoSave();
+      });
+      el.addEventListener('change', () => {
+        renderPreview();
+        autoSave();
+      });
     }
   });
   // Profile picture
   const picInput = document.getElementById('profile_picture');
   if (picInput) {
-    picInput.addEventListener('change', renderPreview);
+    picInput.addEventListener('change', () => {
+      renderPreview();
+      autoSave();
+    });
   }
 
   // Initial render
   renderPreview();
+  
+  // Highlight Profile Picture by default since it's open
+  setTimeout(() => {
+    highlightPreviewFields('collapsePic');
+  }, 100);
 
-  // Accordion: allow toggling open/close on header click, even if already open
-  // This ensures clicking an open section header will close it
-
+  // Custom accordion behavior: only one section open at a time, and clicking an open section closes it
   document.querySelectorAll('.accordion-button').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
-      var target = btn.getAttribute('data-bs-target');
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const target = btn.getAttribute('data-bs-target');
       if (!target) return;
-      var collapse = document.querySelector(target);
-      if (!collapse) return;
-      if (collapse.classList.contains('show')) {
-        // If already open, close it manually
-        var bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapse);
+      
+      const currentCollapse = document.querySelector(target);
+      if (!currentCollapse) return;
+      
+      const isCurrentlyOpen = currentCollapse.classList.contains('show');
+      
+      // If the clicked section is already open, just close it
+      if (isCurrentlyOpen) {
+        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(currentCollapse);
         bsCollapse.hide();
-        e.preventDefault();
-        e.stopPropagation();
+        // Remove highlights when closing
+        setTimeout(() => {
+          document.querySelectorAll('.preview-highlight').forEach(el => {
+            el.classList.remove('preview-highlight');
+          });
+          document.querySelectorAll('.field-indicator').forEach(el => {
+            el.remove();
+          });
+        }, 300);
+        return;
       }
-      // Otherwise, let Bootstrap handle opening
+      
+      // Otherwise, close all other sections first, then open the clicked one
+      document.querySelectorAll('.accordion-collapse').forEach(function(collapse) {
+        if (collapse !== currentCollapse && collapse.classList.contains('show')) {
+          const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapse);
+          bsCollapse.hide();
+        }
+      });
+      
+      // Open the current section
+      const bsCollapse = bootstrap.Collapse.getOrCreateInstance(currentCollapse);
+      bsCollapse.show();
+      
+      // Highlight fields after a short delay to allow animation to start
+      setTimeout(() => {
+        highlightPreviewFields(currentCollapse.id);
+      }, 150);
     });
   });
 
-  // Accordion: allow multiple sections open/closed independently
-  // Remove data-bs-parent from HTML, but also ensure toggling works
-  // (If data-bs-parent is present, Bootstrap will only allow one open at a time)
+  // Remove the data-bs-parent attribute to prevent Bootstrap's default accordion behavior
+  // since we're implementing our own
   document.querySelectorAll('.accordion-collapse').forEach(function(el) {
     el.removeAttribute('data-bs-parent');
+  });
+
+  // Beforeunload event listener to warn users
+  window.addEventListener('beforeunload', function(event) {
+    if (hasUnsavedChanges) {
+      event.preventDefault();
+      event.returnValue = ''; // Required for Chrome
+      return 'You have unsaved changes. Are you sure you want to leave?';
+    }
   });
 }); 

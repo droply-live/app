@@ -2339,6 +2339,7 @@ body {
     max-width: 100%;
     display: block;
     box-sizing: border-box;
+    position: relative;
 }
 
 .sidebar-account .dropdown-toggle {
@@ -2362,6 +2363,12 @@ body {
     margin: 0;
     box-sizing: border-box;
     overflow: hidden;
+    text-decoration: none;
+}
+
+.sidebar-account .dropdown-toggle:hover {
+    background: var(--money-lighter);
+    color: var(--money-primary);
 }
 
 .sidebar-account .dropdown-menu {
@@ -2372,6 +2379,18 @@ body {
     box-sizing: border-box;
     margin: 0 !important;
     padding: 0 !important;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    background: white;
+    z-index: 1000;
+}
+
+.sidebar-account .dropdown-menu.show {
+    display: block;
 }
 
 .sidebar-account .dropdown-item {
@@ -2379,6 +2398,7 @@ body {
     font-size: 0.9rem;
     color: #333;
     transition: background-color 0.2s ease;
+    cursor: pointer;
 }
 
 .sidebar-account .dropdown-item:hover {
@@ -2526,7 +2546,28 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
+
+/* --- Subtle Field Highlighting --- */
+.preview-highlight {
+  transition: all 0.3s ease;
+  color: #dc3545 !important;
+  font-weight: 600;
+}
+
+.preview-highlight.preview-tag {
+  background: rgba(220, 53, 69, 0.1) !important;
+  border-color: #dc3545 !important;
+}
+
+.preview-highlight[style*="background: #f8f9fa"] {
+  background: rgba(220, 53, 69, 0.1) !important;
+  color: #dc3545 !important;
+}
+
+
+
 #profilePreview .profile-card {
   background: white;
   border-radius: 24px;
@@ -2564,4 +2605,61 @@ body {
 .card:hover, .accordion-item:hover, .profile-card:hover, #profilePreview .profile-card:hover {
   transform: none !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+}
+
+/* --- Auto-save Indicators --- */
+.save-indicator {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10000;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.save-indicator.saving {
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.save-indicator.saved {
+  border-color: rgba(40, 167, 69, 0.3);
+}
+
+.save-indicator.error {
+  border-color: rgba(220, 53, 69, 0.3);
+}
+
+.save-indicator .indicator-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.save-indicator .indicator-icon {
+  font-size: 1rem;
+}
+
+.save-indicator .indicator-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.save-indicator.saving .indicator-text {
+  color: #ffc107;
+}
+
+.save-indicator.saved .indicator-text {
+  color: #28a745;
+}
+
+.save-indicator.error .indicator-text {
+  color: #dc3545;
 }
