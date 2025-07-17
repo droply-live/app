@@ -452,8 +452,8 @@ def dashboard():
     # Get upcoming bookings as client
     client_bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
     
-    # Get recent time slots
-    time_slots = TimeSlot.query.filter_by(user_id=current_user.id).order_by(TimeSlot.start_datetime.desc()).limit(10).all()
+    # Get recent time slots - TimeSlot model not available in current version
+    time_slots = []
     
     return render_template('dashboard.html', 
                          provider_bookings=provider_bookings,
@@ -471,48 +471,11 @@ def dashboard():
 #     """Add new time slot - Temporarily disabled due to missing TimeSlot model"""
 #     return redirect(url_for('dashboard'))
 
-@app.route('/booking/<int:slot_id>', methods=['GET', 'POST'])
-def book_session(slot_id):
-    """Book a session"""
-    time_slot = TimeSlot.query.get_or_404(slot_id)
-    
-    if not time_slot.is_available:
-        flash('This time slot is no longer available.', 'error')
-        return redirect(url_for('profile', username=time_slot.user.username))
-    
-    form = BookingForm()
-    form.time_slot_id.data = slot_id
-    
-    if form.validate_on_submit():
-        # Create booking
-        booking = Booking(
-            time_slot_id=slot_id,
-            expert_id=time_slot.user_id,
-            user_id=current_user.id if current_user.is_authenticated else None,
-            client_name=form.client_name.data,
-            client_email=form.client_email.data,
-            client_message=form.client_message.data,
-            payment_amount=time_slot.price
-        )
-        
-        db.session.add(booking)
-        
-        # Mark time slot as unavailable
-        time_slot.is_available = False
-        
-        db.session.commit()
-        
-        # Redirect to payment if price > 0
-        if time_slot.price > 0:
-            return redirect(url_for('create_checkout_session', booking_id=booking.id))
-        else:
-            booking.payment_status = 'paid'
-            booking.status = 'confirmed'
-            db.session.commit()
-            flash('Booking confirmed!', 'success')
-            return redirect(url_for('booking_success', booking_id=booking.id))
-    
-    return render_template('booking.html', form=form, time_slot=time_slot)
+# @app.route('/booking/<int:slot_id>', methods=['GET', 'POST'])
+# def book_session(slot_id):
+#     """Book a session - Temporarily disabled due to missing TimeSlot model"""
+#     flash('Booking functionality is temporarily unavailable.', 'error')
+#     return redirect(url_for('homepage'))
 
 @app.route('/create-checkout-session/<int:booking_id>', methods=['POST', 'GET'])
 def create_checkout_session(booking_id):

@@ -21,6 +21,11 @@
           </a>
         </li>
         <li class="mb-2">
+          <a href="{{ url_for('expert_dashboard') }}" class="sidebar-link {% if request.endpoint == 'expert_dashboard' %}active{% endif %}">
+            <i class="fas fa-dollar-sign me-2"></i>Earnings
+          </a>
+        </li>
+        <li class="mb-2">
           <a href="{{ url_for('profile_setup') }}" class="sidebar-link {% if request.endpoint == 'profile_setup' %}active{% endif %}">
             Profile Setup
           </a>
