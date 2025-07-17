@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Droply - Monetize Your Expertise</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <!-- Hero Section 1 - Feature Reveal (8 images) -->
+    <section class="hero-section hero-section-1">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Monetize Your Expertise</h1>
+                    <p>Turn your professional skills into a revenue stream. Create your Droply profile in minutes and start earning from your expertise. No complex setup, just pure monetization.</p>
+                    <div class="hero-buttons">
+                        <a href="{{ url_for('register') }}" class="btn btn-outline">Create Your Profile</a>
+                    </div>
+                </div>
+                <div class="hero-animation">
+                    <div class="hero-images-features">
+                        <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Main Feature" class="main-feature">
+                        <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Feature 1" class="feature-item pos1">
+                        <img src="{{ url_for('static', filename='img/generated-icon.png') }}" alt="Feature 2" class="feature-item pos2">
+                        <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Feature 3" class="feature-item pos3">
+                        <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Feature 4" class="feature-item pos4">
+                        <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Feature 5" class="feature-item pos5">
+                        <img src="{{ url_for('static', filename='img/generated-icon.png') }}" alt="Feature 6" class="feature-item pos6">
+                        <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Feature 7" class="feature-item pos7">
+                        <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Feature 8" class="feature-item pos8">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Divider: Section 1 to Section 2 (teal to white) -->
+    <div class="section-divider">
+      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
+        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#fff"/>
+      </svg>
+    </div>
+
+    <!-- Hero Section 2 - Centered, White Background, Large Animated Box -->
+    <section class="hero-section hero-section-white-bg">
+        <div class="hero-stepper-layout">
+            <div class="hero-stepper-side">
+                <ul class="stepper-list connected-stepper">
+                    <li class="stepper-tab active" data-step="0">
+                        <span class="stepper-label"><span class="stepper-icon">📅</span> Connect your calendars</span>
+                        <div class="stepper-desc">Sync up to six calendars for real-time scheduling availability.</div>
+                        <div class="step-timer-bar"></div>
+                    </li>
+                    <li class="stepper-tab" data-step="1">
+                        <span class="stepper-label"><span class="stepper-icon">⏰</span> Add your availability</span>
+                        <div class="stepper-desc">Set your available hours so people can only book you when you want.</div>
+                        <div class="step-timer-bar"></div>
+                    </li>
+                    <li class="stepper-tab" data-step="2">
+                        <span class="stepper-label"><span class="stepper-icon">🔗</span> Connect conferencing tools</span>
+                        <div class="stepper-desc">Integrate Zoom, Google Meet, or Teams for seamless video calls.</div>
+                        <div class="step-timer-bar"></div>
+                    </li>
+                    <li class="stepper-tab" data-step="3">
+                        <span class="stepper-label"><span class="stepper-icon">📝</span> Customize your event types</span>
+                        <div class="stepper-desc">Create and personalize different event types for your meetings.</div>
+                        <div class="step-timer-bar"></div>
+                    </li>
+                    <li class="stepper-tab" data-step="4">
+                        <span class="stepper-label"><span class="stepper-icon">🔗</span> Share your scheduling link</span>
+                        <div class="stepper-desc">Share your unique link to let others book you easily.</div>
+                        <div class="step-timer-bar"></div>
+                    </li>
+                </ul>
+            </div>
+            <div class="hero-step-image-animated-box">
+                <div class="image-animated-bg-large">
+                    <svg width="520" height="420" viewBox="0 0 520 420" fill="none" xmlns="http://www.w3.org/2000/svg" class="animated-shapes">
+                        <circle class="anim-circle" cx="120" cy="120" r="48" fill="#a18cd1"/>
+                        <rect class="anim-rect" x="350" y="80" width="72" height="72" rx="16" fill="#fbc2eb"/>
+                        <circle class="anim-circle2" cx="420" cy="340" r="32" fill="#fbc2eb"/>
+                        <rect class="anim-rect2" x="160" y="320" width="56" height="56" rx="12" fill="#a18cd1"/>
+                    </svg>
+                    <img id="step-image" src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Step Image" class="step-image-large pop-in">
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Divider: Section 2 to Section 3 (white to gray) -->
+    <div class="section-divider">
+      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
+        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#f8f9fa"/>
+      </svg>
+    </div>
+
+    <!-- Hero Section 3 - Closed Cube -->
+    <section class="hero-section hero-section-cube">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Your Droply Profile, Your Revenue</h1>
+                    <p>Create your personalized Droply profile and share it everywhere. Every connection becomes a potential revenue stream. It's that simple to start earning.</p>
+                    <div class="hero-buttons">
+                        <a href="{{ url_for('register') }}" class="btn btn-outline">Get Your Droply Profile</a>
+                    </div>
+                </div>
+                <div class="hero-animation">
+                    <div class="hero-images-cube">
+                        <div class="cube">
+                            <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Expert View 1" class="cube-face">
+                            <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Expert View 2" class="cube-face">
+                            <img src="{{ url_for('static', filename='img/generated-icon.png') }}" alt="Expert View 3" class="cube-face">
+                            <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Expert View 4" class="cube-face">
+                            <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Expert View 5" class="cube-face">
+                            <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Expert View 6" class="cube-face">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Divider: Section 3 to Section 4 (gray to blue) -->
+    <div class="section-divider">
+      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
+        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#635bff"/>
+      </svg>
+    </div>
+
+    <!-- Hero Section 4 - Stripe Payment Integration -->
+    <section class="hero-section hero-section-stripe" style="background: #635bff; color: white;">
+        <div class="container">
+            <div class="hero-content hero-content-unified" style="gap: 4rem;">
+                <div class="hero-animation" style="flex:0 0 320px; text-align:center;">
+                    <img src="https://cdn.jsdelivr.net/gh/stripe/brand-assets/logo/stripe/stripe-logo-white.svg" alt="Stripe Logo" style="height: 64px; margin-bottom: 2rem;">
+                </div>
+                <div class="hero-text">
+                    <h1 style="font-size:2.5rem; font-weight:800; margin-bottom:1.5rem;">Easy, Secure Payments with Stripe</h1>
+                    <p style="font-size:1.3rem; margin-bottom:2rem; max-width:500px;">Droply integrates seamlessly with Stripe, so you can accept payments from clients worldwide with confidence. Fast setup, instant payouts, and industry-leading security—no technical hassle required.</p>
+                    <a href="https://stripe.com" target="_blank" class="btn btn-outline" style="background:white; color:#635bff; min-width:220px;">Learn More About Stripe</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Divider: Section 4 to FAQ (blue to white) -->
+    <div class="section-divider">
+      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
+        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#fff"/>
+      </svg>
+    </div>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <div class="faq-container">
+                <h2 class="faq-title">Frequently Asked Questions</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">How do I start earning on Droply?</div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Simply create your profile, set your rates, and share your Droply profile. Clients can book sessions directly through your profile, and you'll receive payments automatically.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">How much can I earn?</div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            You set your own rates and keep the majority of your earnings. Top professionals on Droply earn thousands per month. Your earning potential depends on your expertise and marketing.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">What types of professionals can join?</div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Anyone with valuable expertise can join: consultants, coaches, designers, developers, marketers, writers, trainers, and more. If you have skills others will pay for, you can earn on Droply.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">How do I get paid?</div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Payments are processed automatically after each session. You can withdraw your earnings to your bank account or PayPal. We handle all the payment processing for you.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Is there a setup fee or monthly cost?</div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            No setup fees or monthly costs. You only pay a small percentage when you earn, so there's no risk to getting started. Create your profile and start earning immediately.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Droply. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // FAQ functionality
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const faqItem = question.parentElement;
+                const isActive = faqItem.classList.contains('active');
+                
+                // Close all FAQ items
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Open clicked item if it wasn't active
+                if (!isActive) {
+                    faqItem.classList.add('active');
+                }
+            });
+        });
+
+        // Navigation hide on scroll
+        let lastScrollTop = 0;
+        const navbar = document.getElementById('navbar');
+        
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (scrollTop > lastScrollTop && scrollTop > 100) {
+                // Scrolling down
+                navbar.classList.add('navbar-hidden');
+            } else {
+                // Scrolling up
+                navbar.classList.remove('navbar-hidden');
+            }
+            
+            lastScrollTop = scrollTop;
+        });
+    </script>
+    {% block scripts %}
+    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+    {% endblock %}
+</body>
+</html> 

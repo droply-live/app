@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSearchForm();
     initializeFilters();
     initializeResultsHandling();
+    initializeCategoryBubbles();
 });
 
 /**
@@ -62,9 +63,43 @@ function submitSearchForm() {
     const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
     window.history.pushState({}, '', newUrl);
     
-    // In a real implementation, this would make an AJAX request
-    // For now, we'll just reload the page
-    window.location.href = newUrl;
+    // Make AJAX request
+    fetch(newUrl)
+        .then(response => response.text())
+        .then(html => {
+            // Parse the HTML response
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Extract the user cards section
+            const newUserCards = doc.querySelector('.row.mt-4.g-4.justify-content-center');
+            const currentUserCards = document.querySelector('.row.mt-4.g-4.justify-content-center');
+            
+            if (newUserCards && currentUserCards) {
+                // Replace the content with smooth animation
+                currentUserCards.style.opacity = '0';
+                setTimeout(() => {
+                    currentUserCards.innerHTML = newUserCards.innerHTML;
+                    currentUserCards.style.opacity = '1';
+                    
+                    // Re-initialize feather icons
+                    if (window.feather) {
+                        feather.replace();
+                    }
+                    
+                    // Hide loading state
+                    hideLoadingState();
+                }, 150);
+            } else {
+                // Fallback: reload the page
+                window.location.href = newUrl;
+            }
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+            // Fallback: reload the page
+            window.location.href = newUrl;
+        });
 }
 
 /**
@@ -189,10 +224,9 @@ function showLoadingState() {
     }
     
     // Add loading overlay to results area
-    const resultsArea = document.querySelector('.row .col-12');
+    const resultsArea = document.querySelector('.row.mt-4.g-4.justify-content-center');
     if (resultsArea) {
-        resultsArea.style.opacity = '0.6';
-        resultsArea.style.pointerEvents = 'none';
+        resultsArea.classList.add('search-loading');
     }
 }
 
@@ -205,16 +239,22 @@ function hideLoadingState() {
         searchBtn.disabled = false;
         searchBtn.innerHTML = '<i data-feather="search" class="me-2"></i>Search';
         
+        // Remove spinning animation
+        const loader = searchBtn.querySelector('i');
+        if (loader) {
+            loader.style.animation = '';
+        }
+        
+        // Re-initialize feather icons
         if (window.feather) {
             feather.replace();
         }
     }
     
-    // Remove loading overlay
-    const resultsArea = document.querySelector('.row .col-12');
+    // Remove loading overlay from results area
+    const resultsArea = document.querySelector('.row.mt-4.g-4.justify-content-center');
     if (resultsArea) {
-        resultsArea.style.opacity = '1';
-        resultsArea.style.pointerEvents = 'auto';
+        resultsArea.classList.remove('search-loading');
     }
 }
 
@@ -244,85 +284,6 @@ function trackExpertView(expertName) {
             'page_location': window.location.href
         });
     }
-}
-
-/**
- * Handle filter presets
- */
-function initializeFilterPresets() {
-    const presets = {
-        'coaches': {
-            profession: 'coach',
-            industry: '',
-            location_type: ''
-        },
-        'mentors': {
-            profession: 'mentor',
-            industry: '',
-            location_type: ''
-        },
-        'remote': {
-            profession: '',
-            industry: '',
-            location_type: 'remote'
-        },
-        'local': {
-            profession: '',
-            industry: '',
-            location_type: 'in_person'
-        }
-    };
-    
-    // Add preset buttons
-    const searchForm = document.getElementById('searchForm');
-    if (searchForm) {
-        const presetContainer = document.createElement('div');
-        presetContainer.className = 'preset-filters mb-3';
-        presetContainer.innerHTML = `
-            <small class="text-muted d-block mb-2">Quick Filters:</small>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-preset="coaches">Coaches</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-preset="mentors">Mentors</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-preset="remote">Remote Only</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-preset="local">Local Only</button>
-            </div>
-        `;
-        
-        searchForm.insertBefore(presetContainer, searchForm.firstChild);
-        
-        // Add click handlers for presets
-        presetContainer.addEventListener('click', function(e) {
-            if (e.target.hasAttribute('data-preset')) {
-                const preset = e.target.getAttribute('data-preset');
-                applyFilterPreset(presets[preset]);
-                
-                // Update active button
-                presetContainer.querySelectorAll('.btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                e.target.classList.add('active');
-            }
-        });
-    }
-}
-
-/**
- * Apply filter preset
- */
-function applyFilterPreset(preset) {
-    const form = document.getElementById('searchForm');
-    if (!form) return;
-    
-    // Apply preset values
-    Object.keys(preset).forEach(key => {
-        const input = form.querySelector(`[name="${key}"]`);
-        if (input) {
-            input.value = preset[key];
-        }
-    });
-    
-    // Trigger search
-    submitSearchForm();
 }
 
 /**
@@ -514,11 +475,165 @@ function initializeSearchSuggestions() {
     }
 }
 
+/**
+ * Initialize category bubbles functionality
+ */
+function initializeCategoryBubbles() {
+    const bubbles = document.querySelectorAll('.category-bubble');
+    const searchInput = document.querySelector('input[name="query"]');
+    
+    if (!bubbles.length || !searchInput) return;
+    
+    // Initialize bubble states based on current search
+    updateBubbleStates();
+    
+    // Handle bubble clicks
+    bubbles.forEach(bubble => {
+        bubble.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            const isActive = this.classList.contains('active');
+            
+            // If trying to activate and already have 3 active bubbles, show modern notification
+            if (!isActive && getActiveBubbleCount() >= 3) {
+                showModernNotification('You can select up to 3 categories at a time. Please deselect one first.', 'info');
+                return;
+            }
+            
+            // Toggle bubble state
+            if (isActive) {
+                this.classList.remove('active');
+            } else {
+                this.classList.add('active');
+            }
+            
+            // Update search input based on active bubbles
+            updateSearchFromBubbles();
+            
+            // Submit search
+            submitSearchForm();
+        });
+    });
+    
+    // Handle search input changes to sync with bubbles
+    searchInput.addEventListener('input', function() {
+        updateBubbleStates();
+    });
+}
+
+/**
+ * Get the count of active bubbles
+ */
+function getActiveBubbleCount() {
+    return document.querySelectorAll('.category-bubble.active').length;
+}
+
+/**
+ * Update search input based on active bubbles
+ */
+function updateSearchFromBubbles() {
+    const searchInput = document.querySelector('input[name="query"]');
+    const activeBubbles = document.querySelectorAll('.category-bubble.active');
+    
+    if (!searchInput) return;
+    
+    // Get categories from active bubbles
+    const categories = Array.from(activeBubbles).map(bubble => 
+        bubble.getAttribute('data-category')
+    );
+    
+    // Combine with existing search terms
+    const existingQuery = searchInput.value.trim();
+    const existingTerms = existingQuery ? existingQuery.split(',').map(t => t.trim()) : [];
+    
+    // Remove any existing category terms
+    const categoryTerms = ['finance', 'technology', 'business', 'marketing', 'healthcare', 'education', 'consulting', 'creative', 'fitness'];
+    const filteredTerms = existingTerms.filter(term => !categoryTerms.includes(term.toLowerCase()));
+    
+    // Add new category terms
+    const allTerms = [...filteredTerms, ...categories];
+    
+    // Update search input
+    searchInput.value = allTerms.join(', ');
+}
+
+/**
+ * Update bubble states based on current search
+ */
+function updateBubbleStates() {
+    const searchInput = document.querySelector('input[name="query"]');
+    const bubbles = document.querySelectorAll('.category-bubble');
+    
+    if (!searchInput || !bubbles.length) return;
+    
+    const query = searchInput.value.toLowerCase();
+    const categoryTerms = ['finance', 'technology', 'business', 'marketing', 'healthcare', 'education', 'consulting', 'creative', 'fitness'];
+    
+    bubbles.forEach(bubble => {
+        const category = bubble.getAttribute('data-category');
+        const isInQuery = categoryTerms.includes(category) && query.includes(category);
+        
+        if (isInQuery) {
+            bubble.classList.add('active');
+        } else {
+            bubble.classList.remove('active');
+        }
+    });
+}
+
+/**
+ * Show modern notification
+ */
+function showModernNotification(message, type = 'info') {
+    // Remove any existing notifications
+    const existingNotifications = document.querySelectorAll('.modern-notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `modern-notification modern-notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <div class="notification-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="m9 12 2 2 4-4"></path>
+                </svg>
+            </div>
+            <div class="notification-message">${message}</div>
+            <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 300);
+        }
+    }, 4000);
+}
+
 // Initialize all functionality
 document.addEventListener('DOMContentLoaded', function() {
     handleUrlParameters();
     loadSearchPreferences();
-    initializeFilterPresets();
     initializeSearchSuggestions();
     
     // Save preferences when form changes

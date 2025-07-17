@@ -574,3 +574,57 @@ function updateTimeSlotRules() {
         });
     }
 }
+
+// Stepper/tab logic for homepage hero section 2 with timer bar
+
+document.addEventListener('DOMContentLoaded', function() {
+    function setupStepperTabs() {
+        const stepTabs = document.querySelectorAll('.stepper-tab');
+        const stepImage = document.getElementById('step-image');
+        const stepImages = [
+            '/static/img/mockup-hero.png',
+            '/static/img/mockup-hero-2.png',
+            '/static/img/generated-icon.png',
+            '/static/img/default-avatar.png',
+            '/static/img/mockup-hero.png'
+        ];
+        let timer = null;
+        let currentIdx = 0;
+        const TIMER_DURATION = 5000;
+
+        function activateStep(idx, userClick=false) {
+            stepTabs.forEach((t, i) => {
+                t.classList.toggle('active', i === idx);
+                // Reset timer bar animation
+                const bar = t.querySelector('.step-timer-bar');
+                if (bar) {
+                    bar.style.animation = 'none';
+                    bar.offsetHeight; // force reflow
+                    if (i === idx) {
+                        bar.style.animation = `timerBarGrow ${TIMER_DURATION}ms linear forwards`;
+                    } else {
+                        bar.style.animation = '';
+                    }
+                }
+            });
+            // Instantly switch image, no animation
+            stepImage.src = stepImages[idx];
+            currentIdx = idx;
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                let nextIdx = (currentIdx + 1) % stepTabs.length;
+                activateStep(nextIdx);
+            }, TIMER_DURATION);
+        }
+
+        if (stepTabs.length && stepImage) {
+            stepTabs.forEach((tab, idx) => {
+                tab.onclick = function() {
+                    activateStep(idx, true);
+                };
+            });
+            activateStep(0);
+        }
+    }
+    setupStepperTabs();
+});

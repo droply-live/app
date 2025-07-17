@@ -1,56 +1,53 @@
-from app import app, db
-from sqlalchemy import text
+#!/usr/bin/env python3
+"""
+Manual database patch to add new expertise fields
+Run this script to add expertise_1, expertise_2, expertise_3 columns to the User table
+"""
 
-columns = [
-    ("background_image_url", "VARCHAR(500)"),
-    ("linkedin_url", "VARCHAR(200)"),
-    ("twitter_url", "VARCHAR(200)"),
-    ("youtube_url", "VARCHAR(200)"),
-    ("instagram_url", "VARCHAR(200)"),
-    ("website_url", "VARCHAR(200)"),
-    ("rating_count", "INTEGER DEFAULT 0"),
-    ("is_top_expert", "BOOLEAN DEFAULT 0"),
-    ("donation_text", "TEXT"),
-    ("github_url", "VARCHAR(200)"),
-    ("facebook_url", "VARCHAR(200)"),
-    ("snapchat_url", "VARCHAR(200)"),
-    ("rating", "FLOAT DEFAULT 0.0"),
-    ("currency", "VARCHAR(3) DEFAULT 'USD'"),
-    ("expertise", "VARCHAR(200)"),
-    ("location", "VARCHAR(100)"),
-    ("profile_picture", "VARCHAR(255)"),
-    ("background_color", "VARCHAR(7) DEFAULT '#f7faff'"),
-    ("embedding", "LARGEBINARY"),
-    ("specialty_tags", "TEXT")
-]
+import sqlite3
+import os
 
-def column_exists(engine, table, column):
-    # Detect SQLite or PostgreSQL
-    if engine.dialect.name == 'sqlite':
-        query = text(f"PRAGMA table_info({table})")
-        with engine.connect() as conn:
-            result = conn.execute(query)
-            return any(row[1] == column for row in result.fetchall())
-    else:
-        query = text("""
-            SELECT column_name FROM information_schema.columns
-            WHERE table_name=:table AND column_name=:column
-        """)
-        with engine.connect() as conn:
-            result = conn.execute(query, {"table": table, "column": column})
-            return result.first() is not None
+def add_expertise_columns():
+    """Add the new expertise columns to the User table"""
+    
+    # Get the database path
+    db_path = os.path.join('instance', 'droply.db')
+    
+    if not os.path.exists(db_path):
+        print(f"Database not found at {db_path}")
+        return
+    
+    try:
+        # Connect to the database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Check if columns already exist
+        cursor.execute("PRAGMA table_info(user)")
+        columns = [column[1] for column in cursor.fetchall()]
+        
+        # Add new columns if they don't exist
+        if 'expertise_1' not in columns:
+            cursor.execute("ALTER TABLE user ADD COLUMN expertise_1 VARCHAR(100)")
+            print("Added expertise_1 column")
+        
+        if 'expertise_2' not in columns:
+            cursor.execute("ALTER TABLE user ADD COLUMN expertise_2 VARCHAR(100)")
+            print("Added expertise_2 column")
+        
+        if 'expertise_3' not in columns:
+            cursor.execute("ALTER TABLE user ADD COLUMN expertise_3 VARCHAR(100)")
+            print("Added expertise_3 column")
+        
+        # Commit changes
+        conn.commit()
+        print("Database migration completed successfully!")
+        
+    except Exception as e:
+        print(f"Error during migration: {e}")
+        conn.rollback()
+    finally:
+        conn.close()
 
-with app.app_context():
-    engine = db.engine
-    for col, coltype in columns:
-        if not column_exists(engine, "user", col):
-            print(f"Adding column {col} ...")
-            try:
-                with engine.connect() as conn:
-                    conn.execute(text(f'ALTER TABLE "user" ADD COLUMN {col} {coltype};'))
-                print(f"Added column {col}.")
-            except Exception as e:
-                print(f"Failed to add column {col}: {e}")
-        else:
-            print(f"Column {col} already exists.")
-    print("Done.") 
+if __name__ == "__main__":
+    add_expertise_columns() 

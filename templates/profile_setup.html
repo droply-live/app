@@ -1,0 +1,210 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Profile Setup - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-11">
+      <div class="row g-4">
+        <!-- Left: Compact Accordion Form -->
+        <div class="col-md-6">
+          <div class="card shadow-sm">
+            <div class="card-body p-3">
+              <h4 class="mb-3">Edit Your Profile</h4>
+              <div class="accordion compact-accordion" id="profileAccordion">
+                <!-- Profile Picture -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingPic">
+                    <button class="accordion-button py-2 px-3 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePic" aria-expanded="true" aria-controls="collapsePic">
+                      I. Profile Picture
+                    </button>
+                  </h2>
+                  <div id="collapsePic" class="accordion-collapse collapse show" aria-labelledby="headingPic">
+                    <div class="accordion-body py-2 px-3">
+                      <div class="mb-2">
+                        <label for="profile_picture" class="form-label small mb-1">Upload Profile Picture</label>
+                        <input type="file" class="form-control form-control-sm" id="profile_picture" name="profile_picture" accept="image/*">
+                        <small class="text-muted">Recommended size: 400x400 pixels</small>
+                      </div>
+                      {% if current_user.profile_picture %}
+                      <div class="d-flex align-items-center mb-2">
+                        <img id="currentProfilePic" src="{{ current_user.profile_picture }}" alt="Current profile picture" class="rounded-circle me-2" style="width: 48px; height: 48px; object-fit: cover;">
+                        <small class="text-muted">Current profile picture</small>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <!-- Basic Info -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingBasic">
+                    <button class="accordion-button collapsed py-2 px-3 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBasic" aria-expanded="false" aria-controls="collapseBasic">
+                      II. Basic Information
+                    </button>
+                  </h2>
+                  <div id="collapseBasic" class="accordion-collapse collapse" aria-labelledby="headingBasic">
+                    <div class="accordion-body py-2 px-3">
+                      <div class="mb-2">
+                        <label for="full_name" class="form-label small mb-1">Full Name *</label>
+                        <input type="text" class="form-control form-control-sm" id="full_name" name="full_name" value="{{ current_user.full_name or '' }}" required>
+                      </div>
+                      <div class="mb-2">
+                        <label for="profession" class="form-label small mb-1">Profession</label>
+                        <input type="text" class="form-control form-control-sm" id="profession" name="profession" value="{{ current_user.profession or '' }}" placeholder="e.g., Software Engineer">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- About You -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingBio">
+                    <button class="accordion-button collapsed py-2 px-3 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBio" aria-expanded="false" aria-controls="collapseBio">
+                      III. About You
+                    </button>
+                  </h2>
+                  <div id="collapseBio" class="accordion-collapse collapse" aria-labelledby="headingBio">
+                    <div class="accordion-body py-2 px-3">
+                      <label for="bio" class="form-label small mb-1">Bio</label>
+                      <textarea class="form-control form-control-sm" id="bio" name="bio" rows="3" placeholder="Tell us about yourself, your experience, and what you can help others with...">{{ current_user.bio or '' }}</textarea>
+                      <small class="text-muted">Share your story, expertise, and what makes you unique</small>
+                    </div>
+                  </div>
+                </div>
+                <!-- Expertise -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingExpertise">
+                    <button class="accordion-button collapsed py-2 px-3 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExpertise" aria-expanded="false" aria-controls="collapseExpertise">
+                      IV. Main Areas of Expertise
+                    </button>
+                  </h2>
+                  <div id="collapseExpertise" class="accordion-collapse collapse" aria-labelledby="headingExpertise">
+                    <div class="accordion-body py-2 px-3">
+                      <div class="mb-2">
+                        <label for="expertise_1" class="form-label small mb-1">Primary Expertise</label>
+                        <input type="text" class="form-control form-control-sm" id="expertise_1" name="expertise_1" value="{{ current_user.expertise_1 or '' }}" placeholder="e.g., Python Development">
+                      </div>
+                      <div class="mb-2">
+                        <label for="expertise_2" class="form-label small mb-1">Secondary Expertise</label>
+                        <input type="text" class="form-control form-control-sm" id="expertise_2" name="expertise_2" value="{{ current_user.expertise_2 or '' }}" placeholder="e.g., React Frontend">
+                      </div>
+                      <div class="mb-2">
+                        <label for="expertise_3" class="form-label small mb-1">Tertiary Expertise</label>
+                        <input type="text" class="form-control form-control-sm" id="expertise_3" name="expertise_3" value="{{ current_user.expertise_3 or '' }}" placeholder="e.g., Product Strategy">
+                      </div>
+                      <small class="text-muted">List your three main areas where you can help others</small>
+                    </div>
+                  </div>
+                </div>
+                <!-- Location -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingLocation">
+                    <button class="accordion-button collapsed py-2 px-3 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLocation" aria-expanded="false" aria-controls="collapseLocation">
+                      V. Location
+                    </button>
+                  </h2>
+                  <div id="collapseLocation" class="accordion-collapse collapse" aria-labelledby="headingLocation">
+                    <div class="accordion-body py-2 px-3">
+                      <div class="mb-2">
+                        <label for="location" class="form-label small mb-1">Location</label>
+                        <input type="text" class="form-control form-control-sm" id="location" name="location" value="{{ current_user.location or '' }}" placeholder="e.g., San Francisco, CA">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Social Media Links -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingSocial">
+                    <button class="accordion-button collapsed py-2 px-3 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSocial" aria-expanded="false" aria-controls="collapseSocial">
+                      VI. Social Media & Links
+                    </button>
+                  </h2>
+                  <div id="collapseSocial" class="accordion-collapse collapse" aria-labelledby="headingSocial">
+                    <div class="accordion-body py-2 px-3">
+                      <div class="mb-2">
+                        <label for="linkedin" class="form-label small mb-1">LinkedIn</label>
+                        <input type="url" class="form-control form-control-sm" id="linkedin" name="linkedin" value="{{ current_user.linkedin_url or '' }}" placeholder="https://linkedin.com/in/yourprofile">
+                      </div>
+                      <div class="mb-2">
+                        <label for="twitter" class="form-label small mb-1">Twitter/X</label>
+                        <input type="url" class="form-control form-control-sm" id="twitter" name="twitter" value="{{ current_user.twitter_url or '' }}" placeholder="https://twitter.com/yourhandle">
+                      </div>
+                      <div class="mb-2">
+                        <label for="github" class="form-label small mb-1">GitHub</label>
+                        <input type="url" class="form-control form-control-sm" id="github" name="github" value="{{ current_user.github_url or '' }}" placeholder="https://github.com/yourusername">
+                      </div>
+                      <div class="mb-2">
+                        <label for="website" class="form-label small mb-1">Personal Website</label>
+                        <input type="url" class="form-control form-control-sm" id="website" name="website" value="{{ current_user.website_url or '' }}" placeholder="https://yourwebsite.com">
+                      </div>
+                      <div class="mb-2">
+                        <label for="instagram" class="form-label small mb-1">Instagram</label>
+                        <input type="url" class="form-control form-control-sm" id="instagram" name="instagram" value="{{ current_user.instagram_url or '' }}" placeholder="https://instagram.com/yourhandle">
+                      </div>
+                      <div class="mb-2">
+                        <label for="facebook" class="form-label small mb-1">Facebook</label>
+                        <input type="url" class="form-control form-control-sm" id="facebook" name="facebook" value="{{ current_user.facebook_url or '' }}" placeholder="https://facebook.com/yourprofile">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Industry -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingIndustry">
+                    <button class="accordion-button collapsed py-2 px-3 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIndustry" aria-expanded="false" aria-controls="collapseIndustry">
+                      VII. Industry
+                    </button>
+                  </h2>
+                  <div id="collapseIndustry" class="accordion-collapse collapse" aria-labelledby="headingIndustry">
+                    <div class="accordion-body py-2 px-3">
+                      <div class="mb-2">
+                        <label for="industry" class="form-label small mb-1">Industry</label>
+                        <select class="form-select form-select-sm" id="industry" name="industry">
+                          <option value="">Select Industry</option>
+                          <option value="Technology" {{ 'selected' if current_user.industry == 'Technology' }}>Technology</option>
+                          <option value="Business" {{ 'selected' if current_user.industry == 'Business' }}>Business</option>
+                          <option value="Design" {{ 'selected' if current_user.industry == 'Design' }}>Design</option>
+                          <option value="Marketing" {{ 'selected' if current_user.industry == 'Marketing' }}>Marketing</option>
+                          <option value="Finance" {{ 'selected' if current_user.industry == 'Finance' }}>Finance</option>
+                          <option value="Health" {{ 'selected' if current_user.industry == 'Health' }}>Health</option>
+                          <option value="Education" {{ 'selected' if current_user.industry == 'Education' }}>Education</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Hourly Rate -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingRate">
+                    <button class="accordion-button collapsed py-2 px-3 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRate" aria-expanded="false" aria-controls="collapseRate">
+                      VIII. Hourly Rate
+                    </button>
+                  </h2>
+                  <div id="collapseRate" class="accordion-collapse collapse" aria-labelledby="headingRate">
+                    <div class="accordion-body py-2 px-3">
+                      <div class="mb-2">
+                        <label for="hourly_rate" class="form-label small mb-1">Hourly Rate ($)</label>
+                        <input type="number" class="form-control form-control-sm" id="hourly_rate" name="hourly_rate" value="{{ current_user.hourly_rate or '' }}" min="0" step="10">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Right: Live Profile Preview -->
+        <div class="col-md-6">
+          <div id="profilePreview">
+            <!-- Profile preview will be rendered here by JS, using the same structure as profile_view.html -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/feather-icons"></script>
+<script src="{{ url_for('static', filename='js/profile_setup_live.js') }}"></script>
+{% endblock %} 

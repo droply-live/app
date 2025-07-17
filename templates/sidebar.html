@@ -1,0 +1,45 @@
+<aside id="sidebar" class="sidebar d-flex flex-column justify-content-between">
+  <div>
+    <div class="sidebar-logo text-center py-4 mb-3">
+      <a href="{{ url_for('dashboard') }}" class="sidebar-logo-link" style="font-size: 2rem; font-weight: 900; color: #059669; text-decoration: none; letter-spacing: -1px;">Droply</a>
+    </div>
+    <nav class="sidebar-nav flex-grow-1">
+      <ul class="list-unstyled mb-0">
+        <li class="mb-2">
+          <a href="{{ url_for('dashboard') }}" class="sidebar-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            Dashboard
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('find_experts') }}" class="sidebar-link {% if request.endpoint == 'find_experts' %}active{% endif %}">
+            Find Experts
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('bookings') }}" class="sidebar-link {% if request.endpoint == 'bookings' %}active{% endif %}">
+            My Bookings
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('profile_setup') }}" class="sidebar-link {% if request.endpoint == 'profile_setup' %}active{% endif %}">
+            Profile Setup
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <div class="sidebar-account py-4 px-3 border-top">
+    <div class="dropdown">
+      <button class="btn btn-link dropdown-toggle p-0 text-decoration-none fw-bold" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: #333; width: 100%; text-align: center;">
+        {{ current_user.full_name or current_user.username }}
+        <i class="fas fa-chevron-down ms-2" style="font-size: 0.8rem;"></i>
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="userDropdown">
+        <li><a class="dropdown-item" href="{{ url_for('settings') }}"><i class="fas fa-cog me-2"></i>Settings</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Log out</a></li>
+      </ul>
+    </div>
+  </div>
+  <button id="sidebar-burger" class="d-md-none sidebar-burger" aria-label="Open sidebar">&#9776;</button>
+</aside> 

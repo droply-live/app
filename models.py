@@ -1,4 +1,4 @@
-from app import db
+from extensions import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
@@ -15,7 +15,10 @@ class User(UserMixin, db.Model):
     bio = db.Column(db.Text)
     industry = db.Column(db.String(100))
     profession = db.Column(db.String(100))
-    expertise = db.Column(db.String(200))
+    expertise = db.Column(db.String(200))  # Legacy field - keeping for backward compatibility
+    expertise_1 = db.Column(db.String(100))  # Primary expertise
+    expertise_2 = db.Column(db.String(100))  # Secondary expertise  
+    expertise_3 = db.Column(db.String(100))  # Tertiary expertise
     location = db.Column(db.String(100))
     background_image_url = db.Column(db.String(500))
     hourly_rate = db.Column(db.Float, default=0.0)

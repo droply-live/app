@@ -1,0 +1,113 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Find Experts - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Search Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="mb-3">Find Experts</h4>
+                    
+                    <!-- Search Form -->
+                    <form method="GET" action="{{ url_for('find_experts') }}" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control" placeholder="Search experts..." value="{{ request.args.get('search', '') }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
+                    
+                    <!-- Category Filters -->
+                    <div class="category-filters">
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="{{ url_for('find_experts') }}" class="btn btn-sm btn-outline-primary {{ 'active' if not request.args.get('category') }}">All</a>
+                            <a href="{{ url_for('find_experts', category='tech') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'tech' }}">Tech</a>
+                            <a href="{{ url_for('find_experts', category='business') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'business' }}">Business</a>
+                            <a href="{{ url_for('find_experts', category='design') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'design' }}">Design</a>
+                            <a href="{{ url_for('find_experts', category='marketing') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'marketing' }}">Marketing</a>
+                            <a href="{{ url_for('find_experts', category='finance') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'finance' }}">Finance</a>
+                            <a href="{{ url_for('find_experts', category='health') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'health' }}">Health</a>
+                            <a href="{{ url_for('find_experts', category='education') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'education' }}">Education</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Results Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">{{ experts|length }} experts found</h5>
+                {% if request.args.get('search') %}
+                <small class="text-muted">Searching for: "{{ request.args.get('search') }}"</small>
+                {% endif %}
+            </div>
+            
+            {% if experts %}
+            <div class="row g-3">
+                {% for expert in experts %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 expert-card-compact">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start mb-3">
+                                <img src="{{ expert.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
+                                     alt="{{ expert.full_name }}" 
+                                     class="rounded-circle me-3" 
+                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ expert.full_name }}</h6>
+                                    <p class="text-muted mb-1 small">{{ expert.profession or 'Expert' }}</p>
+                                    {% if expert.location %}
+                                    <p class="text-muted mb-0 small">{{ expert.location }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if expert.bio %}
+                            <p class="small text-muted mb-3">{{ expert.bio[:100] }}{% if expert.bio|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-primary fw-bold">${{ expert.hourly_rate or 0 }}/hr</span>
+                                <a href="{{ url_for('profile', username=expert.username) }}" class="btn btn-sm btn-outline-primary">View Profile</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i data-feather="search" style="width: 48px; height: 48px; color: #ccc;"></i>
+                </div>
+                <h6 class="text-muted mb-2">No experts found</h6>
+                <p class="text-muted small mb-0">Try adjusting your search criteria</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.expert-card-compact {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #e5e5e5;
+}
+
+.expert-card-compact:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.category-filters .btn.active {
+    background-color: #667eea;
+    border-color: #667eea;
+    color: white;
+}
+</style>
+{% endblock %} 

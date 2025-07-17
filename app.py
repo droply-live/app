@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
+from extensions import db, login_manager
+from authlib.integrations.flask_client import OAuth
 from flask_login import LoginManager
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timezone
@@ -16,14 +16,26 @@ from datetime import datetime, timezone
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-class Base(DeclarativeBase):
-    pass
-
-db = SQLAlchemy(model_class=Base)
-
 # create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
+app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')
+app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-12345')
+
+# Debug: Print loaded credentials (remove in production)
+print(f"Loaded GOOGLE_CLIENT_ID: {app.config['GOOGLE_CLIENT_ID']}")
+print(f"Loaded GOOGLE_CLIENT_SECRET: {app.config['GOOGLE_CLIENT_SECRET'][:10]}..." if app.config['GOOGLE_CLIENT_SECRET'] != 'YOUR_GOOGLE_CLIENT_SECRET' else "Using placeholder secret")
+
+# OAuth setup
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=app.config['GOOGLE_CLIENT_ID'],
+    client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'},
+)
+
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
 
 # configure the database
@@ -38,13 +50,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 # Setup Flask-Login
-login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
 @login_manager.user_loader
 def load_user(user_id):
+    # Import here to avoid circular import
     from models import User
     return User.query.get(int(user_id))
 
@@ -70,8 +82,11 @@ scheduler.start()
 
 with app.app_context():
     # Make sure to import the models here or their tables won't be created
-    import models  # noqa: F401
+    from models import User, AvailabilityRule, AvailabilityException, Booking, Category
     db.create_all()
 
 # Import routes after app initialization
 from routes import *  # noqa: F401,F403
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5001)

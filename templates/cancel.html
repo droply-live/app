@@ -64,12 +64,12 @@
                             <i data-feather="calendar" class="me-2"></i>Try Different Time
                         </a>
                         
-                        <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                        <a href="{{ url_for('homepage') }}" class="btn btn-outline-primary">
                             <i data-feather="search" class="me-2"></i>Find Other Experts
                         </a>
                         
                         {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                        <a href="{{ url_for('homepage') }}" class="btn btn-outline-secondary">
                             <i data-feather="home" class="me-2"></i>Home
                         </a>
                         {% endif %}
