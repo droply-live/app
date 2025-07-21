@@ -9,9 +9,12 @@ services:
       - .:/app
     environment:
       - FLASK_ENV=development
+      - ENVIRONMENT=development
       - FLASK_DEBUG=1
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - REPLIT_DEV_DOMAIN=${REPLIT_DEV_DOMAIN}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - YOUR_DOMAIN=${YOUR_DOMAIN:-https://3bb3b4695c77.ngrok-free.app}
+      - REPLIT_DEV_DOMAIN=3bb3b4695c77.ngrok-free.app
     command: python main.py
 
 # Removed db service and depends_on

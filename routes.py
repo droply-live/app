@@ -19,9 +19,33 @@ from app import oauth, google
 
 # Configure Stripe
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_4eC39HqLyjWDarjtT1zdp7dc')  # Use environment variable or fallback
-YOUR_DOMAIN = os.environ.get('REPLIT_DEV_DOMAIN', 'localhost:5000')
-if not YOUR_DOMAIN.startswith('http'):
-    YOUR_DOMAIN = f"https://{YOUR_DOMAIN}" if os.environ.get('REPLIT_DEPLOYMENT') else f"http://{YOUR_DOMAIN}"
+YOUR_DOMAIN = os.environ.get('YOUR_DOMAIN', 'https://3bb3b4695c77.ngrok-free.app')
+
+# Production safeguards
+def is_production_environment():
+    """Check if we're running in production environment"""
+    return os.environ.get('FLASK_ENV') == 'production' or os.environ.get('ENVIRONMENT') == 'production'
+
+def validate_stripe_environment():
+    """Validate that Stripe environment matches deployment environment"""
+    if is_production_environment():
+        if stripe.api_key.startswith('sk_test_'):
+            raise ValueError("❌ PRODUCTION ERROR: Test Stripe key detected in production environment!")
+        if not stripe.api_key.startswith('sk_live_'):
+            raise ValueError("❌ PRODUCTION ERROR: Invalid Stripe key format for production!")
+    else:
+        # In development, warn if using live keys
+        if stripe.api_key.startswith('sk_live_'):
+            print("⚠️  WARNING: Live Stripe key detected in development environment!")
+
+# Validate Stripe environment on startup
+try:
+    validate_stripe_environment()
+except ValueError as e:
+    print(f"🚨 {e}")
+    # In production, this should cause the app to fail to start
+    if is_production_environment():
+        raise
 
 # Load the model once when the app starts
 # try:
@@ -480,6 +504,11 @@ def dashboard():
 @app.route('/create-checkout-session/<int:booking_id>', methods=['POST', 'GET'])
 def create_checkout_session(booking_id):
     """Create Stripe checkout session"""
+    # Production safeguard
+    if is_production_environment() and stripe.api_key.startswith('sk_test_'):
+        flash('Payment system temporarily unavailable. Please try again later.', 'error')
+        return redirect(url_for('homepage'))
+    
     booking = Booking.query.get_or_404(booking_id)
     
     try:
@@ -616,10 +645,48 @@ def decline_booking(booking_id):
     if booking.status != 'pending':
         flash('This booking cannot be declined.', 'error')
         return redirect(url_for('bookings'))
-    booking.status = 'declined'
-    booking.payment_status = 'refunded'
-    db.session.commit()
-    flash('❌ Booking declined. Payment will be refunded to the client.', 'warning')
+    
+    try:
+        # Process full refund if payment was made
+        if booking.payment_status == 'paid' and booking.stripe_session_id:
+            # Get the payment intent from the session
+            session = stripe.checkout.Session.retrieve(booking.stripe_session_id)
+            if session.payment_intent:
+                # Full refund for expert decline
+                refund_amount = int(booking.payment_amount * 100)  # Convert to cents
+                
+                # Process the refund through Stripe
+                refund = stripe.Refund.create(
+                    payment_intent=session.payment_intent,
+                    amount=refund_amount,
+                    reason='requested_by_customer',
+                    metadata={
+                        'booking_id': booking.id,
+                        'refund_reason': 'declined_by_expert',
+                        'cancelled_by': 'expert'
+                    }
+                )
+                
+                booking.status = 'declined'
+                booking.payment_status = 'refunded'
+                flash(f'❌ Booking declined. Full refund of ${refund_amount/100:.2f} processed.', 'warning')
+            else:
+                booking.status = 'declined'
+                booking.payment_status = 'refunded'
+                flash('❌ Booking declined but refund could not be processed.', 'warning')
+        else:
+            # No payment to refund
+            booking.status = 'declined'
+            booking.payment_status = 'cancelled'
+            flash('❌ Booking declined successfully.', 'warning')
+        
+        db.session.commit()
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ Error processing decline: {str(e)}', 'error')
+        return redirect(url_for('bookings'))
+    
     return redirect(url_for('bookings'))
 
 @app.route('/booking/cancel-by-client/<int:booking_id>')
@@ -633,17 +700,139 @@ def cancel_booking_by_client(booking_id):
     if booking.status not in ['pending', 'confirmed']:
         flash('This booking cannot be cancelled.', 'error')
         return redirect(url_for('bookings'))
+    
     from datetime import datetime, timedelta
     now = datetime.now()
     time_until_booking = booking.start_time - now
+    
+    # Check 24-hour cancellation policy
     if time_until_booking < timedelta(hours=24):
         flash('Bookings cannot be cancelled within 24 hours of the session.', 'error')
         return redirect(url_for('bookings'))
-    booking.status = 'cancelled'
-    if booking.payment_status == 'paid':
-        booking.payment_status = 'refunded'
-    db.session.commit()
-    flash('❌ Booking cancelled. Payment will be refunded if applicable.', 'warning')
+    
+    try:
+        # Process refund if payment was made
+        if booking.payment_status == 'paid' and booking.stripe_session_id:
+            # Get the payment intent from the session
+            session = stripe.checkout.Session.retrieve(booking.stripe_session_id)
+            if session.payment_intent:
+                # Calculate refund amount based on cancellation policy
+                if time_until_booking >= timedelta(hours=24):
+                    # Full refund if cancelled 24+ hours before
+                    refund_amount = int(booking.payment_amount * 100)  # Convert to cents
+                    refund_reason = 'cancelled_by_client_full'
+                else:
+                    # Partial refund (platform fee is non-refundable)
+                    platform_fee = max(5.0, booking.payment_amount * 0.10)
+                    refund_amount = int((booking.payment_amount - platform_fee) * 100)
+                    refund_reason = 'cancelled_by_client_partial'
+                
+                # Process the refund through Stripe
+                refund = stripe.Refund.create(
+                    payment_intent=session.payment_intent,
+                    amount=refund_amount,
+                    reason='requested_by_customer',
+                    metadata={
+                        'booking_id': booking.id,
+                        'refund_reason': refund_reason,
+                        'cancelled_by': 'client'
+                    }
+                )
+                
+                # Update booking status
+                booking.status = 'cancelled'
+                booking.payment_status = 'refunded'
+                
+                # Handle expert clawback if they were already paid
+                if booking.status == 'confirmed':
+                    expert = User.query.get(booking.expert_id)
+                    if expert and expert.pending_balance > 0:
+                        # Calculate expert's portion that needs to be clawed back
+                        expert_portion = booking.payment_amount * 0.90  # After platform fee
+                        expert.pending_balance = max(0, expert.pending_balance - expert_portion)
+                        expert.total_earnings = max(0, expert.total_earnings - expert_portion)
+                
+                flash(f'✅ Booking cancelled successfully. Refund of ${refund_amount/100:.2f} processed.', 'success')
+            else:
+                flash('❌ Booking cancelled but refund could not be processed.', 'warning')
+        else:
+            # No payment to refund
+            booking.status = 'cancelled'
+            booking.payment_status = 'cancelled'
+            flash('❌ Booking cancelled successfully.', 'success')
+        
+        db.session.commit()
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ Error processing cancellation: {str(e)}', 'error')
+        return redirect(url_for('bookings'))
+    
+    return redirect(url_for('bookings'))
+
+@app.route('/booking/cancel-by-expert/<int:booking_id>')
+@login_required
+def cancel_booking_by_expert(booking_id):
+    """Cancel a booking by the expert (gives full refund to client)"""
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.expert_id != current_user.id:
+        flash('You are not authorized to cancel this booking.', 'error')
+        return redirect(url_for('bookings'))
+    if booking.status != 'confirmed':
+        flash('This booking cannot be cancelled.', 'error')
+        return redirect(url_for('bookings'))
+    
+    try:
+        # Process full refund if payment was made
+        if booking.payment_status == 'paid' and booking.stripe_session_id:
+            # Get the payment intent from the session
+            session = stripe.checkout.Session.retrieve(booking.stripe_session_id)
+            if session.payment_intent:
+                # Full refund for expert cancellation
+                refund_amount = int(booking.payment_amount * 100)  # Convert to cents
+                
+                # Process the refund through Stripe
+                refund = stripe.Refund.create(
+                    payment_intent=session.payment_intent,
+                    amount=refund_amount,
+                    reason='requested_by_customer',
+                    metadata={
+                        'booking_id': booking.id,
+                        'refund_reason': 'cancelled_by_expert',
+                        'cancelled_by': 'expert'
+                    }
+                )
+                
+                # Update booking status
+                booking.status = 'cancelled'
+                booking.payment_status = 'refunded'
+                
+                # Handle expert clawback since they were already paid
+                expert = User.query.get(booking.expert_id)
+                if expert and expert.pending_balance > 0:
+                    # Calculate expert's portion that needs to be clawed back
+                    expert_portion = booking.payment_amount * 0.90  # After platform fee
+                    expert.pending_balance = max(0, expert.pending_balance - expert_portion)
+                    expert.total_earnings = max(0, expert.total_earnings - expert_portion)
+                
+                flash(f'❌ Booking cancelled. Full refund of ${refund_amount/100:.2f} processed.', 'warning')
+            else:
+                booking.status = 'cancelled'
+                booking.payment_status = 'refunded'
+                flash('❌ Booking cancelled but refund could not be processed.', 'warning')
+        else:
+            # No payment to refund
+            booking.status = 'cancelled'
+            booking.payment_status = 'cancelled'
+            flash('❌ Booking cancelled successfully.', 'warning')
+        
+        db.session.commit()
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ Error processing cancellation: {str(e)}', 'error')
+        return redirect(url_for('bookings'))
+    
     return redirect(url_for('bookings'))
 
 @app.errorhandler(404)
@@ -1041,10 +1230,21 @@ def api_availability_times():
 @login_required
 def expert_stripe_onboarding():
     """Onboard expert to Stripe Connect for payouts"""
+    # Production safeguard
+    if is_production_environment() and stripe.api_key.startswith('sk_test_'):
+        flash('Payout setup temporarily unavailable. Please try again later.', 'error')
+        return redirect(url_for('expert_dashboard'))
+    
     if request.method == 'GET':
         return render_template('expert_stripe_onboarding.html')
     
     try:
+        # Debug: Print the URL being constructed
+        profile_url = f'{YOUR_DOMAIN}/profile/{current_user.username}'
+        print(f"DEBUG: Constructing profile URL: {profile_url}")
+        print(f"DEBUG: YOUR_DOMAIN = {YOUR_DOMAIN}")
+        print(f"DEBUG: username = {current_user.username}")
+        
         # Create Stripe Connect Express account
         account = stripe.Account.create(
             type='express',
@@ -1055,10 +1255,11 @@ def expert_stripe_onboarding():
                 'transfers': {'requested': True},
             },
             business_type='individual',
-            business_profile={
-                'url': f'{YOUR_DOMAIN}/profile/{current_user.username}',
-                'mcc': '7399',  # Business Services - Not Elsewhere Classified
-            },
+            # Temporarily remove business_profile to avoid URL validation issues
+            # business_profile={
+            #     'url': profile_url,
+            #     'mcc': '7399',  # Business Services - Not Elsewhere Classified
+            # },
         )
         
         # Update user with Stripe account info
@@ -1087,8 +1288,22 @@ def expert_dashboard():
     if current_user.stripe_account_id:
         try:
             account = stripe.Account.retrieve(current_user.stripe_account_id)
-            current_user.stripe_account_status = account.charges_enabled and 'active' or 'pending'
+            
+            # More comprehensive status checking
+            if account.charges_enabled and account.payouts_enabled:
+                current_user.stripe_account_status = 'active'
+            elif account.details_submitted and not account.charges_enabled:
+                current_user.stripe_account_status = 'pending_verification'
+            elif account.details_submitted:
+                current_user.stripe_account_status = 'pending'
+            else:
+                current_user.stripe_account_status = 'incomplete'
+            
             current_user.payout_enabled = account.payouts_enabled
+            
+            # Debug logging
+            print(f"DEBUG: Stripe account status - charges_enabled: {account.charges_enabled}, payouts_enabled: {account.payouts_enabled}, details_submitted: {account.details_submitted}")
+            print(f"DEBUG: Account status set to: {current_user.stripe_account_status}")
 
             # Total earnings: all completed and paid bookings (historical)
             completed_bookings = Booking.query.filter(
@@ -1139,6 +1354,11 @@ def expert_dashboard():
 @login_required
 def request_payout():
     """Request a payout to expert's bank account"""
+    # Production safeguard
+    if is_production_environment() and stripe.api_key.startswith('sk_test_'):
+        flash('Payout system temporarily unavailable. Please try again later.', 'error')
+        return redirect(url_for('expert_dashboard'))
+    
     if not current_user.stripe_account_id:
         flash('You need to complete Stripe onboarding first', 'error')
         return redirect(url_for('expert_dashboard'))
@@ -1181,15 +1401,51 @@ def request_payout():
     
     return redirect(url_for('expert_dashboard'))
 
+@app.route('/expert/complete-verification')
+@login_required
+def complete_verification():
+    """Redirect to Stripe dashboard for the expert's account"""
+    if not current_user.stripe_account_id:
+        flash('No Stripe account found. Please complete payout setup first.', 'error')
+        return redirect(url_for('expert_dashboard'))
+    
+    try:
+        # Get the account to check its status
+        account = stripe.Account.retrieve(current_user.stripe_account_id)
+        
+        # Create a login link for the account (works for both test and live)
+        try:
+            login_link = stripe.Account.create_login_link(
+                current_user.stripe_account_id,
+                redirect_url=f"{YOUR_DOMAIN}/expert/dashboard"
+            )
+            return redirect(login_link.url)
+        except stripe.error.StripeError as e:
+            # Fallback to direct URL if login link fails
+            dashboard_url = f"https://connect.stripe.com/express/{current_user.stripe_account_id}/settings"
+            return redirect(dashboard_url)
+            
+    except stripe.error.StripeError as e:
+        flash(f'Error accessing Stripe account: {str(e)}', 'error')
+        return redirect(url_for('expert_dashboard'))
+
 @app.route('/stripe/webhook', methods=['POST'])
 def stripe_webhook():
     """Handle Stripe webhooks for payment confirmations and payouts"""
+    # Production safeguard
+    if is_production_environment() and stripe.api_key.startswith('sk_test_'):
+        return 'Production environment detected with test keys', 500
+    
     payload = request.get_data()
     sig_header = request.headers.get('Stripe-Signature')
     
     try:
+        webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+        if not webhook_secret:
+            return 'Webhook secret not configured', 500
+            
         event = stripe.Webhook.construct_event(
-            payload, sig_header, os.environ.get('STRIPE_WEBHOOK_SECRET', 'whsec_test')
+            payload, sig_header, webhook_secret
         )
     except ValueError as e:
         return 'Invalid payload', 400
@@ -1230,6 +1486,16 @@ def stripe_webhook():
         if payout_record:
             payout_record.status = 'failed'
             db.session.commit()
+    
+    elif event['type'] == 'charge.refunded':
+        refund = event['data']['object']
+        booking_id = refund.metadata.get('booking_id')
+        
+        if booking_id:
+            booking = Booking.query.get(booking_id)
+            if booking:
+                booking.payment_status = 'refunded'
+                db.session.commit()
     
     return 'OK', 200
 
@@ -1291,6 +1557,7 @@ def update_bookings_status():
 @app.route('/auth/google')
 def auth_google():
     redirect_uri = url_for('auth_google_callback', _external=True)
+    print(f"DEBUG: Google OAuth redirect_uri = {redirect_uri}")
     return google.authorize_redirect(redirect_uri)
 
 @app.route('/auth/google/callback')
