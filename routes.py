@@ -17,9 +17,91 @@ from datetime import datetime, timezone, timedelta
 import time
 from app import oauth, google
 
+# Video calling imports and configuration
+import os
+import requests
+import json
+import uuid
+from datetime import datetime, timezone, timedelta
+
+# Daily.co API configuration (similar to what Intro.co uses)
+DAILY_API_KEY = os.environ.get('DAILY_API_KEY', 'your_daily_api_key_here')
+DAILY_API_URL = 'https://api.daily.co/v1'
+
+# Fallback video calling (simple WebRTC)
+def create_simple_meeting_room(booking_id):
+    """Create a simple meeting room using WebRTC when Daily.co is not available"""
+    try:
+        booking = Booking.query.get(booking_id)
+        if not booking:
+            return None, "Booking not found"
+        
+        # Generate a simple room ID
+        room_id = f"droply-{booking_id}-{uuid.uuid4().hex[:8]}"
+        
+        # For simple WebRTC, we'll use a basic room URL
+        meeting_url = f"/meeting-room/{room_id}"
+        
+        booking.meeting_room_id = room_id
+        booking.meeting_url = meeting_url
+        db.session.commit()
+        
+        return {'name': room_id, 'url': meeting_url}, None
+        
+    except Exception as e:
+        return None, f"Error creating meeting room: {str(e)}"
+
+def create_meeting_room(booking_id):
+    """Create a Daily.co meeting room for a booking"""
+    try:
+        # Generate a unique room name
+        room_name = f"droply-{booking_id}"
+        
+        # Create the room on Daily.co with minimal settings for free tier
+        headers = {
+            'Authorization': f'Bearer {DAILY_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Use minimal room data that works with free tier
+        room_data = {
+            'name': room_name,
+            'privacy': 'public'  # Use public for free tier
+        }
+        
+        response = requests.post(
+            f'{DAILY_API_URL}/rooms',
+            headers=headers,
+            json=room_data
+        )
+        
+        if response.status_code == 200:
+            room_info = response.json()
+            room_url = room_info.get('url')
+            
+            # Update the booking with room info
+            booking = Booking.query.get(booking_id)
+            if booking:
+                booking.meeting_room_id = room_name
+                booking.meeting_url = room_url
+                db.session.commit()
+            
+            return room_info, None
+        else:
+            return None, f"Failed to create room: {response.text}"
+            
+    except Exception as e:
+        return None, f"Error creating room: {str(e)}"
+
+def get_meeting_token(room_name, user_id, is_owner=False):
+    """Generate a meeting token for a user"""
+    # For now, just return a simple token since Daily.co token generation is complex
+    # In production, you'd want to implement proper token generation
+    return f"simple-token-{user_id}-{is_owner}", None
+
 # Configure Stripe
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_4eC39HqLyjWDarjtT1zdp7dc')  # Use environment variable or fallback
-YOUR_DOMAIN = os.environ.get('YOUR_DOMAIN', 'https://3bb3b4695c77.ngrok-free.app')
+YOUR_DOMAIN = os.environ.get('YOUR_DOMAIN', 'https://e41a374ae5c6.ngrok-free.app')
 
 # Production safeguards
 def is_production_environment():
@@ -616,7 +698,8 @@ def bookings():
                          upcoming_as_client=upcoming_as_client,
                          past_as_client=past_as_client,
                          upcoming_as_expert=upcoming_as_expert,
-                         past_as_expert=past_as_expert)
+                         past_as_expert=past_as_expert,
+                         now=now)
 
 @app.route('/booking/accept/<int:booking_id>')
 @login_required
@@ -1331,6 +1414,7 @@ def expert_dashboard():
             flash(f'Error fetching Stripe account info: {str(e)}', 'error')
 
     # Calculate potential earnings: sum of all confirmed, upcoming bookings (not yet completed)
+    # Industry standard: only count confirmed bookings as potential earnings
     from datetime import datetime
     now = datetime.now()
     potential_earnings_bookings = Booking.query.filter(
@@ -1427,7 +1511,7 @@ def complete_verification():
             
     except stripe.error.StripeError as e:
         flash(f'Error accessing Stripe account: {str(e)}', 'error')
-        return redirect(url_for('expert_dashboard'))
+    return redirect(url_for('expert_dashboard'))
 
 @app.route('/stripe/webhook', methods=['POST'])
 def stripe_webhook():
@@ -1495,7 +1579,7 @@ def stripe_webhook():
             booking = Booking.query.get(booking_id)
             if booking:
                 booking.payment_status = 'refunded'
-                db.session.commit()
+            db.session.commit()
     
     return 'OK', 200
 
@@ -1579,3 +1663,277 @@ def auth_google_callback():
     login_user(user)
     flash('Logged in with Google!', 'success')
     return redirect(url_for('dashboard'))
+
+@app.route('/meeting/<int:booking_id>')
+@login_required
+def join_meeting(booking_id):
+    """Join a video meeting"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    # Check if user is authorized to join this meeting
+    if booking.user_id != current_user.id and booking.expert_id != current_user.id:
+        flash('You are not authorized to join this meeting.', 'error')
+        return redirect(url_for('bookings'))
+    
+    # Check if meeting time is within 15 minutes before or after
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    meeting_time = booking.start_time
+    time_diff = abs((meeting_time - now).total_seconds() / 60)
+    
+    if time_diff > 15:
+        flash('Meeting is not available yet or has already ended.', 'warning')
+        return redirect(url_for('bookings'))
+    
+    # Create meeting room if it doesn't exist
+    if not booking.meeting_room_id or not booking.meeting_url:
+        room_info, error = create_meeting_room(booking_id)
+        if error:
+            flash(f'Error setting up meeting: {error}', 'error')
+            return redirect(url_for('bookings'))
+        # Refresh booking to get updated room info
+        db.session.refresh(booking)
+    
+    # Determine the other participant
+    if current_user.id == booking.user_id:
+        other_user = booking.expert
+        is_owner = False
+    else:
+        other_user = booking.user
+        is_owner = True
+    
+    # Use the working Daily.co template
+    return render_template('meeting_daily.html', 
+                         booking=booking, 
+                         room_name=booking.meeting_room_id,
+                         room_url=booking.meeting_url,
+                         other_user=other_user,
+                         is_owner=is_owner)
+
+@app.route('/meeting/<int:booking_id>/start')
+@login_required
+def start_meeting(booking_id):
+    """Mark meeting as started"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    if booking.expert_id != current_user.id:
+        flash('Only the expert can start the meeting.', 'error')
+        return redirect(url_for('bookings'))
+    
+    if not booking.can_join_meeting():
+        flash('Meeting cannot be started at this time.', 'error')
+        return redirect(url_for('bookings'))
+    
+    booking.meeting_started_at = datetime.now(timezone.utc)
+    db.session.commit()
+    
+    return redirect(url_for('join_meeting', booking_id=booking_id))
+
+@app.route('/meeting/<int:booking_id>/end')
+@login_required
+def end_meeting(booking_id):
+    """Mark meeting as ended"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    if booking.expert_id != current_user.id:
+        flash('Only the expert can end the meeting.', 'error')
+        return redirect(url_for('bookings'))
+    
+    booking.meeting_ended_at = datetime.now(timezone.utc)
+    if booking.meeting_started_at:
+        duration = (booking.meeting_ended_at - booking.meeting_started_at).total_seconds() / 60
+        booking.meeting_duration = int(duration)
+    db.session.commit()
+    
+    flash('Meeting ended successfully.', 'success')
+    return redirect(url_for('bookings'))
+
+@app.route('/api/meeting/<int:booking_id>/status')
+@login_required
+def meeting_status(booking_id):
+    """Get meeting status for real-time updates"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    if booking.user_id != current_user.id and booking.expert_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    return jsonify({
+        'booking_id': booking.id,
+        'status': booking.status,
+        'meeting_started': booking.meeting_started_at is not None,
+        'meeting_ended': booking.meeting_ended_at is not None,
+        'can_join': booking.can_join_meeting(),
+        'is_ongoing': booking.is_ongoing(),
+        'room_id': booking.meeting_room_id,
+        'meeting_url': booking.meeting_url
+    })
+
+@app.route('/test-meeting/<int:booking_id>')
+def test_meeting(booking_id):
+    """Temporary test route for video calling - bypasses authentication"""
+    try:
+        booking = Booking.query.get_or_404(booking_id)
+        
+        # Create meeting room if it doesn't exist
+        if not booking.meeting_room_id:
+            room_info, error = create_meeting_room(booking_id)
+            if error:
+                print(f"Error creating meeting room: {error}")
+                # Fall back to simple meeting
+                booking.meeting_room_id = f"test-room-{booking_id}"
+                booking.meeting_url = f"https://droply-test.daily.co/test-room-{booking_id}"
+                db.session.commit()
+        
+        # Generate meeting token
+        token, error = get_meeting_token(booking.meeting_room_id, 1, True)
+        if error:
+            print(f"Error generating token: {error}")
+            # Use a simple token
+            token = "test-token"
+        
+        # Determine the other participant
+        other_user = booking.expert
+        
+        # Use Daily.co template
+        template_name = 'meeting.html'
+        
+        return render_template(template_name, 
+                             booking=booking, 
+                             token=token, 
+                             room_name=booking.meeting_room_id,
+                             other_user=other_user)
+                             
+    except Exception as e:
+        print(f"Error in test_meeting: {e}")
+        return f"Error: {str(e)}", 500
+
+@app.route('/simple-test-meeting/<int:booking_id>')
+def simple_test_meeting(booking_id):
+    """Simple test route that bypasses Daily.co entirely"""
+    try:
+        booking = Booking.query.get_or_404(booking_id)
+        
+        # Set up simple meeting data
+        booking.meeting_room_id = f"simple-test-{booking_id}"
+        booking.meeting_url = f"https://meet.daily.co/simple-test-{booking_id}"
+        db.session.commit()
+        
+        # Determine the other participant
+        other_user = booking.expert
+        
+        # Always use simple template
+        return render_template('meeting_simple.html', 
+                             booking=booking, 
+                             token="simple-token", 
+                             room_name=booking.meeting_room_id,
+                             other_user=other_user)
+                             
+    except Exception as e:
+        print(f"Error in simple_test_meeting: {e}")
+        return f"Error: {str(e)}", 500
+
+@app.route('/daily-test/<int:booking_id>')
+def daily_test(booking_id):
+    """Simple Daily.co test route"""
+    try:
+        booking = Booking.query.get_or_404(booking_id)
+        
+        # Create a simple Daily.co room
+        room_name = f"droply-test-{booking_id}"
+        room_url = f"https://droply-test.daily.co/{room_name}"
+        
+        # Update booking with room info
+        booking.meeting_room_id = room_name
+        booking.meeting_url = room_url
+        db.session.commit()
+        
+        # Determine the other participant
+        other_user = booking.expert
+        
+        return render_template('meeting.html', 
+                             booking=booking, 
+                             token="test-token", 
+                             room_name=room_name,
+                             other_user=other_user)
+                             
+    except Exception as e:
+        print(f"Error in daily_test: {e}")
+        return f"Error: {str(e)}", 500
+
+@app.route('/simple-daily-test/<int:booking_id>')
+def simple_daily_test(booking_id):
+    """Very simple Daily.co test route"""
+    try:
+        booking = Booking.query.get_or_404(booking_id)
+        
+        # Create meeting room if it doesn't exist
+        if not booking.meeting_room_id or not booking.meeting_url:
+            room_info, error = create_meeting_room(booking_id)
+            if error:
+                return f"Error creating room: {error}", 500
+            # Refresh booking to get updated room info
+            db.session.refresh(booking)
+        
+        # Return simple HTML with Daily.co iframe
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Daily.co Test</title>
+            <script src="https://unpkg.com/@daily-co/daily-js"></script>
+        </head>
+        <body>
+            <h1>Daily.co Video Call Test</h1>
+            <p>Room: {booking.meeting_room_id}</p>
+            <p>URL: {booking.meeting_url}</p>
+            <div id="video-container" style="width: 100%; height: 500px;"></div>
+            <script>
+                const callObject = DailyIframe.createFrame(document.getElementById('video-container'), {{
+                    iframeStyle: {{
+                        width: '100%',
+                        height: '100%',
+                        border: '0'
+                    }}
+                }});
+                callObject.join({{
+                    url: '{booking.meeting_url}'
+                }});
+            </script>
+        </body>
+        </html>
+        """
+        
+        return html
+                             
+    except Exception as e:
+        print(f"Error in simple_daily_test: {e}")
+        return f"Error: {str(e)}", 500
+
+@app.route('/test-meeting-auth/<int:booking_id>')
+def test_meeting_auth(booking_id):
+    """Temporary test route that bypasses authentication for Daily.co testing"""
+    try:
+        booking = Booking.query.get_or_404(booking_id)
+        
+        # Create meeting room if it doesn't exist
+        if not booking.meeting_room_id or not booking.meeting_url:
+            room_info, error = create_meeting_room(booking_id)
+            if error:
+                return f"Error creating room: {error}", 500
+            # Refresh booking to get updated room info
+            db.session.refresh(booking)
+        
+        # Get the other participant
+        other_user = booking.expert
+        
+        # Use the working Daily.co template
+        return render_template('meeting_daily.html', 
+                             booking=booking, 
+                             room_name=booking.meeting_room_id,
+                             room_url=booking.meeting_url,
+                             other_user=other_user,
+                             is_owner=True)
+                             
+    except Exception as e:
+        print(f"Error in test_meeting_auth: {e}")
+        return f"Error: {str(e)}", 500

@@ -114,12 +114,66 @@ class Booking(db.Model):
     client_name = db.Column(db.String(100))
     client_email = db.Column(db.String(120))
     client_message = db.Column(db.Text)
+    
+    # Video call fields
+    meeting_room_id = db.Column(db.String(100))  # Unique room ID for video call
+    meeting_url = db.Column(db.String(500))  # Direct meeting URL
+    meeting_started_at = db.Column(db.DateTime)  # When the meeting actually started
+    meeting_ended_at = db.Column(db.DateTime)  # When the meeting ended
+    meeting_duration = db.Column(db.Integer)  # Actual meeting duration in minutes
+    recording_url = db.Column(db.String(500))  # URL to meeting recording if available
+    
     # Relationships
     user = db.relationship('User', foreign_keys=[user_id], backref='bookings_as_user')
     expert = db.relationship('User', foreign_keys=[expert_id], backref='bookings_as_expert')
 
     def __repr__(self):
         return f'<Booking {self.id} - {self.status}>'
+    
+    def is_upcoming(self):
+        """Check if booking is in the future"""
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        
+        # Handle timezone-naive datetimes by assuming they're UTC
+        start_time = self.start_time
+        if start_time.tzinfo is None:
+            start_time = start_time.replace(tzinfo=timezone.utc)
+            
+        return start_time > now
+    
+    def is_ongoing(self):
+        """Check if booking is currently happening"""
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        
+        # Handle timezone-naive datetimes by assuming they're UTC
+        start_time = self.start_time
+        end_time = self.end_time
+        
+        if start_time.tzinfo is None:
+            start_time = start_time.replace(tzinfo=timezone.utc)
+        if end_time.tzinfo is None:
+            end_time = end_time.replace(tzinfo=timezone.utc)
+            
+        return start_time <= now <= end_time
+    
+    def can_join_meeting(self):
+        """Check if user can join the meeting (within 5 minutes before start)"""
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(timezone.utc)
+        
+        # Handle timezone-naive datetimes by assuming they're UTC
+        start_time = self.start_time
+        end_time = self.end_time
+        
+        # If the datetime is timezone-naive, assume it's UTC
+        if start_time.tzinfo is None:
+            start_time = start_time.replace(tzinfo=timezone.utc)
+        if end_time.tzinfo is None:
+            end_time = end_time.replace(tzinfo=timezone.utc)
+            
+        return start_time - timedelta(minutes=5) <= now <= end_time
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)

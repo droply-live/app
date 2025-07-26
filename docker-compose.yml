@@ -13,8 +13,9 @@ services:
       - FLASK_DEBUG=1
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
-      - YOUR_DOMAIN=${YOUR_DOMAIN:-https://3bb3b4695c77.ngrok-free.app}
-      - REPLIT_DEV_DOMAIN=3bb3b4695c77.ngrok-free.app
+      - DAILY_API_KEY=${DAILY_API_KEY}
+      - YOUR_DOMAIN=${YOUR_DOMAIN:-https://e41a374ae5c6.ngrok-free.app}
+      - REPLIT_DEV_DOMAIN=e41a374ae5c6.ngrok-free.app
     command: python main.py
 
 # Removed db service and depends_on

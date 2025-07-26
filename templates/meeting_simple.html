@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+
+{% block title %}Video Meeting - Droply{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+.meeting-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.meeting-header {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.meeting-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.meeting-participants {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.participant-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.connection-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.connection-status.connected {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.connection-status.connecting {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.connection-status.disconnected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.meeting-main {
+    flex: 1;
+    display: flex;
+    position: relative;
+}
+
+.meeting-notice {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    z-index: 10;
+    text-align: center;
+    max-width: 600px;
+}
+
+.video-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding: 2rem;
+    align-items: center;
+    justify-items: center;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 16/9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.video-element {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-overlay {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 14px;
+    backdrop-filter: blur(10px);
+}
+
+.meeting-footer {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.control-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 1rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.control-btn.danger {
+    background: rgba(239, 68, 68, 0.8);
+}
+
+.control-btn.danger:hover {
+    background: rgba(239, 68, 68, 1);
+}
+
+.control-btn.secondary {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.control-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.control-btn.muted {
+    background: rgba(239, 68, 68, 0.8);
+}
+
+.control-btn.video-off {
+    background: rgba(239, 68, 68, 0.8);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="meeting-container">
+    <!-- Meeting Header -->
+    <div class="meeting-header">
+        <div class="meeting-info">
+            <div class="meeting-participants">
+                <div class="participant-avatar">
+                    {{ current_user.full_name[0] if current_user.full_name else current_user.username[0] }}
+                </div>
+                <span>{{ current_user.full_name or current_user.username }}</span>
+                <span>•</span>
+                <div class="participant-avatar">
+                    {{ other_user.full_name[0] if other_user.full_name else other_user.username[0] }}
+                </div>
+                <span>{{ other_user.full_name or other_user.username }}</span>
+            </div>
+        </div>
+        <div class="connection-status" id="connectionStatus">
+            <i data-feather="loader" class="me-1"></i>Connecting...
+        </div>
+    </div>
+
+    <!-- Meeting Main -->
+    <div class="meeting-main">
+        <div class="meeting-notice">
+            <i data-feather="info" class="me-2"></i>
+            <strong>Simple Video Call Mode:</strong> This is a basic video call using WebRTC. 
+            For enhanced features like screen sharing and recording, please configure Daily.co API.
+        </div>
+        
+        <div class="video-grid">
+            <div class="video-container">
+                <video id="localVideo" class="video-element" autoplay muted playsinline></video>
+                <div class="video-overlay">
+                    {{ current_user.full_name or current_user.username }} (You)
+                </div>
+            </div>
+            <div class="video-container">
+                <video id="remoteVideo" class="video-element" autoplay playsinline></video>
+                <div class="video-overlay">
+                    {{ other_user.full_name or other_user.username }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meeting Footer -->
+    <div class="meeting-footer">
+        <button class="control-btn secondary" onclick="toggleMute()" id="muteBtn">
+            <i data-feather="mic"></i>
+        </button>
+        <button class="control-btn secondary" onclick="toggleVideo()" id="videoBtn">
+            <i data-feather="video"></i>
+        </button>
+        <button class="control-btn danger" onclick="leaveMeeting()">
+            <i data-feather="phone-off"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+let localStream = null;
+let remoteStream = null;
+let peerConnection = null;
+let isMuted = false;
+let isVideoOn = true;
+
+// Simple WebRTC configuration
+const configuration = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+};
+
+async function initializeCall() {
+    try {
+        // Get user media
+        localStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+        });
+        
+        document.getElementById('localVideo').srcObject = localStream;
+        updateConnectionStatus('connecting');
+        
+        // Initialize peer connection
+        peerConnection = new RTCPeerConnection(configuration);
+        
+        // Add local stream
+        localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+        });
+        
+        // Handle remote stream
+        peerConnection.ontrack = (event) => {
+            remoteStream = event.streams[0];
+            document.getElementById('remoteVideo').srcObject = remoteStream;
+            updateConnectionStatus('connected');
+        };
+        
+        // Handle connection state changes
+        peerConnection.onconnectionstatechange = () => {
+            console.log('Connection state:', peerConnection.connectionState);
+            if (peerConnection.connectionState === 'connected') {
+                updateConnectionStatus('connected');
+            } else if (peerConnection.connectionState === 'disconnected') {
+                updateConnectionStatus('disconnected');
+            }
+        };
+        
+        // Create and send offer
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        
+        // In a real implementation, you would send this offer to the other participant
+        // For now, we'll just log it
+        console.log('Offer created:', offer);
+        
+        // Simulate receiving an answer (in real implementation, this would come from the other participant)
+        setTimeout(() => {
+            simulateAnswer();
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error initializing call:', error);
+        showError('Failed to access camera/microphone. Please check permissions.');
+    }
+}
+
+function simulateAnswer() {
+    // This is a simplified simulation - in a real app, you'd exchange offers/answers via signaling server
+    console.log('Simulating answer from other participant...');
+    updateConnectionStatus('connected');
+    
+    // Show a message about the simulation
+    const notice = document.querySelector('.meeting-notice');
+    notice.innerHTML = `
+        <i data-feather="info" class="me-2"></i>
+        <strong>Demo Mode:</strong> This is a simulation. In a real call, you would be connected to {{ other_user.full_name or other_user.username }}. 
+        Your microphone and camera are working - try the controls below!
+    `;
+    feather.replace();
+}
+
+function updateConnectionStatus(status) {
+    const statusEl = document.getElementById('connectionStatus');
+    statusEl.className = `connection-status ${status}`;
+    
+    if (status === 'connected') {
+        statusEl.innerHTML = '<i data-feather="wifi" class="me-1"></i>Connected';
+    } else if (status === 'connecting') {
+        statusEl.innerHTML = '<i data-feather="loader" class="me-1"></i>Connecting...';
+    } else {
+        statusEl.innerHTML = '<i data-feather="wifi-off" class="me-1"></i>Disconnected';
+    }
+    
+    feather.replace();
+}
+
+function toggleMute() {
+    if (localStream) {
+        isMuted = !isMuted;
+        localStream.getAudioTracks().forEach(track => {
+            track.enabled = !isMuted;
+        });
+        
+        const muteBtn = document.getElementById('muteBtn');
+        if (isMuted) {
+            muteBtn.innerHTML = '<i data-feather="mic-off"></i>';
+            muteBtn.classList.add('muted');
+        } else {
+            muteBtn.innerHTML = '<i data-feather="mic"></i>';
+            muteBtn.classList.remove('muted');
+        }
+        feather.replace();
+    }
+}
+
+function toggleVideo() {
+    if (localStream) {
+        isVideoOn = !isVideoOn;
+        localStream.getVideoTracks().forEach(track => {
+            track.enabled = isVideoOn;
+        });
+        
+        const videoBtn = document.getElementById('videoBtn');
+        if (!isVideoOn) {
+            videoBtn.innerHTML = '<i data-feather="video-off"></i>';
+            videoBtn.classList.add('video-off');
+        } else {
+            videoBtn.innerHTML = '<i data-feather="video"></i>';
+            videoBtn.classList.remove('video-off');
+        }
+        feather.replace();
+    }
+}
+
+function leaveMeeting() {
+    if (confirm('Are you sure you want to leave this meeting?')) {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
+        if (peerConnection) {
+            peerConnection.close();
+        }
+        window.location.href = '{{ url_for("bookings") }}';
+    }
+}
+
+function showError(message) {
+    alert(message);
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    feather.replace();
+    initializeCall();
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', function() {
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+    }
+    if (peerConnection) {
+        peerConnection.close();
+    }
+});
+</script>
+{% endblock %} 

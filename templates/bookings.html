@@ -103,6 +103,26 @@
                                         {% endif %}
                                     </div>
                                     <div class="d-flex gap-2 mt-2">
+                                        {% if booking.can_join_meeting() %}
+                                        <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                                           class="btn btn-success btn-sm">
+                                            <i data-feather="video" class="me-1"></i>Join Meeting
+                                        </a>
+                                        {% elif booking.is_ongoing() %}
+                                        <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                                           class="btn btn-success btn-sm">
+                                            <i data-feather="video" class="me-1"></i>Join Meeting
+                                        </a>
+                                        {% else %}
+                                        <small class="text-muted">
+                                            <i data-feather="clock" class="me-1"></i>
+                                            {% if booking.start_time > now %}
+                                                Starts in {{ ((booking.start_time - now).total_seconds() / 3600)|round(1) }} hours
+                                            {% else %}
+                                                Meeting time has passed
+                                            {% endif %}
+                                        </small>
+                                        {% endif %}
                                         <a href="{{ url_for('cancel_booking_by_expert', booking_id=booking.id) }}" 
                                            class="btn btn-outline-danger btn-sm"
                                            onclick="return confirm('Cancel this booking? Client will receive a full refund.')">
@@ -209,6 +229,28 @@
                                         </div>
                                         {% if booking.status in ['pending', 'confirmed'] %}
                                         <div class="d-flex gap-2">
+                                            {% if booking.status == 'confirmed' %}
+                                                {% if booking.can_join_meeting() %}
+                                                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                                                   class="btn btn-success btn-sm">
+                                                    <i data-feather="video" class="me-1"></i>Join Meeting
+                                                </a>
+                                                {% elif booking.is_ongoing() %}
+                                                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                                                   class="btn btn-success btn-sm">
+                                                    <i data-feather="video" class="me-1"></i>Join Meeting
+                                                </a>
+                                                {% else %}
+                                                <small class="text-muted">
+                                                    <i data-feather="clock" class="me-1"></i>
+                                                    {% if booking.start_time > now %}
+                                                        Starts in {{ ((booking.start_time - now).total_seconds() / 3600)|round(1) }} hours
+                                                    {% else %}
+                                                        Meeting time has passed
+                                                    {% endif %}
+                                                </small>
+                                                {% endif %}
+                                            {% endif %}
                                             <a href="{{ url_for('cancel_booking_by_client', booking_id=booking.id) }}" 
                                                class="btn btn-outline-danger btn-sm"
                                                onclick="return confirm('Are you sure you want to cancel this booking? This action cannot be undone.')">
