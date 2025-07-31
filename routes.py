@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, make_response
 from flask_login import login_user, logout_user, login_required, current_user
-from sqlalchemy import or_, case
+from sqlalchemy import or_, case, func
 from app import app
 from extensions import db
 from models import User, AvailabilityRule, AvailabilityException, Booking, Payout
@@ -668,30 +668,41 @@ def export_calendar(username):
 def bookings():
     """View user's bookings and calendar"""
     from models import Booking, User
-    from datetime import datetime
-    now = datetime.now()
+    from datetime import datetime, timezone
+    from sqlalchemy import func
+    
+    now = datetime.now(timezone.utc)
+    now_naive = now.replace(tzinfo=None)  # Convert to naive datetime for template comparison
     
     # Bookings where the user is the booker (client)
     upcoming_as_client = Booking.query.filter(
         (Booking.user_id == current_user.id) &
-        (Booking.start_time >= now)
+        (func.datetime(Booking.start_time) >= now.replace(tzinfo=None))
     ).order_by(Booking.start_time.asc()).all()
     
     past_as_client = Booking.query.filter(
         (Booking.user_id == current_user.id) &
-        (Booking.start_time < now)
+        (func.datetime(Booking.start_time) < now.replace(tzinfo=None))
     ).order_by(Booking.start_time.desc()).all()
     
     # Bookings where the user is the expert (provider)
     upcoming_as_expert = Booking.query.filter(
         (Booking.expert_id == current_user.id) &
-        (Booking.start_time >= now)
+        (func.datetime(Booking.start_time) >= now.replace(tzinfo=None))
     ).order_by(Booking.start_time.asc()).all()
     
     past_as_expert = Booking.query.filter(
         (Booking.expert_id == current_user.id) &
-        (Booking.start_time < now)
+        (func.datetime(Booking.start_time) < now.replace(tzinfo=None))
     ).order_by(Booking.start_time.desc()).all()
+    
+    # Debug prints
+    print(f"DEBUG: Current user ID: {current_user.id}")
+    print(f"DEBUG: Current time: {now}")
+    print(f"DEBUG: Upcoming as expert count: {len(upcoming_as_expert)}")
+    print(f"DEBUG: Past as expert count: {len(past_as_expert)}")
+    for booking in upcoming_as_expert:
+        print(f"DEBUG: Upcoming booking ID {booking.id}, start_time: {booking.start_time}, status: {booking.status}")
     
     return render_template('bookings.html', 
                          user=current_user, 
@@ -699,7 +710,7 @@ def bookings():
                          past_as_client=past_as_client,
                          upcoming_as_expert=upcoming_as_expert,
                          past_as_expert=past_as_expert,
-                         now=now)
+                         now=now_naive)
 
 @app.route('/booking/accept/<int:booking_id>')
 @login_required
@@ -1937,3 +1948,89 @@ def test_meeting_auth(booking_id):
     except Exception as e:
         print(f"Error in test_meeting_auth: {e}")
         return f"Error: {str(e)}", 500
+
+@app.route('/debug-bookings')
+@login_required
+def debug_bookings():
+    """Debug route to check bookings query"""
+    from models import Booking, User
+    from datetime import datetime, timezone
+    from sqlalchemy import func
+    
+    now = datetime.now(timezone.utc)
+    
+    # Get all bookings for current user as expert
+    all_bookings = Booking.query.filter(
+        Booking.expert_id == current_user.id
+    ).order_by(Booking.start_time.desc()).all()
+    
+    # Test the upcoming query
+    upcoming_as_expert = Booking.query.filter(
+        (Booking.expert_id == current_user.id) &
+        (func.datetime(Booking.start_time) >= now.replace(tzinfo=None))
+    ).order_by(Booking.start_time.asc()).all()
+    
+    debug_info = {
+        'current_time_utc': str(now),
+        'current_time_naive': str(now.replace(tzinfo=None)),
+        'total_bookings': len(all_bookings),
+        'upcoming_bookings': len(upcoming_as_expert),
+        'all_bookings': [
+            {
+                'id': b.id,
+                'start_time': str(b.start_time),
+                'status': b.status,
+                'is_future': b.start_time > now.replace(tzinfo=None)
+            } for b in all_bookings[:5]
+        ],
+        'upcoming_bookings_detail': [
+            {
+                'id': b.id,
+                'start_time': str(b.start_time),
+                'status': b.status
+            } for b in upcoming_as_expert
+        ]
+    }
+    
+    return jsonify(debug_info)
+
+@app.route('/test-bookings')
+@login_required
+def test_bookings():
+    """Simple test route to debug bookings query"""
+    from models import Booking
+    from datetime import datetime, timezone
+    
+    now = datetime.now(timezone.utc)
+    
+    # Simple query without timezone complexity
+    all_bookings = Booking.query.filter(
+        Booking.expert_id == current_user.id
+    ).all()
+    
+    # Manual filtering in Python
+    upcoming = []
+    past = []
+    
+    for booking in all_bookings:
+        if booking.start_time > now.replace(tzinfo=None):
+            upcoming.append(booking)
+        else:
+            past.append(booking)
+    
+    result = {
+        'current_user_id': current_user.id,
+        'current_time': str(now),
+        'total_bookings': len(all_bookings),
+        'upcoming_count': len(upcoming),
+        'past_count': len(past),
+        'upcoming_bookings': [
+            {
+                'id': b.id,
+                'start_time': str(b.start_time),
+                'status': b.status
+            } for b in upcoming
+        ]
+    }
+    
+    return jsonify(result)
