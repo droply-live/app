@@ -1,316 +1,749 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile - Droply</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block title %}Complete Your Profile - Droply{% endblock %}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-y: auto;
+        }
 
-{% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="text-center mb-5">
-                <h1 class="h2 fw-bold" style="color: #1a3a6d;">Complete Your Profile</h1>
-                <p class="text-muted">Tell us about yourself so others can find you</p>
-            </div>
+        .onboarding-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .onboarding-step {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px 20px;
+        }
+
+        .step-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .step-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .step-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .step-header p {
+            font-size: 1.1rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group-text {
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .form-text {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .expertise-section {
+            margin-bottom: 25px;
+        }
+
+        .category-group {
+            margin-bottom: 20px;
+        }
+
+        .category-group h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .tag-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+        }
+
+        .expertise-tag {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .expertise-tag input {
+            display: none;
+        }
+
+        .expertise-tag span {
+            display: block;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .expertise-tag input:checked + span {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .expertise-tag:hover span {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .custom-expertise {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .custom-expertise h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .custom-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .custom-input-group .form-control {
+            flex: 1;
+        }
+
+        .pricing-options {
+            margin-top: 30px;
+        }
+
+        .pricing-options h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .pricing-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pricing-btn {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-btn:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .pricing-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .profile-summary {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-item strong {
+            color: #333;
+        }
+
+        .step-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .step-content {
+                padding: 30px 20px;
+            }
             
-            <div class="card" style="border-radius: 18px; border: none; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
-                <div class="card-body p-5">
-                    <form method="POST" id="onboarding-form">
-                        {{ form.hidden_tag() }}
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">{{ form.profession.label }}</label>
-                            {{ form.profession(class="form-control form-control-lg", placeholder="e.g., Software Engineer, Business Coach, Marketing Consultant") }}
-                            {% if form.profession.errors %}
-                                <div class="text-danger small mt-1">
-                                    {% for error in form.profession.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">{{ form.bio.label }}</label>
-                            {{ form.bio(class="form-control", rows="4", placeholder="Tell people about your expertise, experience, and what you can help them with...") }}
-                            {% if form.bio.errors %}
-                                <div class="text-danger small mt-1">
-                                    {% for error in form.bio.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">{{ form.hourly_rate.label }}</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    {{ form.hourly_rate(class="form-control", placeholder="0") }}
-                                </div>
-                                <div class="form-text">Set to 0 if you offer free sessions</div>
-                                {% if form.hourly_rate.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.hourly_rate.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">{{ form.industry.label }}</label>
-                                {{ form.industry(class="form-select form-select-lg") }}
-                                {% if form.industry.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.industry.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
+            .step-header h1 {
+                font-size: 2rem;
+            }
+            
+            .tag-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+            
+            .step-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text">
+                <span id="currentStep">1</span> of <span id="totalSteps">4</span>
+            </div>
+        </div>
 
-                        <!-- Specialty Tags Section -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Your Specialties & Interests</label>
-                            <p class="text-muted small mb-3">Select the areas where you can help others. This helps people find you.</p>
-                            
-                            <div class="specialties-container">
-                                <div class="specialty-category">
-                                    <h6>Technology</h6>
-                                    <div class="specialty-tags">
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="python">
-                                            <span>Python</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="javascript">
-                                            <span>JavaScript</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="react">
-                                            <span>React</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="ai">
-                                            <span>AI/ML</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="webdev">
-                                            <span>Web Development</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="mobile">
-                                            <span>Mobile Development</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                
-                                <div class="specialty-category">
-                                    <h6>Business</h6>
-                                    <div class="specialty-tags">
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="strategy">
-                                            <span>Strategy</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="startups">
-                                            <span>Startups</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="fundraising">
-                                            <span>Fundraising</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="operations">
-                                            <span>Operations</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="leadership">
-                                            <span>Leadership</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                
-                                <div class="specialty-category">
-                                    <h6>Marketing</h6>
-                                    <div class="specialty-tags">
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="digital">
-                                            <span>Digital Marketing</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="social">
-                                            <span>Social Media</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="content">
-                                            <span>Content Marketing</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="seo">
-                                            <span>SEO</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                
-                                <div class="specialty-category">
-                                    <h6>Health & Wellness</h6>
-                                    <div class="specialty-tags">
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="fitness">
-                                            <span>Fitness</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="nutrition">
-                                            <span>Nutrition</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="mental">
-                                            <span>Mental Health</span>
-                                        </label>
-                                        <label class="specialty-tag">
-                                            <input type="checkbox" name="specialties" value="yoga">
-                                            <span>Yoga</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="custom-specialty mt-3">
-                                <h6>Add your own specialty</h6>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="customSpecialtyInput" placeholder="Enter your specialty">
-                                    <button type="button" class="btn btn-outline-primary" id="addCustomSpecialtyBtn">Add</button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" style="background: linear-gradient(135deg, #3c78ff 0%, #1a3a6d 100%); border: none; border-radius: 12px; padding: 12px 32px; font-weight: 600;">
-                                Complete Profile
-                            </button>
-                        </div>
-                    </form>
+        <!-- Step 1: Basic Information -->
+        <div class="onboarding-step" id="step1" data-step="1">
+            <div class="step-content">
+                <div class="step-header">
+                    <h1>Tell us about yourself</h1>
+                    <p>Let's start with the basics</p>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>What do you do?</label>
+                        <input type="text" id="profession" class="form-control" placeholder="e.g., Software Engineer, Business Coach, Marketing Consultant" value="{{ current_user.profession or '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Tell us about your expertise</label>
+                        <textarea id="bio" class="form-control" rows="4" placeholder="What can you help people with? Share your experience and what makes you unique...">{{ current_user.bio or '' }}</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>What industry are you in?</label>
+                        <select id="industry" class="form-control">
+                            <option value="">Select your industry</option>
+                            <option value="technology" {{ 'selected' if current_user.industry == 'technology' else '' }}>Technology</option>
+                            <option value="business" {{ 'selected' if current_user.industry == 'business' else '' }}>Business</option>
+                            <option value="marketing" {{ 'selected' if current_user.industry == 'marketing' else '' }}>Marketing</option>
+                            <option value="finance" {{ 'selected' if current_user.industry == 'finance' else '' }}>Finance</option>
+                            <option value="healthcare" {{ 'selected' if current_user.industry == 'healthcare' else '' }}>Healthcare</option>
+                            <option value="education" {{ 'selected' if current_user.industry == 'education' else '' }}>Education</option>
+                            <option value="consulting" {{ 'selected' if current_user.industry == 'consulting' else '' }}>Consulting</option>
+                            <option value="creative" {{ 'selected' if current_user.industry == 'creative' else '' }}>Creative</option>
+                            <option value="fitness" {{ 'selected' if current_user.industry == 'fitness' else '' }}>Fitness & Wellness</option>
+                            <option value="other" {{ 'selected' if current_user.industry == 'other' else '' }}>Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="step-actions">
+                    <button type="button" class="btn btn-primary btn-next" onclick="nextStep()">Continue</button>
                 </div>
             </div>
-            
-            <div class="text-center mt-4">
-                <p class="text-muted small">You can always update your profile later</p>
+        </div>
+
+        <!-- Step 2: Expertise Tags -->
+        <div class="onboarding-step" id="step2" data-step="2" style="display: none;">
+            <div class="step-content">
+                <div class="step-header">
+                    <h1>What are your specialties?</h1>
+                    <p>Select the areas where you can help others. You can skip this for now.</p>
+                </div>
+                
+                <div class="expertise-section">
+                    <div class="expertise-categories">
+                        <!-- Technology -->
+                        <div class="category-group">
+                            <h3>💻 Technology</h3>
+                            <div class="tag-grid">
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="python" {{ 'checked' if 'python' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Python</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="javascript" {{ 'checked' if 'javascript' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>JavaScript</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="react" {{ 'checked' if 'react' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>React</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="ai" {{ 'checked' if 'ai' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>AI/ML</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="webdev" {{ 'checked' if 'webdev' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Web Development</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="mobile" {{ 'checked' if 'mobile' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Mobile Development</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="data" {{ 'checked' if 'data' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Data Science</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="cybersecurity" {{ 'checked' if 'cybersecurity' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Cybersecurity</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Business -->
+                        <div class="category-group">
+                            <h3>💼 Business</h3>
+                            <div class="tag-grid">
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="strategy" {{ 'checked' if 'strategy' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Strategy</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="startups" {{ 'checked' if 'startups' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Startups</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="fundraising" {{ 'checked' if 'fundraising' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Fundraising</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="operations" {{ 'checked' if 'operations' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Operations</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="leadership" {{ 'checked' if 'leadership' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Leadership</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="finance" {{ 'checked' if 'finance' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Finance</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="trading" {{ 'checked' if 'trading' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Trading</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="money" {{ 'checked' if 'money' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Money Management</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Marketing & Health -->
+                        <div class="category-group">
+                            <h3>📈 Marketing & Health</h3>
+                            <div class="tag-grid">
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="digital">
+                                    <span>Digital Marketing</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="social">
+                                    <span>Social Media</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="fitness">
+                                    <span>Fitness</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="coaching">
+                                    <span>Life Coaching</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Expertise -->
+                    <div class="custom-expertise">
+                        <h3>Add your own expertise</h3>
+                        <div class="custom-input-group">
+                            <input type="text" id="customExpertise" class="form-control" placeholder="Enter your specialty">
+                            <button type="button" class="btn btn-outline" onclick="addCustomExpertise()">Add</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step-actions">
+                    <button type="button" class="btn btn-outline" onclick="prevStep()">Back</button>
+                    <button type="button" class="btn btn-primary btn-next" onclick="nextStep()">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Pricing -->
+        <div class="onboarding-step" id="step3" data-step="3" style="display: none;">
+            <div class="step-content">
+                <div class="step-header">
+                    <h1>Set your pricing</h1>
+                    <p>How much do you charge for your expertise?</p>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>Hourly Rate (USD)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" id="hourlyRate" class="form-control" placeholder="0" min="0" value="{{ current_user.hourly_rate or '' }}">
+                        </div>
+                        <small class="form-text">Set to 0 if you offer free sessions</small>
+                    </div>
+                    
+                    <div class="pricing-options">
+                        <h3>Quick Pricing Options</h3>
+                        <div class="pricing-buttons">
+                            <button type="button" class="pricing-btn" data-rate="0">Free</button>
+                            <button type="button" class="pricing-btn" data-rate="25">$25/hr</button>
+                            <button type="button" class="pricing-btn" data-rate="50">$50/hr</button>
+                            <button type="button" class="pricing-btn" data-rate="100">$100/hr</button>
+                            <button type="button" class="pricing-btn" data-rate="200">$200/hr</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step-actions">
+                    <button type="button" class="btn btn-outline" onclick="prevStep()">Back</button>
+                    <button type="button" class="btn btn-primary btn-next" onclick="nextStep()">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Complete -->
+        <div class="onboarding-step" id="step4" data-step="4" style="display: none;">
+            <div class="step-content">
+                <div class="step-header">
+                    <h1>You're all set!</h1>
+                    <p>Review your profile and complete setup</p>
+                </div>
+                
+                <div class="profile-summary">
+                    <div class="summary-item">
+                        <strong>Profession:</strong>
+                        <span id="summaryProfession">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Industry:</strong>
+                        <span id="summaryIndustry">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Expertise:</strong>
+                        <span id="summaryExpertise">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Rate:</strong>
+                        <span id="summaryRate">-</span>
+                    </div>
+                </div>
+                
+                <div class="step-actions">
+                    <button type="button" class="btn btn-outline" onclick="prevStep()">Back</button>
+                    <button type="button" class="btn btn-primary" onclick="completeOnboarding()">Complete Profile</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<style>
-.form-control, .form-select {
-    border-radius: 12px;
-    border: 2px solid #e3f0ff;
-    padding: 12px 16px;
-    font-size: 1rem;
-    transition: all 0.2s;
-}
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
 
-.form-control:focus, .form-select:focus {
-    border-color: #3c78ff;
-    box-shadow: 0 0 0 0.2rem rgba(60, 120, 255, 0.25);
-}
-
-.form-control-lg, .form-select-lg {
-    padding: 16px 20px;
-    font-size: 1.1rem;
-}
-
-.btn-lg {
-    padding: 16px 32px;
-    font-size: 1.1rem;
-}
-
-.specialty-category {
-    margin-bottom: 1.5rem;
-}
-
-.specialty-category h6 {
-    font-weight: 600;
-    color: #1a3a6d;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.25rem;
-    border-bottom: 1px solid #e3f0ff;
-}
-
-.specialty-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.specialty-tag {
-    cursor: pointer;
-}
-
-.specialty-tag input {
-    display: none;
-}
-
-.specialty-tag span {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background: #f8f9fa;
-    border: 2px solid #e3f0ff;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    color: #1a3a6d;
-    transition: all 0.2s;
-}
-
-.specialty-tag input:checked + span {
-    background: #3c78ff;
-    color: white;
-    border-color: #3c78ff;
-}
-
-.specialty-tag:hover span {
-    border-color: #3c78ff;
-    background: #e3f0ff;
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const addCustomBtn = document.getElementById('addCustomSpecialtyBtn');
-    const customInput = document.getElementById('customSpecialtyInput');
-    
-    // Add custom specialty
-    addCustomBtn.addEventListener('click', function() {
-        const value = customInput.value.trim();
-        if (value) {
-            const container = document.querySelector('.specialty-tags');
-            const newTag = document.createElement('label');
-            newTag.className = 'specialty-tag';
-            newTag.innerHTML = `
-                <input type="checkbox" name="specialties" value="${value.toLowerCase().replace(/\s+/g, '_')}" checked>
-                <span>${value}</span>
-            `;
-            container.appendChild(newTag);
-            customInput.value = '';
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('currentStep').textContent = currentStep;
+            document.getElementById('totalSteps').textContent = totalSteps;
         }
-    });
-    
-    // Handle form submission to include specialties
-    document.getElementById('onboarding-form').addEventListener('submit', function(e) {
-        const selectedSpecialties = [];
-        const checkboxes = document.querySelectorAll('input[name="specialties"]:checked');
-        
-        checkboxes.forEach(cb => {
-            selectedSpecialties.push(cb.value);
+
+        function showStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.onboarding-step').forEach(s => s.style.display = 'none');
+            
+            // Show current step
+            document.getElementById(`step${step}`).style.display = 'flex';
+            
+            // Update progress
+            updateProgress();
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+                updateSummary();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function addCustomExpertise() {
+            const input = document.getElementById('customExpertise');
+            const value = input.value.trim();
+            
+            if (value) {
+                const tagGrid = document.querySelector('.tag-grid');
+                const newTag = document.createElement('label');
+                newTag.className = 'expertise-tag';
+                newTag.innerHTML = `
+                    <input type="checkbox" name="expertise" value="${value.toLowerCase().replace(/\s+/g, '_')}" checked>
+                    <span>${value}</span>
+                `;
+                tagGrid.appendChild(newTag);
+                input.value = '';
+            }
+        }
+
+        function updateSummary() {
+            // Update summary in step 4
+            document.getElementById('summaryProfession').textContent = document.getElementById('profession').value || '-';
+            document.getElementById('summaryIndustry').textContent = document.getElementById('industry').value || '-';
+            document.getElementById('summaryRate').textContent = document.getElementById('hourlyRate').value ? `$${document.getElementById('hourlyRate').value}/hr` : 'Free';
+            
+            // Get selected expertise
+            const selectedExpertise = Array.from(document.querySelectorAll('input[name="expertise"]:checked'))
+                .map(cb => cb.value)
+                .join(', ');
+            document.getElementById('summaryExpertise').textContent = selectedExpertise || '-';
+        }
+
+        // Pricing button functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const pricingButtons = document.querySelectorAll('.pricing-btn');
+            const hourlyRateInput = document.getElementById('hourlyRate');
+            
+            pricingButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const rate = this.dataset.rate;
+                    hourlyRateInput.value = rate;
+                    
+                    // Update active state
+                    pricingButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Check if user has existing data and skip to appropriate step
+            const profession = document.getElementById('profession').value;
+            const bio = document.getElementById('bio').value;
+            const industry = document.getElementById('industry').value;
+            const hourlyRate = document.getElementById('hourlyRate').value;
+            
+            // If user has basic info but no pricing, start at step 3
+            if (profession && bio && industry && !hourlyRate) {
+                currentStep = 3;
+                showStep(currentStep);
+            }
+            // If user has basic info and pricing, start at step 4
+            else if (profession && bio && industry && hourlyRate) {
+                currentStep = 4;
+                showStep(currentStep);
+                updateSummary();
+            }
+            
+            // Initialize progress
+            updateProgress();
         });
-        
-        // Add specialties to form data
-        const specialtiesInput = document.createElement('input');
-        specialtiesInput.type = 'hidden';
-        specialtiesInput.name = 'specialties';
-        specialtiesInput.value = JSON.stringify(selectedSpecialties);
-        this.appendChild(specialtiesInput);
-    });
-});
-</script>
-{% endblock %} 
+
+        function completeOnboarding() {
+            // Collect all form data
+            const formData = {
+                profession: document.getElementById('profession').value,
+                bio: document.getElementById('bio').value,
+                industry: document.getElementById('industry').value,
+                hourly_rate: document.getElementById('hourlyRate').value || 0,
+                expertise: Array.from(document.querySelectorAll('input[name="expertise"]:checked'))
+                    .map(cb => cb.value)
+            };
+            
+            // Submit to server
+            fetch('{{ url_for("onboarding") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '{{ url_for("dashboard") }}';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+    </script>
+</body>
+</html> 

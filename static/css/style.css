@@ -1321,7 +1321,6 @@ body {
     color: #666;
     border-top: 1px solid #e5e5e5;
     position: relative;
-    bottom: 0;
     width: 100%;
 }
 
@@ -1332,7 +1331,93 @@ body {
 }
 
 .footer a:hover {
-    color: var(--trust-blue-primary);
+    color: var(--money-primary);
+}
+
+/* Global Footer Styles */
+.global-footer {
+    background: #f8f9fa;
+    border-top: 1px solid #e5e5e5;
+    padding: 2rem;
+    margin-top: 4rem;
+    text-align: center;
+    width: 100%;
+    position: relative;
+}
+
+.global-footer .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.global-footer .footer-section {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.global-footer .footer-links {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.global-footer .footer-links li a {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s ease;
+}
+
+.global-footer .footer-links li a:hover {
+    color: var(--money-primary);
+}
+
+.global-footer .footer-copyright {
+    color: #999;
+    font-size: 0.875rem;
+}
+
+.global-footer .footer-social {
+    display: flex;
+    gap: 1rem;
+}
+
+.global-footer .footer-social a {
+    color: #666;
+    font-size: 1.25rem;
+    transition: color 0.2s ease;
+}
+
+.global-footer .footer-social a:hover {
+    color: var(--money-primary);
+}
+
+@media (max-width: 768px) {
+    .global-footer .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .global-footer .footer-section {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .global-footer .footer-links {
+        justify-content: center;
+    }
+    
+    .global-footer {
+        padding: 1.5rem;
+    }
 }
 
 /* Responsive */
@@ -2292,7 +2377,7 @@ body {
     top: 0;
     left: 0;
     height: 100vh;
-    width: 280px;
+    width: 80px;
     background: white;
     border-right: 1px solid #e5e5e5;
     z-index: 1000;
@@ -2311,6 +2396,21 @@ body {
     margin: 0 0.5rem;
 }
 
+.sidebar-link-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    color: #666;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-radius: 12px;
+    margin: 0.5rem auto;
+    font-size: 1.2rem;
+}
+
 .sidebar-link:hover {
     background: var(--money-lighter);
     color: var(--money-primary);
@@ -2323,343 +2423,564 @@ body {
     box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
 }
 
-.sidebar-account {
+.sidebar-link-icon:hover {
+    background: var(--money-lighter);
+    color: var(--money-primary);
+    text-decoration: none;
+    transform: scale(1.05);
+}
+
+.sidebar-link-icon.active {
+    background: var(--money-primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+    transform: scale(1.05);
+}
+
+/* Profile Dropdown Styles */
+.profile-dropdown-toggle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 64px;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0;
-    border-top: 1px solid #e5e5e5 !important;
-}
-
-.sidebar-account .dropdown {
-    width: 100%;
-    max-width: 100%;
-    display: block;
-    box-sizing: border-box;
-    position: relative;
-}
-
-.sidebar-account .dropdown-toggle {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    display: block;
-    text-align: center;
-    background: transparent;
-    border: none;
-    outline: none;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #222;
-    padding: 0.75rem 0.5rem;
     border-radius: 12px;
-    transition: background 0.15s, box-shadow 0.15s;
-    box-shadow: none;
-    cursor: pointer;
-    letter-spacing: 0.02em;
-    margin: 0;
-    box-sizing: border-box;
-    overflow: hidden;
-    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 1.2rem;
+    color: #666;
 }
 
-.sidebar-account .dropdown-toggle:hover {
+.profile-dropdown-toggle:hover {
     background: var(--money-lighter);
     color: var(--money-primary);
+    transform: scale(1.05);
 }
 
-.sidebar-account .dropdown-menu {
-    width: 100% !important;
-    min-width: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    box-sizing: border-box;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    display: none;
+.profile-dropdown-menu {
     position: absolute;
-    bottom: 100%;
+    left: 100%;
+    top: 0;
+    width: 280px;
     background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e5e5e5;
+    display: none;
     z-index: 1000;
+    margin-left: 12px;
+    overflow: hidden;
 }
 
-.sidebar-account .dropdown-menu.show {
+.profile-dropdown-menu.show {
     display: block;
 }
 
-.sidebar-account .dropdown-item {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+.profile-dropdown-header {
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name {
+    font-weight: 600;
     color: #333;
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.profile-joined {
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.dropdown-section {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdown-section:last-child {
+    border-bottom: none;
+}
+
+.dropdown-section-title {
+    padding: 12px 20px 8px 20px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    color: #333;
+    text-decoration: none;
     transition: background-color 0.2s ease;
-    cursor: pointer;
+    font-size: 0.9rem;
 }
 
-.sidebar-account .dropdown-item:hover {
-    background-color: var(--money-lighter);
-    color: var(--money-primary);
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    text-decoration: none;
+    color: #333;
 }
 
-.sidebar-account .dropdown-item.text-danger:hover {
+.dropdown-item.text-danger {
+    color: #dc3545;
+}
+
+.dropdown-item.text-danger:hover {
     background-color: #fee;
     color: #dc3545;
 }
 
-.sidebar-burger {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    z-index: 1001;
-    background: var(--money-primary);
-    color: white;
-    border: none;
-    padding: 0.5rem;
-    border-radius: 4px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: none;
+.dropdown-item i.fa-chevron-right {
+    font-size: 0.75rem;
+    color: #999;
 }
 
-@media (max-width: 768px) {
-    .sidebar {
-        transform: translateX(-100%);
-    }
-    
-    .sidebar.show {
-        transform: translateX(0);
-    }
-    
-    .sidebar-burger {
-        display: block;
-    }
+.account-credit {
+    background-color: #f8f9fa;
 }
 
-/* --- Back to Discover Button for Profile Page --- */
-.back-to-discover {
-    position: absolute;
-    top: 32px;
-    left: 32px;
-    z-index: 1100;
+.credit-amount {
+    font-weight: 600;
+    color: var(--money-primary);
+}
+
+/* Account Page Styles */
+.account-page {
+    padding: 0;
+    margin: 0;
+    min-height: 100vh;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.account-header {
+    padding: 2rem 2rem 1rem 2rem;
+    border-bottom: 1px solid #e5e5e5;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.account-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+}
+
+.account-subtitle {
+    color: #666;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.account-content {
+    display: flex;
+    flex: 1;
+    min-height: calc(100vh - 120px); /* Subtract header height only */
+    margin: 0;
+    padding: 0;
+}
+
+.account-sidebar {
+    width: 320px;
+    background: white;
+    border-right: 1px solid #e5e5e5;
+    padding: 2rem 0.5rem 2rem 0.5rem;
+    position: sticky;
+    top: 120px;
+    height: calc(100vh - 120px); /* Subtract header height only */
+    overflow-y: visible;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-summary-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 300px;
+}
+
+.profile-avatar-placeholder-large {
+    width: 80px;
+    height: 80px;
+    background: #f0f0f0;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.profile-name-large {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.profile-joined-large {
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.account-section {
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 300px;
+}
+
+.section-title {
+    font-weight: 700;
+    color: #333;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+    text-align: left;
+    width: 100%;
+    padding-left: 0.5rem;
+}
+
+.section-title.details {
+    color: var(--money-primary);
+}
+
+.section-title.support {
+    color: #666;
+}
+
+.section-items {
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+    box-shadow: none;
+    width: 100%;
+}
+
+.section-item {
     display: flex;
     align-items: center;
-    background: white;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    margin-bottom: 0.25rem;
+    background: transparent;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.section-item:last-child {
+    border-bottom: none;
+}
+
+.section-item:hover {
+    background-color: #f8f9fa;
+    text-decoration: none;
+    color: var(--money-primary);
+}
+
+.section-item.active {
+    background-color: var(--money-lighter);
     color: var(--money-primary);
     font-weight: 600;
-    font-size: 1.1rem;
-    padding: 0.5rem 1.2rem 0.5rem 1rem;
-    border-radius: 32px;
-    box-shadow: 0 4px 16px rgba(5, 150, 105, 0.10);
-    text-decoration: none;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.section-item i.fa-chevron-right {
+    font-size: 0.75rem;
+    color: #999;
+    margin-left: 0.5rem;
+}
+
+.account-credit-item {
+    background-color: transparent;
+}
+
+.credit-amount-large {
+    font-weight: 600;
+    color: var(--money-primary);
+}
+
+.account-main-content {
+    flex: 1;
+    padding: 0 2rem 2rem 2rem;
+    background: white;
+    min-height: calc(100vh - 120px - 120px); /* Subtract header and footer height */
+    border-left: 1px solid #e5e5e5;
+}
+
+.content-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 400px;
+}
+
+.content-placeholder-text {
+    text-align: center;
+    color: #666;
+}
+
+.content-placeholder-text i {
+    font-size: 4rem;
+    color: #ddd;
+    margin-bottom: 1rem;
+}
+
+.content-placeholder-text h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.content-placeholder-text p {
+    color: #666;
+    font-size: 1rem;
+}
+
+.tab-content {
+    max-width: 600px;
+}
+
+.tab-content h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2rem;
+}
+
+.account-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.account-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.account-form label {
+    display: block;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.account-form .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.account-form .form-control:focus {
+    outline: none;
+    border-color: var(--money-primary);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+.payment-method-card {
+    background: white;
     border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
 }
-.back-to-discover:hover {
-    background: var(--money-lighter);
-    color: var(--money-dark);
-    box-shadow: 0 8px 24px rgba(5, 150, 105, 0.15);
-    text-decoration: none;
+
+.payment-method-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
-.back-to-discover .arrow {
-    font-size: 1.3rem;
-    margin-right: 0.7rem;
-    font-weight: 700;
+
+.payment-method-info i {
+    font-size: 1.5rem;
+    color: var(--money-primary);
 }
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-badge.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.contact-info ul {
+    list-style: none;
+    padding: 0;
+}
+
+.contact-info li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.contact-info li:last-child {
+    border-bottom: none;
+}
+
+.promise-content ul {
+    padding-left: 1.5rem;
+}
+
+.promise-content li {
+    margin-bottom: 0.5rem;
+    color: #666;
+}
+
+.legal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.terms-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 1.5rem 0 0.5rem 0;
+}
+
+.terms-section h3:first-child {
+    margin-top: 0;
+}
+
+.terms-section p {
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.delete-account-warning {
+    max-width: 600px;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.warning-box i {
+    font-size: 3rem;
+    color: #f39c12;
+    margin-bottom: 1rem;
+}
+
+.warning-box h3 {
+    color: #856404;
+    margin-bottom: 1rem;
+}
+
+.warning-box p {
+    color: #856404;
+    margin-bottom: 0.5rem;
+}
+
+.warning-box ul {
+    text-align: left;
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.warning-box li {
+    color: #856404;
+    margin-bottom: 0.25rem;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    color: white;
+}
+
+.btn-danger:disabled {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    opacity: 0.65;
+}
+
 @media (max-width: 768px) {
-    .back-to-discover {
-        top: 16px;
-        left: 8px;
-        font-size: 1rem;
-        padding: 0.4rem 1rem 0.4rem 0.8rem;
+    .account-content {
+        flex-direction: column;
     }
-}
-
-/* Reduce profile-hero margin when navbar is absent */
-.profile-hero {
-    margin-top: 32px !important;
-}
-
-/* --- Discover Search Section Spacing Fix --- */
-.discover-search-section {
-    padding-top: 140px !important;
-    margin-top: 0 !important;
-    background: linear-gradient(135deg, #1B4332 0%, #2D5A3D 100%) !important;
-    background-position: top !important;
-}
-@media (max-width: 768px) {
-    .discover-search-section {
-        padding-top: 110px !important;
-        margin-top: 0 !important;
+    
+    .account-sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        padding: 1rem;
+        border-right: none;
+        border-bottom: 1px solid #e5e5e5;
+        align-items: flex-start;
     }
-}
-
-/* --- Compact Profile Setup Accordion --- */
-.compact-accordion .accordion-item {
-  border-radius: 10px;
-  margin-bottom: 0.5rem;
-  border: 1px solid #e5e5e5;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.compact-accordion .accordion-header {
-  font-size: 1rem;
-}
-.compact-accordion .accordion-button {
-  font-size: 1rem;
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-}
-.compact-accordion .accordion-body {
-  padding: 0.5rem 1rem;
-}
-.compact-accordion .form-label,
-.compact-accordion .form-check-label {
-  font-size: 0.95rem;
-  margin-bottom: 0.2rem;
-}
-.compact-accordion .form-control,
-.compact-accordion .form-select {
-  font-size: 0.95rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 6px;
-}
-.compact-accordion .form-control-sm,
-.compact-accordion .form-select-sm {
-  font-size: 0.92rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-}
-.compact-accordion .btn-sm {
-  font-size: 0.98rem;
-  padding: 0.35rem 1.1rem;
-  border-radius: 8px;
-}
-
-/* --- Live Profile Preview Card --- */
-#profilePreview {
-  min-height: 520px;
-  padding: 1.5rem 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-/* --- Subtle Field Highlighting --- */
-.preview-highlight {
-  transition: all 0.3s ease;
-  color: #dc3545 !important;
-  font-weight: 600;
-}
-
-.preview-highlight.preview-tag {
-  background: rgba(220, 53, 69, 0.1) !important;
-  border-color: #dc3545 !important;
-}
-
-.preview-highlight[style*="background: #f8f9fa"] {
-  background: rgba(220, 53, 69, 0.1) !important;
-  color: #dc3545 !important;
-}
-
-
-
-#profilePreview .profile-card {
-  background: white;
-  border-radius: 24px;
-  padding: 2.8rem 2.8rem 2.2rem 2.8rem;
-  box-shadow: 0 10px 32px rgba(0,0,0,0.08);
-  min-height: 480px;
-  max-width: 900px;
-  margin: 0 auto;
-  height: auto;
-  font-size: 1.18rem;
-}
-#profilePreview h1, #profilePreview h3, #profilePreview h4 {
-  margin-bottom: 0.4rem;
-  font-size: 1.18rem;
-}
-#profilePreview p {
-  margin-bottom: 0.3rem;
-  font-size: 1.05rem;
-}
-#profilePreview .rounded-circle {
-  border-radius: 50% !important;
-  width: 100px !important;
-  height: 100px !important;
-}
-#profilePreview .profile-card > div[style*="text-align: center; margin-bottom: 1rem;"] > div {
-  width: 100px !important;
-  height: 100px !important;
-}
-#profilePreview .preview-tag {
-  font-size: 1rem;
-  padding: 0.22rem 0.7rem;
-}
-
-/* Remove hover bounce/transform from cards and accordion */
-.card:hover, .accordion-item:hover, .profile-card:hover, #profilePreview .profile-card:hover {
-  transform: none !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
-}
-
-/* --- Auto-save Indicators --- */
-.save-indicator {
-  position: fixed;
-  top: 2rem;
-  right: 2rem;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10000;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.save-indicator.saving {
-  border-color: rgba(255, 193, 7, 0.3);
-}
-
-.save-indicator.saved {
-  border-color: rgba(40, 167, 69, 0.3);
-}
-
-.save-indicator.error {
-  border-color: rgba(220, 53, 69, 0.3);
-}
-
-.save-indicator .indicator-content {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.save-indicator .indicator-icon {
-  font-size: 1rem;
-}
-
-.save-indicator .indicator-text {
-  font-size: 0.85rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.save-indicator.saving .indicator-text {
-  color: #ffc107;
-}
-
-.save-indicator.saved .indicator-text {
-  color: #28a745;
-}
-
-.save-indicator.error .indicator-text {
-  color: #dc3545;
+    
+    .account-main-content {
+        border-left: none;
+        padding: 1rem;
+    }
+    
+    .account-section {
+        max-width: none;
+    }
+    
+    .profile-summary-card {
+        max-width: none;
+    }
 }

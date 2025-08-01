@@ -1,0 +1,682 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Account - Droply{% endblock %}
+
+{% block content %}
+<div class="account-page">
+  <!-- Account Header -->
+  <div class="account-header">
+    <h1 class="account-title">Account.</h1>
+    <p class="account-subtitle">View your profile and manage your settings</p>
+  </div>
+
+  <div class="account-content">
+    <!-- Left Column - Account Navigation -->
+    <div class="account-sidebar">
+      <!-- Profile Summary Card -->
+      <div class="profile-summary-card">
+        <div class="profile-avatar-placeholder-large"></div>
+        <div class="profile-info-large">
+          <div class="profile-name-large">{{ current_user.full_name or current_user.username }}</div>
+          <div class="profile-joined-large">Joined in {{ current_user.created_at.strftime('%Y') if current_user.created_at else '2025' }}</div>
+        </div>
+      </div>
+
+      <!-- Details Section -->
+      <div class="account-section">
+        <div class="section-title details">Details</div>
+        <div class="section-items">
+          <a href="#" class="section-item" data-tab="personal-info">
+            <span>Personal information</span>
+            <i class="fas fa-chevron-right"></i>
+          </a>
+          <a href="#" class="section-item" data-tab="payment-methods">
+            <span>Payment methods</span>
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Support Section -->
+      <div class="account-section">
+        <div class="section-title support">Support</div>
+        <div class="section-items">
+          <a href="#" class="section-item" data-tab="contact">
+            <span>Contact us</span>
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Legal Section -->
+      <div class="account-section">
+        <div class="section-title support">Legal</div>
+        <div class="section-items">
+          <a href="#" class="section-item" data-tab="terms-of-service">
+            <span>Terms of Service</span>
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Account Section -->
+      <div class="account-section">
+        <div class="section-title support">Account</div>
+        <div class="section-items">
+          <a href="{{ url_for('logout') }}" class="section-item text-danger">
+            <span>Log out</span>
+            <i class="fas fa-chevron-right"></i>
+          </a>
+          <a href="#" class="section-item text-danger" data-tab="delete-account">
+            <span>Delete account</span>
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Content Area -->
+    <div class="account-main-content">
+      <div id="account-content-area" class="content-placeholder">
+        <div class="content-placeholder-text">
+          <i class="fas fa-user-circle"></i>
+          <h3>Select an option to get started</h3>
+          <p>Choose from the menu on the left to view and edit your account details</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const sectionItems = document.querySelectorAll('.section-item');
+  const contentArea = document.getElementById('account-content-area');
+
+  sectionItems.forEach(item => {
+    item.addEventListener('click', function(e) {
+      // Skip logout link - let it navigate normally
+      if (this.href && this.href.includes('logout')) {
+        return;
+      }
+      
+      e.preventDefault();
+      
+      // Remove active class from all items
+      sectionItems.forEach(i => i.classList.remove('active'));
+      
+      // Add active class to clicked item
+      this.classList.add('active');
+      
+      // Get the tab data
+      const tab = this.getAttribute('data-tab');
+      
+      // Update content based on selected tab
+      updateContent(tab);
+    });
+  });
+
+  function updateContent(tab) {
+    let content = '';
+    
+    switch(tab) {
+      case 'personal-info':
+        content = `
+          <div class="tab-content">
+            <h2>Personal Information</h2>
+            <form class="account-form" id="personal-info-form">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" value="{{ current_user.full_name or '' }}" class="form-control" name="full_name">
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" value="{{ current_user.email }}" class="form-control" disabled style="background-color: #f8f9fa; color: #666;">
+                <small class="form-text">Email cannot be changed as it's used for authentication</small>
+              </div>
+              <div class="form-group">
+                <label>Profession</label>
+                <input type="text" value="{{ current_user.profession or '' }}" class="form-control" name="profession">
+              </div>
+              <div class="form-group">
+                <label>Industry</label>
+                <select class="form-control" name="industry">
+                  <option value="">Select your industry</option>
+                  <option value="technology" {{ 'selected' if current_user.industry == 'technology' else '' }}>Technology</option>
+                  <option value="business" {{ 'selected' if current_user.industry == 'business' else '' }}>Business</option>
+                  <option value="marketing" {{ 'selected' if current_user.industry == 'marketing' else '' }}>Marketing</option>
+                  <option value="finance" {{ 'selected' if current_user.industry == 'finance' else '' }}>Finance</option>
+                  <option value="healthcare" {{ 'selected' if current_user.industry == 'healthcare' else '' }}>Healthcare</option>
+                  <option value="education" {{ 'selected' if current_user.industry == 'education' else '' }}>Education</option>
+                  <option value="consulting" {{ 'selected' if current_user.industry == 'consulting' else '' }}>Consulting</option>
+                  <option value="creative" {{ 'selected' if current_user.industry == 'creative' else '' }}>Creative</option>
+                  <option value="fitness" {{ 'selected' if current_user.industry == 'fitness' else '' }}>Fitness & Wellness</option>
+                  <option value="other" {{ 'selected' if current_user.industry == 'other' else '' }}>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Bio</label>
+                <textarea class="form-control" rows="4" name="bio">{{ current_user.bio or '' }}</textarea>
+              </div>
+              
+              <div class="form-group">
+                <label>Hourly Rate (USD)</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" name="hourly_rate" placeholder="0" min="0" value="{{ current_user.hourly_rate or '' }}">
+                </div>
+                <small class="form-text">Set to 0 if you offer free sessions</small>
+              </div>
+              
+              <!-- Expertise Tags Section -->
+              <div class="form-group">
+                <label>Your Expertise & Specialties</label>
+                <p class="form-text">Your selected expertise tags. Add new ones below.</p>
+                
+                <!-- Display Current Expertise Tags -->
+                <div class="current-expertise-tags" id="currentExpertiseTags">
+                  {% set user_tags = current_user.get_specialty_tags() or [] %}
+                  {% for tag in user_tags %}
+                    <span class="expertise-bubble">
+                      {{ tag }}
+                      <button type="button" class="remove-tag" onclick="removeExpertiseTag('{{ tag }}')">×</button>
+                    </span>
+                  {% endfor %}
+                </div>
+                
+                <!-- Add New Expertise -->
+                <div class="add-expertise-section">
+                  <label>Add New Expertise</label>
+                  <div class="custom-input-group">
+                    <input type="text" id="newExpertise" class="form-control" placeholder="Enter your specialty">
+                    <button type="button" class="btn btn-outline" onclick="addExpertiseTag()">Add</button>
+                  </div>
+                </div>
+                      
+              </div>
+              
+              <div class="auto-save-status" id="autoSaveStatus" style="display: none;">
+                <span class="save-indicator">✓ Changes saved automatically</span>
+              </div>
+            </form>
+          </div>
+        `;
+        break;
+        
+      case 'payment-methods':
+        content = `
+          <div class="tab-content">
+            <h2>Payment Methods</h2>
+            <div class="payment-methods">
+              <div class="payment-method-card">
+                <div class="payment-method-info">
+                  <i class="fas fa-credit-card"></i>
+                  <div>
+                    <h4>Stripe Connect</h4>
+                    <p>Connected for receiving payments</p>
+                  </div>
+                </div>
+                <span class="status-badge success">Active</span>
+              </div>
+            </div>
+          </div>
+        `;
+        break;
+        
+
+        
+      case 'contact':
+        content = `
+          <div class="tab-content">
+            <h2>Contact Us</h2>
+            <div class="contact-info">
+              <p>Need help? Reach out to our support team:</p>
+              <ul>
+                <li><strong>Email:</strong> support@droply.live</li>
+                <li><strong>Response time:</strong> Within 24 hours</li>
+              </ul>
+            </div>
+          </div>
+        `;
+        break;
+        
+
+        break;
+        
+      case 'terms-of-service':
+        content = `
+          <div class="tab-content">
+            <h2>Terms of Service</h2>
+            <div class="legal-content">
+              <p>By using Droply, you agree to our terms of service. Please read carefully before proceeding.</p>
+              <div class="terms-section">
+                <h3>1. Service Description</h3>
+                <p>Droply connects users with experts for video consultations and advice.</p>
+                
+                <h3>2. User Responsibilities</h3>
+                <p>Users are responsible for providing accurate information and maintaining appropriate conduct during sessions.</p>
+                
+                <h3>3. Payment Terms</h3>
+                <p>All payments are processed securely through Stripe. Refunds are handled on a case-by-case basis.</p>
+                
+                <h3>4. Privacy</h3>
+                <p>We protect your personal information and never sell your data to third parties.</p>
+              </div>
+            </div>
+          </div>
+        `;
+        break;
+        
+      case 'delete-account':
+        content = `
+          <div class="tab-content">
+            <h2>Delete Account</h2>
+            <div class="delete-account-warning">
+              <div class="warning-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>This action cannot be undone</h3>
+                <p>Deleting your account will permanently remove all your data, including:</p>
+                <ul>
+                  <li>Profile information</li>
+                  <li>Booking history</li>
+                  <li>Payment methods</li>
+                  <li>All associated data</li>
+                </ul>
+                <p><strong>This action is irreversible.</strong></p>
+              </div>
+              <form class="account-form" action="{{ url_for('delete_account') }}" method="POST" onsubmit="return validateDeleteForm()" id="delete-account-form">
+                <div class="form-group">
+                  <label>Type "DELETE" to confirm</label>
+                  <input type="text" placeholder="DELETE" class="form-control" id="delete-confirmation" name="confirmation" required>
+                </div>
+                <div class="form-group">
+                  <label>Reason for deletion (optional)</label>
+                  <textarea class="form-control" rows="3" placeholder="Help us improve by sharing your reason..." name="reason"></textarea>
+                </div>
+                <button type="submit" class="btn btn-danger" disabled id="delete-account-btn">
+                  <span id="delete-btn-text">Delete Account Permanently</span>
+                  <span id="delete-btn-loading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Deleting...
+                  </span>
+                </button>
+              </form>
+            </div>
+          </div>
+        `;
+        
+        // Add confirmation logic for delete account
+        setTimeout(() => {
+          const deleteConfirmation = document.getElementById('delete-confirmation');
+          const deleteBtn = document.getElementById('delete-account-btn');
+          const deleteForm = document.getElementById('delete-account-form');
+          
+          console.log('Setting up delete account form elements:', {
+            deleteConfirmation: !!deleteConfirmation,
+            deleteBtn: !!deleteBtn,
+            deleteForm: !!deleteForm
+          });
+          
+          if (deleteConfirmation && deleteBtn) {
+            deleteConfirmation.addEventListener('input', function() {
+              const isEnabled = this.value === 'DELETE';
+              deleteBtn.disabled = !isEnabled;
+              console.log('Delete button enabled:', isEnabled);
+            });
+          }
+          
+          // Add form submit listener for debugging
+          if (deleteForm) {
+            deleteForm.addEventListener('submit', function(e) {
+              console.log('Form submit event triggered');
+            });
+          }
+        }, 100);
+        break;
+        
+      default:
+        content = `
+          <div class="content-placeholder-text">
+            <i class="fas fa-user-circle"></i>
+            <h3>Select an option to get started</h3>
+            <p>Choose from the menu on the left to view and edit your account details</p>
+          </div>
+        `;
+    }
+    
+    contentArea.innerHTML = content;
+  }
+});
+
+// Form validation function
+function validateDeleteForm() {
+  console.log('validateDeleteForm called');
+  const confirmation = document.getElementById('delete-confirmation');
+  const deleteForm = document.getElementById('delete-account-form');
+  
+  console.log('Form elements found:', {
+    confirmation: !!confirmation,
+    deleteForm: !!deleteForm,
+    confirmationValue: confirmation ? confirmation.value : 'No confirmation field'
+  });
+  
+  if (!confirmation || confirmation.value !== 'DELETE') {
+    alert('Please type "DELETE" exactly to confirm account deletion.');
+    return false;
+  }
+  
+  // Show confirmation dialog
+  const confirmed = confirm('Are you absolutely sure you want to permanently delete your account? This action cannot be undone and will cancel all your meetings.');
+  if (!confirmed) {
+    return false;
+  }
+  
+  // Show loading state
+  const deleteBtn = document.getElementById('delete-account-btn');
+  const btnText = document.getElementById('delete-btn-text');
+  const btnLoading = document.getElementById('delete-btn-loading');
+  
+  if (deleteBtn && btnText && btnLoading) {
+    deleteBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline';
+  }
+  
+  console.log('Form validation passed, submitting...');
+  return true;
+}
+
+// Add new expertise tag
+function addExpertiseTag() {
+  const input = document.getElementById('newExpertise');
+  const value = input.value.trim();
+  
+  if (value) {
+    const currentTags = document.getElementById('currentExpertiseTags');
+    const newTag = document.createElement('span');
+    newTag.className = 'expertise-bubble';
+    newTag.innerHTML = `
+      ${value}
+      <button type="button" class="remove-tag" onclick="removeExpertiseTag('${value}')">×</button>
+    `;
+    currentTags.appendChild(newTag);
+    input.value = '';
+    
+    // Auto-save after adding tag
+    autoSaveProfile();
+  }
+}
+
+// Remove expertise tag
+function removeExpertiseTag(tagName) {
+  const bubbles = document.querySelectorAll('.expertise-bubble');
+  bubbles.forEach(bubble => {
+    if (bubble.textContent.trim().replace('×', '').trim() === tagName) {
+      bubble.remove();
+      
+      // Auto-save after removing tag
+      autoSaveProfile();
+    }
+  });
+}
+
+// Auto-save functionality
+let saveTimeout;
+const autoSaveStatus = document.getElementById('autoSaveStatus');
+
+function showAutoSaveStatus() {
+  if (autoSaveStatus) {
+    autoSaveStatus.style.display = 'block';
+    setTimeout(() => {
+      autoSaveStatus.style.display = 'none';
+    }, 3000);
+  }
+}
+
+function autoSaveProfile() {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    const form = document.getElementById('personal-info-form');
+    if (!form) return;
+    
+    // Collect form data
+    const formData = new FormData(form);
+    const expertise = Array.from(document.querySelectorAll('.expertise-bubble'))
+      .map(bubble => bubble.textContent.trim().replace('×', '').trim());
+    
+    // Add expertise to form data
+    formData.append('expertise', JSON.stringify(expertise));
+    
+    // Submit to server
+    fetch('/api/profile/update', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showAutoSaveStatus();
+      } else {
+        console.error('Error:', data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }, 1000); // Save after 1 second of no changes
+}
+
+// Handle personal info form changes
+document.addEventListener('DOMContentLoaded', function() {
+  const personalInfoForm = document.getElementById('personal-info-form');
+  if (personalInfoForm) {
+    // Auto-save on input changes
+    const inputs = personalInfoForm.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+      input.addEventListener('input', autoSaveProfile);
+      input.addEventListener('change', autoSaveProfile);
+    });
+  }
+});
+</script>
+
+<style>
+/* Expertise Tags Styles */
+.expertise-categories {
+    margin-bottom: 20px;
+}
+
+.expertise-category {
+    margin-bottom: 20px;
+}
+
+.expertise-category h4 {
+    font-weight: 600;
+    color: #1a3a6d;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.expertise-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.expertise-tag {
+    cursor: pointer;
+    user-select: none;
+}
+
+.expertise-tag input {
+    display: none;
+}
+
+.expertise-tag span {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border: 2px solid #e3f0ff;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #1a3a6d;
+    transition: all 0.2s;
+}
+
+.expertise-tag input:checked + span {
+    background: #3c78ff;
+    color: white;
+    border-color: #3c78ff;
+}
+
+.expertise-tag:hover span {
+    border-color: #3c78ff;
+    background: #e3f0ff;
+}
+
+.custom-expertise {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e3f0ff;
+}
+
+.custom-expertise h4 {
+    font-weight: 600;
+    color: #1a3a6d;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.custom-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.custom-input-group .form-control {
+    flex: 1;
+}
+
+.custom-input-group .btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+.form-text {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* Current Expertise Bubbles */
+.current-expertise-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    min-height: 40px;
+}
+
+.expertise-bubble {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: #3c78ff;
+    color: white;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    gap: 8px;
+}
+
+.remove-tag {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.remove-tag:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.add-expertise-section {
+    margin-top: 20px;
+}
+
+.add-expertise-section label {
+    display: block;
+    font-weight: 600;
+    color: #1a3a6d;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.custom-input-group .btn {
+    background: #3c78ff;
+    color: white;
+    border: 2px solid #3c78ff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.custom-input-group .btn:hover {
+    background: #2d5fcc;
+    border-color: #2d5fcc;
+}
+
+/* Input Group Styles */
+.input-group {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+}
+
+.input-group-text {
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border: 2px solid #e3f0ff;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    color: #666;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.input-group .form-control {
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    flex: 1;
+}
+
+/* Auto-save Status */
+.auto-save-status {
+    margin-top: 15px;
+    padding: 10px;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.save-indicator {
+    color: #155724;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+</style>
+{% endblock %} 

@@ -276,6 +276,7 @@ def register():
         
         # Log in user but redirect to onboarding
         login_user(user)
+        print(f"New user registered: {user.email}, redirecting to onboarding")
         flash('Registration successful! Please complete your profile.', 'success')
         return redirect(url_for('onboarding'))
     
@@ -285,35 +286,75 @@ def register():
 @login_required
 def onboarding():
     """Multi-step onboarding process"""
+    print(f"Onboarding accessed by user: {current_user.email}")
+    print(f"Request method: {request.method}")
+    print(f"User profession: {current_user.profession}")
+    print(f"User bio: {current_user.bio}")
+    print(f"User industry: {current_user.industry}")
+    
+    if request.method == 'POST':
+        try:
+            # Handle JSON data from the new onboarding flow
+            if request.is_json:
+                data = request.get_json()
+                
+                # Update user profile with onboarding data
+                current_user.profession = data.get('profession', '')
+                current_user.bio = data.get('bio', '')
+                current_user.hourly_rate = data.get('hourly_rate', 0)
+                current_user.industry = data.get('industry', '')
+                current_user.is_available = True  # Set as available by default
+                
+                # Handle expertise tags
+                expertise = data.get('expertise', [])
+                if expertise:
+                    current_user.specialty_tags = json.dumps(expertise)
+                else:
+                    current_user.specialty_tags = json.dumps([])
+                
+                db.session.commit()
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Profile setup complete!'
+                })
+            
+            # Handle traditional form submission (fallback)
+            form = OnboardingForm()
+            if form.validate_on_submit():
+                current_user.profession = form.profession.data
+                current_user.bio = form.bio.data
+                current_user.hourly_rate = form.hourly_rate.data or 0
+                current_user.industry = form.industry.data
+                current_user.is_available = True
+                
+                # Handle specialties from form data
+                specialties = request.form.get('specialties')
+                if specialties:
+                    try:
+                        specialties_list = json.loads(specialties)
+                        current_user.specialty_tags = json.dumps(specialties_list)
+                    except (json.JSONDecodeError, TypeError) as e:
+                        print(f"DEBUG: Error parsing specialties: {e}")
+                        current_user.specialty_tags = json.dumps([])
+                else:
+                    current_user.specialty_tags = json.dumps([])
+                
+                db.session.commit()
+                flash('Profile setup complete!', 'success')
+                return redirect(url_for('dashboard'))
+        
+        except Exception as e:
+            print(f"Error in onboarding: {e}")
+            return jsonify({
+                'success': False,
+                'message': 'An error occurred while saving your profile.'
+            })
+    
+    # GET request - show the onboarding form
+    print("Rendering onboarding template")
+    print(f"User profile data: profession={current_user.profession}, bio={current_user.bio}, industry={current_user.industry}")
     form = OnboardingForm()
-    
-    if request.method == 'POST' and form.validate_on_submit():
-        # Update user profile with onboarding data
-        current_user.profession = form.profession.data
-        current_user.bio = form.bio.data
-        current_user.hourly_rate = form.hourly_rate.data or 0
-        current_user.industry = form.industry.data
-        current_user.is_available = True  # Set as available by default
-        
-        # Handle specialties from form data
-        specialties = request.form.get('specialties')
-        print(f"DEBUG: Received specialties: {specialties}")
-        if specialties:
-            try:
-                specialties_list = json.loads(specialties)
-                print(f"DEBUG: Parsed specialties: {specialties_list}")
-                current_user.specialty_tags = json.dumps(specialties_list)
-            except (json.JSONDecodeError, TypeError) as e:
-                print(f"DEBUG: Error parsing specialties: {e}")
-                current_user.specialty_tags = json.dumps([])
-        else:
-            print("DEBUG: No specialties received")
-            current_user.specialty_tags = json.dumps([])
-        
-        db.session.commit()
-        flash('Profile setup complete!', 'success')
-        return redirect(url_for('dashboard'))
-    
     return render_template('onboarding.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -440,6 +481,82 @@ def settings():
     """Settings page"""
     return render_template('settings.html')
 
+@app.route('/account')
+@login_required
+def account():
+    """Account management page"""
+    return render_template('account.html')
+
+@app.route('/delete-account', methods=['POST'])
+@login_required
+def delete_account():
+    """Delete user account"""
+    print(f"Delete account request received from user: {current_user.email}")
+    print(f"Form data: {request.form}")
+    
+    try:
+        # Get the confirmation text and reason
+        confirmation = request.form.get('confirmation', '').strip()
+        reason = request.form.get('reason', '').strip()
+        
+        # Verify confirmation text
+        print(f"Confirmation text received: '{confirmation}'")
+        if confirmation != 'DELETE':
+            print(f"Confirmation text mismatch. Expected 'DELETE', got '{confirmation}'")
+            flash('Please type "DELETE" exactly to confirm account deletion.', 'error')
+            return redirect(url_for('account'))
+        
+        # Get current user
+        user = current_user
+        
+        # Log the deletion reason if provided
+        if reason:
+            print(f"Account deletion reason for {user.email}: {reason}")
+        
+        print(f"Starting account deletion for user: {user.email} (ID: {user.id})")
+        
+        # Delete associated data first (foreign key constraints)
+        # Delete bookings (both as client and as expert)
+        bookings_deleted = Booking.query.filter_by(user_id=user.id).delete()
+        expert_bookings_deleted = Booking.query.filter_by(expert_id=user.id).delete()
+        print(f"Deleted {bookings_deleted} bookings as client and {expert_bookings_deleted} bookings as expert")
+        
+        # Delete availability rules and exceptions
+        rules_deleted = AvailabilityRule.query.filter_by(user_id=user.id).delete()
+        exceptions_deleted = AvailabilityException.query.filter_by(user_id=user.id).delete()
+        print(f"Deleted {rules_deleted} availability rules and {exceptions_deleted} availability exceptions")
+        
+        # Delete payouts
+        payouts_deleted = Payout.query.filter_by(expert_id=user.id).delete()
+        print(f"Deleted {payouts_deleted} payouts")
+        
+        # Clean up profile pictures and uploaded files
+        if user.profile_picture:
+            try:
+                import os
+                profile_pic_path = os.path.join('static', 'uploads', user.profile_picture.split('/')[-1])
+                if os.path.exists(profile_pic_path):
+                    os.remove(profile_pic_path)
+            except Exception as e:
+                print(f"Error deleting profile picture: {e}")
+        
+        # Delete the user
+        db.session.delete(user)
+        db.session.commit()
+        print(f"Successfully deleted user account: {user.email}")
+        
+        # Log out the user
+        logout_user()
+        
+        flash('Your account has been permanently deleted.', 'info')
+        return redirect(url_for('homepage'))
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting account: {str(e)}")
+        flash(f'Error deleting account: {str(e)}. Please try again.', 'error')
+        return redirect(url_for('account'))
+
 @app.route('/find-experts')
 @login_required
 def find_experts():
@@ -552,6 +669,11 @@ def find_experts():
 @login_required
 def dashboard():
     """User dashboard"""
+    # Check if user has completed basic profile setup (only for new users)
+    if not current_user.profession and not current_user.bio and not current_user.industry:
+        print(f"New user {current_user.email} has not completed profile setup, redirecting to onboarding...")
+        return redirect(url_for('onboarding'))
+    
     # Get upcoming bookings as provider
     provider_bookings = Booking.query.filter_by(expert_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
     

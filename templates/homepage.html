@@ -7,7 +7,26 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    {% include 'navbar.html' %}
+    <!-- Modern Navigation Bar -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ url_for('homepage') }}" class="navbar-brand">Droply</a>
+                <div class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+                        <a href="{{ url_for('discover') }}" class="nav-link">Discover</a>
+                        <a href="{{ url_for('profile_view', username=current_user.username) }}" class="nav-link">Profile</a>
+                        <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('homepage') }}" class="nav-link {% if request.endpoint == 'homepage' %}active{% endif %}">Home</a>
+                        <a href="{{ url_for('discover') }}" class="nav-link {% if request.endpoint == 'discover' %}active{% endif %}">Discover</a>
+                        <a href="{{ url_for('login') }}" class="nav-link btn btn-primary">START EARNING</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
 
     <!-- Hero Section 1 - Feature Reveal (8 images) -->
     <section class="hero-section hero-section-1">
@@ -204,12 +223,7 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Droply. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
-        </div>
-    </footer>
+    {% include 'footer.html' %}
 
     <script>
         // FAQ functionality
