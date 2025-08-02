@@ -251,23 +251,37 @@ def discover():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """User registration"""
+    print(f"Register route accessed. Method: {request.method}")
     form = RegistrationForm()
     
+    if request.method == 'POST':
+        print(f"Form data: {request.form}")
+        print(f"Form validation: {form.validate()}")
+        if form.errors:
+            print(f"Form errors: {form.errors}")
+    
     if form.validate_on_submit():
-        # Check if username or email already exists
-        existing_user = User.query.filter(
-            or_(User.username == form.username.data, User.email == form.email.data)
-        ).first()
+        # Check if email already exists
+        existing_user = User.query.filter_by(email=form.email.data).first()
         
         if existing_user:
-            flash('Username or email already exists.', 'error')
+            flash('Email already exists.', 'error')
             return render_template('register.html', form=form)
+        
+        # Generate username from email
+        username = form.email.data.split('@')[0]
+        # Ensure username is unique
+        base_username = username
+        counter = 1
+        while User.query.filter_by(username=username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
         
         # Create new user
         user = User(
-            username=form.username.data,
+            username=username,
             email=form.email.data,
-            full_name=form.full_name.data
+            full_name=form.email.data.split('@')[0]  # Use email prefix as full name
         )
         user.set_password(form.password.data)
         
@@ -298,26 +312,48 @@ def onboarding():
             if request.is_json:
                 data = request.get_json()
                 
-                # Update user profile with onboarding data
-                current_user.profession = data.get('profession', '')
-                current_user.bio = data.get('bio', '')
-                current_user.hourly_rate = data.get('hourly_rate', 0)
-                current_user.industry = data.get('industry', '')
-                current_user.is_available = True  # Set as available by default
+                # Handle username step
+                if data.get('step') == 'username':
+                    username = data.get('username', '').strip().lower()
+                    if not username:
+                        return jsonify({'success': False, 'message': 'Username is required'})
+                    
+                    # Check if username is available
+                    existing_user = User.query.filter_by(username=username).first()
+                    if existing_user and existing_user.id != current_user.id:
+                        return jsonify({'success': False, 'message': 'Username is already taken'})
+                    
+                    # Update username
+                    current_user.username = username
+                    db.session.commit()
+                    
+                    return jsonify({
+                        'success': True,
+                        'message': 'Username set successfully!'
+                    })
                 
-                # Handle expertise tags
-                expertise = data.get('expertise', [])
-                if expertise:
-                    current_user.specialty_tags = json.dumps(expertise)
-                else:
-                    current_user.specialty_tags = json.dumps([])
-                
-                db.session.commit()
-                
-                return jsonify({
-                    'success': True,
-                    'message': 'Profile setup complete!'
-                })
+                # Handle profile completion step
+                elif data.get('step') == 'profile':
+                    # Update user profile with onboarding data
+                    current_user.profession = data.get('profession', '')
+                    current_user.bio = data.get('bio', '')
+                    current_user.hourly_rate = data.get('hourly_rate', 0)
+                    current_user.industry = data.get('industry', '')
+                    current_user.is_available = True  # Set as available by default
+                    
+                    # Handle expertise tags
+                    expertise = data.get('expertise', [])
+                    if expertise:
+                        current_user.specialty_tags = json.dumps(expertise)
+                    else:
+                        current_user.specialty_tags = json.dumps([])
+                    
+                    db.session.commit()
+                    
+                    return jsonify({
+                        'success': True,
+                        'message': 'Profile setup complete!'
+                    })
             
             # Handle traditional form submission (fallback)
             form = OnboardingForm()
@@ -355,7 +391,7 @@ def onboarding():
     print("Rendering onboarding template")
     print(f"User profile data: profession={current_user.profession}, bio={current_user.bio}, industry={current_user.industry}")
     form = OnboardingForm()
-    return render_template('onboarding.html', form=form)
+    return render_template('onboarding.html', form=form, expertise_mapping=EXPERTISE_MAPPING)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -363,15 +399,15 @@ def login():
     form = LoginForm()
     
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        user = User.query.filter_by(email=form.email.data).first()
         
         if user and user.check_password(form.password.data):
             login_user(user)
             next_page = request.args.get('next')
             flash('Login successful!', 'success')
-            return redirect(next_page) if next_page else redirect(url_for('homepage'))
+            return redirect(next_page) if next_page else redirect(url_for('dashboard'))
         else:
-            flash('Invalid username or password.', 'error')
+            flash('Invalid email or password.', 'error')
     
     return render_template('login.html', form=form)
 
@@ -669,11 +705,6 @@ def find_experts():
 @login_required
 def dashboard():
     """User dashboard"""
-    # Check if user has completed basic profile setup (only for new users)
-    if not current_user.profession and not current_user.bio and not current_user.industry:
-        print(f"New user {current_user.email} has not completed profile setup, redirecting to onboarding...")
-        return redirect(url_for('onboarding'))
-    
     # Get upcoming bookings as provider
     provider_bookings = Booking.query.filter_by(expert_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
     
@@ -1059,6 +1090,71 @@ def not_found(error):
 def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
+
+# Expertise tag mapping
+EXPERTISE_MAPPING = {
+    'python': 'Python',
+    'javascript': 'JavaScript',
+    'react': 'React',
+    'ai': 'AI/ML',
+    'webdev': 'Web Development',
+    'mobile': 'Mobile Development',
+    'data': 'Data Science',
+    'cybersecurity': 'Cybersecurity',
+    'strategy': 'Strategy',
+    'startups': 'Startups',
+    'fundraising': 'Fundraising',
+    'operations': 'Operations',
+    'leadership': 'Leadership',
+    'finance': 'Finance',
+    'trading': 'Trading',
+    'money': 'Money Management',
+    'digital': 'Digital Marketing',
+    'social': 'Social Media',
+    'seo': 'SEO',
+    'content': 'Content Marketing',
+    'branding': 'Branding',
+    'coaching': 'Life Coaching',
+    'fitness': 'Fitness',
+    'nutrition': 'Nutrition',
+    'wellness': 'Wellness',
+    'therapy': 'Therapy',
+    'counseling': 'Counseling',
+    'education': 'Education',
+    'teaching': 'Teaching',
+    'tutoring': 'Tutoring',
+    'mentoring': 'Mentoring',
+    'training': 'Training',
+    'consulting': 'Consulting',
+    'design': 'Design',
+    'ui': 'UI/UX Design',
+    'graphic': 'Graphic Design',
+    'creative': 'Creative',
+    'writing': 'Writing',
+    'editing': 'Editing',
+    'translation': 'Translation'
+}
+
+def get_expertise_display_name(tag):
+    """Get the display name for an expertise tag"""
+    return EXPERTISE_MAPPING.get(tag, tag.title())
+
+@app.route('/api/check-username', methods=['POST'])
+def check_username():
+    """Check if username is available"""
+    data = request.get_json()
+    username = data.get('username', '').strip().lower()
+    
+    if not username:
+        return jsonify({'available': False, 'message': 'Username is required'})
+    
+    # Check if username exists
+    existing_user = User.query.filter_by(username=username).first()
+    
+    if existing_user:
+        return jsonify({'available': False, 'message': 'Username is already taken'})
+    else:
+        return jsonify({'available': True, 'message': 'Username is available'})
 
 @app.route('/api/profile/update', methods=['POST'])
 @login_required

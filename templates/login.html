@@ -3,29 +3,378 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In - Droply</title>
+    <title>Welcome to Droply</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            display: flex;
+        }
+
+        .login-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .login-left {
+            flex: 0.5;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 3rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-form-container {
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-right {
+            flex: 0.5;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 2rem;
+        }
+
+        .testimonials-card {
+            background: linear-gradient(135deg, #FFE5B4 0%, #FFB6C1 100%);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: none;
+            width: 100%;
+            height: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #FF6B35, #F7931E);
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            color: #1a1a1a;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .google-btn:hover {
+            background: #f8f9fa;
+            border-color: #d0d0d0;
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider-text {
+            padding: 0 1rem;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .password-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .forgot-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .forgot-link:hover {
+            color: #007bff;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-btn:hover {
+            background: #333;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 14px;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .signup-text {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .signup-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .signup-link:hover {
+            text-decoration: underline;
+        }
+
+        .testimonials-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .testimonial-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .testimonial-text {
+            color: #1a1a1a;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .author-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .author-info {
+            flex: 1;
+        }
+
+        .author-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 14px;
+        }
+
+        .author-handle {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .social-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+            }
+
+            .login-left {
+                flex: none;
+                padding: 2rem;
+            }
+
+            .login-right {
+                flex: none;
+                padding: 2rem;
+                min-height: 400px;
+            }
+
+            .testimonials-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div style="padding: 1.5rem 0 0 1.5rem;">
-        <a href="{{ url_for('homepage') }}" class="btn btn-link">&larr; Back</a>
-    </div>
-    <div class="auth-center-container">
-        <div class="auth-card">
-            <div class="text-center mb-4">
-                <h1 class="h3">Welcome Back</h1>
-                <p class="text-muted">Sign in to your account to continue</p>
+    <div class="login-container">
+        <!-- Left Section - Login Form -->
+        <div class="login-left">
+            <div class="logo">
+                <div class="logo-icon">☀️</div>
+                <div class="logo-text">Droply</div>
             </div>
+            
+            <div class="login-form-container">
+                <h1 class="welcome-title">Welcome to Droply</h1>
 
-            <form method="POST">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} mb-3">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST">
                 {{ form.hidden_tag() }}
                 
+                <button type="button" class="google-btn" onclick="handleGoogleSignIn()">
+                    <svg class="google-icon" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Log in with Google
+                </button>
+
+                <div class="divider">
+                    <div class="divider-line"></div>
+                    <div class="divider-text">OR</div>
+                    <div class="divider-line"></div>
+                </div>
+
                 <div class="form-group">
-                    {{ form.username.label(class="form-label") }}
-                    {{ form.username(class="form-control", placeholder="Enter your username") }}
-                    {% if form.username.errors %}
+                    <label class="form-label">Email</label>
+                    {{ form.email(class="form-input", placeholder="Enter your email address") }}
+                    {% if form.email.errors %}
                         <div class="alert alert-danger mt-2">
-                            {% for error in form.username.errors %}
+                            {% for error in form.email.errors %}
                                 {{ error }}
                             {% endfor %}
                         </div>
@@ -33,8 +382,11 @@
                 </div>
 
                 <div class="form-group">
-                    {{ form.password.label(class="form-label") }}
-                    {{ form.password(class="form-control", placeholder="Enter your password") }}
+                    <div class="password-row">
+                        <label class="form-label">Password</label>
+                        <a href="#" class="forgot-link">Forgot password?</a>
+                    </div>
+                    {{ form.password(class="form-input", placeholder="Enter your password") }}
                     {% if form.password.errors %}
                         <div class="alert alert-danger mt-2">
                             {% for error in form.password.errors %}
@@ -44,35 +396,120 @@
                     {% endif %}
                 </div>
 
-                <div class="form-group">
-                    <div class="form-check">
-                        {{ form.remember_me(class="form-check-input") }}
-                        {{ form.remember_me.label(class="form-check-label") }}
+                <button type="submit" class="login-btn">Log In</button>
+
+                                 <div class="signup-text">
+                     Don't have an account? <a href="{{ url_for('register') }}" class="signup-link">Sign up</a>
+                 </div>
+                 </form>
+             </div>
+         </div>
+
+        <!-- Right Section - Testimonials -->
+        <div class="login-right">
+            <div class="testimonials-card">
+                <div class="testimonials-container">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">Droply looks perfect for founders who want to build fast without...</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">U</div>
+                        <div class="author-info">
+                            <div class="author-name">user_one</div>
+                            <div class="author-handle">@user_one</div>
+                        </div>
+                        <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
                     </div>
                 </div>
 
-                <div class="d-grid">
-                    {{ form.submit(class="btn btn-primary") }}
+                <div class="testimonial-card">
+                    <div class="testimonial-text">You can now build a full AI app without writing any code. This to...</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">U</div>
+                        <div class="author-info">
+                            <div class="author-name">user_two</div>
+                            <div class="author-handle">@user_two</div>
+                        </div>
+                        <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </div>
                 </div>
-            </form>
 
-            <!-- Divider -->
-            <div class="divider-container my-4">
-                <div class="divider-line"></div>
-                <span class="divider-text">or</span>
-                <div class="divider-line"></div>
-            </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-text">Ok</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">U</div>
+                        <div class="author-info">
+                            <div class="author-name">user_three</div>
+                            <div class="author-handle">@user_three</div>
+                        </div>
+                        <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </div>
+                </div>
 
-            <!-- Google OAuth Button -->
-            <a href="{{ url_for('auth_google') }}" class="btn btn-google w-100">
-                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" style="height: 20px; vertical-align: middle; margin-right: 8px;"> Sign in with Google
-            </a>
+                <div class="testimonial-card">
+                    <div class="testimonial-text">...nizes app development t...</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">U</div>
+                        <div class="author-info">
+                            <div class="author-name">user_four</div>
+                            <div class="author-handle">@user_four</div>
+                        </div>
+                        <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/>
+                        </svg>
+                    </div>
+                </div>
 
-            <div class="text-center mt-4">
-                <span>Don't have an account?</span>
-                <a href="{{ url_for('register') }}" class="btn btn-link">Sign up</a>
+                <div class="testimonial-card">
+                    <div class="testimonial-text">Fastest Aha! moment I have ever had.</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">U</div>
+                        <div class="author-info">
+                            <div class="author-name">user_five</div>
+                            <div class="author-handle">@user_five</div>
+                        </div>
+                        <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-text">Start building in minute immediately. Great!</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">U</div>
+                        <div class="author-info">
+                            <div class="author-name">user_six</div>
+                            <div class="author-handle">@user_six</div>
+                        </div>
+                        <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/>
+                        </svg>
+                    </div>
+                </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        // Handle Google Sign In
+        function handleGoogleSignIn() {
+            // Check if Google OAuth is configured
+            const googleClientId = '{{ config.get("GOOGLE_CLIENT_ID", "") }}';
+            if (!googleClientId || googleClientId === 'YOUR_GOOGLE_CLIENT_ID') {
+                alert('Google Sign-In is not configured. Please use the email/password form instead.');
+                return;
+            }
+            
+            // Redirect to Google OAuth
+            window.location.href = '{{ url_for("auth_google") }}';
+        }
+    </script>
 </body>
 </html>

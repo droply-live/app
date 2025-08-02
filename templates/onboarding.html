@@ -332,6 +332,24 @@
             color: white;
         }
 
+        .username-status {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .username-status.available {
+            color: #28a745;
+        }
+
+        .username-status.unavailable {
+            color: #dc3545;
+        }
+
+        .username-status.checking {
+            color: #ffc107;
+        }
+
         @media (max-width: 768px) {
             .step-content {
                 padding: 30px 20px;
@@ -359,12 +377,35 @@
                 <div class="progress-fill" id="progressFill"></div>
             </div>
             <div class="progress-text">
-                <span id="currentStep">1</span> of <span id="totalSteps">4</span>
+                <span id="currentStep">1</span> of <span id="totalSteps">5</span>
             </div>
         </div>
 
-        <!-- Step 1: Basic Information -->
+        <!-- Step 1: Username Selection -->
         <div class="onboarding-step" id="step1" data-step="1">
+            <div class="step-content">
+                <div class="step-header">
+                    <h1>Choose your username</h1>
+                    <p>This will be your unique identifier on Droply</p>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="username" class="form-control" placeholder="Enter your username" value="{{ current_user.username or '' }}" maxlength="30">
+                        <div class="form-text">Only letters, numbers, and underscores allowed. 3-30 characters.</div>
+                        <div id="username-status" class="username-status"></div>
+                    </div>
+                </div>
+                
+                <div class="step-actions">
+                    <button type="button" class="btn btn-primary btn-next" id="username-continue" onclick="saveUsername()" disabled>Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Basic Information -->
+        <div class="onboarding-step" id="step2" data-step="2" style="display: none;">
             <div class="step-content">
                 <div class="step-header">
                     <h1>Tell us about yourself</h1>
@@ -406,8 +447,8 @@
             </div>
         </div>
 
-        <!-- Step 2: Expertise Tags -->
-        <div class="onboarding-step" id="step2" data-step="2" style="display: none;">
+        <!-- Step 3: Expertise Tags -->
+        <div class="onboarding-step" id="step3" data-step="3" style="display: none;">
             <div class="step-content">
                 <div class="step-header">
                     <h1>What are your specialties?</h1>
@@ -535,8 +576,8 @@
             </div>
         </div>
 
-        <!-- Step 3: Pricing -->
-        <div class="onboarding-step" id="step3" data-step="3" style="display: none;">
+        <!-- Step 4: Pricing -->
+        <div class="onboarding-step" id="step4" data-step="4" style="display: none;">
             <div class="step-content">
                 <div class="step-header">
                     <h1>Set your pricing</h1>
@@ -572,8 +613,8 @@
             </div>
         </div>
 
-        <!-- Step 4: Complete -->
-        <div class="onboarding-step" id="step4" data-step="4" style="display: none;">
+        <!-- Step 5: Complete -->
+        <div class="onboarding-step" id="step5" data-step="5" style="display: none;">
             <div class="step-content">
                 <div class="step-header">
                     <h1>You're all set!</h1>
@@ -609,7 +650,109 @@
 
     <script>
         let currentStep = 1;
-        const totalSteps = 4;
+        const totalSteps = 5;
+
+        // Username checking functionality
+        let usernameCheckTimeout;
+        
+        function checkUsername(username) {
+            const statusDiv = document.getElementById('username-status');
+            const continueBtn = document.getElementById('username-continue');
+            
+            // Clear previous timeout
+            if (usernameCheckTimeout) {
+                clearTimeout(usernameCheckTimeout);
+            }
+            
+            // Reset status
+            statusDiv.textContent = '';
+            statusDiv.className = 'username-status';
+            continueBtn.disabled = true;
+            
+            if (!username || username.length < 3) {
+                statusDiv.textContent = 'Username must be at least 3 characters';
+                statusDiv.className = 'username-status unavailable';
+                return;
+            }
+            
+            if (username.length > 30) {
+                statusDiv.textContent = 'Username must be 30 characters or less';
+                statusDiv.className = 'username-status unavailable';
+                return;
+            }
+            
+            // Check for valid characters
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                statusDiv.textContent = 'Username can only contain letters, numbers, and underscores';
+                statusDiv.className = 'username-status unavailable';
+                return;
+            }
+            
+            // Show checking status
+            statusDiv.textContent = 'Checking availability...';
+            statusDiv.className = 'username-status checking';
+            
+            // Debounce the API call
+            usernameCheckTimeout = setTimeout(() => {
+                fetch('{{ url_for("check_username") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: username })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.available) {
+                        statusDiv.textContent = '✓ Username is available';
+                        statusDiv.className = 'username-status available';
+                        continueBtn.disabled = false;
+                    } else {
+                        statusDiv.textContent = '✗ ' + data.message;
+                        statusDiv.className = 'username-status unavailable';
+                        continueBtn.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusDiv.textContent = 'Error checking username';
+                    statusDiv.className = 'username-status unavailable';
+                    continueBtn.disabled = true;
+                });
+            }, 500);
+        }
+        
+        function saveUsername() {
+            const username = document.getElementById('username').value.trim();
+            
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            
+            fetch('{{ url_for("onboarding") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    step: 'username',
+                    username: username
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    nextStep();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
 
         function updateProgress() {
             const progress = (currentStep / totalSteps) * 100;
@@ -661,21 +804,36 @@
             }
         }
 
+        // Expertise mapping from server
+        const expertiseMapping = JSON.parse('{{ expertise_mapping | tojson | safe }}');
+        
+        function getExpertiseDisplayName(tag) {
+            return expertiseMapping[tag] || tag;
+        }
+        
         function updateSummary() {
-            // Update summary in step 4
+            // Update summary in step 5
             document.getElementById('summaryProfession').textContent = document.getElementById('profession').value || '-';
             document.getElementById('summaryIndustry').textContent = document.getElementById('industry').value || '-';
             document.getElementById('summaryRate').textContent = document.getElementById('hourlyRate').value ? `$${document.getElementById('hourlyRate').value}/hr` : 'Free';
             
-            // Get selected expertise
+            // Get selected expertise with proper display names
             const selectedExpertise = Array.from(document.querySelectorAll('input[name="expertise"]:checked'))
-                .map(cb => cb.value)
+                .map(cb => getExpertiseDisplayName(cb.value))
                 .join(', ');
             document.getElementById('summaryExpertise').textContent = selectedExpertise || '-';
         }
 
         // Pricing button functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Username input event listener
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                usernameInput.addEventListener('input', function() {
+                    checkUsername(this.value.trim());
+                });
+            }
+            
             const pricingButtons = document.querySelectorAll('.pricing-btn');
             const hourlyRateInput = document.getElementById('hourlyRate');
             
@@ -691,21 +849,27 @@
             });
             
             // Check if user has existing data and skip to appropriate step
+            const username = document.getElementById('username').value;
             const profession = document.getElementById('profession').value;
             const bio = document.getElementById('bio').value;
             const industry = document.getElementById('industry').value;
             const hourlyRate = document.getElementById('hourlyRate').value;
             
-            // If user has basic info but no pricing, start at step 3
-            if (profession && bio && industry && !hourlyRate) {
-                currentStep = 3;
-                showStep(currentStep);
-            }
-            // If user has basic info and pricing, start at step 4
-            else if (profession && bio && industry && hourlyRate) {
+            // Always start at step 1 (username) for new users
+            // Only skip to later steps if user has already completed previous steps
+            if (username && profession && bio && industry && !hourlyRate) {
                 currentStep = 4;
                 showStep(currentStep);
+            }
+            else if (username && profession && bio && industry && hourlyRate) {
+                currentStep = 5;
+                showStep(currentStep);
                 updateSummary();
+            }
+            else {
+                // Start at step 1 (username selection)
+                currentStep = 1;
+                showStep(currentStep);
             }
             
             // Initialize progress
@@ -715,6 +879,7 @@
         function completeOnboarding() {
             // Collect all form data
             const formData = {
+                step: 'profile',
                 profession: document.getElementById('profession').value,
                 bio: document.getElementById('bio').value,
                 industry: document.getElementById('industry').value,

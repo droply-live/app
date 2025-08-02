@@ -4,14 +4,8 @@ from wtforms.validators import DataRequired, Email, Length, NumberRange, Optiona
 from models import Category
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=64)])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
-    confirm_password = PasswordField('Confirm Password', validators=[
-        DataRequired(),
-        EqualTo('password', message='Passwords must match')
-    ])
-    full_name = StringField('Full Name', validators=[DataRequired(), Length(max=100)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     submit = SubmitField('Sign Up')
 
 class OnboardingForm(FlaskForm):
@@ -32,7 +26,7 @@ class OnboardingForm(FlaskForm):
     ], validators=[DataRequired()])
 
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
