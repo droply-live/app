@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case, func
 from app import app
 from extensions import db
-from models import User, AvailabilityRule, AvailabilityException, Booking, Payout
+from models import User, AvailabilityRule, AvailabilityException, Booking, Payout, Favorite
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm, TimeSlotForm, BookingForm
 from utils import generate_ical_content
 from keyword_mappings import get_search_keywords, search_in_text
@@ -566,30 +566,54 @@ def find_experts():
     if category:
         # Map category names to search terms
         category_mapping = {
-            'tech': ['tech', 'technology', 'programming', 'software', 'developer', 'engineer', 'coding', 'web', 'app', 'mobile', 'ai', 'machine learning', 'data science'],
+            'top': [],  # Special case for top experts - will be handled separately
+            'home': ['home', 'interior', 'design', 'decor', 'renovation', 'construction', 'architecture', 'furniture', 'decorating'],
             'business': ['business', 'consulting', 'strategy', 'management', 'entrepreneur', 'startup', 'finance', 'marketing', 'sales'],
-            'design': ['design', 'ui', 'ux', 'graphic', 'visual', 'creative', 'art', 'branding', 'illustration'],
+            'design': ['design', 'ui', 'ux', 'graphic', 'visual', 'creative', 'art', 'branding', 'illustration', 'style', 'beauty', 'fashion'],
             'marketing': ['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand', 'growth', 'content'],
             'finance': ['finance', 'accounting', 'investment', 'financial', 'tax', 'budget', 'money', 'wealth'],
             'health': ['health', 'fitness', 'wellness', 'nutrition', 'medical', 'therapy', 'coaching', 'mental health'],
-            'education': ['education', 'teaching', 'tutoring', 'training', 'learning', 'academic', 'course', 'mentor']
+            'education': ['education', 'teaching', 'tutoring', 'training', 'learning', 'academic', 'course', 'mentor', 'astrology', 'spiritual']
         }
         
         if category in category_mapping:
-            search_terms = category_mapping[category]
-            category_conditions = []
-            for term in search_terms:
-                category_conditions.append(
-                    or_(
-                        User.expertise.ilike(f'%{term}%'),
-                        User.profession.ilike(f'%{term}%'),
-                        User.industry.ilike(f'%{term}%'),
-                        User.bio.ilike(f'%{term}%'),
-                        User.specialty_tags.ilike(f'%{term}%')
+            if category == 'top':
+                # Special case for top experts - filter by is_top_expert flag
+                query = query.filter(User.is_top_expert == True)
+            elif category == 'favorites':
+                # Special case for favorites - filter by user's favorites
+                favorites = Favorite.query.filter_by(user_id=current_user.id).all()
+                expert_ids = [int(f.expert_id) for f in favorites]  # Ensure integers
+                
+                print(f"DEBUG: User {current_user.id} has {len(favorites)} favorites: {expert_ids}")
+
+                if expert_ids:
+                    query = query.filter(User.id.in_(expert_ids))
+                    print(f"DEBUG: Filtered query for favorites")
+                else:
+                    # Return empty list if no favorites
+                    experts = []
+                    print(f"DEBUG: No favorites found, returning empty list")
+                    return render_template('find_experts.html', 
+                                         experts=experts, 
+                                         now=datetime.now(), 
+                                         timedelta=timedelta,
+                                         current_user_favorites=[])
+            else:
+                search_terms = category_mapping[category]
+                category_conditions = []
+                for term in search_terms:
+                    category_conditions.append(
+                        or_(
+                            User.expertise.ilike(f'%{term}%'),
+                            User.profession.ilike(f'%{term}%'),
+                            User.industry.ilike(f'%{term}%'),
+                            User.bio.ilike(f'%{term}%'),
+                            User.specialty_tags.ilike(f'%{term}%')
+                        )
                     )
-                )
-            if category_conditions:
-                query = query.filter(or_(*category_conditions))
+                if category_conditions:
+                    query = query.filter(or_(*category_conditions))
     
     # Apply semantic search if provided
     if search_query:
@@ -619,11 +643,20 @@ def find_experts():
     
     # Get all experts and sort by relevance
     experts = query.all()
+    print(f"DEBUG: Found {len(experts)} experts after filtering")
+    if category == 'favorites':
+        print(f"DEBUG: Expert IDs in results: {[e.id for e in experts]}")
     
-    # Sort experts by relevance (those with more matches come first)
-    if search_query:
-        def relevance_score(expert):
-            score = 0
+    # Sort experts by relevance and priority
+    def sort_score(expert):
+        score = 0
+        
+        # Top experts get highest priority
+        if expert.is_top_expert:
+            score += 1000
+        
+        # If there's a search query, add relevance score
+        if search_query:
             search_lower = search_query.lower()
             
             # Check exact matches first
@@ -647,15 +680,28 @@ def find_experts():
                         score += 2
                     if keyword in (expert.bio or '').lower():
                         score += 1
-            
-            return score
         
-        experts = sorted(experts, key=relevance_score, reverse=True)
+        return score
+    
+    experts = sorted(experts, key=sort_score, reverse=True)
     
     # Import datetime for template
     from datetime import datetime, timedelta
     
-    return render_template('find_experts.html', experts=experts, now=datetime.now(), timedelta=timedelta)
+    # Get current user's favorites for template
+    current_user_favorites = []
+    if current_user.is_authenticated:
+        favorites = Favorite.query.filter_by(user_id=current_user.id).all()
+        current_user_favorites = [int(f.expert_id) for f in favorites]  # Ensure integers
+        print(f"DEBUG: current_user_favorites: {current_user_favorites}")
+        print(f"DEBUG: current_user_favorites types: {[type(f) for f in current_user_favorites]}")
+
+    
+    return render_template('find_experts.html', 
+                         experts=experts, 
+                         now=datetime.now(), 
+                         timedelta=timedelta,
+                         current_user_favorites=current_user_favorites)
 
 
 
@@ -1208,6 +1254,45 @@ def api_profile_picture():
             return jsonify({'success': True})
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/favorites/toggle', methods=['POST'])
+@login_required
+def api_favorites_toggle():
+    """Toggle favorite status for an expert"""
+    try:
+        data = request.get_json()
+        expert_id = data.get('expert_id')
+        expert_username = data.get('expert_username')
+        
+        if not expert_id or not expert_username:
+            return jsonify({'success': False, 'error': 'Missing expert information'})
+        
+        # Verify the expert exists
+        expert = User.query.filter_by(id=expert_id, username=expert_username, is_available=True).first()
+        if not expert:
+            return jsonify({'success': False, 'error': 'Expert not found'})
+        
+        # Check if already favorited
+        existing_favorite = Favorite.query.filter_by(
+            user_id=current_user.id, 
+            expert_id=expert_id
+        ).first()
+        
+        if existing_favorite:
+            # Remove from favorites
+            db.session.delete(existing_favorite)
+            db.session.commit()
+            return jsonify({'success': True, 'action': 'removed'})
+        else:
+            # Add to favorites
+            new_favorite = Favorite(user_id=current_user.id, expert_id=expert_id)
+            db.session.add(new_favorite)
+            db.session.commit()
+            return jsonify({'success': True, 'action': 'added'})
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/profile/background', methods=['POST'])
 @login_required

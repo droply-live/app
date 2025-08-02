@@ -83,6 +83,23 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
+class Favorite(db.Model):
+    """Track user favorites - which experts users have favorited"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The user who favorited
+    expert_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The expert being favorited
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='favorites_as_user')
+    expert = db.relationship('User', foreign_keys=[expert_id], backref='favorites_as_expert')
+    
+    # Ensure unique combinations
+    __table_args__ = (db.UniqueConstraint('user_id', 'expert_id', name='_user_expert_favorite_uc'),)
+    
+    def __repr__(self):
+        return f'<Favorite {self.user_id} -> {self.expert_id}>'
+
 class AvailabilityRule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

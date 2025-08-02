@@ -61,20 +61,21 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 def update_past_bookings():
-    from models import Booking
-    from app import db
-    now = datetime.now(timezone.utc)
-    bookings = Booking.query.filter(
-        Booking.status == 'confirmed',
-        Booking.end_time < now
-    ).all()
-    updated = 0
-    for booking in bookings:
-        booking.status = 'completed'
-        updated += 1
-    if updated > 0:
-        db.session.commit()
-        print(f"[APScheduler] Updated {updated} bookings to completed.")
+    with app.app_context():
+        from models import Booking
+        from app import db
+        now = datetime.now(timezone.utc)
+        bookings = Booking.query.filter(
+            Booking.status == 'confirmed',
+            Booking.end_time < now
+        ).all()
+        updated = 0
+        for booking in bookings:
+            booking.status = 'completed'
+            updated += 1
+        if updated > 0:
+            db.session.commit()
+            print(f"[APScheduler] Updated {updated} bookings to completed.")
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_past_bookings, 'interval', minutes=5)
