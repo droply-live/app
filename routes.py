@@ -144,109 +144,7 @@ def homepage():
         return redirect(url_for('dashboard'))
     return render_template('homepage.html')
 
-@app.route('/discover')
-def discover():
-    # Get search query and category
-    search_query = request.args.get('search', '').strip()
-    category = request.args.get('category', '').strip().lower()
-    
-    # Base query for available users
-    query = User.query.filter(User.is_available == True, User.full_name.isnot(None))
-    
-    # Apply category filter if provided
-    if category:
-        # Map category names to search terms
-        category_mapping = {
-            'tech': ['tech', 'technology', 'programming', 'software', 'developer', 'engineer', 'coding', 'web', 'app', 'mobile', 'ai', 'machine learning', 'data science'],
-            'business': ['business', 'consulting', 'strategy', 'management', 'entrepreneur', 'startup', 'finance', 'marketing', 'sales'],
-            'design': ['design', 'ui', 'ux', 'graphic', 'visual', 'creative', 'art', 'branding', 'illustration'],
-            'marketing': ['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand', 'growth', 'content'],
-            'finance': ['finance', 'accounting', 'investment', 'financial', 'tax', 'budget', 'money', 'wealth'],
-            'health': ['health', 'fitness', 'wellness', 'nutrition', 'medical', 'therapy', 'coaching', 'mental health'],
-            'education': ['education', 'teaching', 'tutoring', 'training', 'learning', 'academic', 'course', 'mentor']
-        }
-        
-        if category in category_mapping:
-            search_terms = category_mapping[category]
-            category_conditions = []
-            for term in search_terms:
-                category_conditions.append(
-                    or_(
-                        User.expertise.ilike(f'%{term}%'),
-                        User.profession.ilike(f'%{term}%'),
-                        User.industry.ilike(f'%{term}%'),
-                        User.bio.ilike(f'%{term}%'),
-                        User.specialty_tags.ilike(f'%{term}%')
-                    )
-                )
-            if category_conditions:
-                query = query.filter(or_(*category_conditions))
-    
-    # Apply semantic search if provided
-    if search_query:
-        # Split search query into keywords for better matching
-        search_keywords = search_query.lower().split()
-        
-        # Create search conditions for each keyword
-        search_conditions = []
-        for keyword in search_keywords:
-            if len(keyword) > 2:  # Only search for keywords with 3+ characters
-                keyword_term = f'%{keyword}%'
-                search_conditions.append(
-                    or_(
-                        User.username.ilike(keyword_term),
-                        User.full_name.ilike(keyword_term),
-                        User.expertise.ilike(keyword_term),
-                        User.profession.ilike(keyword_term),
-                        User.industry.ilike(keyword_term),
-                        User.bio.ilike(keyword_term),
-                        User.specialty_tags.ilike(keyword_term),
-                        User.location.ilike(keyword_term)
-                    )
-                )
-        
-        if search_conditions:
-            query = query.filter(or_(*search_conditions))
-    
-    # Get all experts and sort by relevance
-    experts = query.all()
-    
-    # Sort experts by relevance (those with more matches come first)
-    if search_query:
-        def relevance_score(expert):
-            score = 0
-            search_lower = search_query.lower()
-            
-            # Check exact matches first
-            if search_lower in (expert.full_name or '').lower():
-                score += 10
-            if search_lower in (expert.expertise or '').lower():
-                score += 8
-            if search_lower in (expert.profession or '').lower():
-                score += 6
-            if search_lower in (expert.bio or '').lower():
-                score += 4
-            
-            # Check keyword matches
-            for keyword in search_query.lower().split():
-                if len(keyword) > 2:
-                    if keyword in (expert.full_name or '').lower():
-                        score += 3
-                    if keyword in (expert.expertise or '').lower():
-                        score += 2
-                    if keyword in (expert.profession or '').lower():
-                        score += 2
-                    if keyword in (expert.bio or '').lower():
-                        score += 1
-            
-            return score
-        
-        experts = sorted(experts, key=relevance_score, reverse=True)
-    
-    # Import datetime for template
-    from datetime import datetime, timedelta
-    
-    return render_template('discover.html', experts=experts, now=datetime.now(), timedelta=timedelta)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -509,7 +407,67 @@ def profile_preview(username):
     # Show the public profile view (same as profile_view.html)
     return render_template('profile_view.html', user=user)
 
+@app.route('/expert/<username>')
+@login_required
+def expert_profile(username):
+    """View expert profile for booking"""
+    expert = User.query.filter_by(username=username).first_or_404()
+    
+    # Get expert's availability for booking
+    availability_rules = AvailabilityRule.query.filter_by(user_id=expert.id).all()
+    
+    return render_template('expert_profile.html', expert=expert, availability_rules=availability_rules)
 
+@app.route('/expert/<username>/book')
+@login_required
+def expert_booking_times(username):
+    """Select available booking times for an expert"""
+    expert = User.query.filter_by(username=username).first_or_404()
+    
+    # Get expert's availability rules
+    availability_rules = AvailabilityRule.query.filter_by(user_id=expert.id).all()
+    
+    if not availability_rules:
+        flash('This expert has not set up their availability yet.', 'error')
+        return redirect(url_for('expert_profile', username=username))
+    
+    # Get available times for the next 7 days
+    available_times = []
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    for i in range(7):  # Next 7 days
+        check_date = today + timedelta(days=i)
+        
+        # Get availability for this date
+        for rule in availability_rules:
+            if rule.weekday == check_date.weekday():
+                # Generate time slots for this day
+                start_time = datetime.combine(check_date, rule.start)
+                end_time = datetime.combine(check_date, rule.end)
+                
+                # Generate 30-minute slots
+                current_time = start_time
+                while current_time + timedelta(minutes=30) <= end_time:
+                    # Check if this slot is not already booked
+                    existing_booking = Booking.query.filter(
+                        (Booking.expert_id == expert.id) &
+                        (Booking.start_time == current_time) &
+                        (Booking.status.in_(['confirmed', 'pending']))
+                    ).first()
+                    
+                    if not existing_booking and current_time > datetime.now():
+                        available_times.append({
+                            'datetime': current_time,
+                            'formatted_date': current_time.strftime('%B %d, %Y'),
+                            'formatted_time': current_time.strftime('%I:%M %p'),
+                            'iso_datetime': current_time.isoformat()
+                        })
+                    
+                    current_time += timedelta(minutes=30)
+    
+    return render_template('expert_booking_times.html', 
+                         expert=expert, 
+                         available_times=available_times)
 
 @app.route('/settings')
 @login_required
@@ -596,7 +554,7 @@ def delete_account():
 @app.route('/find-experts')
 @login_required
 def find_experts():
-    """Compact discover page for signed-in users"""
+    """Find experts page for signed-in users"""
     # Get search query and category
     search_query = request.args.get('search', '').strip()
     category = request.args.get('category', '').strip().lower()

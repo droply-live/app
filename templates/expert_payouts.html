@@ -1,97 +1,148 @@
 {% extends "base_signed_in.html" %}
 
-{% block title %}Payout History - Droply{% endblock %}
+{% block title %}Earnings - Droply{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-lg-10">
-      <div class="card" style="border-radius: 18px; background: #fff; box-shadow: 0 4px 24px 0 rgba(60,120,255,0.08);">
-        <div class="card-body p-4">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold mb-0">
-              <i data-feather="credit-card" class="me-2 text-success"></i>
-              Payout History
-            </h3>
-            <a href="{{ url_for('expert_dashboard') }}" class="btn btn-outline-primary">
-              <i data-feather="arrow-left" class="me-2"></i>
-              Back to Dashboard
-            </a>
+<!-- EARNINGS PAGE REDESIGN v2.0 - CACHE BUST: {{ range(1, 1000) | random }} -->
+<div class="account-page">
+  <!-- Earnings Header -->
+  <div class="account-header">
+    <h1 class="account-title">Earnings.</h1>
+    <p class="account-subtitle">Track your revenue and manage your payouts</p>
+  </div>
+
+  <div class="account-content">
+    <!-- Left Column - Earnings Navigation -->
+    <div class="account-sidebar">
+      <!-- Earnings Summary Card -->
+      <div class="profile-summary-card">
+        <div class="earnings-summary">
+          <div class="earnings-icon">
+            <i class="fas fa-dollar-sign"></i>
           </div>
+          <div class="earnings-info">
+            {% set total_earned = 0 %}
+            {% for p in payouts %}
+              {% if p.status == 'paid' %}
+                {% set total_earned = total_earned + p.amount %}
+              {% endif %}
+            {% endfor %}
+            <div class="earnings-total">${{ "%.2f"|format(total_earned / 100) }}</div>
+            <div class="earnings-label">Total Earned</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Earnings Section -->
+      <div class="account-section">
+        <div class="section-title details">Earnings</div>
+        <div class="section-items">
+          <a href="#" class="section-item active" data-tab="payout-history">
+            <span>Payout History</span>
+            <i class="fas fa-chevron-right"></i>
+          </a>
+          <a href="#" class="section-item" data-tab="earnings-overview">
+            <span>Earnings Overview</span>
+            <i class="fas fa-chevron-right"></i>
+          </a>
+          <a href="#" class="section-item" data-tab="payment-settings">
+            <span>Payment Settings</span>
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Stats Section -->
+      <div class="account-section">
+        <div class="section-title support">Quick Stats</div>
+        <div class="stats-summary">
+          {% set pending_total = 0 %}
+          {% set failed_total = 0 %}
+          {% for p in payouts %}
+            {% if p.status == 'pending' %}
+              {% set pending_total = pending_total + p.amount %}
+            {% elif p.status == 'failed' %}
+              {% set failed_total = failed_total + p.amount %}
+            {% endif %}
+          {% endfor %}
+          <div class="stat-item">
+            <div class="stat-value pending">${{ "%.2f"|format(pending_total / 100) }}</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value failed">${{ "%.2f"|format(failed_total / 100) }}</div>
+            <div class="stat-label">Failed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Support Section -->
+      <div class="account-section">
+        <div class="section-title support">Support</div>
+        <div class="section-items">
+          <a href="#" class="section-item" data-tab="payment-help">
+            <span>Payment Help</span>
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Content Area -->
+    <div class="account-main-content">
+      <div id="earnings-content-area" class="content-placeholder">
+        <div class="tab-content">
+          <h2>Payout History</h2>
           
           {% if payouts %}
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead class="table-light">
-                <tr>
-                  <th>Date Requested</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Paid Date</th>
-                  <th>Stripe ID</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for payout in payouts %}
-                <tr>
-                  <td>{{ payout.created_at.strftime('%b %d, %Y %I:%M %p') }}</td>
-                  <td class="fw-bold">${{ "%.2f"|format(payout.amount / 100) }}</td>
-                  <td>
-                    <span class="badge bg-{{ 'success' if payout.status == 'paid' else 'warning' if payout.status == 'pending' else 'danger' }}">
-                      {{ payout.status|title }}
-                    </span>
-                  </td>
-                  <td>
-                    {% if payout.paid_at %}
-                    {{ payout.paid_at.strftime('%b %d, %Y %I:%M %p') }}
-                    {% else %}
-                    -
-                    {% endif %}
-                  </td>
-                  <td>
-                    <small class="text-muted">{{ payout.stripe_payout_id[:8] }}...</small>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-          
-          <!-- Summary -->
-          <div class="row mt-4">
-            <div class="col-md-4">
-              <div class="card bg-light">
-                <div class="card-body text-center">
-                  <h5 class="fw-bold text-success">${{ "%.2f"|format(sum(p.amount for p in payouts if p.status == 'paid') / 100) }}</h5>
-                  <small class="text-muted">Total Paid</small>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card bg-light">
-                <div class="card-body text-center">
-                  <h5 class="fw-bold text-warning">${{ "%.2f"|format(sum(p.amount for p in payouts if p.status == 'pending') / 100) }}</h5>
-                  <small class="text-muted">Pending</small>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card bg-light">
-                <div class="card-body text-center">
-                  <h5 class="fw-bold text-danger">${{ "%.2f"|format(sum(p.amount for p in payouts if p.status == 'failed') / 100) }}</h5>
-                  <small class="text-muted">Failed</small>
-                </div>
-              </div>
+          <div class="payouts-container">
+            <div class="table-responsive">
+              <table class="payouts-table">
+                <thead>
+                  <tr>
+                    <th>Date Requested</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Paid Date</th>
+                    <th>Reference</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for payout in payouts %}
+                  <tr class="payout-row">
+                    <td class="payout-date">{{ payout.created_at.strftime('%b %d, %Y %I:%M %p') }}</td>
+                    <td class="payout-amount">${{ "%.2f"|format(payout.amount / 100) }}</td>
+                    <td class="payout-status">
+                      <span class="status-badge status-{{ payout.status }}">
+                        {{ payout.status|title }}
+                      </span>
+                    </td>
+                    <td class="payout-paid-date">
+                      {% if payout.paid_at %}
+                      {{ payout.paid_at.strftime('%b %d, %Y %I:%M %p') }}
+                      {% else %}
+                      -
+                      {% endif %}
+                    </td>
+                    <td class="payout-reference">
+                      <small>{{ payout.stripe_payout_id[:8] }}...</small>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
             </div>
           </div>
           
           {% else %}
-          <div class="text-center py-5">
-            <i data-feather="credit-card" class="text-muted mb-3" style="width: 64px; height: 64px;"></i>
-            <h5 class="text-muted">No Payouts Yet</h5>
-            <p class="text-muted">You'll see your payout history here once you start receiving payments.</p>
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <i class="fas fa-credit-card"></i>
+            </div>
+            <h3>No Payouts Yet</h3>
+            <p>You'll see your payout history here once you start receiving payments from your sessions.</p>
             <a href="{{ url_for('expert_dashboard') }}" class="btn btn-primary">
-              <i data-feather="arrow-left" class="me-2"></i>
+              <i class="fas fa-arrow-left"></i>
               Back to Dashboard
             </a>
           </div>
@@ -101,13 +152,493 @@
     </div>
   </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
-{{ super() }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  feather.replace();
+  console.log('Earnings page loaded - v2.0');
+  const sectionItems = document.querySelectorAll('.section-item');
+  const contentArea = document.getElementById('earnings-content-area');
+
+  sectionItems.forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Remove active class from all items
+      sectionItems.forEach(i => i.classList.remove('active'));
+      
+      // Add active class to clicked item
+      this.classList.add('active');
+      
+      // Get the tab data
+      const tab = this.getAttribute('data-tab');
+      
+      // Update content based on selected tab
+      updateContent(tab);
+    });
+  });
+
+  function updateContent(tab) {
+    let content = '';
+    
+    switch(tab) {
+      case 'payout-history':
+        content = `
+          <div class="tab-content">
+            <h2>Payout History</h2>
+            {% if payouts %}
+            <div class="payouts-container">
+              <div class="table-responsive">
+                <table class="payouts-table">
+                  <thead>
+                    <tr>
+                      <th>Date Requested</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Paid Date</th>
+                      <th>Reference</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for payout in payouts %}
+                    <tr class="payout-row">
+                      <td class="payout-date">{{ payout.created_at.strftime('%b %d, %Y %I:%M %p') }}</td>
+                      <td class="payout-amount">${{ "%.2f"|format(payout.amount / 100) }}</td>
+                      <td class="payout-status">
+                        <span class="status-badge status-{{ payout.status }}">
+                          {{ payout.status|title }}
+                        </span>
+                      </td>
+                      <td class="payout-paid-date">
+                        {% if payout.paid_at %}
+                        {{ payout.paid_at.strftime('%b %d, %Y %I:%M %p') }}
+                        {% else %}
+                        -
+                        {% endif %}
+                      </td>
+                      <td class="payout-reference">
+                        <small>{{ payout.stripe_payout_id[:8] }}...</small>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {% else %}
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <i class="fas fa-credit-card"></i>
+              </div>
+              <h3>No Payouts Yet</h3>
+              <p>You'll see your payout history here once you start receiving payments from your sessions.</p>
+              <a href="{{ url_for('expert_dashboard') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        `;
+        break;
+        
+      case 'earnings-overview':
+        content = `
+          <div class="tab-content">
+            <h2>Earnings Overview</h2>
+            <div class="earnings-overview">
+              <div class="earnings-stats-grid">
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                  </div>
+                  <div class="stat-content">
+                    {% set total_earned = 0 %}
+                    {% for p in payouts %}
+                      {% if p.status == 'paid' %}
+                        {% set total_earned = total_earned + p.amount %}
+                      {% endif %}
+                    {% endfor %}
+                    <div class="stat-value">${{ "%.2f"|format(total_earned / 100) }}</div>
+                    <div class="stat-label">Total Earned</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                  <div class="stat-content">
+                    {% set pending_total = 0 %}
+                    {% for p in payouts %}
+                      {% if p.status == 'pending' %}
+                        {% set pending_total = pending_total + p.amount %}
+                      {% endif %}
+                    {% endfor %}
+                    <div class="stat-value">${{ "%.2f"|format(pending_total / 100) }}</div>
+                    <div class="stat-label">Pending</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                  </div>
+                  <div class="stat-content">
+                    {% set failed_total = 0 %}
+                    {% for p in payouts %}
+                      {% if p.status == 'failed' %}
+                        {% set failed_total = failed_total + p.amount %}
+                      {% endif %}
+                    {% endfor %}
+                    <div class="stat-value">${{ "%.2f"|format(failed_total / 100) }}</div>
+                    <div class="stat-label">Failed</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        break;
+        
+      case 'payment-settings':
+        content = `
+          <div class="tab-content">
+            <h2>Payment Settings</h2>
+            <div class="payment-settings">
+              <div class="payment-method-card">
+                <div class="payment-method-info">
+                  <i class="fas fa-credit-card"></i>
+                  <div>
+                    <h4>Stripe Connect</h4>
+                    <p>Connected for receiving payments</p>
+                  </div>
+                </div>
+                <span class="status-badge success">Active</span>
+              </div>
+              
+              <div class="settings-section">
+                <h3>Payout Schedule</h3>
+                <p>Your earnings are automatically transferred to your connected bank account every week.</p>
+              </div>
+              
+              <div class="settings-section">
+                <h3>Minimum Payout</h3>
+                <p>Payouts are processed when your balance reaches $10.00 or more.</p>
+              </div>
+            </div>
+          </div>
+        `;
+        break;
+        
+      case 'payment-help':
+        content = `
+          <div class="tab-content">
+            <h2>Payment Help</h2>
+            <div class="help-content">
+              <div class="help-section">
+                <h3>How do payouts work?</h3>
+                <p>Your earnings from sessions are automatically transferred to your connected bank account via Stripe Connect. Payouts are processed weekly when your balance reaches $10.00 or more.</p>
+              </div>
+              
+              <div class="help-section">
+                <h3>When will I receive my money?</h3>
+                <p>Payouts typically take 2-3 business days to appear in your bank account after processing. The exact timing depends on your bank's processing schedule.</p>
+              </div>
+              
+              <div class="help-section">
+                <h3>Need help with payments?</h3>
+                <p>Contact our support team at support@droply.live for assistance with payment issues.</p>
+              </div>
+            </div>
+          </div>
+        `;
+        break;
+        
+      default:
+        content = `
+          <div class="content-placeholder-text">
+            <i class="fas fa-dollar-sign"></i>
+            <h3>Select an option to get started</h3>
+            <p>Choose from the menu on the left to view your earnings and payment information</p>
+          </div>
+        `;
+    }
+    
+    contentArea.innerHTML = content;
+  }
 });
 </script>
+
+<style>
+/* Earnings Page Specific Styles - v2.0 */
+.earnings-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.earnings-icon {
+  width: 60px;
+  height: 60px;
+  background: var(--money-primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.earnings-info {
+  flex: 1;
+}
+
+.earnings-total {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--money-primary);
+  margin-bottom: 0.25rem;
+}
+
+.earnings-label {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.stats-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stat-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value.pending {
+  color: #f39c12;
+}
+
+.stat-value.failed {
+  color: #e74c3c;
+}
+
+.stat-label {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.payouts-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.payouts-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.payouts-table th {
+  background: #f8f9fa;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.payouts-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.payout-row:hover {
+  background: #f8f9fa;
+}
+
+.payout-amount {
+  font-weight: 600;
+  color: var(--money-primary);
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge.status-paid {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.status-failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.payout-reference {
+  color: #666;
+  font-family: monospace;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  color: #ddd;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.earnings-overview {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.earnings-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  background: var(--money-primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.stat-content .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--money-primary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-content .stat-label {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.payment-settings {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.settings-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.settings-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.settings-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.settings-section p {
+  color: #666;
+  line-height: 1.5;
+}
+
+.help-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.help-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.help-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.help-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.help-section p {
+  color: #666;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .earnings-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .payouts-table {
+    font-size: 0.875rem;
+  }
+  
+  .payouts-table th,
+  .payouts-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+</style>
 {% endblock %} 

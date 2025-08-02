@@ -3,111 +3,449 @@
 {% block title %}Find Experts - Droply{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Search Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="mb-3">Find Experts</h4>
-                    
-                    <!-- Search Form -->
-                    <form method="GET" action="{{ url_for('find_experts') }}" class="mb-3">
-                        <div class="input-group">
-                            <input type="text" name="search" class="form-control" placeholder="Search experts..." value="{{ request.args.get('search', '') }}">
-                            <button type="submit" class="btn btn-primary">Search</button>
-                        </div>
-                    </form>
-                    
-                    <!-- Category Filters -->
-                    <div class="category-filters">
-                        <div class="d-flex gap-2 flex-wrap">
-                            <a href="{{ url_for('find_experts') }}" class="btn btn-sm btn-outline-primary {{ 'active' if not request.args.get('category') }}">All</a>
-                            <a href="{{ url_for('find_experts', category='tech') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'tech' }}">Tech</a>
-                            <a href="{{ url_for('find_experts', category='business') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'business' }}">Business</a>
-                            <a href="{{ url_for('find_experts', category='design') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'design' }}">Design</a>
-                            <a href="{{ url_for('find_experts', category='marketing') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'marketing' }}">Marketing</a>
-                            <a href="{{ url_for('find_experts', category='finance') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'finance' }}">Finance</a>
-                            <a href="{{ url_for('find_experts', category='health') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'health' }}">Health</a>
-                            <a href="{{ url_for('find_experts', category='education') }}" class="btn btn-sm btn-outline-primary {{ 'active' if request.args.get('category') == 'education' }}">Education</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- Modern Find Experts Page - Using Existing Sidebar -->
+<div class="find-experts-page">
+  <!-- Search and Filters Section -->
+  <div class="search-section">
+    <div class="search-container">
+      <form method="GET" action="{{ url_for('find_experts') }}" class="search-form">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" 
+               name="search" 
+               class="search-input" 
+               placeholder="Search experts"
+               value="{{ request.args.get('search', '') }}">
+      </form>
     </div>
     
-    <!-- Results Section -->
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">{{ experts|length }} experts found</h5>
-                {% if request.args.get('search') %}
-                <small class="text-muted">Searching for: "{{ request.args.get('search') }}"</small>
-                {% endif %}
-            </div>
-            
-            {% if experts %}
-            <div class="row g-3">
-                {% for expert in experts %}
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 expert-card-compact">
-                        <div class="card-body">
-                            <div class="d-flex align-items-start mb-3">
-                                <img src="{{ expert.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
-                                     alt="{{ expert.full_name }}" 
-                                     class="rounded-circle me-3" 
-                                     style="width: 50px; height: 50px; object-fit: cover;">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">{{ expert.full_name }}</h6>
-                                    <p class="text-muted mb-1 small">{{ expert.profession or 'Expert' }}</p>
-                                    {% if expert.location %}
-                                    <p class="text-muted mb-0 small">{{ expert.location }}</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            {% if expert.bio %}
-                            <p class="small text-muted mb-3">{{ expert.bio[:100] }}{% if expert.bio|length > 100 %}...{% endif %}</p>
-                            {% endif %}
-                            
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-primary fw-bold">${{ expert.hourly_rate or 0 }}/hr</span>
-                                <a href="{{ url_for('profile', username=expert.username) }}" class="btn btn-sm btn-outline-primary">View Profile</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <div class="mb-3">
-                    <i data-feather="search" style="width: 48px; height: 48px; color: #ccc;"></i>
-                </div>
-                <h6 class="text-muted mb-2">No experts found</h6>
-                <p class="text-muted small mb-0">Try adjusting your search criteria</p>
-            </div>
-            {% endif %}
-        </div>
+    <button class="filters-btn">
+      <i class="fas fa-filter"></i>
+      Filters
+    </button>
+  </div>
+
+  <!-- Category Filters -->
+  <div class="category-bar">
+    <div class="category-container">
+      <a href="{{ url_for('find_experts') }}" 
+         class="category-btn {{ 'active' if not request.args.get('category') }}">
+        All Experts
+      </a>
+      <a href="{{ url_for('find_experts', category='tech') }}" 
+         class="category-btn {{ 'active' if request.args.get('category') == 'tech' }}">
+        <i class="fas fa-home"></i>
+        Tech
+      </a>
+      <a href="{{ url_for('find_experts', category='health') }}" 
+         class="category-btn {{ 'active' if request.args.get('category') == 'health' }}">
+        <i class="fas fa-leaf"></i>
+        Wellness
+      </a>
+      <a href="{{ url_for('find_experts', category='business') }}" 
+         class="category-btn {{ 'active' if request.args.get('category') == 'business' }}">
+        <i class="fas fa-briefcase"></i>
+        Career & Business
+      </a>
+      <a href="{{ url_for('find_experts', category='design') }}" 
+         class="category-btn {{ 'active' if request.args.get('category') == 'design' }}">
+        <i class="fas fa-palette"></i>
+        Style & Beauty
+      </a>
+      <a href="{{ url_for('find_experts', category='education') }}" 
+         class="category-btn {{ 'active' if request.args.get('category') == 'education' }}">
+        <i class="fas fa-moon"></i>
+        Education & More
+      </a>
     </div>
+  </div>
+
+  <!-- Expert Grid -->
+  <div class="expert-sections">
+    {% if experts %}
+      <div class="expert-section">
+        <div class="section-header">
+          <h2 class="section-title">All Experts. Find the perfect expert for your needs.</h2>
+        </div>
+        <div class="expert-grid">
+          {% for expert in experts %}
+          <div class="expert-card">
+            <div class="card-header">
+              <img src="{{ expert.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
+                   alt="{{ expert.full_name }}" 
+                   class="expert-avatar">
+              {% if expert.is_verified %}
+              <div class="top-expert-badge">Top Expert</div>
+              {% endif %}
+              <button class="favorite-btn" title="Add to favorites">
+                <i class="fas fa-heart"></i>
+              </button>
+            </div>
+            <div class="card-content">
+              <div class="expert-info">
+                <h3 class="expert-name">{{ expert.full_name }}</h3>
+                {% if expert.is_verified %}
+                <i class="fas fa-check-circle verified-icon"></i>
+                {% endif %}
+              </div>
+              <div class="expert-price">${{ expert.hourly_rate or 0 }} • Session</div>
+              <p class="expert-description">
+                {{ expert.bio or expert.profession or 'Expert in their field' }}
+                {% if expert.bio and expert.bio|length > 100 %}
+                  {{ expert.bio[:100] }}...
+                {% endif %}
+              </p>
+              <a href="{{ url_for('expert_profile', username=expert.username) }}" 
+                 class="view-profile-btn">View Profile</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <!-- Empty State -->
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="fas fa-search"></i>
+        </div>
+        <h3>No experts found</h3>
+        <p>Try adjusting your search criteria or browse different categories</p>
+        <a href="{{ url_for('find_experts') }}" class="btn-primary">Browse All Experts</a>
+      </div>
+    {% endif %}
+  </div>
 </div>
 
 <style>
-.expert-card-compact {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border: 1px solid #e5e5e5;
+/* Modern Find Experts Page Styles - Using Existing Sidebar */
+.find-experts-page {
+  padding: 2rem;
+  background: #f8f9fa;
+  min-height: 100vh;
 }
 
-.expert-card-compact:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+/* Search Section */
+.search-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
 }
 
-.category-filters .btn.active {
-    background-color: #667eea;
-    border-color: #667eea;
-    color: white;
+.search-container {
+  flex: 1;
+  max-width: 600px;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: #f8f9fa;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #059669;
+  background: white;
+}
+
+.filters-btn {
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  color: #666;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Category Bar */
+.category-bar {
+  margin-bottom: 3rem;
+  overflow-x: auto;
+}
+
+.category-container {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.category-btn {
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 25px;
+  color: #666;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.category-btn:hover {
+  border-color: #059669;
+  color: #059669;
+  text-decoration: none;
+}
+
+.category-btn.active {
+  background: #059669;
+  border-color: #059669;
+  color: white;
+}
+
+.category-btn i {
+  font-size: 0.75rem;
+}
+
+/* Expert Sections */
+.expert-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.expert-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+/* Expert Grid */
+.expert-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+/* Expert Cards */
+.expert-card {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.expert-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+  position: relative;
+  padding: 1.5rem 1.5rem 0;
+}
+
+.expert-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.top-expert-badge {
+  position: absolute;
+  bottom: 1rem;
+  left: 1.5rem;
+  background: #1a1a1a;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.favorite-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.favorite-btn:hover {
+  color: #e74c3c;
+  border-color: #e74c3c;
+}
+
+.card-content {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.expert-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.expert-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.verified-icon {
+  color: #f39c12;
+  font-size: 0.875rem;
+}
+
+.expert-price {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #059669;
+  margin-bottom: 0.75rem;
+}
+
+.expert-description {
+  color: #666;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.view-profile-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #059669;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.view-profile-btn:hover {
+  background: #047857;
+  color: white;
+  text-decoration: none;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.btn-primary {
+  padding: 0.75rem 1.5rem;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary:hover {
+  background: #047857;
+  color: white;
+  text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .find-experts-page {
+    padding: 1rem;
+  }
+  
+  .search-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .expert-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .category-container {
+    gap: 0.5rem;
+  }
+  
+  .category-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
 }
 </style>
 {% endblock %} 

@@ -1,0 +1,301 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Book {{ expert.full_name }} - Droply{% endblock %}
+
+{% block content %}
+<!-- Expert Booking Times Page -->
+<div class="booking-times-page">
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <div class="breadcrumb-container">
+      <a href="{{ url_for('dashboard') }}" class="breadcrumb-link">Droply</a>
+      <span class="breadcrumb-separator">/</span>
+      <a href="{{ url_for('find_experts') }}" class="breadcrumb-link">Expert Marketplace</a>
+      <span class="breadcrumb-separator">/</span>
+      <a href="{{ url_for('expert_profile', username=expert.username) }}" class="breadcrumb-link">{{ expert.full_name }}</a>
+      <span class="breadcrumb-separator">/</span>
+      <span class="breadcrumb-current">Book Session</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="booking-layout">
+      <!-- Left Column - Expert Info -->
+      <div class="expert-info-section">
+        <div class="expert-card">
+          <div class="expert-header">
+            <img src="{{ expert.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
+                 alt="{{ expert.full_name }}" 
+                 class="expert-photo">
+            <div class="expert-details">
+              <h1 class="expert-name">{{ expert.full_name }}</h1>
+              <p class="expert-title">{{ expert.profession or 'Expert' }}</p>
+              <div class="session-price">${{ expert.hourly_rate or 0 }} • 30 min session</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Available Times -->
+      <div class="times-section">
+        <div class="times-container">
+          <h2 class="section-title">Select a time</h2>
+          
+          {% if available_times %}
+            <div class="time-slots">
+              {% for time in available_times %}
+              <a href="{{ url_for('booking_confirmation', expert=expert.username, datetime=time.iso_datetime, duration=30) }}" 
+                 class="time-slot">
+                <div class="time-date">{{ time.formatted_date }}</div>
+                <div class="time-time">{{ time.formatted_time }}</div>
+              </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="no-times">
+              <div class="no-times-icon">
+                <i class="fas fa-calendar-times"></i>
+              </div>
+              <h3>No available times</h3>
+              <p>This expert doesn't have any available times in the next 7 days.</p>
+              <a href="{{ url_for('expert_profile', username=expert.username) }}" class="btn-secondary">
+                Back to Profile
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Booking Times Page Styles */
+.booking-times-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  background: white;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 1rem 0;
+}
+
+.breadcrumb-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.breadcrumb-link {
+  color: #666;
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+  color: #059669;
+  text-decoration: none;
+}
+
+.breadcrumb-separator {
+  color: #ccc;
+}
+
+.breadcrumb-current {
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+/* Main Content */
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.booking-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+/* Expert Info Section */
+.expert-info-section {
+  position: sticky;
+  top: 120px;
+}
+
+.expert-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.expert-header {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.expert-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.expert-details {
+  flex: 1;
+}
+
+.expert-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.expert-title {
+  font-size: 1rem;
+  color: #666;
+  margin: 0 0 0.5rem 0;
+}
+
+.session-price {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* Times Section */
+.times-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 2rem 0;
+}
+
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.time-slot {
+  display: block;
+  padding: 1rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.time-slot:hover {
+  border-color: #059669;
+  background: #f0fdf4;
+  color: inherit;
+  text-decoration: none;
+}
+
+.time-date {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.time-time {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* No Times State */
+.no-times {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.no-times-icon {
+  font-size: 4rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.no-times h3 {
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.no-times p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+  color: white;
+  text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .booking-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .expert-info-section {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .expert-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .time-slots {
+    grid-template-columns: 1fr;
+  }
+  
+  .breadcrumb-container {
+    padding: 0 1rem;
+  }
+}
+</style>
+{% endblock %} 

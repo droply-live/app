@@ -62,7 +62,7 @@ def test_onboarding():
     print("   - Step 4: Review and complete")
     print("5. After completion, go to Account settings")
     print("6. Check that expertise tags are saved and editable")
-    print("7. Test the discover page to see if filtering works")
+    print("7. Test the find experts page to see if filtering works")
     
     return True
 
