@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <div class="availability-header">
                 <div class="header-info">
                   <h6 class="mb-1">Weekly Schedule</h6>
-                  <p class="text-muted small mb-0">Set your availability for each day with multiple time slots</p>
+                  <p class="text-muted small mb-0">Set your time range and activate/deactivate 30-minute sessions</p>
                 </div>
                 <div class="header-actions">
                   <button type="button" class="btn btn-sm btn-outline-primary" id="quickSetupBtn">
@@ -223,296 +223,177 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
               </div>
               
-              <div class="availability-calendar">
-                <div class="calendar-day" data-day="0">
-                  <div class="day-header">
+              <div class="availability-table">
+                <div class="table-header">
+                  <div class="day-column">Day</div>
+                  <div class="time-column">Time Range</div>
+                  <div class="sessions-column">Sessions (30 min each)</div>
+                </div>
+                
+                <div class="table-row" data-day="0">
+                  <div class="day-cell">
                     <div class="day-info">
                       <span class="day-name">Monday</span>
-                      <div class="day-status">
-                        <label class="switch">
-                          <input type="checkbox" class="day-toggle" data-day="0" checked>
-                          <span class="slider"></span>
-                        </label>
-                      </div>
+                      <label class="switch">
+                        <input type="checkbox" class="day-toggle" data-day="0" checked>
+                        <span class="slider"></span>
+                      </label>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="0">
-                      <i class="fas fa-plus"></i> Add Time
-                    </button>
                   </div>
-                  <div class="time-slots-container" data-day="0">
-                    <div class="time-slot">
-                      <div class="slot-time">
-                        <input type="time" class="form-control form-control-sm start-time" value="09:00">
-                        <span class="time-separator">-</span>
-                        <input type="time" class="form-control form-control-sm end-time" value="12:00">
-                      </div>
-                      <div class="slot-type">
-                        <select class="form-control form-control-sm session-type">
-                          <option value="consultation">Consultation</option>
-                          <option value="mentoring">Mentoring</option>
-                          <option value="coaching">Coaching</option>
-                          <option value="review">Review</option>
-                        </select>
-                      </div>
-                      <div class="slot-actions">
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
+                  <div class="time-cell">
+                    <div class="time-range">
+                      <input type="time" class="form-control form-control-sm start-time" value="09:00">
+                      <span class="time-separator">to</span>
+                      <input type="time" class="form-control form-control-sm end-time" value="17:00">
                     </div>
-                    <div class="time-slot">
-                      <div class="slot-time">
-                        <input type="time" class="form-control form-control-sm start-time" value="14:00">
-                        <span class="time-separator">-</span>
-                        <input type="time" class="form-control form-control-sm end-time" value="17:00">
-                      </div>
-                      <div class="slot-type">
-                        <select class="form-control form-control-sm session-type">
-                          <option value="consultation">Consultation</option>
-                          <option value="mentoring">Mentoring</option>
-                          <option value="coaching">Coaching</option>
-                          <option value="review">Review</option>
-                        </select>
-                      </div>
-                      <div class="slot-actions">
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
+                  </div>
+                  <div class="sessions-cell">
+                    <div class="sessions-grid" data-day="0">
+                      <!-- Sessions will be generated by JavaScript -->
                     </div>
                   </div>
                 </div>
                 
-                <div class="calendar-day" data-day="1">
-                  <div class="day-header">
+                <div class="table-row" data-day="1">
+                  <div class="day-cell">
                     <div class="day-info">
                       <span class="day-name">Tuesday</span>
-                      <div class="day-status">
-                        <label class="switch">
-                          <input type="checkbox" class="day-toggle" data-day="1" checked>
-                          <span class="slider"></span>
-                        </label>
-                      </div>
+                      <label class="switch">
+                        <input type="checkbox" class="day-toggle" data-day="1" checked>
+                        <span class="slider"></span>
+                      </label>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="1">
-                      <i class="fas fa-plus"></i> Add Time
-                    </button>
                   </div>
-                  <div class="time-slots-container" data-day="1">
-                    <div class="time-slot">
-                      <div class="slot-time">
-                        <input type="time" class="form-control form-control-sm start-time" value="09:00">
-                        <span class="time-separator">-</span>
-                        <input type="time" class="form-control form-control-sm end-time" value="17:00">
-                      </div>
-                      <div class="slot-type">
-                        <select class="form-control form-control-sm session-type">
-                          <option value="consultation">Consultation</option>
-                          <option value="mentoring">Mentoring</option>
-                          <option value="coaching">Coaching</option>
-                          <option value="review">Review</option>
-                        </select>
-                      </div>
-                      <div class="slot-actions">
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
+                  <div class="time-cell">
+                    <div class="time-range">
+                      <input type="time" class="form-control form-control-sm start-time" value="09:00">
+                      <span class="time-separator">to</span>
+                      <input type="time" class="form-control form-control-sm end-time" value="17:00">
+                    </div>
+                  </div>
+                  <div class="sessions-cell">
+                    <div class="sessions-grid" data-day="1">
+                      <!-- Sessions will be generated by JavaScript -->
                     </div>
                   </div>
                 </div>
                 
-                <div class="calendar-day" data-day="2">
-                  <div class="day-header">
+                <div class="table-row" data-day="2">
+                  <div class="day-cell">
                     <div class="day-info">
                       <span class="day-name">Wednesday</span>
-                      <div class="day-status">
-                        <label class="switch">
-                          <input type="checkbox" class="day-toggle" data-day="2" checked>
-                          <span class="slider"></span>
-                        </label>
-                      </div>
+                      <label class="switch">
+                        <input type="checkbox" class="day-toggle" data-day="2" checked>
+                        <span class="slider"></span>
+                      </label>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="2">
-                      <i class="fas fa-plus"></i> Add Time
-                    </button>
                   </div>
-                  <div class="time-slots-container" data-day="2">
-                    <div class="time-slot">
-                      <div class="slot-time">
-                        <input type="time" class="form-control form-control-sm start-time" value="09:00">
-                        <span class="time-separator">-</span>
-                        <input type="time" class="form-control form-control-sm end-time" value="17:00">
-                      </div>
-                      <div class="slot-type">
-                        <select class="form-control form-control-sm session-type">
-                          <option value="consultation">Consultation</option>
-                          <option value="mentoring">Mentoring</option>
-                          <option value="coaching">Coaching</option>
-                          <option value="review">Review</option>
-                        </select>
-                      </div>
-                      <div class="slot-actions">
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
+                  <div class="time-cell">
+                    <div class="time-range">
+                      <input type="time" class="form-control form-control-sm start-time" value="09:00">
+                      <span class="time-separator">to</span>
+                      <input type="time" class="form-control form-control-sm end-time" value="17:00">
+                    </div>
+                  </div>
+                  <div class="sessions-cell">
+                    <div class="sessions-grid" data-day="2">
+                      <!-- Sessions will be generated by JavaScript -->
                     </div>
                   </div>
                 </div>
                 
-                <div class="calendar-day" data-day="3">
-                  <div class="day-header">
+                <div class="table-row" data-day="3">
+                  <div class="day-cell">
                     <div class="day-info">
                       <span class="day-name">Thursday</span>
-                      <div class="day-status">
-                        <label class="switch">
-                          <input type="checkbox" class="day-toggle" data-day="3" checked>
-                          <span class="slider"></span>
-                        </label>
-                      </div>
+                      <label class="switch">
+                        <input type="checkbox" class="day-toggle" data-day="3" checked>
+                        <span class="slider"></span>
+                      </label>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="3">
-                      <i class="fas fa-plus"></i> Add Time
-                    </button>
                   </div>
-                  <div class="time-slots-container" data-day="3">
-                    <div class="time-slot">
-                      <div class="slot-time">
-                        <input type="time" class="form-control form-control-sm start-time" value="09:00">
-                        <span class="time-separator">-</span>
-                        <input type="time" class="form-control form-control-sm end-time" value="17:00">
-                      </div>
-                      <div class="slot-type">
-                        <select class="form-control form-control-sm session-type">
-                          <option value="consultation">Consultation</option>
-                          <option value="mentoring">Mentoring</option>
-                          <option value="coaching">Coaching</option>
-                          <option value="review">Review</option>
-                        </select>
-                      </div>
-                      <div class="slot-actions">
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
+                  <div class="time-cell">
+                    <div class="time-range">
+                      <input type="time" class="form-control form-control-sm start-time" value="09:00">
+                      <span class="time-separator">to</span>
+                      <input type="time" class="form-control form-control-sm end-time" value="17:00">
+                    </div>
+                  </div>
+                  <div class="sessions-cell">
+                    <div class="sessions-grid" data-day="3">
+                      <!-- Sessions will be generated by JavaScript -->
                     </div>
                   </div>
                 </div>
                 
-                <div class="calendar-day" data-day="4">
-                  <div class="day-header">
+                <div class="table-row" data-day="4">
+                  <div class="day-cell">
                     <div class="day-info">
                       <span class="day-name">Friday</span>
-                      <div class="day-status">
-                        <label class="switch">
-                          <input type="checkbox" class="day-toggle" data-day="4" checked>
-                          <span class="slider"></span>
-                        </label>
-                      </div>
+                      <label class="switch">
+                        <input type="checkbox" class="day-toggle" data-day="4" checked>
+                        <span class="slider"></span>
+                      </label>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="4">
-                      <i class="fas fa-plus"></i> Add Time
-                    </button>
                   </div>
-                  <div class="time-slots-container" data-day="4">
-                    <div class="time-slot">
-                      <div class="slot-time">
-                        <input type="time" class="form-control form-control-sm start-time" value="09:00">
-                        <span class="time-separator">-</span>
-                        <input type="time" class="form-control form-control-sm end-time" value="17:00">
-                      </div>
-                      <div class="slot-type">
-                        <select class="form-control form-control-sm session-type">
-                          <option value="consultation">Consultation</option>
-                          <option value="mentoring">Mentoring</option>
-                          <option value="coaching">Coaching</option>
-                          <option value="review">Review</option>
-                        </select>
-                      </div>
-                      <div class="slot-actions">
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
+                  <div class="time-cell">
+                    <div class="time-range">
+                      <input type="time" class="form-control form-control-sm start-time" value="09:00">
+                      <span class="time-separator">to</span>
+                      <input type="time" class="form-control form-control-sm end-time" value="17:00">
+                    </div>
+                  </div>
+                  <div class="sessions-cell">
+                    <div class="sessions-grid" data-day="4">
+                      <!-- Sessions will be generated by JavaScript -->
                     </div>
                   </div>
                 </div>
                 
-                <div class="calendar-day" data-day="5">
-                  <div class="day-header">
+                <div class="table-row" data-day="5">
+                  <div class="day-cell">
                     <div class="day-info">
                       <span class="day-name">Saturday</span>
-                      <div class="day-status">
-                        <label class="switch">
-                          <input type="checkbox" class="day-toggle" data-day="5">
-                          <span class="slider"></span>
-                        </label>
-                      </div>
+                      <label class="switch">
+                        <input type="checkbox" class="day-toggle" data-day="5">
+                        <span class="slider"></span>
+                      </label>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="5">
-                      <i class="fas fa-plus"></i> Add Time
-                    </button>
                   </div>
-                  <div class="time-slots-container" data-day="5">
-                    <div class="time-slot">
-                      <div class="slot-time">
-                        <input type="time" class="form-control form-control-sm start-time" value="10:00">
-                        <span class="time-separator">-</span>
-                        <input type="time" class="form-control form-control-sm end-time" value="15:00">
-                      </div>
-                      <div class="slot-type">
-                        <select class="form-control form-control-sm session-type">
-                          <option value="consultation">Consultation</option>
-                          <option value="mentoring">Mentoring</option>
-                          <option value="coaching">Coaching</option>
-                          <option value="review">Review</option>
-                        </select>
-                      </div>
-                      <div class="slot-actions">
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
+                  <div class="time-cell">
+                    <div class="time-range">
+                      <input type="time" class="form-control form-control-sm start-time" value="10:00">
+                      <span class="time-separator">to</span>
+                      <input type="time" class="form-control form-control-sm end-time" value="15:00">
+                    </div>
+                  </div>
+                  <div class="sessions-cell">
+                    <div class="sessions-grid" data-day="5">
+                      <!-- Sessions will be generated by JavaScript -->
                     </div>
                   </div>
                 </div>
                 
-                <div class="calendar-day" data-day="6">
-                  <div class="day-header">
+                <div class="table-row" data-day="6">
+                  <div class="day-cell">
                     <div class="day-info">
                       <span class="day-name">Sunday</span>
-                      <div class="day-status">
-                        <label class="switch">
-                          <input type="checkbox" class="day-toggle" data-day="6">
-                          <span class="slider"></span>
-                        </label>
-                      </div>
+                      <label class="switch">
+                        <input type="checkbox" class="day-toggle" data-day="6">
+                        <span class="slider"></span>
+                      </label>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="6">
-                      <i class="fas fa-plus"></i> Add Time
-                    </button>
                   </div>
-                  <div class="time-slots-container" data-day="6">
-                    <div class="time-slot">
-                      <div class="slot-time">
-                        <input type="time" class="form-control form-control-sm start-time" value="10:00">
-                        <span class="time-separator">-</span>
-                        <input type="time" class="form-control form-control-sm end-time" value="15:00">
-                      </div>
-                      <div class="slot-type">
-                        <select class="form-control form-control-sm session-type">
-                          <option value="consultation">Consultation</option>
-                          <option value="mentoring">Mentoring</option>
-                          <option value="coaching">Coaching</option>
-                          <option value="review">Review</option>
-                        </select>
-                      </div>
-                      <div class="slot-actions">
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
+                  <div class="time-cell">
+                    <div class="time-range">
+                      <input type="time" class="form-control form-control-sm start-time" value="10:00">
+                      <span class="time-separator">to</span>
+                      <input type="time" class="form-control form-control-sm end-time" value="15:00">
+                    </div>
+                  </div>
+                  <div class="sessions-cell">
+                    <div class="sessions-grid" data-day="6">
+                      <!-- Sessions will be generated by JavaScript -->
                     </div>
                   </div>
                 </div>
@@ -522,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="footer-info">
                   <small class="text-muted">
                     <i class="fas fa-info-circle"></i>
-                    Your availability will be shown to potential clients when they book sessions with you.
+                    Each session is 30 minutes. Toggle sessions on/off to set your availability.
                   </small>
                 </div>
                 <div class="footer-actions">
@@ -1018,42 +899,39 @@ document.addEventListener('DOMContentLoaded', function() {
   gap: 0.5rem;
 }
 
-.availability-calendar {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
+.availability-table {
+  border-collapse: collapse;
+  width: 100%;
   margin-bottom: 1.5rem;
 }
 
-.calendar-day {
+.table-header {
   background: #f8f9fa;
   border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  border-radius: 10px 10px 0 0;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
 }
 
-.calendar-day.active {
-  background: white;
-  border-color: #3c78ff;
-  box-shadow: 0 2px 8px rgba(60, 120, 255, 0.1);
-}
-
-.calendar-day.inactive {
-  background: #f1f3f4;
-  opacity: 0.6;
-}
-
-.day-header {
-  display: flex;
-  justify-content: space-between;
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
   align-items: center;
-  margin-bottom: 0.75rem;
 }
 
-.day-info {
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.day-cell, .time-cell, .sessions-cell {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -1065,19 +943,13 @@ document.addEventListener('DOMContentLoaded', function() {
   font-size: 1rem;
 }
 
-.day-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.switch {
+.day-toggle {
   position: relative;
   width: 40px;
   height: 20px;
 }
 
-.switch input {
+.day-toggle input {
   opacity: 0;
   width: 0;
   height: 0;
@@ -1107,47 +979,25 @@ document.addEventListener('DOMContentLoaded', function() {
   border-radius: 50%;
 }
 
-input:checked + .slider {
+.day-toggle input:checked + .slider {
   background-color: #3c78ff;
 }
 
-input:focus + .slider {
+.day-toggle input:focus + .slider {
   box-shadow: 0 0 1px #3c78ff;
 }
 
-input:checked + .slider:before {
+.day-toggle input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-.time-slots-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.time-slot {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  background: #e9ecef;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.time-slot:hover {
-  background: #f1f3f4;
-  border-color: #ced4da;
-}
-
-.slot-time {
+.time-range {
   display: flex;
   align-items: center;
   gap: 0.25rem;
 }
 
-.slot-time input[type="time"] {
+.time-range input[type="time"] {
   flex: 1;
   max-width: 80px;
   text-align: center;
@@ -1158,46 +1008,56 @@ input:checked + .slider:before {
   font-size: 0.875rem;
 }
 
-.slot-type {
-  flex: 1;
-}
-
-.slot-type select {
-  width: 100%;
-  padding: 0.375rem 0.75rem;
-  border: 1px solid #ced4da;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  color: #495057;
-  background-color: #fff;
-}
-
-.slot-type select:focus {
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.slot-actions {
+.sessions-grid {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0.5rem 0;
+}
+
+.session-toggle {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.slot-actions .btn {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-}
-
-.remove-slot {
-  background: none;
-  border: none;
-  color: #dc3545;
+.session-toggle input {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  background-color: #fff;
   cursor: pointer;
-  padding: 0.25rem;
-  font-size: 0.875rem;
+  transition: all 0.2s;
 }
 
-.remove-slot:hover {
-  color: #c82333;
+.session-toggle input:checked {
+  background-color: #3c78ff;
+  border-color: #3c78ff;
+}
+
+.session-toggle input:checked:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.session-toggle input:hover {
+  border-color: #3c78ff;
+}
+
+.session-toggle input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 .availability-footer {
@@ -1224,33 +1084,37 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 768px) {
-  .availability-calendar {
+  .availability-table {
     grid-template-columns: 1fr;
   }
   
-  .availability-header {
+  .table-header {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .day-cell, .time-cell, .sessions-cell {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .header-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .time-slot {
-    flex-direction: column;
-    align-items: stretch;
     gap: 0.5rem;
   }
   
-  .slot-time {
-    justify-content: center;
+  .day-toggle {
+    width: 100%;
+    max-width: 150px;
   }
   
-  .slot-time input[type="time"] {
+  .time-range input[type="time"] {
     max-width: none;
+  }
+  
+  .sessions-grid {
+    justify-content: center;
   }
   
   .availability-footer {
@@ -1270,30 +1134,36 @@ input:checked + .slider:before {
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize availability functionality when availability tab is loaded
   function initializeAvailability() {
-    const dayCheckboxes = document.querySelectorAll('.day-toggle'); // Changed from day-checkbox to day-toggle
-    const copyScheduleBtn = document.getElementById('copyWeekBtn'); // Changed from copyScheduleBtn to copyWeekBtn
-    const clearScheduleBtn = document.getElementById('clearAllBtn'); // Changed from clearScheduleBtn to clearAllBtn
+    const dayToggles = document.querySelectorAll('.day-toggle');
+    const copyScheduleBtn = document.getElementById('copyWeekBtn');
+    const clearScheduleBtn = document.getElementById('clearAllBtn');
     const saveAvailabilityBtn = document.getElementById('saveAvailabilityBtn');
     
-    if (!dayCheckboxes.length) return; // Not on availability tab
+    if (!dayToggles.length) return; // Not on availability tab
     
-    // Handle day checkbox changes
-    dayCheckboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        const daySlot = this.closest('.calendar-day');
-        const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
-        const addSlotBtn = daySlot.querySelector('.add-slot-btn');
+    // Generate session toggles for each day
+    generateSessionToggles();
+    
+    // Handle time range changes
+    document.querySelectorAll('.start-time, .end-time').forEach(input => {
+      input.addEventListener('change', function() {
+        const day = this.closest('.table-row').getAttribute('data-day');
+        generateSessionTogglesForDay(day);
+      });
+    });
+    
+    // Handle day toggle changes
+    dayToggles.forEach(toggle => {
+      toggle.addEventListener('change', function() {
+        const dayRow = this.closest('.table-row');
+        const sessionsGrid = dayRow.querySelector('.sessions-grid');
         
         if (this.checked) {
-          daySlot.classList.remove('inactive');
-          daySlot.classList.add('active');
-          timeSlotsContainer.style.display = 'flex';
-          addSlotBtn.style.display = 'block';
+          dayRow.classList.remove('inactive');
+          sessionsGrid.style.display = 'flex';
         } else {
-          daySlot.classList.remove('active');
-          daySlot.classList.add('inactive');
-          timeSlotsContainer.style.display = 'none';
-          addSlotBtn.style.display = 'none';
+          dayRow.classList.add('inactive');
+          sessionsGrid.style.display = 'none';
         }
       });
     });
@@ -1301,38 +1171,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add time slot functionality
     document.querySelectorAll('.add-slot-btn').forEach(btn => {
       btn.addEventListener('click', function() {
-        const day = this.getAttribute('data-day');
-        const timeSlotsContainer = document.querySelector(`.time-slots-container[data-day="${day}"]`);
+        const day = this.closest('.table-row').getAttribute('data-day');
+        const sessionsGrid = document.querySelector(`.sessions-grid[data-day="${day}"]`);
         
-        const newSlot = document.createElement('div');
-        newSlot.className = 'time-slot';
-        newSlot.innerHTML = `
-          <div class="slot-time">
-            <input type="time" class="form-control form-control-sm start-time" data-day="${day}" value="09:00">
-            <span class="time-separator">-</span>
-            <input type="time" class="form-control form-control-sm end-time" data-day="${day}" value="17:00">
-          </div>
-          <div class="slot-type">
-            <select class="form-control form-control-sm session-type">
-              <option value="consultation">Consultation</option>
-              <option value="mentoring">Mentoring</option>
-              <option value="coaching">Coaching</option>
-              <option value="review">Review</option>
-            </select>
-          </div>
-          <div class="slot-actions">
-            <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
+        const newSessionToggle = document.createElement('div');
+        newSessionToggle.className = 'session-toggle';
+        newSessionToggle.innerHTML = `
+          <input type="checkbox" class="session-toggle" data-day="${day}" data-time="09:00">
+          <span>09:00</span>
         `;
         
-        timeSlotsContainer.appendChild(newSlot);
+        sessionsGrid.appendChild(newSessionToggle);
         
         // Add remove functionality to new slot
-        const removeBtn = newSlot.querySelector('.remove-slot');
+        const removeBtn = newSessionToggle.querySelector('.remove-slot');
         removeBtn.addEventListener('click', function() {
-          newSlot.remove();
+          newSessionToggle.remove();
         });
       });
     });
@@ -1344,43 +1198,43 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('This will set up a standard 9 AM - 5 PM schedule for weekdays and 10 AM - 3 PM for weekends. Continue?')) {
           // Set up weekdays (Mon-Fri)
           for (let i = 0; i <= 4; i++) {
-            const daySlot = document.querySelector(`.calendar-day[data-day="${i}"]`);
+            const daySlot = document.querySelector(`.table-row[data-day="${i}"]`);
             const toggle = daySlot.querySelector('.day-toggle');
-            const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
+            const sessionsGrid = daySlot.querySelector('.sessions-grid');
             
             // Enable the day
             toggle.checked = true;
             daySlot.classList.remove('inactive');
             daySlot.classList.add('active');
-            timeSlotsContainer.style.display = 'flex';
+            sessionsGrid.style.display = 'flex';
             
             // Set time to 9 AM - 5 PM
-            const startTime = timeSlotsContainer.querySelector('.start-time');
-            const endTime = timeSlotsContainer.querySelector('.end-time');
+            const startTime = sessionsGrid.querySelector('.session-toggle input[data-time="09:00"]');
+            const endTime = sessionsGrid.querySelector('.session-toggle input[data-time="17:00"]');
             if (startTime && endTime) {
-              startTime.value = '09:00';
-              endTime.value = '17:00';
+              startTime.checked = true;
+              endTime.checked = true;
             }
           }
           
           // Set up weekends (Sat-Sun)
           for (let i = 5; i <= 6; i++) {
-            const daySlot = document.querySelector(`.calendar-day[data-day="${i}"]`);
+            const daySlot = document.querySelector(`.table-row[data-day="${i}"]`);
             const toggle = daySlot.querySelector('.day-toggle');
-            const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
+            const sessionsGrid = daySlot.querySelector('.sessions-grid');
             
             // Enable the day
             toggle.checked = true;
             daySlot.classList.remove('inactive');
             daySlot.classList.add('active');
-            timeSlotsContainer.style.display = 'flex';
+            sessionsGrid.style.display = 'flex';
             
             // Set time to 10 AM - 3 PM
-            const startTime = timeSlotsContainer.querySelector('.start-time');
-            const endTime = timeSlotsContainer.querySelector('.end-time');
+            const startTime = sessionsGrid.querySelector('.session-toggle input[data-time="10:00"]');
+            const endTime = sessionsGrid.querySelector('.session-toggle input[data-time="15:00"]');
             if (startTime && endTime) {
-              startTime.value = '10:00';
-              endTime.value = '15:00';
+              startTime.checked = true;
+              endTime.checked = true;
             }
           }
         }
@@ -1390,27 +1244,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // Copy Week functionality
     if (copyScheduleBtn) {
       copyScheduleBtn.addEventListener('click', function() {
-        const activeDay = document.querySelector('.calendar-day.active');
+        const activeDay = document.querySelector('.table-row.active');
         if (!activeDay) {
           alert('Please select at least one day first');
           return;
         }
         
         const activeDayIndex = parseInt(activeDay.getAttribute('data-day'));
-        const timeSlots = activeDay.querySelectorAll('.time-slot');
+        const sessions = activeDay.querySelectorAll('.session-toggle');
         
-        if (timeSlots.length === 0) {
-          alert('Please add at least one time slot to copy');
+        if (sessions.length === 0) {
+          alert('Please add at least one session to copy');
           return;
         }
         
         // Copy to all other days
         dayCheckboxes.forEach(checkbox => {
-          const daySlot = checkbox.closest('.calendar-day');
+          const daySlot = checkbox.closest('.table-row');
           const dayIndex = parseInt(daySlot.getAttribute('data-day'));
           
           if (dayIndex !== activeDayIndex && checkbox.checked) {
-            const targetTimeSlotsContainer = daySlot.querySelector('.time-slots-container');
+            const targetSessionsGrid = daySlot.querySelector('.sessions-grid');
             
             // Clear existing slots
             targetTimeSlotsContainer.innerHTML = '';
@@ -1474,6 +1328,62 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAvailabilityRules();
   }
   
+  // Generate session toggles for all days
+  function generateSessionToggles() {
+    for (let day = 0; day <= 6; day++) {
+      generateSessionTogglesForDay(day);
+    }
+  }
+  
+  // Generate session toggles for a specific day
+  function generateSessionTogglesForDay(day) {
+    const dayRow = document.querySelector(`.table-row[data-day="${day}"]`);
+    if (!dayRow) return;
+    
+    const startTime = dayRow.querySelector('.start-time').value;
+    const endTime = dayRow.querySelector('.end-time').value;
+    const sessionsGrid = dayRow.querySelector('.sessions-grid');
+    
+    if (!startTime || !endTime) return;
+    
+    // Clear existing sessions
+    sessionsGrid.innerHTML = '';
+    
+    // Calculate sessions
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    const sessionDuration = 30; // 30 minutes
+    
+    let current = new Date(start);
+    let sessionIndex = 0;
+    
+    while (current < end) {
+      const sessionTime = current.toTimeString().slice(0, 5);
+      const sessionToggle = document.createElement('div');
+      sessionToggle.className = 'session-toggle';
+      sessionToggle.innerHTML = `
+        <input type="checkbox" data-day="${day}" data-time="${sessionTime}" data-index="${sessionIndex}">
+        <span>${sessionTime}</span>
+      `;
+      
+      sessionsGrid.appendChild(sessionToggle);
+      
+      // Add event listener
+      const checkbox = sessionToggle.querySelector('input');
+      checkbox.addEventListener('change', function() {
+        if (this.checked) {
+          sessionToggle.classList.add('active');
+        } else {
+          sessionToggle.classList.remove('active');
+        }
+      });
+      
+      // Move to next session
+      current.setMinutes(current.getMinutes() + sessionDuration);
+      sessionIndex++;
+    }
+  }
+  
   // Load existing availability rules
   function loadAvailabilityRules() {
     fetch('/api/availability/rules')
@@ -1512,28 +1422,62 @@ document.addEventListener('DOMContentLoaded', function() {
   function saveAvailabilityRules() {
     const rules = [];
     
-    document.querySelectorAll('.calendar-day').forEach(daySlot => {
-      const day = parseInt(daySlot.getAttribute('data-day'));
-      const checkbox = daySlot.querySelector('.day-toggle');
-      const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
-      const timeSlots = timeSlotsContainer.querySelectorAll('.time-slot');
+    document.querySelectorAll('.table-row').forEach(dayRow => {
+      const day = parseInt(dayRow.getAttribute('data-day'));
+      const dayToggle = dayRow.querySelector('.day-toggle');
+      const startTime = dayRow.querySelector('.start-time').value;
+      const endTime = dayRow.querySelector('.end-time').value;
+      const activeSessions = dayRow.querySelectorAll('.session-toggle input:checked');
       
-      if (checkbox.checked) {
-        timeSlots.forEach(slot => {
-          const startTime = slot.querySelector('.start-time').value;
-          const endTime = slot.querySelector('.end-time').value;
+      if (dayToggle.checked && startTime && endTime) {
+        // Group consecutive active sessions
+        const sessionTimes = Array.from(activeSessions).map(input => input.getAttribute('data-time')).sort();
+        
+        if (sessionTimes.length > 0) {
+          let currentStart = sessionTimes[0];
+          let currentEnd = sessionTimes[0];
           
-          if (startTime && endTime) {
-            rules.push({
-              weekday: day,
-              start: startTime,
-              end: endTime,
-              enabled: true
-            });
+          for (let i = 1; i < sessionTimes.length; i++) {
+            const currentTime = sessionTimes[i];
+            const prevTime = sessionTimes[i - 1];
+            
+            // Check if sessions are consecutive (30 min apart)
+            const current = new Date(`2000-01-01T${currentTime}`);
+            const prev = new Date(`2000-01-01T${prevTime}`);
+            const diffMinutes = (current - prev) / (1000 * 60);
+            
+            if (diffMinutes === 30) {
+              currentEnd = currentTime;
+            } else {
+              // End current range and start new one
+              rules.push({
+                weekday: day,
+                start: currentStart,
+                end: addMinutes(currentEnd, 30), // Add 30 minutes to get end time
+                enabled: true
+              });
+              currentStart = currentTime;
+              currentEnd = currentTime;
+            }
           }
-        });
+          
+          // Add the last range
+          rules.push({
+            weekday: day,
+            start: currentStart,
+            end: addMinutes(currentEnd, 30),
+            enabled: true
+          });
+        }
       }
     });
+    
+    // Helper function to add minutes to time string
+    function addMinutes(timeStr, minutes) {
+      const time = new Date(`2000-01-01T${timeStr}`);
+      time.setMinutes(time.getMinutes() + minutes);
+      return time.toTimeString().slice(0, 5);
+    }
     
     // Save to server
     fetch('/api/availability/rules', {
