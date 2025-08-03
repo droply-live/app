@@ -1198,44 +1198,54 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('This will set up a standard 9 AM - 5 PM schedule for weekdays and 10 AM - 3 PM for weekends. Continue?')) {
           // Set up weekdays (Mon-Fri)
           for (let i = 0; i <= 4; i++) {
-            const daySlot = document.querySelector(`.table-row[data-day="${i}"]`);
-            const toggle = daySlot.querySelector('.day-toggle');
-            const sessionsGrid = daySlot.querySelector('.sessions-grid');
+            const dayRow = document.querySelector(`.table-row[data-day="${i}"]`);
+            const toggle = dayRow.querySelector('.day-toggle');
+            const startTimeInput = dayRow.querySelector('.start-time');
+            const endTimeInput = dayRow.querySelector('.end-time');
             
             // Enable the day
             toggle.checked = true;
-            daySlot.classList.remove('inactive');
-            daySlot.classList.add('active');
-            sessionsGrid.style.display = 'flex';
+            dayRow.classList.remove('inactive');
             
-            // Set time to 9 AM - 5 PM
-            const startTime = sessionsGrid.querySelector('.session-toggle input[data-time="09:00"]');
-            const endTime = sessionsGrid.querySelector('.session-toggle input[data-time="17:00"]');
-            if (startTime && endTime) {
-              startTime.checked = true;
-              endTime.checked = true;
-            }
+            // Set time range to 9 AM - 5 PM
+            startTimeInput.value = '09:00';
+            endTimeInput.value = '17:00';
+            
+            // Regenerate sessions
+            generateSessionTogglesForDay(i);
+            
+            // Activate all sessions
+            const sessions = dayRow.querySelectorAll('.session-toggle input');
+            sessions.forEach(session => {
+              session.checked = true;
+              session.closest('.session-toggle').classList.add('active');
+            });
           }
           
           // Set up weekends (Sat-Sun)
           for (let i = 5; i <= 6; i++) {
-            const daySlot = document.querySelector(`.table-row[data-day="${i}"]`);
-            const toggle = daySlot.querySelector('.day-toggle');
-            const sessionsGrid = daySlot.querySelector('.sessions-grid');
+            const dayRow = document.querySelector(`.table-row[data-day="${i}"]`);
+            const toggle = dayRow.querySelector('.day-toggle');
+            const startTimeInput = dayRow.querySelector('.start-time');
+            const endTimeInput = dayRow.querySelector('.end-time');
             
             // Enable the day
             toggle.checked = true;
-            daySlot.classList.remove('inactive');
-            daySlot.classList.add('active');
-            sessionsGrid.style.display = 'flex';
+            dayRow.classList.remove('inactive');
             
-            // Set time to 10 AM - 3 PM
-            const startTime = sessionsGrid.querySelector('.session-toggle input[data-time="10:00"]');
-            const endTime = sessionsGrid.querySelector('.session-toggle input[data-time="15:00"]');
-            if (startTime && endTime) {
-              startTime.checked = true;
-              endTime.checked = true;
-            }
+            // Set time range to 10 AM - 3 PM
+            startTimeInput.value = '10:00';
+            endTimeInput.value = '15:00';
+            
+            // Regenerate sessions
+            generateSessionTogglesForDay(i);
+            
+            // Activate all sessions
+            const sessions = dayRow.querySelectorAll('.session-toggle input');
+            sessions.forEach(session => {
+              session.checked = true;
+              session.closest('.session-toggle').classList.add('active');
+            });
           }
         }
       });
@@ -1244,48 +1254,44 @@ document.addEventListener('DOMContentLoaded', function() {
     // Copy Week functionality
     if (copyScheduleBtn) {
       copyScheduleBtn.addEventListener('click', function() {
-        const activeDay = document.querySelector('.table-row.active');
+        const activeDay = document.querySelector('.table-row:not(.inactive)');
         if (!activeDay) {
           alert('Please select at least one day first');
           return;
         }
         
         const activeDayIndex = parseInt(activeDay.getAttribute('data-day'));
-        const sessions = activeDay.querySelectorAll('.session-toggle');
+        const activeSessions = activeDay.querySelectorAll('.session-toggle input:checked');
         
-        if (sessions.length === 0) {
-          alert('Please add at least one session to copy');
+        if (activeSessions.length === 0) {
+          alert('Please activate at least one session to copy');
           return;
         }
         
-        // Copy to all other days
-        dayCheckboxes.forEach(checkbox => {
-          const daySlot = checkbox.closest('.table-row');
-          const dayIndex = parseInt(daySlot.getAttribute('data-day'));
+        // Copy to all other enabled days
+        dayToggles.forEach(toggle => {
+          const dayRow = toggle.closest('.table-row');
+          const dayIndex = parseInt(dayRow.getAttribute('data-day'));
           
-          if (dayIndex !== activeDayIndex && checkbox.checked) {
-            const targetSessionsGrid = daySlot.querySelector('.sessions-grid');
-            
-            // Clear existing slots
-            targetTimeSlotsContainer.innerHTML = '';
-            
-            // Copy each time slot
-            timeSlots.forEach(slot => {
-              const newSlot = slot.cloneNode(true);
-              targetTimeSlotsContainer.appendChild(newSlot);
-              
-              // Re-add remove functionality
-              const removeBtn = newSlot.querySelector('.remove-slot');
-              if (removeBtn) {
-                removeBtn.addEventListener('click', function() {
-                  newSlot.remove();
-                });
+          if (dayIndex !== activeDayIndex && toggle.checked) {
+            // Copy the session pattern
+            const targetSessions = dayRow.querySelectorAll('.session-toggle input');
+            targetSessions.forEach((session, index) => {
+              const activeSession = activeSessions[index];
+              if (activeSession) {
+                session.checked = activeSession.checked;
+                const sessionToggle = session.closest('.session-toggle');
+                if (activeSession.checked) {
+                  sessionToggle.classList.add('active');
+                } else {
+                  sessionToggle.classList.remove('active');
+                }
               }
             });
           }
         });
         
-        alert('Schedule copied to all selected days!');
+        alert('Session pattern copied to all selected days!');
       });
     }
     
@@ -1293,13 +1299,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (clearScheduleBtn) {
       clearScheduleBtn.addEventListener('click', function() {
         if (confirm('Are you sure you want to clear all availability settings?')) {
-          dayCheckboxes.forEach(checkbox => {
-            checkbox.checked = false;
-            const daySlot = checkbox.closest('.calendar-day');
-            daySlot.classList.remove('active');
-            daySlot.classList.add('inactive');
-            daySlot.querySelector('.time-slots-container').style.display = 'none';
-            daySlot.querySelector('.add-slot-btn').style.display = 'none';
+          dayToggles.forEach(toggle => {
+            toggle.checked = false;
+            const dayRow = toggle.closest('.table-row');
+            dayRow.classList.add('inactive');
+            const sessionsGrid = dayRow.querySelector('.sessions-grid');
+            sessionsGrid.style.display = 'none';
           });
         }
       });
@@ -1313,14 +1318,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Initialize day states
-    dayCheckboxes.forEach(checkbox => {
-      const daySlot = checkbox.closest('.calendar-day');
-      if (checkbox.checked) {
-        daySlot.classList.add('active');
+    dayToggles.forEach(toggle => {
+      const dayRow = toggle.closest('.table-row');
+      if (toggle.checked) {
+        dayRow.classList.remove('inactive');
+        const sessionsGrid = dayRow.querySelector('.sessions-grid');
+        sessionsGrid.style.display = 'flex';
       } else {
-        daySlot.classList.add('inactive');
-        daySlot.querySelector('.time-slots-container').style.display = 'none';
-        daySlot.querySelector('.add-slot-btn').style.display = 'none';
+        dayRow.classList.add('inactive');
+        const sessionsGrid = dayRow.querySelector('.sessions-grid');
+        sessionsGrid.style.display = 'none';
       }
     });
     
@@ -1509,6 +1516,11 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(initializeAvailability, 100);
     }
   };
+  
+  // Also initialize when DOM is loaded (in case tab is already active)
+  if (document.querySelector('.availability-setup')) {
+    setTimeout(initializeAvailability, 100);
+  }
 });
 </script>
 {% endblock %} 
