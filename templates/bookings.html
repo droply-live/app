@@ -110,7 +110,7 @@
                   <div class="booking-header">
                     <div class="booking-client">
                       <h4>{{ booking.user.full_name or booking.user.username }}</h4>
-                      <p class="booking-time">{{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
+                      <p class="booking-time">{{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
                     </div>
                     <div class="booking-status">
                       <span class="status-badge pending">Pending</span>
@@ -155,7 +155,7 @@
                   <div class="booking-header">
                     <div class="booking-client">
                       <h4>{{ booking.user.full_name or booking.user.username }}</h4>
-                      <p class="booking-time">{{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
+                      <p class="booking-time">{{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
                     </div>
                     <div class="booking-status">
                       <span class="status-badge confirmed">Confirmed</span>
@@ -178,8 +178,8 @@
                     {% else %}
                     <span class="meeting-status">
                       <i class="fas fa-clock"></i>
-                      {% if booking.start_time > now %}
-                        Starts in {{ ((booking.start_time - now).total_seconds() / 3600)|round(1) }} hours
+                      {% if (booking.start_time|to_eastern) > now %}
+                        Starts in {{ (((booking.start_time|to_eastern) - now).total_seconds() / 3600)|round(1) }} hours
                       {% else %}
                         Meeting time has passed
                       {% endif %}
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="booking-header">
                       <div class="booking-client">
                         <h4>{{ booking.user.full_name or booking.user.username }}</h4>
-                        <p class="booking-time">{{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
+                        <p class="booking-time">{{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
                       </div>
                       <div class="booking-status">
                         <span class="status-badge pending">Pending</span>
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="booking-header">
                       <div class="booking-client">
                         <h4>{{ booking.user.full_name or booking.user.username }}</h4>
-                        <p class="booking-time">{{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
+                        <p class="booking-time">{{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
                       </div>
                       <div class="booking-status">
                         <span class="status-badge confirmed">Confirmed</span>
@@ -335,8 +335,8 @@ document.addEventListener('DOMContentLoaded', function() {
                       {% else %}
                       <span class="meeting-status">
                         <i class="fas fa-clock"></i>
-                        {% if booking.start_time > now %}
-                          Starts in {{ ((booking.start_time - now).total_seconds() / 3600)|round(1) }} hours
+                        {% if (booking.start_time|to_eastern) > now %}
+                          Starts in {{ (((booking.start_time|to_eastern) - now).total_seconds() / 3600)|round(1) }} hours
                         {% else %}
                           Meeting time has passed
                         {% endif %}
@@ -393,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="booking-header">
                       <div class="booking-client">
                         <h4>With {{ booking.expert.full_name or booking.expert.username }}</h4>
-                        <p class="booking-time">{{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
+                        <p class="booking-time">{{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
                         {% if booking.status == 'pending' %}
                         <p class="booking-status-text">
                           <i class="fas fa-clock text-warning"></i> Waiting for expert approval
@@ -423,8 +423,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% else %}
                         <span class="meeting-status">
                           <i class="fas fa-clock"></i>
-                          {% if booking.start_time > now %}
-                            Starts in {{ ((booking.start_time - now).total_seconds() / 3600)|round(1) }} hours
+                          {% if (booking.start_time|to_eastern) > now %}
+                            Starts in {{ (((booking.start_time|to_eastern) - now).total_seconds() / 3600)|round(1) }} hours
                           {% else %}
                             Meeting time has passed
                           {% endif %}
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="booking-header">
                       <div class="booking-client">
                         <h4>{{ booking.user.full_name or booking.user.username }}</h4>
-                        <p class="booking-time">{{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
+                        <p class="booking-time">{{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
                       </div>
                       <div class="booking-status">
                         <span class="status-badge completed">Completed</span>
@@ -502,7 +502,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="booking-header">
                       <div class="booking-client">
                         <h4>With {{ booking.expert.full_name or booking.expert.username }}</h4>
-                        <p class="booking-time">{{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
+                        <p class="booking-time">{{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
                       </div>
                       <div class="booking-status">
                         <span class="status-badge completed">Completed</span>

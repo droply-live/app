@@ -111,7 +111,7 @@
               <div>
                 <h6 class="fw-bold mb-1">{{ booking.user.full_name or booking.user.username }}</h6>
                 <small class="text-muted">
-                  {{ booking.start_time.strftime('%b %d, %Y %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}
+                  {{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}
                 </small>
               </div>
               <div class="text-end">

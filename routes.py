@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case, func
 from app import app
 from extensions import db
-from models import User, AvailabilityRule, AvailabilityException, Booking, Payout, Favorite
+from models import User, AvailabilityRule, AvailabilityException, Booking, Payout
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm, TimeSlotForm, BookingForm
 from utils import generate_ical_content
 from keyword_mappings import get_search_keywords, search_in_text
@@ -14,6 +14,32 @@ import json
 import os
 import stripe
 from datetime import datetime, timezone, timedelta
+
+# Configure timezone to Eastern Time
+EASTERN_TIMEZONE = timezone(timedelta(hours=-4))  # EDT (UTC-4)
+
+# Template filter to convert naive datetime to Eastern Time
+@app.template_filter('to_eastern')
+def to_eastern(dt):
+    """Convert naive datetime to Eastern Time"""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=EASTERN_TIMEZONE)
+    return dt
+
+# Template filter to format datetime for display
+@app.template_filter('format_datetime')
+def format_datetime(dt):
+    """Format datetime for display, treating naive datetime as Eastern Time"""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=EASTERN_TIMEZONE)
+    return dt.strftime('%b %d, %Y %I:%M %p')
+
+# Template filter to get current time in Eastern Time
+@app.template_filter('now_eastern')
+def now_eastern():
+    """Get current time in Eastern Time"""
+    return datetime.now(EASTERN_TIMEZONE)
+
 import time
 from app import oauth, google
 
@@ -582,18 +608,15 @@ def find_experts():
                 query = query.filter(User.is_top_expert == True)
             elif category == 'favorites':
                 # Special case for favorites - filter by user's favorites
+                from models import Favorite
                 favorites = Favorite.query.filter_by(user_id=current_user.id).all()
-                expert_ids = [int(f.expert_id) for f in favorites]  # Ensure integers
-                
-                print(f"DEBUG: User {current_user.id} has {len(favorites)} favorites: {expert_ids}")
+                expert_ids = [f.expert_id for f in favorites]
 
                 if expert_ids:
                     query = query.filter(User.id.in_(expert_ids))
-                    print(f"DEBUG: Filtered query for favorites")
                 else:
                     # Return empty list if no favorites
                     experts = []
-                    print(f"DEBUG: No favorites found, returning empty list")
                     return render_template('find_experts.html', 
                                          experts=experts, 
                                          now=datetime.now(), 
@@ -643,9 +666,6 @@ def find_experts():
     
     # Get all experts and sort by relevance
     experts = query.all()
-    print(f"DEBUG: Found {len(experts)} experts after filtering")
-    if category == 'favorites':
-        print(f"DEBUG: Expert IDs in results: {[e.id for e in experts]}")
     
     # Sort experts by relevance and priority
     def sort_score(expert):
@@ -691,10 +711,9 @@ def find_experts():
     # Get current user's favorites for template
     current_user_favorites = []
     if current_user.is_authenticated:
+        from models import Favorite
         favorites = Favorite.query.filter_by(user_id=current_user.id).all()
-        current_user_favorites = [int(f.expert_id) for f in favorites]  # Ensure integers
-        print(f"DEBUG: current_user_favorites: {current_user_favorites}")
-        print(f"DEBUG: current_user_favorites types: {[type(f) for f in current_user_favorites]}")
+        current_user_favorites = [f.expert_id for f in favorites]
 
     
     return render_template('find_experts.html', 
@@ -828,8 +847,7 @@ def bookings():
     from datetime import datetime, timezone
     from sqlalchemy import func
     
-    now = datetime.now(timezone.utc)
-    now_naive = now.replace(tzinfo=None)  # Convert to naive datetime for template comparison
+    now = datetime.now(EASTERN_TIMEZONE)
     
     # Bookings where the user is the booker (client)
     upcoming_as_client = Booking.query.filter(
@@ -867,7 +885,7 @@ def bookings():
                          past_as_client=past_as_client,
                          upcoming_as_expert=upcoming_as_expert,
                          past_as_expert=past_as_expert,
-                         now=now_naive)
+                         now=now)
 
 @app.route('/booking/accept/<int:booking_id>')
 @login_required
@@ -1273,6 +1291,7 @@ def api_favorites_toggle():
             return jsonify({'success': False, 'error': 'Expert not found'})
         
         # Check if already favorited
+        from models import Favorite
         existing_favorite = Favorite.query.filter_by(
             user_id=current_user.id, 
             expert_id=expert_id
@@ -1832,7 +1851,7 @@ def stripe_webhook():
         
         if payout_record:
             payout_record.status = 'paid'
-            payout_record.paid_at = datetime.now(timezone.utc)
+            payout_record.paid_at = datetime.now(EASTERN_TIMEZONE)
             db.session.commit()
     
     elif event['type'] == 'payout.failed':
@@ -1898,7 +1917,7 @@ def expert_payout_details():
 @app.route('/admin/update-bookings-status')
 def update_bookings_status():
     """Update all bookings whose end_time is in the past and status is 'confirmed' to 'completed'."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(EASTERN_TIMEZONE)
     updated = 0
     bookings = Booking.query.filter(
         Booking.status == 'confirmed',
@@ -1949,8 +1968,11 @@ def join_meeting(booking_id):
     
     # Check if meeting time is within 15 minutes before or after
     from datetime import datetime, timedelta
-    now = datetime.now()
+    now = datetime.now(EASTERN_TIMEZONE)
     meeting_time = booking.start_time
+    # Handle timezone-naive datetimes by assuming they're Eastern Time
+    if meeting_time.tzinfo is None:
+        meeting_time = meeting_time.replace(tzinfo=EASTERN_TIMEZONE)
     time_diff = abs((meeting_time - now).total_seconds() / 60)
     
     if time_diff > 15:
@@ -1974,7 +1996,7 @@ def join_meeting(booking_id):
         other_user = booking.user
         is_owner = True
     
-    # Use the working Daily.co template
+    # Use the Daily.co template for video calling
     return render_template('meeting_daily.html', 
                          booking=booking, 
                          room_name=booking.meeting_room_id,
@@ -1996,7 +2018,7 @@ def start_meeting(booking_id):
         flash('Meeting cannot be started at this time.', 'error')
         return redirect(url_for('bookings'))
     
-    booking.meeting_started_at = datetime.now(timezone.utc)
+    booking.meeting_started_at = datetime.now(EASTERN_TIMEZONE)
     db.session.commit()
     
     return redirect(url_for('join_meeting', booking_id=booking_id))
@@ -2011,7 +2033,7 @@ def end_meeting(booking_id):
         flash('Only the expert can end the meeting.', 'error')
         return redirect(url_for('bookings'))
     
-    booking.meeting_ended_at = datetime.now(timezone.utc)
+    booking.meeting_ended_at = datetime.now(EASTERN_TIMEZONE)
     if booking.meeting_started_at:
         duration = (booking.meeting_ended_at - booking.meeting_started_at).total_seconds() / 60
         booking.meeting_duration = int(duration)
@@ -2218,7 +2240,7 @@ def debug_bookings():
     from datetime import datetime, timezone
     from sqlalchemy import func
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(EASTERN_TIMEZONE)
     
     # Get all bookings for current user as expert
     all_bookings = Booking.query.filter(
@@ -2262,7 +2284,7 @@ def test_bookings():
     from models import Booking
     from datetime import datetime, timezone
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(EASTERN_TIMEZONE)
     
     # Simple query without timezone complexity
     all_bookings = Booking.query.filter(
@@ -2295,3 +2317,17 @@ def test_bookings():
     }
     
     return jsonify(result)
+
+@app.route('/debug-auth')
+def debug_auth():
+    """Debug route to check authentication status"""
+    from flask_login import current_user
+    
+    debug_info = {
+        'is_authenticated': current_user.is_authenticated,
+        'user_id': current_user.id if current_user.is_authenticated else None,
+        'username': current_user.username if current_user.is_authenticated else None,
+        'email': current_user.email if current_user.is_authenticated else None
+    }
+    
+    return jsonify(debug_info)

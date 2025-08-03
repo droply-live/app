@@ -11,10 +11,14 @@ from extensions import db, login_manager
 from authlib.integrations.flask_client import OAuth
 from flask_login import LoginManager
 from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
+
+# Configure timezone to Eastern Time
+EASTERN_TIMEZONE = timezone(timedelta(hours=-4))  # EDT (UTC-4)
+# For EST (UTC-5), use: timezone(timedelta(hours=-5))
 
 # create the app
 app = Flask(__name__)
@@ -64,7 +68,7 @@ def update_past_bookings():
     with app.app_context():
         from models import Booking
         from app import db
-        now = datetime.now(timezone.utc)
+        now = datetime.now(EASTERN_TIMEZONE)  # Use Eastern Time instead of UTC
         bookings = Booking.query.filter(
             Booking.status == 'confirmed',
             Booking.end_time < now

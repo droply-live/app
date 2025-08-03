@@ -1,7 +1,10 @@
 from extensions import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+
+# Configure timezone to Eastern Time
+EASTERN_TIMEZONE = timezone(timedelta(hours=-4))  # EDT (UTC-4)
 from sqlalchemy import func
 import json
 # import numpy as np
@@ -27,7 +30,7 @@ class User(UserMixin, db.Model):
     rating_count = db.Column(db.Integer, default=0)
     is_available = db.Column(db.Boolean, default=True)
     is_top_expert = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
     specialty_tags = db.Column(db.Text)  # JSON string of specialty tags
     profile_picture = db.Column(db.String(255))  # Path to profile picture
     background_color = db.Column(db.String(7), default='#f7faff')  # Hex color code
@@ -88,7 +91,7 @@ class Favorite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The user who favorited
     expert_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The expert being favorited
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
     
     # Relationships
     user = db.relationship('User', foreign_keys=[user_id], backref='favorites_as_user')
@@ -122,7 +125,7 @@ class Booking(db.Model):
     end_time = db.Column(db.DateTime, nullable=False)
     duration = db.Column(db.Integer, nullable=False)  # in minutes
     status = db.Column(db.String(32), default='confirmed')  # confirmed, cancelled, completed, etc.
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
     # Payment and client info fields from payment-integration branch
     payment_status = db.Column(db.String(20), default='pending')  # pending, paid, refunded
     payment_amount = db.Column(db.Float)
@@ -150,45 +153,45 @@ class Booking(db.Model):
     def is_upcoming(self):
         """Check if booking is in the future"""
         from datetime import datetime, timezone
-        now = datetime.now(timezone.utc)
+        now = datetime.now(EASTERN_TIMEZONE)
         
-        # Handle timezone-naive datetimes by assuming they're UTC
+        # Handle timezone-naive datetimes by assuming they're Eastern Time
         start_time = self.start_time
         if start_time.tzinfo is None:
-            start_time = start_time.replace(tzinfo=timezone.utc)
+            start_time = start_time.replace(tzinfo=EASTERN_TIMEZONE)
             
         return start_time > now
     
     def is_ongoing(self):
         """Check if booking is currently happening"""
         from datetime import datetime, timezone
-        now = datetime.now(timezone.utc)
+        now = datetime.now(EASTERN_TIMEZONE)
         
-        # Handle timezone-naive datetimes by assuming they're UTC
+        # Handle timezone-naive datetimes by assuming they're Eastern Time
         start_time = self.start_time
         end_time = self.end_time
         
         if start_time.tzinfo is None:
-            start_time = start_time.replace(tzinfo=timezone.utc)
+            start_time = start_time.replace(tzinfo=EASTERN_TIMEZONE)
         if end_time.tzinfo is None:
-            end_time = end_time.replace(tzinfo=timezone.utc)
+            end_time = end_time.replace(tzinfo=EASTERN_TIMEZONE)
             
         return start_time <= now <= end_time
     
     def can_join_meeting(self):
         """Check if user can join the meeting (within 5 minutes before start)"""
         from datetime import datetime, timezone, timedelta
-        now = datetime.now(timezone.utc)
+        now = datetime.now(EASTERN_TIMEZONE)
         
-        # Handle timezone-naive datetimes by assuming they're UTC
+        # Handle timezone-naive datetimes by assuming they're Eastern Time
         start_time = self.start_time
         end_time = self.end_time
         
-        # If the datetime is timezone-naive, assume it's UTC
+        # If the datetime is timezone-naive, assume it's Eastern Time
         if start_time.tzinfo is None:
-            start_time = start_time.replace(tzinfo=timezone.utc)
+            start_time = start_time.replace(tzinfo=EASTERN_TIMEZONE)
         if end_time.tzinfo is None:
-            end_time = end_time.replace(tzinfo=timezone.utc)
+            end_time = end_time.replace(tzinfo=EASTERN_TIMEZONE)
             
         return start_time - timedelta(minutes=5) <= now <= end_time
 
@@ -210,7 +213,7 @@ class Payout(db.Model):
     stripe_transfer_id = db.Column(db.String(100))  # Stripe transfer ID
     stripe_payout_id = db.Column(db.String(100))  # Stripe payout ID
     status = db.Column(db.String(20), default='pending')  # pending, paid, failed
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
     paid_at = db.Column(db.DateTime)  # When payout was actually paid
     
     # Relationships

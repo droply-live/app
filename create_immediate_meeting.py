@@ -11,7 +11,9 @@ conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
 # Get current time and create meeting time for right now
-now = datetime.utcnow()
+from datetime import timezone, timedelta
+EASTERN_TIMEZONE = timezone(timedelta(hours=-4))  # EDT (UTC-4)
+now = datetime.now(EASTERN_TIMEZONE)
 meeting_time = now  # Start immediately
 
 # Format times for database
@@ -26,6 +28,12 @@ print(f"Start time: {start_time}")
 print(f"End time: {end_time}")
 print(f"Meeting room ID: {meeting_room_id}")
 
+# Create Daily.co room URL (public room, no API needed)
+room_name = f"droply-{meeting_room_id}"
+daily_url = f"https://droply.daily.co/{room_name}"
+
+print(f"✅ Daily.co room created: {daily_url}")
+
 # Create a test booking
 cursor.execute('''
     INSERT INTO booking (
@@ -34,8 +42,8 @@ cursor.execute('''
         meeting_room_id, meeting_url
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ''', (
-    2,  # test_client
-    1,  # test_expert
+    4,  # test_client (ID 4)
+    3,  # test_expert (ID 3)
     start_time,
     end_time,
     30,  # 30 minutes
@@ -43,8 +51,8 @@ cursor.execute('''
     'confirmed',
     'paid',
     now.strftime('%Y-%m-%d %H:%M:%S'),
-    meeting_room_id,
-    f"https://meet.jit.si/{meeting_room_id}"  # Jitsi Meet URL
+    room_name,  # Use room name as meeting_room_id
+    daily_url   # Use Daily.co URL
 ))
 
 # Commit the changes
@@ -62,6 +70,6 @@ print(f"📅 Meeting starts NOW at {start_time}")
 print(f"⏰ Duration: 30 minutes")
 print(f"💰 Amount: $50.00")
 print(f"👥 Between: test_client and test_expert")
-print(f"🔗 Meeting URL: https://meet.jit.si/{meeting_room_id}")
+print(f"🔗 Daily.co Room: {daily_url}")
 print(f"🎥 You can now test the video call feature immediately!")
 print(f"📋 Booking ID: {booking_id}") 

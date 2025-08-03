@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_signed_in.html" %}
 
 {% block title %}Video Call - {{ booking.title }}{% endblock %}
 
@@ -107,9 +107,12 @@ async function initializeCall() {
             alert('Error joining call: ' + (error.errorMsg || error.message || 'Unknown error'));
         });
 
-        // Join the meeting
+        // Join the meeting without authentication
         await callObject.join({
-            url: roomUrl
+            url: roomUrl,
+            userName: '{{ current_user.full_name or current_user.username }}',
+            showLocalVideo: true,
+            showParticipantsBar: true
         });
 
     } catch (error) {
