@@ -208,163 +208,331 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="tab-content">
             <h2>Availability</h2>
             <div class="availability-setup">
-              <div class="mb-3">
-                <h6 class="mb-2">Set Your Weekly Availability</h6>
-                <p class="text-muted small mb-3">Define when you're available for sessions each day of the week</p>
+              <div class="availability-header">
+                <div class="header-info">
+                  <h6 class="mb-1">Weekly Schedule</h6>
+                  <p class="text-muted small mb-0">Set your availability for each day with multiple time slots</p>
+                </div>
+                <div class="header-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary" id="quickSetupBtn">
+                    <i class="fas fa-magic"></i> Quick Setup
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="copyWeekBtn">
+                    <i class="fas fa-copy"></i> Copy Week
+                  </button>
+                </div>
               </div>
               
-              <div class="availability-grid">
-                <div class="day-slot" data-day="0">
+              <div class="availability-calendar">
+                <div class="calendar-day" data-day="0">
                   <div class="day-header">
-                    <label class="day-label">
-                      <input type="checkbox" class="day-checkbox" data-day="0" checked>
+                    <div class="day-info">
                       <span class="day-name">Monday</span>
-                    </label>
+                      <div class="day-status">
+                        <label class="switch">
+                          <input type="checkbox" class="day-toggle" data-day="0" checked>
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="0">
+                      <i class="fas fa-plus"></i> Add Time
+                    </button>
                   </div>
-                  <div class="time-slots" data-day="0">
+                  <div class="time-slots-container" data-day="0">
                     <div class="time-slot">
-                      <input type="time" class="form-control form-control-sm start-time" data-day="0" value="09:00">
-                      <span class="time-separator">to</span>
-                      <input type="time" class="form-control form-control-sm end-time" data-day="0" value="17:00">
+                      <div class="slot-time">
+                        <input type="time" class="form-control form-control-sm start-time" value="09:00">
+                        <span class="time-separator">-</span>
+                        <input type="time" class="form-control form-control-sm end-time" value="12:00">
+                      </div>
+                      <div class="slot-type">
+                        <select class="form-control form-control-sm session-type">
+                          <option value="consultation">Consultation</option>
+                          <option value="mentoring">Mentoring</option>
+                          <option value="coaching">Coaching</option>
+                          <option value="review">Review</option>
+                        </select>
+                      </div>
+                      <div class="slot-actions">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="time-slot">
+                      <div class="slot-time">
+                        <input type="time" class="form-control form-control-sm start-time" value="14:00">
+                        <span class="time-separator">-</span>
+                        <input type="time" class="form-control form-control-sm end-time" value="17:00">
+                      </div>
+                      <div class="slot-type">
+                        <select class="form-control form-control-sm session-type">
+                          <option value="consultation">Consultation</option>
+                          <option value="mentoring">Mentoring</option>
+                          <option value="coaching">Coaching</option>
+                          <option value="review">Review</option>
+                        </select>
+                      </div>
+                      <div class="slot-actions">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="0" style="display: none;">
-                    <i class="fas fa-plus"></i> Add Slot
-                  </button>
                 </div>
                 
-                <div class="day-slot" data-day="1">
+                <div class="calendar-day" data-day="1">
                   <div class="day-header">
-                    <label class="day-label">
-                      <input type="checkbox" class="day-checkbox" data-day="1" checked>
+                    <div class="day-info">
                       <span class="day-name">Tuesday</span>
-                    </label>
+                      <div class="day-status">
+                        <label class="switch">
+                          <input type="checkbox" class="day-toggle" data-day="1" checked>
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="1">
+                      <i class="fas fa-plus"></i> Add Time
+                    </button>
                   </div>
-                  <div class="time-slots" data-day="1">
+                  <div class="time-slots-container" data-day="1">
                     <div class="time-slot">
-                      <input type="time" class="form-control form-control-sm start-time" data-day="1" value="09:00">
-                      <span class="time-separator">to</span>
-                      <input type="time" class="form-control form-control-sm end-time" data-day="1" value="17:00">
+                      <div class="slot-time">
+                        <input type="time" class="form-control form-control-sm start-time" value="09:00">
+                        <span class="time-separator">-</span>
+                        <input type="time" class="form-control form-control-sm end-time" value="17:00">
+                      </div>
+                      <div class="slot-type">
+                        <select class="form-control form-control-sm session-type">
+                          <option value="consultation">Consultation</option>
+                          <option value="mentoring">Mentoring</option>
+                          <option value="coaching">Coaching</option>
+                          <option value="review">Review</option>
+                        </select>
+                      </div>
+                      <div class="slot-actions">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="1" style="display: none;">
-                    <i class="fas fa-plus"></i> Add Slot
-                  </button>
                 </div>
                 
-                <div class="day-slot" data-day="2">
+                <div class="calendar-day" data-day="2">
                   <div class="day-header">
-                    <label class="day-label">
-                      <input type="checkbox" class="day-checkbox" data-day="2" checked>
+                    <div class="day-info">
                       <span class="day-name">Wednesday</span>
-                    </label>
+                      <div class="day-status">
+                        <label class="switch">
+                          <input type="checkbox" class="day-toggle" data-day="2" checked>
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="2">
+                      <i class="fas fa-plus"></i> Add Time
+                    </button>
                   </div>
-                  <div class="time-slots" data-day="2">
+                  <div class="time-slots-container" data-day="2">
                     <div class="time-slot">
-                      <input type="time" class="form-control form-control-sm start-time" data-day="2" value="09:00">
-                      <span class="time-separator">to</span>
-                      <input type="time" class="form-control form-control-sm end-time" data-day="2" value="17:00">
+                      <div class="slot-time">
+                        <input type="time" class="form-control form-control-sm start-time" value="09:00">
+                        <span class="time-separator">-</span>
+                        <input type="time" class="form-control form-control-sm end-time" value="17:00">
+                      </div>
+                      <div class="slot-type">
+                        <select class="form-control form-control-sm session-type">
+                          <option value="consultation">Consultation</option>
+                          <option value="mentoring">Mentoring</option>
+                          <option value="coaching">Coaching</option>
+                          <option value="review">Review</option>
+                        </select>
+                      </div>
+                      <div class="slot-actions">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="2" style="display: none;">
-                    <i class="fas fa-plus"></i> Add Slot
-                  </button>
                 </div>
                 
-                <div class="day-slot" data-day="3">
+                <div class="calendar-day" data-day="3">
                   <div class="day-header">
-                    <label class="day-label">
-                      <input type="checkbox" class="day-checkbox" data-day="3" checked>
+                    <div class="day-info">
                       <span class="day-name">Thursday</span>
-                    </label>
+                      <div class="day-status">
+                        <label class="switch">
+                          <input type="checkbox" class="day-toggle" data-day="3" checked>
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="3">
+                      <i class="fas fa-plus"></i> Add Time
+                    </button>
                   </div>
-                  <div class="time-slots" data-day="3">
+                  <div class="time-slots-container" data-day="3">
                     <div class="time-slot">
-                      <input type="time" class="form-control form-control-sm start-time" data-day="3" value="09:00">
-                      <span class="time-separator">to</span>
-                      <input type="time" class="form-control form-control-sm end-time" data-day="3" value="17:00">
+                      <div class="slot-time">
+                        <input type="time" class="form-control form-control-sm start-time" value="09:00">
+                        <span class="time-separator">-</span>
+                        <input type="time" class="form-control form-control-sm end-time" value="17:00">
+                      </div>
+                      <div class="slot-type">
+                        <select class="form-control form-control-sm session-type">
+                          <option value="consultation">Consultation</option>
+                          <option value="mentoring">Mentoring</option>
+                          <option value="coaching">Coaching</option>
+                          <option value="review">Review</option>
+                        </select>
+                      </div>
+                      <div class="slot-actions">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="3" style="display: none;">
-                    <i class="fas fa-plus"></i> Add Slot
-                  </button>
                 </div>
                 
-                <div class="day-slot" data-day="4">
+                <div class="calendar-day" data-day="4">
                   <div class="day-header">
-                    <label class="day-label">
-                      <input type="checkbox" class="day-checkbox" data-day="4" checked>
+                    <div class="day-info">
                       <span class="day-name">Friday</span>
-                    </label>
+                      <div class="day-status">
+                        <label class="switch">
+                          <input type="checkbox" class="day-toggle" data-day="4" checked>
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="4">
+                      <i class="fas fa-plus"></i> Add Time
+                    </button>
                   </div>
-                  <div class="time-slots" data-day="4">
+                  <div class="time-slots-container" data-day="4">
                     <div class="time-slot">
-                      <input type="time" class="form-control form-control-sm start-time" data-day="4" value="09:00">
-                      <span class="time-separator">to</span>
-                      <input type="time" class="form-control form-control-sm end-time" data-day="4" value="17:00">
+                      <div class="slot-time">
+                        <input type="time" class="form-control form-control-sm start-time" value="09:00">
+                        <span class="time-separator">-</span>
+                        <input type="time" class="form-control form-control-sm end-time" value="17:00">
+                      </div>
+                      <div class="slot-type">
+                        <select class="form-control form-control-sm session-type">
+                          <option value="consultation">Consultation</option>
+                          <option value="mentoring">Mentoring</option>
+                          <option value="coaching">Coaching</option>
+                          <option value="review">Review</option>
+                        </select>
+                      </div>
+                      <div class="slot-actions">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="4" style="display: none;">
-                    <i class="fas fa-plus"></i> Add Slot
-                  </button>
                 </div>
                 
-                <div class="day-slot" data-day="5">
+                <div class="calendar-day" data-day="5">
                   <div class="day-header">
-                    <label class="day-label">
-                      <input type="checkbox" class="day-checkbox" data-day="5">
+                    <div class="day-info">
                       <span class="day-name">Saturday</span>
-                    </label>
+                      <div class="day-status">
+                        <label class="switch">
+                          <input type="checkbox" class="day-toggle" data-day="5">
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="5">
+                      <i class="fas fa-plus"></i> Add Time
+                    </button>
                   </div>
-                  <div class="time-slots" data-day="5">
+                  <div class="time-slots-container" data-day="5">
                     <div class="time-slot">
-                      <input type="time" class="form-control form-control-sm start-time" data-day="5" value="09:00">
-                      <span class="time-separator">to</span>
-                      <input type="time" class="form-control form-control-sm end-time" data-day="5" value="17:00">
+                      <div class="slot-time">
+                        <input type="time" class="form-control form-control-sm start-time" value="10:00">
+                        <span class="time-separator">-</span>
+                        <input type="time" class="form-control form-control-sm end-time" value="15:00">
+                      </div>
+                      <div class="slot-type">
+                        <select class="form-control form-control-sm session-type">
+                          <option value="consultation">Consultation</option>
+                          <option value="mentoring">Mentoring</option>
+                          <option value="coaching">Coaching</option>
+                          <option value="review">Review</option>
+                        </select>
+                      </div>
+                      <div class="slot-actions">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="5" style="display: none;">
-                    <i class="fas fa-plus"></i> Add Slot
-                  </button>
                 </div>
                 
-                <div class="day-slot" data-day="6">
+                <div class="calendar-day" data-day="6">
                   <div class="day-header">
-                    <label class="day-label">
-                      <input type="checkbox" class="day-checkbox" data-day="6">
+                    <div class="day-info">
                       <span class="day-name">Sunday</span>
-                    </label>
+                      <div class="day-status">
+                        <label class="switch">
+                          <input type="checkbox" class="day-toggle" data-day="6">
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="6">
+                      <i class="fas fa-plus"></i> Add Time
+                    </button>
                   </div>
-                  <div class="time-slots" data-day="6">
+                  <div class="time-slots-container" data-day="6">
                     <div class="time-slot">
-                      <input type="time" class="form-control form-control-sm start-time" data-day="6" value="09:00">
-                      <span class="time-separator">to</span>
-                      <input type="time" class="form-control form-control-sm end-time" data-day="6" value="17:00">
+                      <div class="slot-time">
+                        <input type="time" class="form-control form-control-sm start-time" value="10:00">
+                        <span class="time-separator">-</span>
+                        <input type="time" class="form-control form-control-sm end-time" value="15:00">
+                      </div>
+                      <div class="slot-type">
+                        <select class="form-control form-control-sm session-type">
+                          <option value="consultation">Consultation</option>
+                          <option value="mentoring">Mentoring</option>
+                          <option value="coaching">Coaching</option>
+                          <option value="review">Review</option>
+                        </select>
+                      </div>
+                      <div class="slot-actions">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="6" style="display: none;">
-                    <i class="fas fa-plus"></i> Add Slot
-                  </button>
                 </div>
               </div>
               
-              <div class="mt-3">
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="copyScheduleBtn">
-                  <i class="fas fa-copy"></i> Copy Schedule to All Days
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="clearScheduleBtn">
-                  <i class="fas fa-trash"></i> Clear All
-                </button>
-                <button type="button" class="btn btn-primary ms-2" id="saveAvailabilityBtn">
-                  <i class="fas fa-save"></i> Save Availability
-                </button>
-              </div>
-              
-              <div class="mt-3">
-                <small class="text-muted">
-                  <i class="fas fa-info-circle"></i>
-                  Your availability will be shown to potential clients when they book sessions with you.
-                </small>
+              <div class="availability-footer">
+                <div class="footer-info">
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    Your availability will be shown to potential clients when they book sessions with you.
+                  </small>
+                </div>
+                <div class="footer-actions">
+                  <button type="button" class="btn btn-outline-secondary" id="clearAllBtn">
+                    <i class="fas fa-trash"></i> Clear All
+                  </button>
+                  <button type="button" class="btn btn-primary" id="saveAvailabilityBtn">
+                    <i class="fas fa-save"></i> Save Availability
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -832,53 +1000,126 @@ document.addEventListener('DOMContentLoaded', function() {
   padding: 0.5rem 0;
 }
 
-.availability-grid {
+.availability-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.header-info h6 {
+  margin-bottom: 0.25rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.availability-calendar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-day {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-.day-slot {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
-  background: #f8f9fa;
-  transition: all 0.2s ease;
-}
-
-.day-slot.active {
+.calendar-day.active {
   background: white;
-  border-color: #007bff;
-  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+  border-color: #3c78ff;
+  box-shadow: 0 2px 8px rgba(60, 120, 255, 0.1);
 }
 
-.day-slot.inactive {
+.calendar-day.inactive {
   background: #f1f3f4;
   opacity: 0.6;
 }
 
 .day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 0.75rem;
 }
 
-.day-label {
+.day-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  margin: 0;
-}
-
-.day-checkbox {
-  margin: 0;
+  gap: 0.75rem;
 }
 
 .day-name {
   font-weight: 600;
   color: #333;
+  font-size: 1rem;
 }
 
-.time-slots {
+.day-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.switch {
+  position: relative;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 20px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #3c78ff;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #3c78ff;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.time-slots-container {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -887,12 +1128,29 @@ document.addEventListener('DOMContentLoaded', function() {
 .time-slot {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: #e9ecef;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
-.time-slot input[type="time"] {
+.time-slot:hover {
+  background: #f1f3f4;
+  border-color: #ced4da;
+}
+
+.slot-time {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.slot-time input[type="time"] {
   flex: 1;
-  max-width: 120px;
+  max-width: 80px;
+  text-align: center;
 }
 
 .time-separator {
@@ -900,13 +1158,36 @@ document.addEventListener('DOMContentLoaded', function() {
   font-size: 0.875rem;
 }
 
-.add-slot-btn {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
+.slot-type {
+  flex: 1;
 }
 
-.remove-slot-btn {
+.slot-type select {
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #495057;
+  background-color: #fff;
+}
+
+.slot-type select:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.slot-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.slot-actions .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.remove-slot {
   background: none;
   border: none;
   color: #dc3545;
@@ -915,23 +1196,71 @@ document.addEventListener('DOMContentLoaded', function() {
   font-size: 0.875rem;
 }
 
-.remove-slot-btn:hover {
+.remove-slot:hover {
   color: #c82333;
 }
 
+.availability-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.footer-info {
+  flex: 1;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.footer-actions .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 768px) {
+  .availability-calendar {
+    grid-template-columns: 1fr;
+  }
+  
+  .availability-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
   .time-slot {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.25rem;
+    gap: 0.5rem;
   }
   
-  .time-slot input[type="time"] {
+  .slot-time {
+    justify-content: center;
+  }
+  
+  .slot-time input[type="time"] {
     max-width: none;
   }
   
-  .time-separator {
-    text-align: center;
+  .availability-footer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .footer-actions {
+    justify-content: space-between;
   }
 }
 </style>
@@ -941,9 +1270,9 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize availability functionality when availability tab is loaded
   function initializeAvailability() {
-    const dayCheckboxes = document.querySelectorAll('.day-checkbox');
-    const copyScheduleBtn = document.getElementById('copyScheduleBtn');
-    const clearScheduleBtn = document.getElementById('clearScheduleBtn');
+    const dayCheckboxes = document.querySelectorAll('.day-toggle'); // Changed from day-checkbox to day-toggle
+    const copyScheduleBtn = document.getElementById('copyWeekBtn'); // Changed from copyScheduleBtn to copyWeekBtn
+    const clearScheduleBtn = document.getElementById('clearAllBtn'); // Changed from clearScheduleBtn to clearAllBtn
     const saveAvailabilityBtn = document.getElementById('saveAvailabilityBtn');
     
     if (!dayCheckboxes.length) return; // Not on availability tab
@@ -951,19 +1280,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle day checkbox changes
     dayCheckboxes.forEach(checkbox => {
       checkbox.addEventListener('change', function() {
-        const daySlot = this.closest('.day-slot');
-        const timeSlots = daySlot.querySelector('.time-slots');
+        const daySlot = this.closest('.calendar-day');
+        const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
         const addSlotBtn = daySlot.querySelector('.add-slot-btn');
         
         if (this.checked) {
           daySlot.classList.remove('inactive');
           daySlot.classList.add('active');
-          timeSlots.style.display = 'flex';
+          timeSlotsContainer.style.display = 'flex';
           addSlotBtn.style.display = 'block';
         } else {
           daySlot.classList.remove('active');
           daySlot.classList.add('inactive');
-          timeSlots.style.display = 'none';
+          timeSlotsContainer.style.display = 'none';
           addSlotBtn.style.display = 'none';
         }
       });
@@ -973,48 +1302,136 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.add-slot-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const day = this.getAttribute('data-day');
-        const timeSlots = document.querySelector(`.time-slots[data-day="${day}"]`);
+        const timeSlotsContainer = document.querySelector(`.time-slots-container[data-day="${day}"]`);
         
         const newSlot = document.createElement('div');
         newSlot.className = 'time-slot';
         newSlot.innerHTML = `
-          <input type="time" class="form-control form-control-sm start-time" data-day="${day}" value="09:00">
-          <span class="time-separator">to</span>
-          <input type="time" class="form-control form-control-sm end-time" data-day="${day}" value="17:00">
-          <button type="button" class="remove-slot-btn">
-            <i class="fas fa-times"></i>
-          </button>
+          <div class="slot-time">
+            <input type="time" class="form-control form-control-sm start-time" data-day="${day}" value="09:00">
+            <span class="time-separator">-</span>
+            <input type="time" class="form-control form-control-sm end-time" data-day="${day}" value="17:00">
+          </div>
+          <div class="slot-type">
+            <select class="form-control form-control-sm session-type">
+              <option value="consultation">Consultation</option>
+              <option value="mentoring">Mentoring</option>
+              <option value="coaching">Coaching</option>
+              <option value="review">Review</option>
+            </select>
+          </div>
+          <div class="slot-actions">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-slot">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
         `;
         
-        timeSlots.appendChild(newSlot);
+        timeSlotsContainer.appendChild(newSlot);
         
         // Add remove functionality to new slot
-        const removeBtn = newSlot.querySelector('.remove-slot-btn');
+        const removeBtn = newSlot.querySelector('.remove-slot');
         removeBtn.addEventListener('click', function() {
           newSlot.remove();
         });
       });
     });
     
-    // Copy schedule to all days
+    // Quick Setup functionality
+    const quickSetupBtn = document.getElementById('quickSetupBtn');
+    if (quickSetupBtn) {
+      quickSetupBtn.addEventListener('click', function() {
+        if (confirm('This will set up a standard 9 AM - 5 PM schedule for weekdays and 10 AM - 3 PM for weekends. Continue?')) {
+          // Set up weekdays (Mon-Fri)
+          for (let i = 0; i <= 4; i++) {
+            const daySlot = document.querySelector(`.calendar-day[data-day="${i}"]`);
+            const toggle = daySlot.querySelector('.day-toggle');
+            const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
+            
+            // Enable the day
+            toggle.checked = true;
+            daySlot.classList.remove('inactive');
+            daySlot.classList.add('active');
+            timeSlotsContainer.style.display = 'flex';
+            
+            // Set time to 9 AM - 5 PM
+            const startTime = timeSlotsContainer.querySelector('.start-time');
+            const endTime = timeSlotsContainer.querySelector('.end-time');
+            if (startTime && endTime) {
+              startTime.value = '09:00';
+              endTime.value = '17:00';
+            }
+          }
+          
+          // Set up weekends (Sat-Sun)
+          for (let i = 5; i <= 6; i++) {
+            const daySlot = document.querySelector(`.calendar-day[data-day="${i}"]`);
+            const toggle = daySlot.querySelector('.day-toggle');
+            const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
+            
+            // Enable the day
+            toggle.checked = true;
+            daySlot.classList.remove('inactive');
+            daySlot.classList.add('active');
+            timeSlotsContainer.style.display = 'flex';
+            
+            // Set time to 10 AM - 3 PM
+            const startTime = timeSlotsContainer.querySelector('.start-time');
+            const endTime = timeSlotsContainer.querySelector('.end-time');
+            if (startTime && endTime) {
+              startTime.value = '10:00';
+              endTime.value = '15:00';
+            }
+          }
+        }
+      });
+    }
+    
+    // Copy Week functionality
     if (copyScheduleBtn) {
       copyScheduleBtn.addEventListener('click', function() {
-        const activeDay = document.querySelector('.day-slot.active');
+        const activeDay = document.querySelector('.calendar-day.active');
         if (!activeDay) {
           alert('Please select at least one day first');
           return;
         }
         
-        const startTime = activeDay.querySelector('.start-time').value;
-        const endTime = activeDay.querySelector('.end-time').value;
+        const activeDayIndex = parseInt(activeDay.getAttribute('data-day'));
+        const timeSlots = activeDay.querySelectorAll('.time-slot');
         
+        if (timeSlots.length === 0) {
+          alert('Please add at least one time slot to copy');
+          return;
+        }
+        
+        // Copy to all other days
         dayCheckboxes.forEach(checkbox => {
-          if (checkbox.checked) {
-            const daySlot = checkbox.closest('.day-slot');
-            daySlot.querySelector('.start-time').value = startTime;
-            daySlot.querySelector('.end-time').value = endTime;
+          const daySlot = checkbox.closest('.calendar-day');
+          const dayIndex = parseInt(daySlot.getAttribute('data-day'));
+          
+          if (dayIndex !== activeDayIndex && checkbox.checked) {
+            const targetTimeSlotsContainer = daySlot.querySelector('.time-slots-container');
+            
+            // Clear existing slots
+            targetTimeSlotsContainer.innerHTML = '';
+            
+            // Copy each time slot
+            timeSlots.forEach(slot => {
+              const newSlot = slot.cloneNode(true);
+              targetTimeSlotsContainer.appendChild(newSlot);
+              
+              // Re-add remove functionality
+              const removeBtn = newSlot.querySelector('.remove-slot');
+              if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                  newSlot.remove();
+                });
+              }
+            });
           }
         });
+        
+        alert('Schedule copied to all selected days!');
       });
     }
     
@@ -1024,10 +1441,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Are you sure you want to clear all availability settings?')) {
           dayCheckboxes.forEach(checkbox => {
             checkbox.checked = false;
-            const daySlot = checkbox.closest('.day-slot');
+            const daySlot = checkbox.closest('.calendar-day');
             daySlot.classList.remove('active');
             daySlot.classList.add('inactive');
-            daySlot.querySelector('.time-slots').style.display = 'none';
+            daySlot.querySelector('.time-slots-container').style.display = 'none';
             daySlot.querySelector('.add-slot-btn').style.display = 'none';
           });
         }
@@ -1043,12 +1460,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize day states
     dayCheckboxes.forEach(checkbox => {
-      const daySlot = checkbox.closest('.day-slot');
+      const daySlot = checkbox.closest('.calendar-day');
       if (checkbox.checked) {
         daySlot.classList.add('active');
       } else {
         daySlot.classList.add('inactive');
-        daySlot.querySelector('.time-slots').style.display = 'none';
+        daySlot.querySelector('.time-slots-container').style.display = 'none';
         daySlot.querySelector('.add-slot-btn').style.display = 'none';
       }
     });
@@ -1063,17 +1480,17 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(response => response.json())
       .then(rules => {
         rules.forEach(rule => {
-          const daySlot = document.querySelector(`.day-slot[data-day="${rule.weekday}"]`);
+          const daySlot = document.querySelector(`.calendar-day[data-day="${rule.weekday}"]`);
           if (daySlot) {
-            const checkbox = daySlot.querySelector('.day-checkbox');
-            const timeSlots = daySlot.querySelector('.time-slots');
+            const checkbox = daySlot.querySelector('.day-toggle');
+            const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
             const addSlotBtn = daySlot.querySelector('.add-slot-btn');
             
             // Check the day
             checkbox.checked = true;
             daySlot.classList.remove('inactive');
             daySlot.classList.add('active');
-            timeSlots.style.display = 'flex';
+            timeSlotsContainer.style.display = 'flex';
             addSlotBtn.style.display = 'block';
             
             // Set the time
@@ -1095,10 +1512,11 @@ document.addEventListener('DOMContentLoaded', function() {
   function saveAvailabilityRules() {
     const rules = [];
     
-    document.querySelectorAll('.day-slot').forEach(daySlot => {
+    document.querySelectorAll('.calendar-day').forEach(daySlot => {
       const day = parseInt(daySlot.getAttribute('data-day'));
-      const checkbox = daySlot.querySelector('.day-checkbox');
-      const timeSlots = daySlot.querySelectorAll('.time-slot');
+      const checkbox = daySlot.querySelector('.day-toggle');
+      const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
+      const timeSlots = timeSlotsContainer.querySelectorAll('.time-slot');
       
       if (checkbox.checked) {
         timeSlots.forEach(slot => {
