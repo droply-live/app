@@ -1134,20 +1134,29 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize availability functionality when availability tab is loaded
   function initializeAvailability() {
+    console.log('Initializing availability...');
+    
     const dayToggles = document.querySelectorAll('.day-toggle');
     const copyScheduleBtn = document.getElementById('copyWeekBtn');
     const clearScheduleBtn = document.getElementById('clearAllBtn');
     const saveAvailabilityBtn = document.getElementById('saveAvailabilityBtn');
     
-    if (!dayToggles.length) return; // Not on availability tab
+    console.log(`Found ${dayToggles.length} day toggles`);
+    
+    if (!dayToggles.length) {
+      console.log('No day toggles found - not on availability tab');
+      return; // Not on availability tab
+    }
     
     // Generate session toggles for each day
+    console.log('Generating session toggles...');
     generateSessionToggles();
     
     // Handle time range changes
     document.querySelectorAll('.start-time, .end-time').forEach(input => {
       input.addEventListener('change', function() {
         const day = this.closest('.table-row').getAttribute('data-day');
+        console.log(`Time range changed for day ${day}`);
         generateSessionTogglesForDay(day);
       });
     });
@@ -1345,13 +1354,26 @@ document.addEventListener('DOMContentLoaded', function() {
   // Generate session toggles for a specific day
   function generateSessionTogglesForDay(day) {
     const dayRow = document.querySelector(`.table-row[data-day="${day}"]`);
-    if (!dayRow) return;
+    if (!dayRow) {
+      console.log(`Day row not found for day ${day}`);
+      return;
+    }
     
     const startTime = dayRow.querySelector('.start-time').value;
     const endTime = dayRow.querySelector('.end-time').value;
     const sessionsGrid = dayRow.querySelector('.sessions-grid');
     
-    if (!startTime || !endTime) return;
+    console.log(`Generating sessions for day ${day}: ${startTime} to ${endTime}`);
+    
+    if (!startTime || !endTime) {
+      console.log('Start or end time not found');
+      return;
+    }
+    
+    if (!sessionsGrid) {
+      console.log('Sessions grid not found');
+      return;
+    }
     
     // Clear existing sessions
     sessionsGrid.innerHTML = '';
@@ -1363,6 +1385,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let current = new Date(start);
     let sessionIndex = 0;
+    
+    console.log(`Creating sessions from ${start.toTimeString()} to ${end.toTimeString()}`);
     
     while (current < end) {
       const sessionTime = current.toTimeString().slice(0, 5);
@@ -1389,6 +1413,8 @@ document.addEventListener('DOMContentLoaded', function() {
       current.setMinutes(current.getMinutes() + sessionDuration);
       sessionIndex++;
     }
+    
+    console.log(`Created ${sessionIndex} sessions for day ${day}`);
   }
   
   // Load existing availability rules
@@ -1520,6 +1546,23 @@ document.addEventListener('DOMContentLoaded', function() {
   // Also initialize when DOM is loaded (in case tab is already active)
   if (document.querySelector('.availability-setup')) {
     setTimeout(initializeAvailability, 100);
+  }
+  
+  // Override the updateContent function to properly handle availability
+  if (typeof window.updateContent === 'function') {
+    const originalUpdateContent = window.updateContent;
+    window.updateContent = function(tab) {
+      originalUpdateContent(tab);
+      if (tab === 'availability') {
+        setTimeout(initializeAvailability, 100);
+      }
+    };
+  } else {
+    window.updateContent = function(tab) {
+      if (tab === 'availability') {
+        setTimeout(initializeAvailability, 100);
+      }
+    };
   }
 });
 </script>
