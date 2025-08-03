@@ -189,6 +189,64 @@
                     </div>
                   </div>
                 </div>
+                <!-- Availability -->
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingAvailability">
+                    <button class="accordion-button collapsed py-2 px-3 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAvailability" aria-expanded="false" aria-controls="collapseAvailability">
+                      IX. Availability
+                    </button>
+                  </h2>
+                  <div id="collapseAvailability" class="accordion-collapse collapse" aria-labelledby="headingAvailability">
+                    <div class="accordion-body py-2 px-3">
+                      <div class="availability-setup">
+                        <div class="mb-3">
+                          <h6 class="mb-2">Set Your Weekly Availability</h6>
+                          <p class="text-muted small mb-3">Define when you're available for sessions each day of the week</p>
+                        </div>
+                        
+                        <div class="availability-grid">
+                          {% set weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                          {% for day in range(7) %}
+                          <div class="day-slot" data-day="{{ day }}">
+                            <div class="day-header">
+                              <label class="day-label">
+                                <input type="checkbox" class="day-checkbox" data-day="{{ day }}" {% if day < 5 %}checked{% endif %}>
+                                <span class="day-name">{{ weekdays[day] }}</span>
+                              </label>
+                            </div>
+                            <div class="time-slots" data-day="{{ day }}">
+                              <div class="time-slot">
+                                <input type="time" class="form-control form-control-sm start-time" data-day="{{ day }}" value="09:00">
+                                <span class="time-separator">to</span>
+                                <input type="time" class="form-control form-control-sm end-time" data-day="{{ day }}" value="17:00">
+                              </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary add-slot-btn" data-day="{{ day }}" style="display: none;">
+                              <i class="fas fa-plus"></i> Add Slot
+                            </button>
+                          </div>
+                          {% endfor %}
+                        </div>
+                        
+                        <div class="mt-3">
+                          <button type="button" class="btn btn-sm btn-outline-secondary" id="copyScheduleBtn">
+                            <i class="fas fa-copy"></i> Copy Schedule to All Days
+                          </button>
+                          <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="clearScheduleBtn">
+                            <i class="fas fa-trash"></i> Clear All
+                          </button>
+                        </div>
+                        
+                        <div class="mt-3">
+                          <small class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            Your availability will be shown to potential clients when they book sessions with you.
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -207,4 +265,312 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/feather-icons"></script>
 <script src="{{ url_for('static', filename='js/profile_setup_live.js') }}"></script>
+
+<style>
+/* Availability Setup Styles */
+.availability-setup {
+  padding: 0.5rem 0;
+}
+
+.availability-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.day-slot {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.day-slot.active {
+  background: white;
+  border-color: #007bff;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+}
+
+.day-slot.inactive {
+  background: #f1f3f4;
+  opacity: 0.6;
+}
+
+.day-header {
+  margin-bottom: 0.75rem;
+}
+
+.day-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  margin: 0;
+}
+
+.day-checkbox {
+  margin: 0;
+}
+
+.day-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.time-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.time-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.time-slot input[type="time"] {
+  flex: 1;
+  max-width: 120px;
+}
+
+.time-separator {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.add-slot-btn {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.remove-slot-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.remove-slot-btn:hover {
+  color: #c82333;
+}
+
+@media (max-width: 768px) {
+  .time-slot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+  }
+  
+  .time-slot input[type="time"] {
+    max-width: none;
+  }
+  
+  .time-separator {
+    text-align: center;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Availability functionality
+  const dayCheckboxes = document.querySelectorAll('.day-checkbox');
+  const copyScheduleBtn = document.getElementById('copyScheduleBtn');
+  const clearScheduleBtn = document.getElementById('clearScheduleBtn');
+  
+  // Handle day checkbox changes
+  dayCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const daySlot = this.closest('.day-slot');
+      const timeSlots = daySlot.querySelector('.time-slots');
+      const addSlotBtn = daySlot.querySelector('.add-slot-btn');
+      
+      if (this.checked) {
+        daySlot.classList.remove('inactive');
+        daySlot.classList.add('active');
+        timeSlots.style.display = 'flex';
+        addSlotBtn.style.display = 'block';
+      } else {
+        daySlot.classList.remove('active');
+        daySlot.classList.add('inactive');
+        timeSlots.style.display = 'none';
+        addSlotBtn.style.display = 'none';
+      }
+    });
+  });
+  
+  // Add time slot functionality
+  document.querySelectorAll('.add-slot-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const day = this.getAttribute('data-day');
+      const timeSlots = document.querySelector(`.time-slots[data-day="${day}"]`);
+      
+      const newSlot = document.createElement('div');
+      newSlot.className = 'time-slot';
+      newSlot.innerHTML = `
+        <input type="time" class="form-control form-control-sm start-time" data-day="${day}" value="09:00">
+        <span class="time-separator">to</span>
+        <input type="time" class="form-control form-control-sm end-time" data-day="${day}" value="17:00">
+        <button type="button" class="remove-slot-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      
+      timeSlots.appendChild(newSlot);
+      
+      // Add remove functionality to new slot
+      const removeBtn = newSlot.querySelector('.remove-slot-btn');
+      removeBtn.addEventListener('click', function() {
+        newSlot.remove();
+      });
+    });
+  });
+  
+  // Copy schedule to all days
+  copyScheduleBtn.addEventListener('click', function() {
+    const activeDay = document.querySelector('.day-slot.active');
+    if (!activeDay) {
+      alert('Please select at least one day first');
+      return;
+    }
+    
+    const startTime = activeDay.querySelector('.start-time').value;
+    const endTime = activeDay.querySelector('.end-time').value;
+    
+    dayCheckboxes.forEach(checkbox => {
+      if (checkbox.checked) {
+        const daySlot = checkbox.closest('.day-slot');
+        daySlot.querySelector('.start-time').value = startTime;
+        daySlot.querySelector('.end-time').value = endTime;
+      }
+    });
+  });
+  
+  // Clear all schedule
+  clearScheduleBtn.addEventListener('click', function() {
+    if (confirm('Are you sure you want to clear all availability settings?')) {
+      dayCheckboxes.forEach(checkbox => {
+        checkbox.checked = false;
+        const daySlot = checkbox.closest('.day-slot');
+        daySlot.classList.remove('active');
+        daySlot.classList.add('inactive');
+        daySlot.querySelector('.time-slots').style.display = 'none';
+        daySlot.querySelector('.add-slot-btn').style.display = 'none';
+      });
+    }
+  });
+  
+  // Initialize day states
+  dayCheckboxes.forEach(checkbox => {
+    const daySlot = checkbox.closest('.day-slot');
+    if (checkbox.checked) {
+      daySlot.classList.add('active');
+    } else {
+      daySlot.classList.add('inactive');
+      daySlot.querySelector('.time-slots').style.display = 'none';
+      daySlot.querySelector('.add-slot-btn').style.display = 'none';
+    }
+  });
+  
+  // Load existing availability rules
+  loadAvailabilityRules();
+  
+  // Save availability when form is submitted
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      saveAvailabilityRules();
+      // Continue with normal form submission
+      this.submit();
+    });
+  }
+});
+
+// Load existing availability rules
+function loadAvailabilityRules() {
+  fetch('/api/availability/rules')
+    .then(response => response.json())
+    .then(rules => {
+      rules.forEach(rule => {
+        const daySlot = document.querySelector(`.day-slot[data-day="${rule.weekday}"]`);
+        if (daySlot) {
+          const checkbox = daySlot.querySelector('.day-checkbox');
+          const timeSlots = daySlot.querySelector('.time-slots');
+          const addSlotBtn = daySlot.querySelector('.add-slot-btn');
+          
+          // Check the day
+          checkbox.checked = true;
+          daySlot.classList.remove('inactive');
+          daySlot.classList.add('active');
+          timeSlots.style.display = 'flex';
+          addSlotBtn.style.display = 'block';
+          
+          // Set the time
+          const startTime = daySlot.querySelector('.start-time');
+          const endTime = daySlot.querySelector('.end-time');
+          if (startTime && endTime) {
+            startTime.value = rule.start;
+            endTime.value = rule.end;
+          }
+        }
+      });
+    })
+    .catch(error => {
+      console.error('Error loading availability rules:', error);
+    });
+}
+
+// Save availability rules
+function saveAvailabilityRules() {
+  const rules = [];
+  
+  document.querySelectorAll('.day-slot').forEach(daySlot => {
+    const day = parseInt(daySlot.getAttribute('data-day'));
+    const checkbox = daySlot.querySelector('.day-checkbox');
+    const timeSlots = daySlot.querySelectorAll('.time-slot');
+    
+    if (checkbox.checked) {
+      timeSlots.forEach(slot => {
+        const startTime = slot.querySelector('.start-time').value;
+        const endTime = slot.querySelector('.end-time').value;
+        
+        if (startTime && endTime) {
+          rules.push({
+            weekday: day,
+            start: startTime,
+            end: endTime,
+            enabled: true
+          });
+        }
+      });
+    }
+  });
+  
+  // Save to server
+  fetch('/api/availability/rules', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ rules: rules })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Availability rules saved successfully');
+    } else {
+      console.error('Error saving availability rules');
+    }
+  })
+  .catch(error => {
+    console.error('Error saving availability rules:', error);
+  });
+}
+</script>
 {% endblock %} 
