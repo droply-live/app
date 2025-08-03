@@ -152,24 +152,29 @@
       <div class="tab-content">
         <h2>Earnings Overview</h2>
         <div class="earnings-overview">
-          <div class="earnings-stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon">
-                <i class="fas fa-dollar-sign"></i>
+          <!-- Main Earnings Summary -->
+          <div class="earnings-summary-section">
+            <div class="main-earnings-card">
+              <div class="earnings-header">
+                <h3>Total Earnings</h3>
+                <p>All time earnings from completed sessions</p>
               </div>
-              <div class="stat-content">
+              <div class="earnings-amount">
                 {% set total_earned = 0 %}
                 {% for p in payouts %}
                   {% if p.status == 'paid' %}
                     {% set total_earned = total_earned + p.amount %}
                   {% endif %}
                 {% endfor %}
-                <div class="stat-value">${{ "%.2f"|format(total_earned / 100) }}</div>
-                <div class="stat-label">Total Earned</div>
+                <span class="amount">${{ "%.2f"|format(total_earned / 100) }}</span>
               </div>
             </div>
-            <div class="stat-card">
-              <div class="stat-icon">
+          </div>
+
+          <!-- Quick Stats Row -->
+          <div class="stats-row">
+            <div class="stat-item">
+              <div class="stat-icon pending">
                 <i class="fas fa-clock"></i>
               </div>
               <div class="stat-content">
@@ -183,8 +188,9 @@
                 <div class="stat-label">Pending</div>
               </div>
             </div>
-            <div class="stat-card">
-              <div class="stat-icon">
+
+            <div class="stat-item">
+              <div class="stat-icon failed">
                 <i class="fas fa-exclamation-triangle"></i>
               </div>
               <div class="stat-content">
@@ -198,6 +204,69 @@
                 <div class="stat-label">Failed</div>
               </div>
             </div>
+
+            <div class="stat-item">
+              <div class="stat-icon success">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="stat-content">
+                {% set successful_payouts = 0 %}
+                {% for p in payouts %}
+                  {% if p.status == 'paid' %}
+                    {% set successful_payouts = successful_payouts + 1 %}
+                  {% endif %}
+                {% endfor %}
+                <div class="stat-value">{{ successful_payouts }}</div>
+                <div class="stat-label">Successful Payouts</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="recent-activity-section">
+            <h3>Recent Activity</h3>
+            {% if payouts %}
+              <div class="activity-list">
+                {% for payout in payouts[:5] %}
+                <div class="activity-item">
+                  <div class="activity-icon">
+                    {% if payout.status == 'paid' %}
+                      <i class="fas fa-check-circle success"></i>
+                    {% elif payout.status == 'pending' %}
+                      <i class="fas fa-clock pending"></i>
+                    {% else %}
+                      <i class="fas fa-exclamation-triangle failed"></i>
+                    {% endif %}
+                  </div>
+                  <div class="activity-details">
+                    <div class="activity-title">
+                      {% if payout.status == 'paid' %}
+                        Payout Completed
+                      {% elif payout.status == 'pending' %}
+                        Payout Pending
+                      {% else %}
+                        Payout Failed
+                      {% endif %}
+                    </div>
+                    <div class="activity-meta">
+                      ${{ "%.2f"|format(payout.amount / 100) }} • {{ payout.created_at.strftime('%b %d, %Y') }}
+                    </div>
+                  </div>
+                  <div class="activity-status">
+                    <span class="status-badge status-{{ payout.status }}">
+                      {{ payout.status|title }}
+                    </span>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="empty-activity">
+                <i class="fas fa-chart-line"></i>
+                <p>No payout activity yet</p>
+                <small>Your recent payout activity will appear here</small>
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -611,31 +680,88 @@ document.addEventListener('DOMContentLoaded', function() {
   padding: 2rem;
 }
 
-.earnings-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
+.earnings-summary-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e5e5e5;
 }
 
-.stat-card {
+.main-earnings-card {
   background: #f8f9fa;
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
+}
+
+.earnings-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.earnings-header p {
+  margin: 0;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.earnings-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--money-primary);
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
 }
 
 .stat-icon {
-  width: 50px;
-  height: 50px;
-  background: var(--money-primary);
-  border-radius: 8px;
+  width: 60px;
+  height: 60px;
+  background: #e0e0e0;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 1.25rem;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.stat-icon.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.stat-icon.failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.stat-icon.success {
+  background: #d4edda;
+  color: #155724;
 }
 
 .stat-content .stat-value {
@@ -647,6 +773,100 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .stat-content .stat-label {
   color: #666;
+  font-size: 0.875rem;
+}
+
+.recent-activity-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.recent-activity-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  background: #e0e0e0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.activity-icon.success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.activity-icon.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.activity-icon.failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.activity-details {
+  flex: 1;
+}
+
+.activity-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.activity-meta {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.activity-status {
+  flex-shrink: 0;
+}
+
+.empty-activity {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.empty-activity i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-activity p {
+  margin-bottom: 0.5rem;
+}
+
+.empty-activity small {
   font-size: 0.875rem;
 }
 
@@ -825,6 +1045,37 @@ document.addEventListener('DOMContentLoaded', function() {
   .setup-content {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .stats-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .stat-item {
+    flex: none;
+    width: 100%;
+  }
+
+  .main-earnings-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .earnings-amount {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .activity-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .activity-status {
+    align-self: flex-end;
   }
 }
 </style>
