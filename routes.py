@@ -43,6 +43,18 @@ def now_eastern():
 import time
 from app import oauth, google
 
+def convert_to_local_time(dt, user_timezone='America/New_York'):
+    """Convert timezone-naive datetime to user's local timezone"""
+    if dt is None:
+        return None
+    # Assume the datetime is in UTC if it's naive
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    
+    # Convert to EDT (UTC-4) for simplicity
+    edt_offset = timezone(timedelta(hours=-4))
+    return dt.astimezone(edt_offset)
+
 # Video calling imports and configuration
 import os
 import requests
@@ -878,6 +890,18 @@ def bookings():
     print(f"DEBUG: Past as expert count: {len(past_as_expert)}")
     for booking in upcoming_as_expert:
         print(f"DEBUG: Upcoming booking ID {booking.id}, start_time: {booking.start_time}, status: {booking.status}")
+    
+    # Convert times to local timezone for display
+    def convert_booking_times(booking_list):
+        for booking in booking_list:
+            booking.start_time_local = convert_to_local_time(booking.start_time)
+            booking.end_time_local = convert_to_local_time(booking.end_time)
+        return booking_list
+    
+    upcoming_as_client = convert_booking_times(upcoming_as_client)
+    past_as_client = convert_booking_times(past_as_client)
+    upcoming_as_expert = convert_booking_times(upcoming_as_expert)
+    past_as_expert = convert_booking_times(past_as_expert)
     
     return render_template('bookings.html', 
                          user=current_user, 
