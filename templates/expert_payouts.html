@@ -141,13 +141,257 @@
             </div>
             <h3>No Payouts Yet</h3>
             <p>You'll see your payout history here once you start receiving payments from your sessions.</p>
-            <a href="{{ url_for('expert_dashboard') }}" class="btn btn-primary">
-              <i class="fas fa-arrow-left"></i>
-              Back to Dashboard
-            </a>
           </div>
           {% endif %}
         </div>
+      </div>
+    </div>
+
+    <!-- Hidden content for tabs -->
+    <div id="earnings-overview-content" style="display: none;">
+      <div class="tab-content">
+        <h2>Earnings Overview</h2>
+        <div class="earnings-overview">
+          <!-- Main Earnings Summary -->
+          <div class="earnings-summary-section">
+            <div class="main-earnings-card">
+              <div class="earnings-header">
+                <h3>Total Earnings</h3>
+                <p>All time earnings from completed sessions</p>
+              </div>
+              <div class="earnings-amount">
+                {% set total_earned = 0 %}
+                {% for p in payouts %}
+                  {% if p.status == 'paid' %}
+                    {% set total_earned = total_earned + p.amount %}
+                  {% endif %}
+                {% endfor %}
+                <span class="amount">${{ "%.2f"|format(total_earned / 100) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Stats Row -->
+          <div class="stats-row">
+            <div class="stat-item">
+              <div class="stat-icon pending">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="stat-content">
+                {% set pending_total = 0 %}
+                {% for p in payouts %}
+                  {% if p.status == 'pending' %}
+                    {% set pending_total = pending_total + p.amount %}
+                  {% endif %}
+                {% endfor %}
+                <div class="stat-value">${{ "%.2f"|format(pending_total / 100) }}</div>
+                <div class="stat-label">Pending</div>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-icon failed">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="stat-content">
+                {% set failed_total = 0 %}
+                {% for p in payouts %}
+                  {% if p.status == 'failed' %}
+                    {% set failed_total = failed_total + p.amount %}
+                  {% endif %}
+                {% endfor %}
+                <div class="stat-value">${{ "%.2f"|format(failed_total / 100) }}</div>
+                <div class="stat-label">Failed</div>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-icon success">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="stat-content">
+                {% set successful_payouts = 0 %}
+                {% for p in payouts %}
+                  {% if p.status == 'paid' %}
+                    {% set successful_payouts = successful_payouts + 1 %}
+                  {% endif %}
+                {% endfor %}
+                <div class="stat-value">{{ successful_payouts }}</div>
+                <div class="stat-label">Successful Payouts</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="recent-activity-section">
+            <h3>Recent Activity</h3>
+            {% if payouts %}
+              <div class="activity-list">
+                {% for payout in payouts[:5] %}
+                <div class="activity-item">
+                  <div class="activity-icon">
+                    {% if payout.status == 'paid' %}
+                      <i class="fas fa-check-circle success"></i>
+                    {% elif payout.status == 'pending' %}
+                      <i class="fas fa-clock pending"></i>
+                    {% else %}
+                      <i class="fas fa-exclamation-triangle failed"></i>
+                    {% endif %}
+                  </div>
+                  <div class="activity-details">
+                    <div class="activity-title">
+                      {% if payout.status == 'paid' %}
+                        Payout Completed
+                      {% elif payout.status == 'pending' %}
+                        Payout Pending
+                      {% else %}
+                        Payout Failed
+                      {% endif %}
+                    </div>
+                    <div class="activity-meta">
+                      ${{ "%.2f"|format(payout.amount / 100) }} • {{ payout.created_at.strftime('%b %d, %Y') }}
+                    </div>
+                  </div>
+                  <div class="activity-status">
+                    <span class="status-badge status-{{ payout.status }}">
+                      {{ payout.status|title }}
+                    </span>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="empty-activity">
+                <i class="fas fa-chart-line"></i>
+                <p>No payout activity yet</p>
+                <small>Your recent payout activity will appear here</small>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="payment-settings-content" style="display: none;">
+      <div class="tab-content">
+        <h2>Payment Settings</h2>
+        <div class="payment-settings">
+          {% if not current_user.stripe_account_id %}
+            <div class="payment-setup-card">
+              <div class="setup-header">
+                <i class="fas fa-credit-card"></i>
+                <div>
+                  <h4>Set Up Payouts</h4>
+                  <p>Connect your bank account to start receiving payments</p>
+                </div>
+              </div>
+              <div class="setup-content">
+                <div class="setup-benefits">
+                  <h5>Why Stripe Connect?</h5>
+                  <ul>
+                    <li><i class="fas fa-check"></i> Secure payment processing</li>
+                    <li><i class="fas fa-check"></i> Direct deposits to your bank account</li>
+                    <li><i class="fas fa-check"></i> Automatic payouts (weekly)</li>
+                    <li><i class="fas fa-check"></i> Professional invoicing</li>
+                  </ul>
+                </div>
+                <div class="setup-requirements">
+                  <h5>What You'll Need</h5>
+                  <ul>
+                    <li><i class="fas fa-id-card"></i> Government-issued ID</li>
+                    <li><i class="fas fa-home"></i> Business address</li>
+                    <li><i class="fas fa-university"></i> Bank account details</li>
+                    <li><i class="fas fa-clock"></i> About 5 minutes to complete</li>
+                  </ul>
+                </div>
+                <form method="POST" action="{{ url_for('expert_stripe_onboarding') }}" class="setup-form">
+                  <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-arrow-right"></i>
+                    Start Onboarding
+                  </button>
+                  <small class="text-muted">You'll be redirected to Stripe's secure onboarding</small>
+                </form>
+              </div>
+            </div>
+          {% elif current_user.stripe_account_status == 'pending_verification' %}
+            <div class="payment-status-card">
+              <div class="status-header">
+                <i class="fas fa-clock"></i>
+                <div>
+                  <h4>Verification Required</h4>
+                  <p>Your account is pending verification. Please check your email for any requests from Stripe.</p>
+                </div>
+              </div>
+              <div class="status-content">
+                <a href="{{ url_for('complete_verification') }}" target="_blank" class="btn btn-warning">
+                  <i class="fas fa-external-link-alt"></i>
+                  Complete Verification
+                </a>
+                <div class="status-badge warning">Pending Verification</div>
+              </div>
+            </div>
+          {% elif current_user.stripe_account_status == 'pending' %}
+            <div class="payment-status-card">
+              <div class="status-header">
+                <i class="fas fa-clock"></i>
+                <div>
+                  <h4>Complete Payout Setup</h4>
+                  <p>Your Stripe account is set up but needs additional configuration.</p>
+                </div>
+              </div>
+              <div class="status-content">
+                <a href="https://connect.stripe.com/express/{{ current_user.stripe_account_id }}/settings" target="_blank" class="btn btn-warning">
+                  <i class="fas fa-external-link-alt"></i>
+                  Complete Setup
+                </a>
+                <div class="status-badge warning">Pending</div>
+              </div>
+            </div>
+          {% elif current_user.stripe_account_status == 'active' %}
+            <div class="payment-status-card">
+              <div class="status-header">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                  <h4>Stripe Connect</h4>
+                  <p>Connected for receiving payments</p>
+                </div>
+              </div>
+              <div class="status-content">
+                <div class="status-badge success">Active</div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div id="payment-help-content" style="display: none;">
+      <div class="tab-content">
+        <h2>Payment Help</h2>
+        <div class="help-content">
+          <div class="help-section">
+            <h3>How do payouts work?</h3>
+            <p>Your earnings from sessions are automatically transferred to your connected bank account via Stripe Connect. Payouts are processed weekly when your balance reaches $10.00 or more.</p>
+          </div>
+          
+          <div class="help-section">
+            <h3>When will I receive my money?</h3>
+            <p>Payouts typically take 2-3 business days to appear in your bank account after processing. The exact timing depends on your bank's processing schedule.</p>
+          </div>
+          
+          <div class="help-section">
+            <h3>Need help with payments?</h3>
+            <p>Contact our support team at support@droply.live for assistance with payment issues.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="default-content" style="display: none;">
+      <div class="content-placeholder-text">
+        <i class="fas fa-dollar-sign"></i>
+        <h3>Select an option to get started</h3>
+        <p>Choose from the menu on the left to view your earnings and payment information</p>
       </div>
     </div>
   </div>
@@ -231,10 +475,6 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
               <h3>No Payouts Yet</h3>
               <p>You'll see your payout history here once you start receiving payments from your sessions.</p>
-              <a href="{{ url_for('expert_dashboard') }}" class="btn btn-primary">
-                <i class="fas fa-arrow-left"></i>
-                Back to Dashboard
-              </a>
             </div>
             {% endif %}
           </div>
@@ -242,124 +482,19 @@ document.addEventListener('DOMContentLoaded', function() {
         break;
         
       case 'earnings-overview':
-        content = `
-          <div class="tab-content">
-            <h2>Earnings Overview</h2>
-            <div class="earnings-overview">
-              <div class="earnings-stats-grid">
-                <div class="stat-card">
-                  <div class="stat-icon">
-                    <i class="fas fa-dollar-sign"></i>
-                  </div>
-                  <div class="stat-content">
-                    {% set total_earned = 0 %}
-                    {% for p in payouts %}
-                      {% if p.status == 'paid' %}
-                        {% set total_earned = total_earned + p.amount %}
-                      {% endif %}
-                    {% endfor %}
-                    <div class="stat-value">${{ "%.2f"|format(total_earned / 100) }}</div>
-                    <div class="stat-label">Total Earned</div>
-                  </div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                  </div>
-                  <div class="stat-content">
-                    {% set pending_total = 0 %}
-                    {% for p in payouts %}
-                      {% if p.status == 'pending' %}
-                        {% set pending_total = pending_total + p.amount %}
-                      {% endif %}
-                    {% endfor %}
-                    <div class="stat-value">${{ "%.2f"|format(pending_total / 100) }}</div>
-                    <div class="stat-label">Pending</div>
-                  </div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                  </div>
-                  <div class="stat-content">
-                    {% set failed_total = 0 %}
-                    {% for p in payouts %}
-                      {% if p.status == 'failed' %}
-                        {% set failed_total = failed_total + p.amount %}
-                      {% endif %}
-                    {% endfor %}
-                    <div class="stat-value">${{ "%.2f"|format(failed_total / 100) }}</div>
-                    <div class="stat-label">Failed</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
+        content = document.getElementById('earnings-overview-content').innerHTML;
         break;
         
       case 'payment-settings':
-        content = `
-          <div class="tab-content">
-            <h2>Payment Settings</h2>
-            <div class="payment-settings">
-              <div class="payment-method-card">
-                <div class="payment-method-info">
-                  <i class="fas fa-credit-card"></i>
-                  <div>
-                    <h4>Stripe Connect</h4>
-                    <p>Connected for receiving payments</p>
-                  </div>
-                </div>
-                <span class="status-badge success">Active</span>
-              </div>
-              
-              <div class="settings-section">
-                <h3>Payout Schedule</h3>
-                <p>Your earnings are automatically transferred to your connected bank account every week.</p>
-              </div>
-              
-              <div class="settings-section">
-                <h3>Minimum Payout</h3>
-                <p>Payouts are processed when your balance reaches $10.00 or more.</p>
-              </div>
-            </div>
-          </div>
-        `;
+        content = document.getElementById('payment-settings-content').innerHTML;
         break;
         
       case 'payment-help':
-        content = `
-          <div class="tab-content">
-            <h2>Payment Help</h2>
-            <div class="help-content">
-              <div class="help-section">
-                <h3>How do payouts work?</h3>
-                <p>Your earnings from sessions are automatically transferred to your connected bank account via Stripe Connect. Payouts are processed weekly when your balance reaches $10.00 or more.</p>
-              </div>
-              
-              <div class="help-section">
-                <h3>When will I receive my money?</h3>
-                <p>Payouts typically take 2-3 business days to appear in your bank account after processing. The exact timing depends on your bank's processing schedule.</p>
-              </div>
-              
-              <div class="help-section">
-                <h3>Need help with payments?</h3>
-                <p>Contact our support team at support@droply.live for assistance with payment issues.</p>
-              </div>
-            </div>
-          </div>
-        `;
+        content = document.getElementById('payment-help-content').innerHTML;
         break;
         
       default:
-        content = `
-          <div class="content-placeholder-text">
-            <i class="fas fa-dollar-sign"></i>
-            <h3>Select an option to get started</h3>
-            <p>Choose from the menu on the left to view your earnings and payment information</p>
-          </div>
-        `;
+        content = document.getElementById('default-content').innerHTML;
     }
     
     contentArea.innerHTML = content;
@@ -492,6 +627,16 @@ document.addEventListener('DOMContentLoaded', function() {
   color: #721c24;
 }
 
+.status-badge.success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
 .payout-reference {
   color: #666;
   font-family: monospace;
@@ -525,31 +670,88 @@ document.addEventListener('DOMContentLoaded', function() {
   padding: 2rem;
 }
 
-.earnings-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
+.earnings-summary-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e5e5e5;
 }
 
-.stat-card {
+.main-earnings-card {
   background: #f8f9fa;
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
+}
+
+.earnings-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.earnings-header p {
+  margin: 0;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.earnings-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--money-primary);
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
 }
 
 .stat-icon {
-  width: 50px;
-  height: 50px;
-  background: var(--money-primary);
-  border-radius: 8px;
+  width: 60px;
+  height: 60px;
+  background: #e0e0e0;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 1.25rem;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.stat-icon.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.stat-icon.failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.stat-icon.success {
+  background: #d4edda;
+  color: #155724;
 }
 
 .stat-content .stat-value {
@@ -564,11 +766,201 @@ document.addEventListener('DOMContentLoaded', function() {
   font-size: 0.875rem;
 }
 
+.recent-activity-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.recent-activity-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  background: #e0e0e0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.activity-icon.success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.activity-icon.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.activity-icon.failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.activity-details {
+  flex: 1;
+}
+
+.activity-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.activity-meta {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.activity-status {
+  flex-shrink: 0;
+}
+
+.empty-activity {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.empty-activity i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-activity p {
+  margin-bottom: 0.5rem;
+}
+
+.empty-activity small {
+  font-size: 0.875rem;
+}
+
 .payment-settings {
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 2rem;
+}
+
+.payment-setup-card,
+.payment-status-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.setup-header,
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.setup-header i,
+.status-header i {
+  font-size: 2rem;
+  color: var(--money-primary);
+}
+
+.setup-header h4,
+.status-header h4 {
+  margin: 0;
+  font-weight: 600;
+  color: #333;
+}
+
+.setup-header p,
+.status-header p {
+  margin: 0.25rem 0 0 0;
+  color: #666;
+}
+
+.setup-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.setup-benefits h5,
+.setup-requirements h5 {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.setup-benefits ul,
+.setup-requirements ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.setup-benefits li,
+.setup-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #666;
+}
+
+.setup-benefits i {
+  color: #28a745;
+  font-size: 0.875rem;
+}
+
+.setup-requirements i {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.setup-form {
+  text-align: center;
+}
+
+.setup-form .btn {
+  padding: 0.75rem 2rem;
+  font-size: 1.1rem;
+}
+
+.setup-form small {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.status-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .settings-section {
@@ -638,6 +1030,42 @@ document.addEventListener('DOMContentLoaded', function() {
   .payouts-table th,
   .payouts-table td {
     padding: 0.75rem 0.5rem;
+  }
+  
+  .setup-content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stats-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .stat-item {
+    flex: none;
+    width: 100%;
+  }
+
+  .main-earnings-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .earnings-amount {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .activity-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .activity-status {
+    align-self: flex-end;
   }
 }
 </style>

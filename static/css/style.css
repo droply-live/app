@@ -41,6 +41,8 @@ html, body {
 body, html {
     border-top: none !important;
     box-shadow: none !important;
+    height: 100%;
+    min-height: 100vh;
 }
 
 /* Reset and base styles */
@@ -1334,15 +1336,14 @@ body {
     color: var(--money-primary);
 }
 
-/* Global Footer Styles */
+/* Global Footer Styles - Overridden by base template */
 .global-footer {
-    background: #f8f9fa;
-    border-top: 1px solid #e5e5e5;
-    padding: 2rem;
-    margin-top: 4rem;
-    text-align: center;
-    width: 100%;
-    position: relative;
+    /* Styles handled in base_signed_in.html */
+}
+
+/* Ensure content doesn't get hidden by footer */
+.container, .card, .account-page {
+    margin-bottom: 0;
 }
 
 .global-footer .footer-content {
@@ -2622,6 +2623,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-bottom: 8rem;
 }
 
 .profile-summary-card {
@@ -2658,6 +2660,10 @@ body {
     margin-bottom: 2rem;
     width: 100%;
     max-width: 300px;
+}
+
+.account-section:last-child {
+    margin-bottom: 5rem;
 }
 
 .section-title {
@@ -2900,6 +2906,7 @@ body {
 
 .delete-account-warning {
     max-width: 600px;
+    margin-bottom: 2rem;
 }
 
 .warning-box {

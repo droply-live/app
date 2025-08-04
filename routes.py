@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify, make_response
+from flask import render_template, request, redirect, url_for, flash, jsonify, make_response, get_flashed_messages, session
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case, func
 from app import app
@@ -333,6 +333,12 @@ def onboarding():
 def login():
     """User login"""
     form = LoginForm()
+    
+    # Clear any existing flash messages on GET request (when just visiting the page)
+    if request.method == 'GET':
+        # Clear flash messages from session to prevent showing old messages
+        if '_flashes' in session:
+            del session['_flashes']
     
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()

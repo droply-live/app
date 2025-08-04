@@ -30,8 +30,8 @@
             <span>Personal information</span>
             <i class="fas fa-chevron-right"></i>
           </a>
-          <a href="#" class="section-item" data-tab="payment-methods">
-            <span>Payment methods</span>
+          <a href="#" class="section-item" data-tab="availability">
+            <span>Availability</span>
             <i class="fas fa-chevron-right"></i>
           </a>
         </div>
@@ -203,20 +203,332 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         break;
         
-      case 'payment-methods':
+      case 'availability':
         content = `
           <div class="tab-content">
-            <h2>Payment Methods</h2>
-            <div class="payment-methods">
-              <div class="payment-method-card">
-                <div class="payment-method-info">
-                  <i class="fas fa-credit-card"></i>
-                  <div>
-                    <h4>Stripe Connect</h4>
-                    <p>Connected for receiving payments</p>
+            <div class="availability-header">
+              <div class="header-content">
+                <h2>Your Availability</h2>
+                <p class="header-subtitle">Set when you're available for sessions. Clients will see these times when booking.</p>
+              </div>
+              <div class="header-actions">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="quickSetupBtn">
+                  <i class="fas fa-magic"></i> Quick Setup
+                </button>
+              </div>
+            </div>
+
+            <div class="availability-container">
+              <!-- Quick Setup Options -->
+              <div class="quick-setup-section">
+                <h4>Quick Setup</h4>
+                <div class="quick-setup-grid">
+                  <button type="button" class="quick-setup-card" data-preset="business">
+                    <div class="card-icon">
+                      <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="card-content">
+                      <h5>Business Hours</h5>
+                      <p>Mon-Fri, 9 AM - 5 PM</p>
+                    </div>
+                  </button>
+                  
+                  <button type="button" class="quick-setup-card" data-preset="flexible">
+                    <div class="card-icon">
+                      <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="card-content">
+                      <h5>Flexible Schedule</h5>
+                      <p>Mon-Sun, 10 AM - 8 PM</p>
+                    </div>
+                  </button>
+                  
+                  <button type="button" class="quick-setup-card" data-preset="weekend">
+                    <div class="card-icon">
+                      <i class="fas fa-calendar-weekend"></i>
+                    </div>
+                    <div class="card-content">
+                      <h5>Weekend Only</h5>
+                      <p>Sat-Sun, 10 AM - 6 PM</p>
+                    </div>
+                  </button>
+                  
+                  <button type="button" class="quick-setup-card" data-preset="custom">
+                    <div class="card-icon">
+                      <i class="fas fa-cog"></i>
+                    </div>
+                    <div class="card-content">
+                      <h5>Custom Setup</h5>
+                      <p>Set your own schedule</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Weekly Schedule -->
+              <div class="weekly-schedule-section">
+                <div class="section-header">
+                  <h4>Weekly Schedule</h4>
+                  <div class="schedule-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="copyToAllBtn">
+                      <i class="fas fa-copy"></i> Copy to All
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="clearAllBtn">
+                      <i class="fas fa-trash"></i> Clear All
+                    </button>
                   </div>
                 </div>
-                <span class="status-badge success">Active</span>
+
+                <div class="schedule-grid">
+                  <div class="day-card" data-day="0">
+                    <div class="day-header">
+                      <div class="day-toggle">
+                        <input type="checkbox" id="day-0" class="day-checkbox" checked>
+                        <label for="day-0" class="toggle-slider"></label>
+                      </div>
+                      <div class="day-info">
+                        <span class="day-name">Monday</span>
+                        <span class="day-status active">Active</span>
+                      </div>
+                    </div>
+                    <div class="day-content">
+                      <div class="time-range">
+                        <div class="time-input-group">
+                          <label>Start Time</label>
+                          <input type="time" class="form-control start-time" value="09:00">
+                        </div>
+                        <div class="time-separator">
+                          <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="time-input-group">
+                          <label>End Time</label>
+                          <input type="time" class="form-control end-time" value="17:00">
+                        </div>
+                      </div>
+                      <div class="session-slots">
+                        <label>Available Sessions</label>
+                        <div class="slots-grid" data-day="0">
+                          <!-- Sessions will be generated here -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="day-card" data-day="1">
+                    <div class="day-header">
+                      <div class="day-toggle">
+                        <input type="checkbox" id="day-1" class="day-checkbox" checked>
+                        <label for="day-1" class="toggle-slider"></label>
+                      </div>
+                      <div class="day-info">
+                        <span class="day-name">Tuesday</span>
+                        <span class="day-status active">Active</span>
+                      </div>
+                    </div>
+                    <div class="day-content">
+                      <div class="time-range">
+                        <div class="time-input-group">
+                          <label>Start Time</label>
+                          <input type="time" class="form-control start-time" value="09:00">
+                        </div>
+                        <div class="time-separator">
+                          <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="time-input-group">
+                          <label>End Time</label>
+                          <input type="time" class="form-control end-time" value="17:00">
+                        </div>
+                      </div>
+                      <div class="session-slots">
+                        <label>Available Sessions</label>
+                        <div class="slots-grid" data-day="1">
+                          <!-- Sessions will be generated here -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="day-card" data-day="2">
+                    <div class="day-header">
+                      <div class="day-toggle">
+                        <input type="checkbox" id="day-2" class="day-checkbox" checked>
+                        <label for="day-2" class="toggle-slider"></label>
+                      </div>
+                      <div class="day-info">
+                        <span class="day-name">Wednesday</span>
+                        <span class="day-status active">Active</span>
+                      </div>
+                    </div>
+                    <div class="day-content">
+                      <div class="time-range">
+                        <div class="time-input-group">
+                          <label>Start Time</label>
+                          <input type="time" class="form-control start-time" value="09:00">
+                        </div>
+                        <div class="time-separator">
+                          <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="time-input-group">
+                          <label>End Time</label>
+                          <input type="time" class="form-control end-time" value="17:00">
+                        </div>
+                      </div>
+                      <div class="session-slots">
+                        <label>Available Sessions</label>
+                        <div class="slots-grid" data-day="2">
+                          <!-- Sessions will be generated here -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="day-card" data-day="3">
+                    <div class="day-header">
+                      <div class="day-toggle">
+                        <input type="checkbox" id="day-3" class="day-checkbox" checked>
+                        <label for="day-3" class="toggle-slider"></label>
+                      </div>
+                      <div class="day-info">
+                        <span class="day-name">Thursday</span>
+                        <span class="day-status active">Active</span>
+                      </div>
+                    </div>
+                    <div class="day-content">
+                      <div class="time-range">
+                        <div class="time-input-group">
+                          <label>Start Time</label>
+                          <input type="time" class="form-control start-time" value="09:00">
+                        </div>
+                        <div class="time-separator">
+                          <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="time-input-group">
+                          <label>End Time</label>
+                          <input type="time" class="form-control end-time" value="17:00">
+                        </div>
+                      </div>
+                      <div class="session-slots">
+                        <label>Available Sessions</label>
+                        <div class="slots-grid" data-day="3">
+                          <!-- Sessions will be generated here -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="day-card" data-day="4">
+                    <div class="day-header">
+                      <div class="day-toggle">
+                        <input type="checkbox" id="day-4" class="day-checkbox" checked>
+                        <label for="day-4" class="toggle-slider"></label>
+                      </div>
+                      <div class="day-info">
+                        <span class="day-name">Friday</span>
+                        <span class="day-status active">Active</span>
+                      </div>
+                    </div>
+                    <div class="day-content">
+                      <div class="time-range">
+                        <div class="time-input-group">
+                          <label>Start Time</label>
+                          <input type="time" class="form-control start-time" value="09:00">
+                        </div>
+                        <div class="time-separator">
+                          <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="time-input-group">
+                          <label>End Time</label>
+                          <input type="time" class="form-control end-time" value="17:00">
+                        </div>
+                      </div>
+                      <div class="session-slots">
+                        <label>Available Sessions</label>
+                        <div class="slots-grid" data-day="4">
+                          <!-- Sessions will be generated here -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="day-card" data-day="5">
+                    <div class="day-header">
+                      <div class="day-toggle">
+                        <input type="checkbox" id="day-5" class="day-checkbox">
+                        <label for="day-5" class="toggle-slider"></label>
+                      </div>
+                      <div class="day-info">
+                        <span class="day-name">Saturday</span>
+                        <span class="day-status">Inactive</span>
+                      </div>
+                    </div>
+                    <div class="day-content">
+                      <div class="time-range">
+                        <div class="time-input-group">
+                          <label>Start Time</label>
+                          <input type="time" class="form-control start-time" value="10:00">
+                        </div>
+                        <div class="time-separator">
+                          <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="time-input-group">
+                          <label>End Time</label>
+                          <input type="time" class="form-control end-time" value="15:00">
+                        </div>
+                      </div>
+                      <div class="session-slots">
+                        <label>Available Sessions</label>
+                        <div class="slots-grid" data-day="5">
+                          <!-- Sessions will be generated here -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="day-card" data-day="6">
+                    <div class="day-header">
+                      <div class="day-toggle">
+                        <input type="checkbox" id="day-6" class="day-checkbox">
+                        <label for="day-6" class="toggle-slider"></label>
+                      </div>
+                      <div class="day-info">
+                        <span class="day-name">Sunday</span>
+                        <span class="day-status">Inactive</span>
+                      </div>
+                    </div>
+                    <div class="day-content">
+                      <div class="time-range">
+                        <div class="time-input-group">
+                          <label>Start Time</label>
+                          <input type="time" class="form-control start-time" value="10:00">
+                        </div>
+                        <div class="time-separator">
+                          <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="time-input-group">
+                          <label>End Time</label>
+                          <input type="time" class="form-control end-time" value="15:00">
+                        </div>
+                      </div>
+                      <div class="session-slots">
+                        <label>Available Sessions</label>
+                        <div class="slots-grid" data-day="6">
+                          <!-- Sessions will be generated here -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Save Section -->
+              <div class="save-section">
+                <div class="save-info">
+                  <i class="fas fa-info-circle"></i>
+                  <span>Your availability will be shown to potential clients when they book sessions with you.</span>
+                </div>
+                <button type="button" class="btn btn-primary" id="saveAvailabilityBtn">
+                  <i class="fas fa-save"></i> Save Availability
+                </button>
               </div>
             </div>
           </div>
@@ -678,5 +990,885 @@ document.addEventListener('DOMContentLoaded', function() {
     font-size: 0.9rem;
     font-weight: 500;
 }
+
+/* Modern Availability Styles */
+.availability-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f0f2f5;
+}
+
+.header-content h2 {
+  margin-bottom: 0.5rem;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.header-subtitle {
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.header-actions .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 8px;
+}
+
+.availability-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Quick Setup Section */
+.quick-setup-section {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #e9ecef;
+}
+
+.quick-setup-section h4 {
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.quick-setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.quick-setup-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.quick-setup-card:hover {
+  border-color: #3c78ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(60, 120, 255, 0.15);
+}
+
+.quick-setup-card.selected {
+  border-color: #3c78ff;
+  background: #f8fbff;
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  background: #3c78ff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.card-content h5 {
+  margin: 0 0 0.25rem 0;
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.card-content p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Weekly Schedule Section */
+.weekly-schedule-section {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.section-header h4 {
+  margin: 0;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.schedule-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.schedule-actions .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+
+.schedule-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: #e9ecef;
+}
+
+.day-card {
+  background: white;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.day-card:hover {
+  background: #f8fbff;
+}
+
+.day-card.inactive {
+  opacity: 0.6;
+}
+
+.day-card.inactive .day-content {
+  display: none;
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.day-toggle {
+  position: relative;
+  width: 48px;
+  height: 24px;
+}
+
+.day-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.day-toggle input:checked + .toggle-slider {
+  background-color: #3c78ff;
+}
+
+.day-toggle input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+.day-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.day-name {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 1.1rem;
+}
+
+.day-status {
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  background: #f0f2f5;
+  color: #666;
+  display: inline-block;
+  width: fit-content;
+}
+
+.day-status.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.day-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.time-range {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+  align-items: end;
+}
+
+.time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.time-input-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666;
+  margin: 0;
+}
+
+.time-input-group .form-control {
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.time-input-group .form-control:focus {
+  border-color: #3c78ff;
+  box-shadow: 0 0 0 3px rgba(60, 120, 255, 0.1);
+  outline: none;
+}
+
+.time-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 1.2rem;
+  padding-bottom: 0.5rem;
+}
+
+.session-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-slots label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666;
+  margin: 0;
+}
+
+.slots-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 40px;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.session-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.session-slot:hover {
+  border-color: #3c78ff;
+  background: #f8fbff;
+}
+
+.session-slot.active {
+  background: #3c78ff;
+  color: white;
+  border-color: #3c78ff;
+}
+
+.session-slot input {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* Save Section */
+.save-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.save-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.save-info i {
+  color: #3c78ff;
+  font-size: 1rem;
+}
+
+.save-section .btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .availability-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .quick-setup-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .quick-setup-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .schedule-actions {
+    justify-content: space-between;
+  }
+  
+  .time-range {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .time-separator {
+    display: none;
+  }
+  
+  .save-section {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .save-info {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .day-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .day-toggle {
+    align-self: flex-start;
+  }
+  
+  .slots-grid {
+    justify-content: center;
+  }
+}
 </style>
+
+<script>
+// Availability functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize availability functionality when availability tab is loaded
+  function initializeAvailability() {
+    console.log('Initializing availability...');
+    
+    const dayToggles = document.querySelectorAll('.day-toggle');
+    const copyScheduleBtn = document.getElementById('copyWeekBtn');
+    const clearScheduleBtn = document.getElementById('clearAllBtn');
+    const saveAvailabilityBtn = document.getElementById('saveAvailabilityBtn');
+    
+    console.log(`Found ${dayToggles.length} day toggles`);
+    
+    if (!dayToggles.length) {
+      console.log('No day toggles found - not on availability tab');
+      return; // Not on availability tab
+    }
+    
+    // Generate session toggles for each day
+    console.log('Generating session toggles...');
+    generateSessionToggles();
+    
+    // Handle time range changes
+    document.querySelectorAll('.start-time, .end-time').forEach(input => {
+      input.addEventListener('change', function() {
+        const day = this.closest('.table-row').getAttribute('data-day');
+        console.log(`Time range changed for day ${day}`);
+        generateSessionTogglesForDay(day);
+      });
+    });
+    
+    // Handle day toggle changes
+    dayToggles.forEach(toggle => {
+      toggle.addEventListener('change', function() {
+        const dayRow = this.closest('.table-row');
+        const sessionsGrid = dayRow.querySelector('.sessions-grid');
+        
+        if (this.checked) {
+          dayRow.classList.remove('inactive');
+          sessionsGrid.style.display = 'flex';
+        } else {
+          dayRow.classList.add('inactive');
+          sessionsGrid.style.display = 'none';
+        }
+      });
+    });
+    
+    // Add time slot functionality
+    document.querySelectorAll('.add-slot-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const day = this.closest('.table-row').getAttribute('data-day');
+        const sessionsGrid = document.querySelector(`.sessions-grid[data-day="${day}"]`);
+        
+        const newSessionToggle = document.createElement('div');
+        newSessionToggle.className = 'session-toggle';
+        newSessionToggle.innerHTML = `
+          <input type="checkbox" class="session-toggle" data-day="${day}" data-time="09:00">
+          <span>09:00</span>
+        `;
+        
+        sessionsGrid.appendChild(newSessionToggle);
+        
+        // Add remove functionality to new slot
+        const removeBtn = newSessionToggle.querySelector('.remove-slot');
+        removeBtn.addEventListener('click', function() {
+          newSessionToggle.remove();
+        });
+      });
+    });
+    
+    // Quick Setup functionality
+    const quickSetupBtn = document.getElementById('quickSetupBtn');
+    if (quickSetupBtn) {
+      quickSetupBtn.addEventListener('click', function() {
+        if (confirm('This will set up a standard 9 AM - 5 PM schedule for weekdays and 10 AM - 3 PM for weekends. Continue?')) {
+          // Set up weekdays (Mon-Fri)
+          for (let i = 0; i <= 4; i++) {
+            const dayRow = document.querySelector(`.table-row[data-day="${i}"]`);
+            const toggle = dayRow.querySelector('.day-toggle');
+            const startTimeInput = dayRow.querySelector('.start-time');
+            const endTimeInput = dayRow.querySelector('.end-time');
+            
+            // Enable the day
+            toggle.checked = true;
+            dayRow.classList.remove('inactive');
+            
+            // Set time range to 9 AM - 5 PM
+            startTimeInput.value = '09:00';
+            endTimeInput.value = '17:00';
+            
+            // Regenerate sessions
+            generateSessionTogglesForDay(i);
+            
+            // Activate all sessions
+            const sessions = dayRow.querySelectorAll('.session-toggle input');
+            sessions.forEach(session => {
+              session.checked = true;
+              session.closest('.session-toggle').classList.add('active');
+            });
+          }
+          
+          // Set up weekends (Sat-Sun)
+          for (let i = 5; i <= 6; i++) {
+            const dayRow = document.querySelector(`.table-row[data-day="${i}"]`);
+            const toggle = dayRow.querySelector('.day-toggle');
+            const startTimeInput = dayRow.querySelector('.start-time');
+            const endTimeInput = dayRow.querySelector('.end-time');
+            
+            // Enable the day
+            toggle.checked = true;
+            dayRow.classList.remove('inactive');
+            
+            // Set time range to 10 AM - 3 PM
+            startTimeInput.value = '10:00';
+            endTimeInput.value = '15:00';
+            
+            // Regenerate sessions
+            generateSessionTogglesForDay(i);
+            
+            // Activate all sessions
+            const sessions = dayRow.querySelectorAll('.session-toggle input');
+            sessions.forEach(session => {
+              session.checked = true;
+              session.closest('.session-toggle').classList.add('active');
+            });
+          }
+        }
+      });
+    }
+    
+    // Copy Week functionality
+    if (copyScheduleBtn) {
+      copyScheduleBtn.addEventListener('click', function() {
+        const activeDay = document.querySelector('.table-row:not(.inactive)');
+        if (!activeDay) {
+          alert('Please select at least one day first');
+          return;
+        }
+        
+        const activeDayIndex = parseInt(activeDay.getAttribute('data-day'));
+        const activeSessions = activeDay.querySelectorAll('.session-toggle input:checked');
+        
+        if (activeSessions.length === 0) {
+          alert('Please activate at least one session to copy');
+          return;
+        }
+        
+        // Copy to all other enabled days
+        dayToggles.forEach(toggle => {
+          const dayRow = toggle.closest('.table-row');
+          const dayIndex = parseInt(dayRow.getAttribute('data-day'));
+          
+          if (dayIndex !== activeDayIndex && toggle.checked) {
+            // Copy the session pattern
+            const targetSessions = dayRow.querySelectorAll('.session-toggle input');
+            targetSessions.forEach((session, index) => {
+              const activeSession = activeSessions[index];
+              if (activeSession) {
+                session.checked = activeSession.checked;
+                const sessionToggle = session.closest('.session-toggle');
+                if (activeSession.checked) {
+                  sessionToggle.classList.add('active');
+                } else {
+                  sessionToggle.classList.remove('active');
+                }
+              }
+            });
+          }
+        });
+        
+        alert('Session pattern copied to all selected days!');
+      });
+    }
+    
+    // Clear all schedule
+    if (clearScheduleBtn) {
+      clearScheduleBtn.addEventListener('click', function() {
+        if (confirm('Are you sure you want to clear all availability settings?')) {
+          dayToggles.forEach(toggle => {
+            toggle.checked = false;
+            const dayRow = toggle.closest('.table-row');
+            dayRow.classList.add('inactive');
+            const sessionsGrid = dayRow.querySelector('.sessions-grid');
+            sessionsGrid.style.display = 'none';
+          });
+        }
+      });
+    }
+    
+    // Save availability
+    if (saveAvailabilityBtn) {
+      saveAvailabilityBtn.addEventListener('click', function() {
+        saveAvailabilityRules();
+      });
+    }
+    
+    // Initialize day states
+    dayToggles.forEach(toggle => {
+      const dayRow = toggle.closest('.table-row');
+      if (toggle.checked) {
+        dayRow.classList.remove('inactive');
+        const sessionsGrid = dayRow.querySelector('.sessions-grid');
+        sessionsGrid.style.display = 'flex';
+      } else {
+        dayRow.classList.add('inactive');
+        const sessionsGrid = dayRow.querySelector('.sessions-grid');
+        sessionsGrid.style.display = 'none';
+      }
+    });
+    
+    // Load existing availability rules
+    loadAvailabilityRules();
+  }
+  
+  // Generate session toggles for all days
+  function generateSessionToggles() {
+    for (let day = 0; day <= 6; day++) {
+      generateSessionTogglesForDay(day);
+    }
+  }
+  
+  // Generate session toggles for a specific day
+  function generateSessionTogglesForDay(day) {
+    const dayRow = document.querySelector(`.table-row[data-day="${day}"]`);
+    if (!dayRow) {
+      console.log(`Day row not found for day ${day}`);
+      return;
+    }
+    
+    const startTime = dayRow.querySelector('.start-time').value;
+    const endTime = dayRow.querySelector('.end-time').value;
+    const sessionsGrid = dayRow.querySelector('.sessions-grid');
+    
+    console.log(`Generating sessions for day ${day}: ${startTime} to ${endTime}`);
+    
+    if (!startTime || !endTime) {
+      console.log('Start or end time not found');
+      return;
+    }
+    
+    if (!sessionsGrid) {
+      console.log('Sessions grid not found');
+      return;
+    }
+    
+    // Clear existing sessions
+    sessionsGrid.innerHTML = '';
+    
+    // Calculate sessions
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    const sessionDuration = 30; // 30 minutes
+    
+    let current = new Date(start);
+    let sessionIndex = 0;
+    
+    console.log(`Creating sessions from ${start.toTimeString()} to ${end.toTimeString()}`);
+    
+    while (current < end) {
+      const sessionTime = current.toTimeString().slice(0, 5);
+      const sessionToggle = document.createElement('div');
+      sessionToggle.className = 'session-toggle';
+      sessionToggle.innerHTML = `
+        <input type="checkbox" data-day="${day}" data-time="${sessionTime}" data-index="${sessionIndex}">
+        <span>${sessionTime}</span>
+      `;
+      
+      sessionsGrid.appendChild(sessionToggle);
+      
+      // Add event listener
+      const checkbox = sessionToggle.querySelector('input');
+      checkbox.addEventListener('change', function() {
+        if (this.checked) {
+          sessionToggle.classList.add('active');
+        } else {
+          sessionToggle.classList.remove('active');
+        }
+      });
+      
+      // Move to next session
+      current.setMinutes(current.getMinutes() + sessionDuration);
+      sessionIndex++;
+    }
+    
+    console.log(`Created ${sessionIndex} sessions for day ${day}`);
+  }
+  
+  // Load existing availability rules
+  function loadAvailabilityRules() {
+    fetch('/api/availability/rules')
+      .then(response => response.json())
+      .then(rules => {
+        rules.forEach(rule => {
+          const daySlot = document.querySelector(`.calendar-day[data-day="${rule.weekday}"]`);
+          if (daySlot) {
+            const checkbox = daySlot.querySelector('.day-toggle');
+            const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
+            const addSlotBtn = daySlot.querySelector('.add-slot-btn');
+            
+            // Check the day
+            checkbox.checked = true;
+            daySlot.classList.remove('inactive');
+            daySlot.classList.add('active');
+            timeSlotsContainer.style.display = 'flex';
+            addSlotBtn.style.display = 'block';
+            
+            // Set the time
+            const startTime = daySlot.querySelector('.start-time');
+            const endTime = daySlot.querySelector('.end-time');
+            if (startTime && endTime) {
+              startTime.value = rule.start;
+              endTime.value = rule.end;
+            }
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Error loading availability rules:', error);
+      });
+  }
+  
+  // Save availability rules
+  function saveAvailabilityRules() {
+    const rules = [];
+    
+    document.querySelectorAll('.table-row').forEach(dayRow => {
+      const day = parseInt(dayRow.getAttribute('data-day'));
+      const dayToggle = dayRow.querySelector('.day-toggle');
+      const startTime = dayRow.querySelector('.start-time').value;
+      const endTime = dayRow.querySelector('.end-time').value;
+      const activeSessions = dayRow.querySelectorAll('.session-toggle input:checked');
+      
+      if (dayToggle.checked && startTime && endTime) {
+        // Group consecutive active sessions
+        const sessionTimes = Array.from(activeSessions).map(input => input.getAttribute('data-time')).sort();
+        
+        if (sessionTimes.length > 0) {
+          let currentStart = sessionTimes[0];
+          let currentEnd = sessionTimes[0];
+          
+          for (let i = 1; i < sessionTimes.length; i++) {
+            const currentTime = sessionTimes[i];
+            const prevTime = sessionTimes[i - 1];
+            
+            // Check if sessions are consecutive (30 min apart)
+            const current = new Date(`2000-01-01T${currentTime}`);
+            const prev = new Date(`2000-01-01T${prevTime}`);
+            const diffMinutes = (current - prev) / (1000 * 60);
+            
+            if (diffMinutes === 30) {
+              currentEnd = currentTime;
+            } else {
+              // End current range and start new one
+              rules.push({
+                weekday: day,
+                start: currentStart,
+                end: addMinutes(currentEnd, 30), // Add 30 minutes to get end time
+                enabled: true
+              });
+              currentStart = currentTime;
+              currentEnd = currentTime;
+            }
+          }
+          
+          // Add the last range
+          rules.push({
+            weekday: day,
+            start: currentStart,
+            end: addMinutes(currentEnd, 30),
+            enabled: true
+          });
+        }
+      }
+    });
+    
+    // Helper function to add minutes to time string
+    function addMinutes(timeStr, minutes) {
+      const time = new Date(`2000-01-01T${timeStr}`);
+      time.setMinutes(time.getMinutes() + minutes);
+      return time.toTimeString().slice(0, 5);
+    }
+    
+    // Save to server
+    fetch('/api/availability/rules', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ rules: rules })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Availability saved successfully!');
+      } else {
+        alert('Error saving availability');
+      }
+    })
+    .catch(error => {
+      console.error('Error saving availability rules:', error);
+      alert('Error saving availability');
+    });
+  }
+  
+  // Initialize availability when tab is loaded
+  const originalUpdateContent = window.updateContent;
+  window.updateContent = function(tab) {
+    originalUpdateContent(tab);
+    if (tab === 'availability') {
+      setTimeout(initializeAvailability, 100);
+    }
+  };
+  
+  // Also initialize when DOM is loaded (in case tab is already active)
+  if (document.querySelector('.availability-setup')) {
+    setTimeout(initializeAvailability, 100);
+  }
+  
+  // Override the updateContent function to properly handle availability
+  if (typeof window.updateContent === 'function') {
+    const originalUpdateContent = window.updateContent;
+    window.updateContent = function(tab) {
+      originalUpdateContent(tab);
+      if (tab === 'availability') {
+        setTimeout(initializeAvailability, 100);
+      }
+    };
+  } else {
+    window.updateContent = function(tab) {
+      if (tab === 'availability') {
+        setTimeout(initializeAvailability, 100);
+      }
+    };
+  }
+});
+</script>
 {% endblock %} 
