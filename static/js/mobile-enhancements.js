@@ -192,11 +192,61 @@ function showMobileValidationMessage(message) {
 }
 
 /**
- * Enhance mobile navigation
+ * Enhance mobile navigation with hamburger menu
  */
 function initializeMobileNavigation() {
-    // Add haptic feedback for navigation (if supported)
-    const navLinks = document.querySelectorAll('.nav-link');
+    const hamburger = document.getElementById('mobileHamburger');
+    const navMenu = document.getElementById('mobileNavMenu');
+    const navOverlay = document.getElementById('mobileNavOverlay');
+    const navClose = document.getElementById('mobileNavClose');
+
+    if (!hamburger || !navMenu || !navOverlay || !navClose) {
+        console.warn('Mobile navigation elements not found');
+        return;
+    }
+
+    // Toggle menu
+    function toggleMenu() {
+        hamburger.classList.toggle('active');
+        navMenu.classList.toggle('active');
+        navOverlay.classList.toggle('active');
+        document.body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
+        
+        // Add haptic feedback
+        if ('vibrate' in navigator) {
+            navigator.vibrate(10);
+        }
+    }
+
+    // Close menu
+    function closeMenu() {
+        hamburger.classList.remove('active');
+        navMenu.classList.remove('active');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Event listeners
+    hamburger.addEventListener('click', toggleMenu);
+    navClose.addEventListener('click', closeMenu);
+    navOverlay.addEventListener('click', closeMenu);
+
+    // Close menu on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+            closeMenu();
+        }
+    });
+
+    // Close menu on window resize (if switching to desktop)
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768 && navMenu.classList.contains('active')) {
+            closeMenu();
+        }
+    });
+
+    // Add haptic feedback for navigation links
+    const navLinks = document.querySelectorAll('.mobile-nav-item');
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
             if ('vibrate' in navigator) {
@@ -204,17 +254,8 @@ function initializeMobileNavigation() {
             }
         });
     });
-    
-    // Improve navigation accessibility
-    const hamburgerBtn = document.getElementById('hamburger-btn');
-    if (hamburgerBtn) {
-        hamburgerBtn.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                this.click();
-            }
-        });
-    }
+
+    console.log('Mobile navigation initialized');
 }
 
 /**
