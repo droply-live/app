@@ -1732,6 +1732,34 @@ def expert_stripe_onboarding():
         flash('Payout setup temporarily unavailable. Please try again later.', 'error')
         return redirect(url_for('expert_dashboard'))
     
+    # If user already has a Stripe account, redirect to Stripe dashboard
+    if current_user.stripe_account_id:
+        try:
+            account = stripe.Account.retrieve(current_user.stripe_account_id)
+            
+            # Update account status
+            if account.charges_enabled and account.payouts_enabled:
+                current_user.stripe_account_status = 'active'
+            elif account.details_submitted and not account.charges_enabled:
+                current_user.stripe_account_status = 'pending_verification'
+            elif account.details_submitted:
+                current_user.stripe_account_status = 'pending'
+            else:
+                current_user.stripe_account_status = 'incomplete'
+            
+            db.session.commit()
+            
+            # Create login link for existing account
+            login_link = stripe.Account.create_login_link(
+                current_user.stripe_account_id,
+                redirect_url=f'{YOUR_DOMAIN}/expert/dashboard'
+            )
+            return redirect(login_link.url)
+            
+        except stripe.error.StripeError as e:
+            flash(f'Error accessing Stripe account: {str(e)}', 'error')
+            return redirect(url_for('expert_dashboard'))
+    
     if request.method == 'GET':
         return render_template('expert_stripe_onboarding.html')
     

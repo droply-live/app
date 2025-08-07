@@ -228,6 +228,68 @@
             </div>
           </div>
         </div>
+
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-credit-card"></i>
+            Payment Setup
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              {% if current_user.stripe_account_id %}
+                {% if current_user.stripe_account_status == 'active' %}
+                  <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle"></i> Stripe Connected</h6>
+                    <p class="mb-0">Your account is connected to Stripe and ready to receive payments.</p>
+                  </div>
+                  
+                  <div class="text-center py-3">
+                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary">
+                      <i class="fas fa-external-link-alt"></i>
+                      Open Stripe Dashboard
+                    </a>
+                  </div>
+                {% elif current_user.stripe_account_status == 'pending' %}
+                  <div class="alert alert-warning">
+                    <h6><i class="fas fa-clock"></i> Stripe Setup Pending</h6>
+                    <p class="mb-0">You've started the Stripe setup process but haven't completed it yet.</p>
+                  </div>
+                  
+                  <div class="text-center py-3">
+                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary">
+                      <i class="fas fa-external-link-alt"></i>
+                      Complete Stripe Setup
+                    </a>
+                  </div>
+                {% else %}
+                  <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Stripe Setup Required</h6>
+                    <p class="mb-0">You need to complete your Stripe account setup to receive payments.</p>
+                  </div>
+                  
+                  <div class="text-center py-3">
+                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary">
+                      <i class="fas fa-link"></i>
+                      Set Up Stripe Account
+                    </a>
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="alert alert-info">
+                  <h6><i class="fas fa-info-circle"></i> Setup Required</h6>
+                  <p class="mb-0">Connect your Stripe account to start receiving payments for your sessions.</p>
+                </div>
+                
+                <div class="text-center py-3">
+                  <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary">
+                    <i class="fas fa-link"></i>
+                    Connect Stripe Account
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Support Tab -->
