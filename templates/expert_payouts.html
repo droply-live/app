@@ -131,20 +131,21 @@
         </div>
 
         {% set available_balance = (payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) %}
-        {% if available_balance > 0 %}
-          <div class="tab-section">
-            <h3 class="tab-section-title">
-              <i class="fas fa-wallet"></i>
-              Available Balance
-            </h3>
-            <div class="card">
-              <div class="card-body">
-                <div class="alert alert-info">
-                  <h6><i class="fas fa-info-circle"></i> Ready to Withdraw</h6>
-                  <h3 class="text-primary mb-0">${{ "%.2f"|format(available_balance / 100) }}</h3>
-                  <small class="text-muted">Available for withdrawal</small>
-                </div>
-                
+        
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-wallet"></i>
+            Available Balance
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle"></i> Ready to Withdraw</h6>
+                <h3 class="text-primary mb-0">${{ "%.2f"|format(available_balance / 100) }}</h3>
+                <small class="text-muted">Available for withdrawal</small>
+              </div>
+              
+              {% if available_balance > 0 %}
                 <form action="{{ url_for('request_payout') }}" method="POST">
                   <div class="form-group">
                     <label for="withdraw_amount">Withdrawal Amount</label>
@@ -168,32 +169,32 @@
                     Request Withdrawal
                   </button>
                 </form>
-              </div>
+              {% else %}
+                <div class="text-center py-4">
+                  <i class="fas fa-wallet fa-3x text-muted mb-3"></i>
+                  <h5>No Funds Available</h5>
+                  <p class="text-muted">You need to complete sessions to earn money for withdrawal.</p>
+                </div>
+              {% endif %}
             </div>
           </div>
+        </div>
 
-          <div class="tab-section">
-            <h3 class="tab-section-title">
-              <i class="fas fa-info-circle"></i>
-              Withdrawal Information
-            </h3>
-            <div class="card">
-              <div class="card-body">
-                <ul class="list-unstyled">
-                  <li><i class="fas fa-clock text-warning"></i> Processing: 2-5 business days</li>
-                  <li><i class="fas fa-percentage text-info"></i> Fee: 2.9% + $0.30</li>
-                  <li><i class="fas fa-dollar-sign text-success"></i> Minimum: $10.00</li>
-                </ul>
-              </div>
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-info-circle"></i>
+            Withdrawal Information
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <ul class="list-unstyled">
+                <li><i class="fas fa-clock text-warning"></i> Processing: 2-5 business days</li>
+                <li><i class="fas fa-percentage text-info"></i> Fee: 2.9% + $0.30</li>
+                <li><i class="fas fa-dollar-sign text-success"></i> Minimum: $10.00</li>
+              </ul>
             </div>
           </div>
-        {% else %}
-          <div class="tab-empty-state">
-            <i class="fas fa-wallet"></i>
-            <h3>No Funds Available</h3>
-            <p>You need to complete sessions to earn money for withdrawal.</p>
-          </div>
-        {% endif %}
+        </div>
       </div>
 
       <!-- Settings Tab -->
