@@ -5,8 +5,7 @@ from app import app
 from extensions import db
 from models import User, AvailabilityRule, AvailabilityException, Booking, Payout
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm, TimeSlotForm, BookingForm
-from utils import generate_ical_content
-from keyword_mappings import get_search_keywords, search_in_text
+# Removed unused imports: utils and keyword_mappings
 import json
 # import faiss  # Temporarily disabled
 # from sentence_transformers import SentenceTransformer  # Temporarily disabled
@@ -2159,21 +2158,24 @@ def end_meeting(booking_id):
 @app.route('/api/meeting/<int:booking_id>/status')
 @login_required
 def meeting_status(booking_id):
-    """Get meeting status for real-time updates"""
+    """Get meeting status"""
     booking = Booking.query.get_or_404(booking_id)
     
+    # Check if user is authorized to view this meeting
     if booking.user_id != current_user.id and booking.expert_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Determine if user can join the meeting
+    can_join = booking.can_join_meeting()
     
     return jsonify({
         'booking_id': booking.id,
         'status': booking.status,
-        'meeting_started': booking.meeting_started_at is not None,
-        'meeting_ended': booking.meeting_ended_at is not None,
-        'can_join': booking.can_join_meeting(),
-        'is_ongoing': booking.is_ongoing(),
-        'room_id': booking.meeting_room_id,
-        'meeting_url': booking.meeting_url
+        'can_join': can_join,
+        'meeting_room_id': booking.meeting_room_id,
+        'meeting_url': booking.meeting_url,
+        'start_time': booking.start_time.isoformat() if booking.start_time else None,
+        'end_time': booking.end_time.isoformat() if booking.end_time else None
     })
 
 @app.route('/test-meeting/<int:booking_id>')
