@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case, func
 from app import app
 from extensions import db
-from models import User, AvailabilityRule, AvailabilityException, Booking, Payout
+from models import User, AvailabilityRule, AvailabilityException, Booking, Payout, Favorite
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm, TimeSlotForm, BookingForm
 # Removed unused imports: utils and keyword_mappings
 import json
@@ -565,14 +565,17 @@ def delete_account():
     """Delete user account"""
     print(f"Delete account request received from user: {current_user.email}")
     print(f"Form data: {request.form}")
+    print(f"Request method: {request.method}")
+    print(f"Request headers: {dict(request.headers)}")
     
     try:
         # Get the confirmation text and reason
         confirmation = request.form.get('confirmation', '').strip()
         reason = request.form.get('reason', '').strip()
         
-        # Verify confirmation text
         print(f"Confirmation text received: '{confirmation}'")
+        print(f"Reason received: '{reason}'")
+        
         if confirmation != 'DELETE':
             print(f"Confirmation text mismatch. Expected 'DELETE', got '{confirmation}'")
             flash('Please type "DELETE" exactly to confirm account deletion.', 'error')
@@ -588,6 +591,11 @@ def delete_account():
         print(f"Starting account deletion for user: {user.email} (ID: {user.id})")
         
         # Delete associated data first (foreign key constraints)
+        # Delete favorites (both as user and as expert)
+        favorites_as_user_deleted = Favorite.query.filter_by(user_id=user.id).delete()
+        favorites_as_expert_deleted = Favorite.query.filter_by(expert_id=user.id).delete()
+        print(f"Deleted {favorites_as_user_deleted} favorites as user and {favorites_as_expert_deleted} favorites as expert")
+        
         # Delete bookings (both as client and as expert)
         bookings_deleted = Booking.query.filter_by(user_id=user.id).delete()
         expert_bookings_deleted = Booking.query.filter_by(expert_id=user.id).delete()
@@ -626,6 +634,9 @@ def delete_account():
     except Exception as e:
         db.session.rollback()
         print(f"Error deleting account: {str(e)}")
+        print(f"Exception type: {type(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
         flash(f'Error deleting account: {str(e)}. Please try again.', 'error')
         return redirect(url_for('account'))
 
@@ -1991,7 +2002,25 @@ def stripe_webhook():
 def expert_payouts():
     """Show expert's payout history"""
     payouts = Payout.query.filter_by(expert_id=current_user.id).order_by(Payout.created_at.desc()).all()
-    return render_template('expert_payouts.html', payouts=payouts)
+    
+    # Calculate totals
+    total_earned = 0
+    pending_total = 0
+    failed_total = 0
+    
+    for payout in payouts:
+        if payout.status == 'paid':
+            total_earned += payout.amount
+        elif payout.status == 'pending':
+            pending_total += payout.amount
+        elif payout.status == 'failed':
+            failed_total += payout.amount
+    
+    return render_template('expert_payouts.html', 
+                         payouts=payouts,
+                         total_earned=total_earned,
+                         pending_total=pending_total,
+                         failed_total=failed_total)
 
 @app.route('/expert/payout-details')
 @login_required
