@@ -127,212 +127,31 @@
             letter-spacing: -1px;
         }
 
-        .hamburger-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #666;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            position: relative;
-            z-index: 1002;
-            flex-shrink: 0;
-        }
-
-        .hamburger-btn:hover {
-            background: rgba(5, 150, 105, 0.1);
-            color: #059669;
-        }
-
-        .hamburger-btn.active {
+        /* Mobile Login Button */
+        .mobile-login-btn {
             background: #059669;
             color: white;
-        }
-
-        /* Hamburger Icon */
-        .hamburger-icon {
-            width: 20px;
-            height: 2px;
-            background-color: currentColor;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .hamburger-icon::before,
-        .hamburger-icon::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 2px;
-            background-color: currentColor;
-            transition: all 0.3s ease;
-        }
-
-        .hamburger-icon::before {
-            top: -6px;
-        }
-
-        .hamburger-icon::after {
-            bottom: -6px;
-        }
-
-        /* Active hamburger animation */
-        .hamburger-btn.active .hamburger-icon {
-            background-color: transparent;
-        }
-
-        .hamburger-btn.active .hamburger-icon::before {
-            transform: rotate(45deg);
-            top: 0;
-        }
-
-        .hamburger-btn.active .hamburger-icon::after {
-            transform: rotate(-45deg);
-            bottom: 0;
-        }
-
-        /* Dropdown menu */
-        .nav-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border-radius: 0 0 16px 16px;
-            transform: translateY(-100%);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            max-height: calc(100vh - 80px);
-            overflow-y: auto;
-        }
-
-        .nav-dropdown.show {
-            transform: translateY(0);
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .nav-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .nav-item {
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .nav-item:last-child {
-            border-bottom: none;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            color: #666;
             text-decoration: none;
-            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
             transition: all 0.2s ease;
-            position: relative;
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
         }
 
-        .nav-link:hover {
-            background: rgba(5, 150, 105, 0.05);
-            color: #059669;
+        .mobile-login-btn:hover {
+            background: #047857;
+            color: white;
             text-decoration: none;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
         }
 
-        .nav-link.active {
-            background: rgba(5, 150, 105, 0.1);
-            color: #059669;
-            border-left: 4px solid #059669;
-        }
 
-        .nav-link i {
-            width: 24px;
-            margin-right: 12px;
-            text-align: center;
-        }
 
-        .nav-link-text {
-            flex: 1;
-        }
 
-        /* Animation for hamburger icon */
-        .hamburger-icon {
-            width: 20px;
-            height: 2px;
-            background: currentColor;
-            position: relative;
-            transition: all 0.3s ease;
-            margin: 0 auto;
-            display: block;
-        }
 
-        .hamburger-icon::before,
-        .hamburger-icon::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 2px;
-            background: currentColor;
-            transition: all 0.3s ease;
-            left: 0;
-            top: 0;
-        }
 
-        .hamburger-icon::before {
-            top: -6px;
-        }
-
-        .hamburger-icon::after {
-            bottom: -6px;
-        }
-
-        .hamburger-btn.active .hamburger-icon {
-            background: transparent;
-        }
-
-        .hamburger-btn.active .hamburger-icon::before {
-            transform: rotate(45deg);
-            top: 0;
-            left: 0;
-        }
-
-        .hamburger-btn.active .hamburger-icon::after {
-            transform: rotate(-45deg);
-            bottom: 0;
-            left: 0;
-        }
-
-        /* Overlay for mobile */
-        .nav-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .nav-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
 
         /* Responsive Design */
         @media (max-width: 767px) {
@@ -448,64 +267,15 @@
     <nav class="mobile-nav">
         <div class="nav-header">
             <a href="{{ url_for('homepage') }}" class="nav-brand">droply</a>
-            <button class="hamburger-btn" id="hamburger-btn" aria-label="Toggle navigation">
-                <div class="hamburger-icon"></div>
-            </button>
-        </div>
-        
-        <div class="nav-dropdown" id="nav-dropdown">
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="{{ url_for('homepage') }}" class="nav-link {% if request.endpoint == 'homepage' %}active{% endif %}">
-                        <i class="fas fa-home"></i>
-                        <span class="nav-link-text">Home</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ url_for('find_experts') }}" class="nav-link {% if request.endpoint == 'find_experts' %}active{% endif %}">
-                        <i class="fas fa-search"></i>
-                        <span class="nav-link-text">Find Experts</span>
-                    </a>
-                </li>
-                {% if current_user.is_authenticated %}
-                    <li class="nav-item">
-                        <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span class="nav-link-text">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('profile_view', username=current_user.username) }}" class="nav-link">
-                            <i class="fas fa-user"></i>
-                            <span class="nav-link-text">Profile</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('logout') }}" class="nav-link text-danger">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span class="nav-link-text">Logout</span>
-                        </a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a href="{{ url_for('login') }}" class="nav-link">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span class="nav-link-text">Login</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('register') }}" class="nav-link">
-                            <i class="fas fa-user-plus"></i>
-                            <span class="nav-link-text">Register</span>
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}" class="mobile-login-btn">Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="mobile-login-btn">Login</a>
+            {% endif %}
         </div>
     </nav>
 
-    <!-- Overlay for mobile -->
-    <div class="nav-overlay" id="nav-overlay"></div>
+
 
     <!-- Modern Navigation Bar (Desktop only) -->
     <div class="d-none d-md-block">
@@ -728,80 +498,8 @@
     {% include 'footer.html' %}
 
     <script>
-        // Mobile navigation functionality
-        const hamburgerBtn = document.getElementById('hamburger-btn');
-        const navDropdown = document.getElementById('nav-dropdown');
-        const navOverlay = document.getElementById('nav-overlay');
-        const mobileNav = document.querySelector('.mobile-nav');
-
-        // Debug: Log mobile navigation status
-        console.log('Mobile nav element:', mobileNav);
-        console.log('Hamburger button:', hamburgerBtn);
-        console.log('Nav dropdown:', navDropdown);
-        console.log('Nav overlay:', navOverlay);
-        console.log('Window width:', window.innerWidth);
-        console.log('Is mobile nav visible:', mobileNav ? mobileNav.style.display : 'No mobile nav found');
-        console.log('Is hamburger button clickable:', hamburgerBtn ? 'Yes' : 'No');
-
-        function toggleNav() {
-            const isOpen = hamburgerBtn.classList.contains('active');
-            console.log('Toggle nav called, isOpen:', isOpen);
-            console.log('Hamburger button found:', hamburgerBtn);
-            console.log('Nav dropdown found:', navDropdown);
-            console.log('Nav overlay found:', navOverlay);
-            
-            if (isOpen) {
-                // Close navigation
-                hamburgerBtn.classList.remove('active');
-                navDropdown.classList.remove('show');
-                navOverlay.classList.remove('show');
-                document.body.style.overflow = '';
-                console.log('Navigation closed');
-            } else {
-                // Open navigation
-                hamburgerBtn.classList.add('active');
-                navDropdown.classList.add('show');
-                navOverlay.classList.add('show');
-                document.body.style.overflow = 'hidden';
-                console.log('Navigation opened');
-            }
-        }
-
-        function closeNav() {
-            hamburgerBtn.classList.remove('active');
-            navDropdown.classList.remove('show');
-            navOverlay.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        // Event listeners
-        hamburgerBtn.addEventListener('click', toggleNav);
-        navOverlay.addEventListener('click', closeNav);
-
-        // Close navigation when clicking on a link
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                // Don't close immediately for logout to allow confirmation
-                if (!link.href.includes('logout')) {
-                    setTimeout(closeNav, 100);
-                }
-            });
-        });
-
-        // Close navigation on escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeNav();
-            }
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                closeNav();
-            }
-        });
+        // Mobile navigation is now simplified - just a login button
+        console.log('Mobile navigation simplified - login button only');
 
         // FAQ functionality
         document.querySelectorAll('.faq-question').forEach(question => {
