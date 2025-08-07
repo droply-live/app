@@ -42,23 +42,52 @@
         <div class="times-container">
           <h2 class="section-title">Select a time</h2>
           
-          {% if available_times %}
-            <div class="time-slots">
-              {% for time in available_times %}
-              <a href="{{ url_for('booking_confirmation', expert=expert.username, datetime=time.iso_datetime, duration=30) }}" 
-                 class="time-slot">
-                <div class="time-date">{{ time.formatted_date }}</div>
-                <div class="time-time">{{ time.formatted_time }}</div>
+          {% if has_availability %}
+            <!-- Book Now Button for Immediate Meeting -->
+            {% if expert.is_available %}
+            <div class="book-now-section">
+              <a href="{{ url_for('book_immediate_meeting', username=expert.username) }}" 
+                 class="book-now-btn">
+                <div class="book-now-icon">
+                  <i class="fas fa-bolt"></i>
+                </div>
+                <div class="book-now-content">
+                  <div class="book-now-title">Book Now</div>
+                  <div class="book-now-subtitle">Start meeting in 5 minutes • Payment required</div>
+                </div>
               </a>
-              {% endfor %}
             </div>
-          {% else %}
-            <div class="no-times">
-              <div class="no-times-icon">
-                <i class="fas fa-calendar-times"></i>
+            {% endif %}
+            
+            {% if available_times %}
+              <div class="time-slots">
+                {% for time in available_times %}
+                <a href="{{ url_for('booking_confirmation', expert=expert.username, datetime=time.iso_datetime, duration=30) }}" 
+                   class="time-slot">
+                  <div class="time-date">{{ time.formatted_date }}</div>
+                  <div class="time-time">{{ time.formatted_time }}</div>
+                </a>
+                {% endfor %}
               </div>
-              <h3>No available times</h3>
-              <p>This expert doesn't have any available times in the next 7 days.</p>
+            {% else %}
+              <div class="no-times">
+                <div class="no-times-icon">
+                  <i class="fas fa-calendar-times"></i>
+                </div>
+                <h3>No available times</h3>
+                <p>This expert doesn't have any available times in the next 7 days.</p>
+                <a href="{{ url_for('expert_profile', username=expert.username) }}" class="btn-secondary">
+                  Back to Profile
+                </a>
+              </div>
+            {% endif %}
+          {% else %}
+            <div class="no-availability">
+              <div class="no-availability-icon">
+                <i class="fas fa-calendar-plus"></i>
+              </div>
+              <h3>No availability set</h3>
+              <p>This expert hasn't set up their availability yet. They need to configure their calendar before you can book a session.</p>
               <a href="{{ url_for('expert_profile', username=expert.username) }}" class="btn-secondary">
                 Back to Profile
               </a>
@@ -184,6 +213,53 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Book Now Section */
+.book-now-section {
+  margin-bottom: 2rem;
+}
+
+.book-now-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.book-now-btn:hover {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  color: white;
+  text-decoration: none;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
+}
+
+.book-now-icon {
+  font-size: 1.5rem;
+  color: #fbbf24;
+}
+
+.book-now-content {
+  flex: 1;
+}
+
+.book-now-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.book-now-subtitle {
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
 .section-title {
   font-size: 1.5rem;
   font-weight: 600;
@@ -245,6 +321,28 @@
 }
 
 .no-times p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+/* No Availability State */
+.no-availability {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.no-availability-icon {
+  font-size: 4rem;
+  color: #059669;
+  margin-bottom: 1rem;
+}
+
+.no-availability h3 {
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.no-availability p {
   color: #666;
   margin-bottom: 2rem;
 }

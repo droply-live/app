@@ -148,7 +148,6 @@
           <div class="booking-section">
             <h3 class="booking-title">Book a video call</h3>
             
-            {% if availability_rules %}
             <div class="session-info">
               <span class="session-price">${{ expert.hourly_rate or 0 }} • Session</span>
               <span class="session-duration">30 minute session</span>
@@ -160,20 +159,6 @@
             <a href="{{ url_for('find_experts') }}" class="view-similar-link">
               View similar experts
             </a>
-            {% else %}
-            <div class="session-info">
-              <span class="sessions-sold-out">Sessions sold out!</span>
-            </div>
-            
-            <h4 class="join-waitlist-title">Join the waitlist</h4>
-            <p class="waitlist-description">Get priority access when this expert unlocks new sessions</p>
-            
-            <button class="join-waitlist-btn">Join waitlist</button>
-            
-            <a href="{{ url_for('find_experts') }}" class="view-similar-link">
-              View similar experts
-            </a>
-            {% endif %}
           </div>
         </div>
       </div>
@@ -554,29 +539,7 @@
   font-size: 0.875rem;
 }
 
-.sessions-sold-out {
-  display: block;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #e74c3c;
-  margin-bottom: 1rem;
-}
-
-.join-waitlist-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 0.5rem;
-}
-
-.waitlist-description {
-  color: #666;
-  font-size: 0.875rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
-}
-
-.book-call-btn, .join-waitlist-btn {
+.book-call-btn {
   display: block;
   width: 100%;
   padding: 1rem;
@@ -592,7 +555,7 @@
   transition: background 0.2s ease;
 }
 
-.book-call-btn:hover, .join-waitlist-btn:hover {
+.book-call-btn:hover {
   background: #047857;
   color: white;
   text-decoration: none;

@@ -104,7 +104,12 @@ def create_meeting_room(booking_id):
         # Use minimal room data that works with free tier
         room_data = {
             'name': room_name,
-            'privacy': 'public'  # Use public for free tier
+            'privacy': 'public',  # Use public for free tier
+            'max_participants': 2,
+            'autojoin': True,
+            'enable_chat': True,
+            'enable_recording': 'cloud',
+            'exp': int((datetime.now() + timedelta(minutes=35)).timestamp())  # Room expires in 35 minutes
         }
         
         response = requests.post(
@@ -139,7 +144,7 @@ def get_meeting_token(room_name, user_id, is_owner=False):
 
 # Configure Stripe
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_4eC39HqLyjWDarjtT1zdp7dc')  # Use environment variable or fallback
-YOUR_DOMAIN = os.environ.get('YOUR_DOMAIN', 'https://e41a374ae5c6.ngrok-free.app')
+YOUR_DOMAIN = os.environ.get('YOUR_DOMAIN', 'https://f6b540a7cf43.ngrok-free.app')
 
 # Production safeguards
 def is_production_environment():
@@ -471,47 +476,77 @@ def expert_booking_times(username):
     # Get expert's availability rules
     availability_rules = AvailabilityRule.query.filter_by(user_id=expert.id).all()
     
-    if not availability_rules:
-        flash('This expert has not set up their availability yet.', 'error')
-        return redirect(url_for('expert_profile', username=username))
-    
     # Get available times for the next 7 days
     available_times = []
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    for i in range(7):  # Next 7 days
-        check_date = today + timedelta(days=i)
-        
-        # Get availability for this date
-        for rule in availability_rules:
-            if rule.weekday == check_date.weekday():
-                # Generate time slots for this day
-                start_time = datetime.combine(check_date, rule.start)
-                end_time = datetime.combine(check_date, rule.end)
-                
-                # Generate 30-minute slots
-                current_time = start_time
-                while current_time + timedelta(minutes=30) <= end_time:
-                    # Check if this slot is not already booked
-                    existing_booking = Booking.query.filter(
-                        (Booking.expert_id == expert.id) &
-                        (Booking.start_time == current_time) &
-                        (Booking.status.in_(['confirmed', 'pending']))
-                    ).first()
+    if availability_rules:
+        for i in range(7):  # Next 7 days
+            check_date = today + timedelta(days=i)
+            
+            # Get availability for this date
+            for rule in availability_rules:
+                if rule.weekday == check_date.weekday():
+                    # Generate time slots for this day
+                    start_time = datetime.combine(check_date, rule.start)
+                    end_time = datetime.combine(check_date, rule.end)
                     
-                    if not existing_booking and current_time > datetime.now():
-                        available_times.append({
-                            'datetime': current_time,
-                            'formatted_date': current_time.strftime('%B %d, %Y'),
-                            'formatted_time': current_time.strftime('%I:%M %p'),
-                            'iso_datetime': current_time.isoformat()
-                        })
-                    
-                    current_time += timedelta(minutes=30)
+                    # Generate 30-minute slots
+                    current_time = start_time
+                    while current_time + timedelta(minutes=30) <= end_time:
+                        # Check if this slot is not already booked
+                        existing_booking = Booking.query.filter(
+                            (Booking.expert_id == expert.id) &
+                            (Booking.start_time == current_time) &
+                            (Booking.status.in_(['confirmed', 'pending']))
+                        ).first()
+                        
+                        if not existing_booking and current_time > datetime.now():
+                            available_times.append({
+                                'datetime': current_time,
+                                'formatted_date': current_time.strftime('%B %d, %Y'),
+                                'formatted_time': current_time.strftime('%I:%M %p'),
+                                'iso_datetime': current_time.isoformat()
+                            })
+                        
+                        current_time += timedelta(minutes=30)
     
     return render_template('expert_booking_times.html', 
                          expert=expert, 
-                         available_times=available_times)
+                         available_times=available_times,
+                         has_availability=bool(availability_rules))
+
+
+@app.route('/expert/<username>/book-immediate')
+@login_required
+def book_immediate_meeting(username):
+    """Book an immediate meeting with an expert"""
+    expert = User.query.filter_by(username=username).first_or_404()
+    
+    # Check if expert is available
+    if not expert.is_available:
+        flash('This expert is not currently available for immediate meetings.', 'error')
+        return redirect(url_for('expert_profile', username=username))
+    
+    # Create immediate meeting time (starts in 5 minutes)
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    meeting_start = now + timedelta(minutes=5)  # Start in 5 minutes
+    meeting_end = meeting_start + timedelta(minutes=30)  # 30 minute session
+    
+    # Format for the booking confirmation URL (same format as regular time slots)
+    datetime_str = meeting_start.isoformat()
+    
+    # Debug logging
+    print(f"DEBUG: Book Now - Expert: {expert.username}")
+    print(f"DEBUG: Book Now - Meeting start: {meeting_start}")
+    print(f"DEBUG: Book Now - Datetime string: {datetime_str}")
+    
+    # Redirect to the normal booking confirmation flow
+    return redirect(url_for('booking_confirmation', 
+                          expert=expert.username, 
+                          datetime=datetime_str, 
+                          duration=30))
 
 @app.route('/settings')
 @login_required
@@ -603,8 +638,12 @@ def find_experts():
     search_query = request.args.get('search', '').strip()
     category = request.args.get('category', '').strip().lower()
     
-    # Base query for available users
-    query = User.query.filter(User.is_available == True, User.full_name.isnot(None))
+    # Base query for available users - exclude current user
+    query = User.query.filter(
+        User.is_available == True, 
+        User.full_name.isnot(None),
+        User.id != current_user.id  # Exclude current user from results
+    )
     
     # Apply category filter if provided
     if category:
@@ -1368,15 +1407,21 @@ def api_availability_rules():
             user_id = user.id
         else:
             user_id = current_user.id
+        
+        print(f"Loading availability rules for user_id: {user_id}")
         rules = AvailabilityRule.query.filter_by(user_id=user_id).all()
-        return jsonify([
+        print(f"Found {len(rules)} availability rules")
+        
+        result = [
             {
                 'id': r.id,
                 'weekday': r.weekday,
                 'start': r.start.strftime('%H:%M'),
                 'end': r.end.strftime('%H:%M')
             } for r in rules
-        ])
+        ]
+        print(f"Returning availability rules: {result}")
+        return jsonify(result)
     else:
         data = request.get_json()
         rules = data.get('rules', [])
@@ -1438,7 +1483,14 @@ def api_availability_exception_delete(exception_id):
 @app.route('/booking/confirm', methods=['GET', 'POST'])
 @login_required
 def booking_confirmation():
+    print(f"DEBUG: booking_confirmation called - Method: {request.method}")
+    print(f"DEBUG: booking_confirmation - Args: {dict(request.args)}")
+    print(f"DEBUG: booking_confirmation - Form: {dict(request.form)}")
     """Booking confirmation page with payment"""
+    print(f"DEBUG: Current user: {current_user.is_authenticated if current_user else 'No user'}")
+    print(f"DEBUG: Request URL: {request.url}")
+    print(f"DEBUG: Request method: {request.method}")
+    print(f"DEBUG: Request args: {dict(request.args)}")
     if request.method == 'GET':
         # Get booking details from query parameters
         expert_username = request.args.get('expert')
@@ -1484,23 +1536,44 @@ def booking_confirmation():
     
     else:
         # Handle POST request - create booking and redirect to Stripe
-        expert_username = request.args.get('expert')
-        datetime_str = request.args.get('datetime')
-        duration = int(request.args.get('duration', 30))
-        
-        if not expert_username or not datetime_str:
-            flash('Missing booking information', 'error')
+        try:
+            print("DEBUG: Starting booking confirmation POST handling")
+            
+            expert_username = request.args.get('expert')
+            datetime_str = request.args.get('datetime')
+            duration = int(request.args.get('duration', 30))
+            
+            # Debug logging
+            print(f"DEBUG: Booking confirmation POST - Expert: {expert_username}")
+            print(f"DEBUG: Booking confirmation POST - Datetime: {datetime_str}")
+            print(f"DEBUG: Booking confirmation POST - Duration: {duration}")
+            
+            if not expert_username or not datetime_str:
+                print("DEBUG: Missing booking information")
+                flash('Missing booking information', 'error')
+                return redirect(url_for('homepage'))
+            
+            expert = User.query.filter_by(username=expert_username).first()
+            if not expert:
+                print("DEBUG: Expert not found")
+                flash('Expert not found', 'error')
+                return redirect(url_for('homepage'))
+            
+            print(f"DEBUG: Expert found: {expert.username}")
+            
+            start_time = datetime.fromisoformat(datetime_str)
+            end_time = start_time + timedelta(minutes=duration)
+            
+            print(f"DEBUG: Booking confirmation POST - Start time: {start_time}")
+            print(f"DEBUG: Booking confirmation POST - End time: {end_time}")
+            
+        except Exception as e:
+            print(f"DEBUG: Exception in booking confirmation POST: {e}")
+            flash(f'Error processing booking: {str(e)}', 'error')
             return redirect(url_for('homepage'))
-        
-        expert = User.query.filter_by(username=expert_username).first()
-        if not expert:
-            flash('Expert not found', 'error')
-            return redirect(url_for('homepage'))
-        
-        start_time = datetime.fromisoformat(datetime_str)
-        end_time = start_time + timedelta(minutes=duration)
         
         # Prevent double booking: check for any overlapping bookings
+        print("DEBUG: Checking for booking conflicts")
         conflict = Booking.query.filter(
             (Booking.expert_id == expert.id) &
             (Booking.status == 'confirmed') &
@@ -1512,10 +1585,14 @@ def booking_confirmation():
         ).first()
         
         if conflict:
+            print("DEBUG: Booking conflict found")
             flash('This time slot has already been booked. Please choose another time.', 'error')
             return redirect(url_for('bookings'))
         
+        print("DEBUG: No booking conflicts found")
+        
         # Calculate pricing
+        print("DEBUG: Calculating pricing")
         hourly_rate = expert.hourly_rate or 0
         if duration == 30:
             session_fee = hourly_rate * 0.5
@@ -1524,7 +1601,10 @@ def booking_confirmation():
         platform_fee = max(5.0, session_fee * 0.10)
         total_amount = session_fee + platform_fee
         
+        print(f"DEBUG: Pricing calculated - Session fee: {session_fee}, Platform fee: {platform_fee}, Total: {total_amount}")
+        
         # Create booking with pending payment status
+        print("DEBUG: Creating booking")
         booking = Booking(
             user_id=current_user.id,
             expert_id=expert.id,
@@ -1539,7 +1619,10 @@ def booking_confirmation():
         db.session.add(booking)
         db.session.commit()
         
+        print(f"DEBUG: Booking created with ID: {booking.id}")
+        
         # Redirect to Stripe checkout
+        print("DEBUG: Redirecting to Stripe checkout")
         return redirect(url_for('create_checkout_session', booking_id=booking.id))
 
 @app.route('/api/availability/times', methods=['GET'])
@@ -1996,7 +2079,7 @@ def join_meeting(booking_id):
         flash('You are not authorized to join this meeting.', 'error')
         return redirect(url_for('bookings'))
     
-    # Check if meeting time is within 15 minutes before or after
+    # Check if meeting time is within 30 minutes before or after (more flexible for immediate bookings)
     from datetime import datetime, timedelta
     now = datetime.now(EASTERN_TIMEZONE)
     meeting_time = booking.start_time
@@ -2005,7 +2088,8 @@ def join_meeting(booking_id):
         meeting_time = meeting_time.replace(tzinfo=EASTERN_TIMEZONE)
     time_diff = abs((meeting_time - now).total_seconds() / 60)
     
-    if time_diff > 15:
+    # Allow joining up to 30 minutes before or after the scheduled time
+    if time_diff > 30:
         flash('Meeting is not available yet or has already ended.', 'warning')
         return redirect(url_for('bookings'))
     

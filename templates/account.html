@@ -1441,8 +1441,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function initializeAvailability() {
     console.log('Initializing availability...');
     
-    const dayToggles = document.querySelectorAll('.day-toggle');
-    const copyScheduleBtn = document.getElementById('copyWeekBtn');
+    const dayToggles = document.querySelectorAll('.day-toggle input[type="checkbox"]');
+    const copyScheduleBtn = document.getElementById('copyToAllBtn');
     const clearScheduleBtn = document.getElementById('clearAllBtn');
     const saveAvailabilityBtn = document.getElementById('saveAvailabilityBtn');
     
@@ -1460,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle time range changes
     document.querySelectorAll('.start-time, .end-time').forEach(input => {
       input.addEventListener('change', function() {
-        const day = this.closest('.table-row').getAttribute('data-day');
+        const day = this.closest('.day-card').getAttribute('data-day');
         console.log(`Time range changed for day ${day}`);
         generateSessionTogglesForDay(day);
       });
@@ -1469,113 +1469,57 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle day toggle changes
     dayToggles.forEach(toggle => {
       toggle.addEventListener('change', function() {
-        const dayRow = this.closest('.table-row');
-        const sessionsGrid = dayRow.querySelector('.sessions-grid');
+        const dayCard = this.closest('.day-card');
+        const dayStatus = dayCard.querySelector('.day-status');
         
         if (this.checked) {
-          dayRow.classList.remove('inactive');
-          sessionsGrid.style.display = 'flex';
+          dayCard.classList.remove('inactive');
+          dayCard.classList.add('active');
+          dayStatus.textContent = 'Active';
+          dayStatus.className = 'day-status active';
         } else {
-          dayRow.classList.add('inactive');
-          sessionsGrid.style.display = 'none';
+          dayCard.classList.add('inactive');
+          dayCard.classList.remove('active');
+          dayStatus.textContent = 'Inactive';
+          dayStatus.className = 'day-status';
         }
       });
     });
     
-    // Add time slot functionality
-    document.querySelectorAll('.add-slot-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const day = this.closest('.table-row').getAttribute('data-day');
-        const sessionsGrid = document.querySelector(`.sessions-grid[data-day="${day}"]`);
+    // Quick Setup Cards functionality
+    document.querySelectorAll('.quick-setup-card').forEach(card => {
+      card.addEventListener('click', function() {
+        const preset = this.getAttribute('data-preset');
+        console.log(`Quick setup preset selected: ${preset}`);
         
-        const newSessionToggle = document.createElement('div');
-        newSessionToggle.className = 'session-toggle';
-        newSessionToggle.innerHTML = `
-          <input type="checkbox" class="session-toggle" data-day="${day}" data-time="09:00">
-          <span>09:00</span>
-        `;
-        
-        sessionsGrid.appendChild(newSessionToggle);
-        
-        // Add remove functionality to new slot
-        const removeBtn = newSessionToggle.querySelector('.remove-slot');
-        removeBtn.addEventListener('click', function() {
-          newSessionToggle.remove();
-        });
+        switch(preset) {
+          case 'business':
+            applyBusinessHours();
+            break;
+          case 'flexible':
+            applyFlexibleSchedule();
+            break;
+          case 'weekend':
+            applyWeekendOnly();
+            break;
+          case 'custom':
+            // Custom setup - do nothing, let user configure manually
+            break;
+        }
       });
     });
     
-    // Quick Setup functionality
-    const quickSetupBtn = document.getElementById('quickSetupBtn');
-    if (quickSetupBtn) {
-      quickSetupBtn.addEventListener('click', function() {
-        if (confirm('This will set up a standard 9 AM - 5 PM schedule for weekdays and 10 AM - 3 PM for weekends. Continue?')) {
-          // Set up weekdays (Mon-Fri)
-          for (let i = 0; i <= 4; i++) {
-            const dayRow = document.querySelector(`.table-row[data-day="${i}"]`);
-            const toggle = dayRow.querySelector('.day-toggle');
-            const startTimeInput = dayRow.querySelector('.start-time');
-            const endTimeInput = dayRow.querySelector('.end-time');
-            
-            // Enable the day
-            toggle.checked = true;
-            dayRow.classList.remove('inactive');
-            
-            // Set time range to 9 AM - 5 PM
-            startTimeInput.value = '09:00';
-            endTimeInput.value = '17:00';
-            
-            // Regenerate sessions
-            generateSessionTogglesForDay(i);
-            
-            // Activate all sessions
-            const sessions = dayRow.querySelectorAll('.session-toggle input');
-            sessions.forEach(session => {
-              session.checked = true;
-              session.closest('.session-toggle').classList.add('active');
-            });
-          }
-          
-          // Set up weekends (Sat-Sun)
-          for (let i = 5; i <= 6; i++) {
-            const dayRow = document.querySelector(`.table-row[data-day="${i}"]`);
-            const toggle = dayRow.querySelector('.day-toggle');
-            const startTimeInput = dayRow.querySelector('.start-time');
-            const endTimeInput = dayRow.querySelector('.end-time');
-            
-            // Enable the day
-            toggle.checked = true;
-            dayRow.classList.remove('inactive');
-            
-            // Set time range to 10 AM - 3 PM
-            startTimeInput.value = '10:00';
-            endTimeInput.value = '15:00';
-            
-            // Regenerate sessions
-            generateSessionTogglesForDay(i);
-            
-            // Activate all sessions
-            const sessions = dayRow.querySelectorAll('.session-toggle input');
-            sessions.forEach(session => {
-              session.checked = true;
-              session.closest('.session-toggle').classList.add('active');
-            });
-          }
-        }
-      });
-    }
-    
-    // Copy Week functionality
+    // Copy to All functionality
     if (copyScheduleBtn) {
       copyScheduleBtn.addEventListener('click', function() {
-        const activeDay = document.querySelector('.table-row:not(.inactive)');
+        const activeDay = document.querySelector('.day-card.active');
         if (!activeDay) {
           alert('Please select at least one day first');
           return;
         }
         
         const activeDayIndex = parseInt(activeDay.getAttribute('data-day'));
-        const activeSessions = activeDay.querySelectorAll('.session-toggle input:checked');
+        const activeSessions = activeDay.querySelectorAll('.session-slot input:checked');
         
         if (activeSessions.length === 0) {
           alert('Please activate at least one session to copy');
@@ -1584,24 +1528,24 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Copy to all other enabled days
         dayToggles.forEach(toggle => {
-          const dayRow = toggle.closest('.table-row');
-          const dayIndex = parseInt(dayRow.getAttribute('data-day'));
+          const dayCard = toggle.closest('.day-card');
+          const dayIndex = parseInt(dayCard.getAttribute('data-day'));
           
           if (dayIndex !== activeDayIndex && toggle.checked) {
             // Copy the session pattern
-            const targetSessions = dayRow.querySelectorAll('.session-toggle input');
-            targetSessions.forEach((session, index) => {
-              const activeSession = activeSessions[index];
-              if (activeSession) {
-                session.checked = activeSession.checked;
-                const sessionToggle = session.closest('.session-toggle');
-                if (activeSession.checked) {
-                  sessionToggle.classList.add('active');
-                } else {
-                  sessionToggle.classList.remove('active');
+            const targetSessions = dayCard.querySelectorAll('.session-slot input');
+                          targetSessions.forEach((session, index) => {
+                const activeSession = activeSessions[index];
+                if (activeSession) {
+                  session.checked = activeSession.checked;
+                  const sessionSlot = session.closest('.session-slot');
+                  if (activeSession.checked) {
+                    sessionSlot.classList.add('active');
+                  } else {
+                    sessionSlot.classList.remove('active');
+                  }
                 }
-              }
-            });
+              });
           }
         });
         
@@ -1615,10 +1559,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Are you sure you want to clear all availability settings?')) {
           dayToggles.forEach(toggle => {
             toggle.checked = false;
-            const dayRow = toggle.closest('.table-row');
-            dayRow.classList.add('inactive');
-            const sessionsGrid = dayRow.querySelector('.sessions-grid');
-            sessionsGrid.style.display = 'none';
+            const dayCard = toggle.closest('.day-card');
+            dayCard.classList.add('inactive');
+            dayCard.classList.remove('active');
+            const dayStatus = dayCard.querySelector('.day-status');
+            dayStatus.textContent = 'Inactive';
+            dayStatus.className = 'day-status';
           });
         }
       });
@@ -1633,20 +1579,156 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize day states
     dayToggles.forEach(toggle => {
-      const dayRow = toggle.closest('.table-row');
+      const dayCard = toggle.closest('.day-card');
+      const dayStatus = dayCard.querySelector('.day-status');
       if (toggle.checked) {
-        dayRow.classList.remove('inactive');
-        const sessionsGrid = dayRow.querySelector('.sessions-grid');
-        sessionsGrid.style.display = 'flex';
+        dayCard.classList.remove('inactive');
+        dayCard.classList.add('active');
+        dayStatus.textContent = 'Active';
+        dayStatus.className = 'day-status active';
       } else {
-        dayRow.classList.add('inactive');
-        const sessionsGrid = dayRow.querySelector('.sessions-grid');
-        sessionsGrid.style.display = 'none';
+        dayCard.classList.add('inactive');
+        dayCard.classList.remove('active');
+        dayStatus.textContent = 'Inactive';
+        dayStatus.className = 'day-status';
       }
     });
     
-    // Load existing availability rules
-    loadAvailabilityRules();
+    // Load existing availability rules after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      loadAvailabilityRules();
+    }, 100);
+  }
+  
+  // Apply business hours preset
+  function applyBusinessHours() {
+    if (confirm('This will set up a standard 9 AM - 5 PM schedule for weekdays. Continue?')) {
+      // Set up weekdays (Mon-Fri)
+      for (let i = 0; i <= 4; i++) {
+        const dayCard = document.querySelector(`.day-card[data-day="${i}"]`);
+        const toggle = dayCard.querySelector('.day-toggle input[type="checkbox"]');
+        const startTimeInput = dayCard.querySelector('.start-time');
+        const endTimeInput = dayCard.querySelector('.end-time');
+        const dayStatus = dayCard.querySelector('.day-status');
+        
+        // Enable the day
+        toggle.checked = true;
+        dayCard.classList.remove('inactive');
+        dayCard.classList.add('active');
+        dayStatus.textContent = 'Active';
+        dayStatus.className = 'day-status active';
+        
+        // Set time range to 9 AM - 5 PM
+        startTimeInput.value = '09:00';
+        endTimeInput.value = '17:00';
+        
+        // Regenerate sessions
+        generateSessionTogglesForDay(i);
+        
+        // Activate all sessions
+        const sessions = dayCard.querySelectorAll('.session-slot input');
+        sessions.forEach(session => {
+          session.checked = true;
+          session.closest('.session-slot').classList.add('active');
+        });
+      }
+      
+      // Disable weekends
+      for (let i = 5; i <= 6; i++) {
+        const dayCard = document.querySelector(`.day-card[data-day="${i}"]`);
+        const toggle = dayCard.querySelector('.day-toggle input[type="checkbox"]');
+        const dayStatus = dayCard.querySelector('.day-status');
+        
+        toggle.checked = false;
+        dayCard.classList.add('inactive');
+        dayCard.classList.remove('active');
+        dayStatus.textContent = 'Inactive';
+        dayStatus.className = 'day-status';
+      }
+    }
+  }
+  
+  // Apply flexible schedule preset
+  function applyFlexibleSchedule() {
+    if (confirm('This will set up a flexible schedule (Mon-Sun, 10 AM - 8 PM). Continue?')) {
+      // Set up all days (Mon-Sun)
+      for (let i = 0; i <= 6; i++) {
+        const dayCard = document.querySelector(`.day-card[data-day="${i}"]`);
+        const toggle = dayCard.querySelector('.day-toggle input[type="checkbox"]');
+        const startTimeInput = dayCard.querySelector('.start-time');
+        const endTimeInput = dayCard.querySelector('.end-time');
+        const dayStatus = dayCard.querySelector('.day-status');
+        
+        // Enable the day
+        toggle.checked = true;
+        dayCard.classList.remove('inactive');
+        dayCard.classList.add('active');
+        dayStatus.textContent = 'Active';
+        dayStatus.className = 'day-status active';
+        
+        // Set time range to 10 AM - 8 PM
+        startTimeInput.value = '10:00';
+        endTimeInput.value = '20:00';
+        
+        // Regenerate sessions
+        generateSessionTogglesForDay(i);
+        
+        // Activate all sessions
+        const sessions = dayCard.querySelectorAll('.session-slot input');
+        sessions.forEach(session => {
+          session.checked = true;
+          session.closest('.session-slot').classList.add('active');
+        });
+      }
+    }
+  }
+  
+  // Apply weekend only preset
+  function applyWeekendOnly() {
+    if (confirm('This will set up a weekend-only schedule (Sat-Sun, 10 AM - 6 PM). Continue?')) {
+      // Disable weekdays
+      for (let i = 0; i <= 4; i++) {
+        const dayCard = document.querySelector(`.day-card[data-day="${i}"]`);
+        const toggle = dayCard.querySelector('.day-toggle input[type="checkbox"]');
+        const dayStatus = dayCard.querySelector('.day-status');
+        
+        toggle.checked = false;
+        dayCard.classList.add('inactive');
+        dayCard.classList.remove('active');
+        dayStatus.textContent = 'Inactive';
+        dayStatus.className = 'day-status';
+      }
+      
+      // Set up weekends (Sat-Sun)
+      for (let i = 5; i <= 6; i++) {
+        const dayCard = document.querySelector(`.day-card[data-day="${i}"]`);
+        const toggle = dayCard.querySelector('.day-toggle input[type="checkbox"]');
+        const startTimeInput = dayCard.querySelector('.start-time');
+        const endTimeInput = dayCard.querySelector('.end-time');
+        const dayStatus = dayCard.querySelector('.day-status');
+        
+        // Enable the day
+        toggle.checked = true;
+        dayCard.classList.remove('inactive');
+        dayCard.classList.add('active');
+        dayStatus.textContent = 'Active';
+        dayStatus.className = 'day-status active';
+        
+        // Set time range to 10 AM - 6 PM
+        startTimeInput.value = '10:00';
+        endTimeInput.value = '18:00';
+        
+        // Regenerate sessions
+        generateSessionTogglesForDay(i);
+        
+        // Activate all sessions
+        const sessions = dayCard.querySelectorAll('.session-slot input');
+        sessions.forEach(session => {
+          session.checked = true;
+          session.closest('.session-slot').classList.add('active');
+        });
+      }
+    }
   }
   
   // Generate session toggles for all days
@@ -1658,15 +1740,15 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Generate session toggles for a specific day
   function generateSessionTogglesForDay(day) {
-    const dayRow = document.querySelector(`.table-row[data-day="${day}"]`);
-    if (!dayRow) {
-      console.log(`Day row not found for day ${day}`);
+    const dayCard = document.querySelector(`.day-card[data-day="${day}"]`);
+    if (!dayCard) {
+      console.log(`Day card not found for day ${day}`);
       return;
     }
     
-    const startTime = dayRow.querySelector('.start-time').value;
-    const endTime = dayRow.querySelector('.end-time').value;
-    const sessionsGrid = dayRow.querySelector('.sessions-grid');
+    const startTime = dayCard.querySelector('.start-time').value;
+    const endTime = dayCard.querySelector('.end-time').value;
+    const slotsGrid = dayCard.querySelector('.slots-grid');
     
     console.log(`Generating sessions for day ${day}: ${startTime} to ${endTime}`);
     
@@ -1675,13 +1757,13 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    if (!sessionsGrid) {
-      console.log('Sessions grid not found');
+    if (!slotsGrid) {
+      console.log('Slots grid not found');
       return;
     }
     
     // Clear existing sessions
-    sessionsGrid.innerHTML = '';
+    slotsGrid.innerHTML = '';
     
     // Calculate sessions
     const start = new Date(`2000-01-01T${startTime}`);
@@ -1695,22 +1777,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     while (current < end) {
       const sessionTime = current.toTimeString().slice(0, 5);
-      const sessionToggle = document.createElement('div');
-      sessionToggle.className = 'session-toggle';
-      sessionToggle.innerHTML = `
+      const sessionSlot = document.createElement('div');
+      sessionSlot.className = 'session-slot';
+      sessionSlot.innerHTML = `
         <input type="checkbox" data-day="${day}" data-time="${sessionTime}" data-index="${sessionIndex}">
         <span>${sessionTime}</span>
       `;
       
-      sessionsGrid.appendChild(sessionToggle);
+      slotsGrid.appendChild(sessionSlot);
       
       // Add event listener
-      const checkbox = sessionToggle.querySelector('input');
+      const checkbox = sessionSlot.querySelector('input');
       checkbox.addEventListener('change', function() {
         if (this.checked) {
-          sessionToggle.classList.add('active');
+          sessionSlot.classList.add('active');
         } else {
-          sessionToggle.classList.remove('active');
+          sessionSlot.classList.remove('active');
         }
       });
       
@@ -1727,27 +1809,44 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('/api/availability/rules')
       .then(response => response.json())
       .then(rules => {
+        console.log('Loaded availability rules:', rules);
+        if (rules.length === 0) {
+          console.log('No availability rules found');
+          return;
+        }
+        
         rules.forEach(rule => {
-          const daySlot = document.querySelector(`.calendar-day[data-day="${rule.weekday}"]`);
-          if (daySlot) {
-            const checkbox = daySlot.querySelector('.day-toggle');
-            const timeSlotsContainer = daySlot.querySelector('.time-slots-container');
-            const addSlotBtn = daySlot.querySelector('.add-slot-btn');
+          const dayCard = document.querySelector(`.day-card[data-day="${rule.weekday}"]`);
+          if (dayCard) {
+            console.log(`Found day card for weekday ${rule.weekday}`);
+            const dayToggle = dayCard.querySelector('.day-toggle input[type="checkbox"]');
+            const dayStatus = dayCard.querySelector('.day-status');
             
-            // Check the day
-            checkbox.checked = true;
-            daySlot.classList.remove('inactive');
-            daySlot.classList.add('active');
-            timeSlotsContainer.style.display = 'flex';
-            addSlotBtn.style.display = 'block';
-            
-            // Set the time
-            const startTime = daySlot.querySelector('.start-time');
-            const endTime = daySlot.querySelector('.end-time');
-            if (startTime && endTime) {
-              startTime.value = rule.start;
-              endTime.value = rule.end;
+            if (dayToggle) {
+              // Check the day
+              dayToggle.checked = true;
+              dayCard.classList.remove('inactive');
+              dayCard.classList.add('active');
+              dayStatus.textContent = 'Active';
+              dayStatus.className = 'day-status active';
+              
+              // Set the time
+              const startTime = dayCard.querySelector('.start-time');
+              const endTime = dayCard.querySelector('.end-time');
+              if (startTime && endTime) {
+                startTime.value = rule.start;
+                endTime.value = rule.end;
+                
+                // Generate session toggles for this day
+                generateSessionTogglesForDay(rule.weekday);
+              } else {
+                console.log('Start or end time inputs not found for day', rule.weekday);
+              }
+            } else {
+              console.log('Day toggle not found for day', rule.weekday);
             }
+          } else {
+            console.log(`Day card not found for weekday ${rule.weekday}`);
           }
         });
       })
@@ -1760,12 +1859,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function saveAvailabilityRules() {
     const rules = [];
     
-    document.querySelectorAll('.table-row').forEach(dayRow => {
-      const day = parseInt(dayRow.getAttribute('data-day'));
-      const dayToggle = dayRow.querySelector('.day-toggle');
-      const startTime = dayRow.querySelector('.start-time').value;
-      const endTime = dayRow.querySelector('.end-time').value;
-      const activeSessions = dayRow.querySelectorAll('.session-toggle input:checked');
+    document.querySelectorAll('.day-card').forEach(dayCard => {
+      const day = parseInt(dayCard.getAttribute('data-day'));
+      const dayToggle = dayCard.querySelector('.day-toggle input[type="checkbox"]');
+      const startTime = dayCard.querySelector('.start-time').value;
+      const endTime = dayCard.querySelector('.end-time').value;
+      const activeSessions = dayCard.querySelectorAll('.session-slot input:checked');
       
       if (dayToggle.checked && startTime && endTime) {
         // Group consecutive active sessions
@@ -1817,6 +1916,8 @@ document.addEventListener('DOMContentLoaded', function() {
       return time.toTimeString().slice(0, 5);
     }
     
+    console.log('Saving availability rules:', rules);
+    
     // Save to server
     fetch('/api/availability/rules', {
       method: 'POST',
@@ -1839,35 +1940,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Initialize availability when tab is loaded
-  const originalUpdateContent = window.updateContent;
-  window.updateContent = function(tab) {
-    originalUpdateContent(tab);
-    if (tab === 'availability') {
-      setTimeout(initializeAvailability, 100);
-    }
-  };
-  
-  // Also initialize when DOM is loaded (in case tab is already active)
-  if (document.querySelector('.availability-setup')) {
-    setTimeout(initializeAvailability, 100);
-  }
-  
   // Override the updateContent function to properly handle availability
   if (typeof window.updateContent === 'function') {
     const originalUpdateContent = window.updateContent;
     window.updateContent = function(tab) {
       originalUpdateContent(tab);
       if (tab === 'availability') {
-        setTimeout(initializeAvailability, 100);
+        setTimeout(initializeAvailability, 200);
       }
     };
   } else {
     window.updateContent = function(tab) {
       if (tab === 'availability') {
-        setTimeout(initializeAvailability, 100);
+        setTimeout(initializeAvailability, 200);
       }
     };
+  }
+  
+  // Also initialize when DOM is loaded (in case tab is already active)
+  if (document.querySelector('.availability-container')) {
+    setTimeout(initializeAvailability, 200);
   }
 });
 </script>
