@@ -17,7 +17,7 @@ services:
       - DAILY_API_KEY=${DAILY_API_KEY}
       - YOUR_DOMAIN=${YOUR_DOMAIN:-https://f6b540a7cf43.ngrok-free.app}
       - REPLIT_DEV_DOMAIN=f6b540a7cf43.ngrok-free.app
-    command: python main.py
+    command: python -m flask run --host=0.0.0.0 --port=5000
 
 # Removed db service and depends_on
 
