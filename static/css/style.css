@@ -11,6 +11,21 @@ html, body {
     padding-top: 0 !important;
 }
 
+/* Center container content on desktop */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
 /* Money Green Theme Color Palette - DARK FOREST POWER */
 :root {
     --money-primary: #1B4332;           /* Deep forest green - power & wealth */
@@ -2991,3 +3006,477 @@ body {
         max-width: none;
     }
 }
+
+/* Mobile-first improvements */
+@media (max-width: 768px) {
+  /* Ensure proper spacing for mobile navigation */
+  .main-content {
+    padding-top: 80px !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Improve card layouts for mobile */
+  .card {
+    margin-bottom: 1rem;
+    border-radius: 12px;
+  }
+
+  /* Better button sizing for mobile */
+  .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+  }
+
+  /* Improve form controls for mobile */
+  .form-control {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+  }
+
+  /* Better spacing for mobile */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Improve expert cards for mobile */
+  .expert-card-enhanced {
+    margin-bottom: 1rem;
+    border-radius: 12px;
+  }
+
+  .expert-card-header-enhanced {
+    padding: 1rem;
+  }
+
+  .expert-avatar-wrapper {
+    width: 60px;
+    height: 60px;
+  }
+
+  .expert-info-enhanced {
+    padding: 0 1rem;
+  }
+
+  .expert-footer-enhanced {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .expert-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  /* Improve search section for mobile */
+  .discover-search-section {
+    padding: 1.5rem 1rem;
+  }
+
+  .search-input-wrapper {
+    margin-bottom: 1rem;
+  }
+
+  .search-button {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  /* Better category grid for mobile */
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .category-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  /* Improve dashboard stats for mobile */
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+
+  /* Better booking cards for mobile */
+  .booking-card {
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    padding: 1rem;
+  }
+
+  /* Improve account page for mobile */
+  .account-content {
+    flex-direction: column;
+  }
+
+  .account-sidebar {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .account-main-content {
+    width: 100%;
+  }
+
+  /* Better profile setup for mobile */
+  .profile-setup-container {
+    padding: 1rem;
+  }
+
+  .profile-setup-form {
+    padding: 1rem;
+  }
+
+  /* Improve footer for mobile */
+  .global-footer {
+    padding: 2rem 1rem;
+  }
+
+  .global-footer .footer-content {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .global-footer .footer-section {
+    text-align: center;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .main-content {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .expert-card-enhanced {
+    margin: 0 0.5rem 1rem 0.5rem;
+  }
+
+  .booking-card {
+    margin: 0 0.5rem 1rem 0.5rem;
+  }
+
+  .stat-card {
+    margin: 0 0.5rem 1rem 0.5rem;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .nav-link {
+    min-height: 44px;
+    padding: 1rem 1.5rem;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .action-btn {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  .form-control {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Better spacing for touch */
+  .expert-card-enhanced {
+    margin-bottom: 1.5rem;
+  }
+
+  .booking-card {
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Landscape orientation improvements */
+@media (max-width: 768px) and (orientation: landscape) {
+  .nav-dropdown {
+    max-height: 60vh;
+  }
+
+  .main-content {
+    padding-top: 70px;
+  }
+}
+
+/* High DPI display improvements */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .hamburger-icon,
+  .hamburger-icon::before,
+  .hamburger-icon::after {
+    transform: scale(0.9);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mobile-nav {
+    background: rgba(30, 30, 30, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-dropdown {
+    background: #1a1a1a;
+    color: #ffffff;
+  }
+
+  .nav-link {
+    color: #cccccc;
+  }
+
+  .nav-link:hover {
+    background: rgba(5, 150, 105, 0.2);
+    color: #ffffff;
+  }
+
+  .nav-item {
+    border-bottom-color: #333333;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .nav-dropdown,
+  .hamburger-icon,
+  .hamburger-icon::before,
+  .hamburger-icon::after {
+    transition: none;
+  }
+}
+
+/* Mobile enhancement styles */
+.quick-action-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 10;
+}
+
+.quick-action-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quick-action-btn {
+  background: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  color: #333;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.quick-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.quick-action-btn.book-btn {
+  background: #059669;
+  color: white;
+}
+
+.quick-action-btn.message-btn {
+  background: #667eea;
+  color: white;
+}
+
+.quick-booking-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.quick-booking-actions .quick-action-btn {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  min-width: auto;
+}
+
+.mobile-notification {
+  animation: slideInDown 0.3s ease;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.suggestion-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+  background-color: #f8f9fa;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.voice-search-btn {
+  transition: all 0.2s ease;
+}
+
+.voice-search-btn:hover {
+  background: rgba(5, 150, 105, 0.1) !important;
+  color: #059669 !important;
+}
+
+.voice-search-btn.recording {
+  background: #ff4444 !important;
+  color: white !important;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.mobile-image-preview {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Touch-friendly improvements for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .quick-action-btn {
+    min-height: 48px;
+    padding: 1rem 1.5rem;
+  }
+  
+  .suggestion-item {
+    min-height: 48px;
+    padding: 1rem;
+  }
+  
+  .voice-search-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .quick-action-btn {
+    border: 2px solid currentColor;
+  }
+  
+  .mobile-notification {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support for animations */
+@media (prefers-reduced-motion: reduce) {
+  .quick-action-overlay,
+  .quick-action-btn,
+  .mobile-notification,
+  .mobile-image-preview,
+  .voice-search-btn {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Sidebar Logout Button */
+.sidebar-logout {
+  padding: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-icon {
+  color: #dc3545 !important;
+  transition: all 0.2s ease;
+}
+
+.logout-icon:hover {
+  color: #c82333 !important;
+  transform: scale(1.1);
+}
+
+
