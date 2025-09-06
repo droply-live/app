@@ -22,6 +22,9 @@ jobs:
         script: |
           cd /opt/droply
           git pull origin main
+          # Remove any existing .env file to ensure we use GitHub Secrets
+          rm -f .env
+          # Set environment variables from GitHub Secrets
           export SECRET_KEY='${{ secrets.SECRET_KEY }}'
           export STRIPE_SECRET_KEY='${{ secrets.STRIPE_SECRET_KEY }}'
           export STRIPE_WEBHOOK_SECRET='${{ secrets.STRIPE_WEBHOOK_SECRET }}'
@@ -32,6 +35,7 @@ jobs:
           export FLASK_ENV='production'
           export ENVIRONMENT='production'
           export FLASK_DEBUG='0'
+          # Deploy with environment variables
           docker compose down
           docker compose build --no-cache
           docker compose up -d
