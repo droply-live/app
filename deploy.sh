@@ -10,7 +10,7 @@ current_branch=$(git branch --show-current)
 if [ "$current_branch" != "main" ]; then
     echo "❌ Error: You must be on the 'main' branch to deploy"
     echo "Current branch: $current_branch"
-    echo "💡 Tip: Merge your changes from develop to main first"
+    echo "💡 Tip: Create a Pull Request on GitHub to merge develop to main first"
     exit 1
 fi
 
