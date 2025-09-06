@@ -294,7 +294,9 @@
   
   <!-- Top Navigation Bar (Mobile Only) -->
   <nav class="top-nav">
-    <a href="{{ url_for('dashboard') }}" class="top-nav-logo">D</a>
+    <a href="{{ url_for('dashboard') }}" class="top-nav-logo" style="display: flex; align-items: center; justify-content: center;">
+      <div style="width: 32px; height: 32px; background: #059669; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; font-weight: bold;">D</div>
+    </a>
     <button class="top-nav-hamburger" id="topNavHamburger">
       <i class="fas fa-bars"></i>
     </button>

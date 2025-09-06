@@ -142,7 +142,7 @@ def get_meeting_token(room_name, user_id, is_owner=False):
     return f"simple-token-{user_id}-{is_owner}", None
 
 # Configure Stripe
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_4eC39HqLyjWDarjtT1zdp7dc')  # Use environment variable or fallback
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')  # Use environment variable
 YOUR_DOMAIN = os.environ.get('YOUR_DOMAIN', 'https://f6b540a7cf43.ngrok-free.app')
 
 # Production safeguards
@@ -563,10 +563,13 @@ def account():
 @login_required
 def delete_account():
     """Delete user account"""
+    print("=" * 50)
+    print("DELETE ACCOUNT ROUTE CALLED")
     print(f"Delete account request received from user: {current_user.email}")
     print(f"Form data: {request.form}")
     print(f"Request method: {request.method}")
     print(f"Request headers: {dict(request.headers)}")
+    print("=" * 50)
     
     try:
         # Get the confirmation text and reason
@@ -576,9 +579,9 @@ def delete_account():
         print(f"Confirmation text received: '{confirmation}'")
         print(f"Reason received: '{reason}'")
         
-        if confirmation != 'DELETE':
-            print(f"Confirmation text mismatch. Expected 'DELETE', got '{confirmation}'")
-            flash('Please type "DELETE" exactly to confirm account deletion.', 'error')
+        if confirmation != current_user.username:
+            print(f"Confirmation text mismatch. Expected '{current_user.username}', got '{confirmation}'")
+            flash('Please type your username exactly to confirm account deletion.', 'error')
             return redirect(url_for('account'))
         
         # Get current user
@@ -660,6 +663,7 @@ def find_experts():
         # Map category names to search terms
         category_mapping = {
             'top': [],  # Special case for top experts - will be handled separately
+            'favorites': [],  # Special case for favorites - will be handled separately
             'home': ['home', 'interior', 'design', 'decor', 'renovation', 'construction', 'architecture', 'furniture', 'decorating'],
             'business': ['business', 'consulting', 'strategy', 'management', 'entrepreneur', 'startup', 'finance', 'marketing', 'sales'],
             'design': ['design', 'ui', 'ux', 'graphic', 'visual', 'creative', 'art', 'branding', 'illustration', 'style', 'beauty', 'fashion'],
@@ -678,12 +682,13 @@ def find_experts():
                 from models import Favorite
                 favorites = Favorite.query.filter_by(user_id=current_user.id).all()
                 expert_ids = [f.expert_id for f in favorites]
-
+                
                 if expert_ids:
                     query = query.filter(User.id.in_(expert_ids))
                 else:
                     # Return empty list if no favorites
                     experts = []
+                    from datetime import datetime, timedelta
                     return render_template('find_experts.html', 
                                          experts=experts, 
                                          now=datetime.now(), 
@@ -1264,7 +1269,21 @@ def api_profile_update():
     try:
         data = request.get_json()
         
-        # Update basic profile fields
+        # Update basic profile fields (for account page auto-save)
+        if 'full_name' in data:
+            current_user.full_name = data['full_name']
+        if 'bio' in data:
+            current_user.bio = data['bio']
+            
+        # Update preference fields (for settings page auto-save)
+        if 'language' in data:
+            current_user.language = data['language']
+        if 'timezone' in data:
+            current_user.timezone = data['timezone']
+        if 'email_notifications' in data:
+            current_user.email_notifications = data['email_notifications']
+            
+        # Legacy support for other profile fields
         if 'name' in data:
             current_user.full_name = data['name']
         if 'title' in data:
@@ -1489,6 +1508,99 @@ def api_availability_exception_delete(exception_id):
         db.session.commit()
         return jsonify({'success': True})
     return jsonify({'success': False, 'error': 'Not found'}), 404
+
+@app.route('/api/availability/sync-calendar', methods=['POST'])
+@login_required
+def api_sync_google_calendar():
+    """Sync Google Calendar events to create availability exceptions"""
+    if not current_user.google_calendar_connected:
+        return jsonify({'success': False, 'error': 'Google Calendar not connected'}), 400
+    
+    try:
+        from googleapiclient.discovery import build
+        from google.oauth2.credentials import Credentials
+        from datetime import datetime, timedelta
+        
+        # Create credentials object
+        credentials = Credentials(
+            token=current_user.google_calendar_token,
+            refresh_token=current_user.google_calendar_refresh_token,
+            token_uri='https://oauth2.googleapis.com/token',
+            client_id=app.config['GOOGLE_CLIENT_ID'],
+            client_secret=app.config['GOOGLE_CLIENT_SECRET']
+        )
+        
+        # Build calendar service
+        service = build('calendar', 'v3', credentials=credentials)
+        
+        # Get events for the next 30 days
+        now = datetime.now()
+        time_min = now.isoformat() + 'Z'
+        time_max = (now + timedelta(days=30)).isoformat() + 'Z'
+        
+        events_result = service.events().list(
+            calendarId=current_user.google_calendar_id,
+            timeMin=time_min,
+            timeMax=time_max,
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+        
+        events = events_result.get('items', [])
+        
+        # Clear existing calendar-based exceptions
+        AvailabilityException.query.filter_by(
+            user_id=current_user.id,
+            reason='Google Calendar Event'
+        ).delete()
+        
+        # Create new exceptions for calendar events
+        synced_count = 0
+        for event in events:
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            end = event['end'].get('dateTime', event['end'].get('date'))
+            
+            if start and end:
+                # Parse datetime
+                if 'T' in start:  # datetime
+                    start_dt = datetime.fromisoformat(start.replace('Z', '+00:00'))
+                    end_dt = datetime.fromisoformat(end.replace('Z', '+00:00'))
+                else:  # date only
+                    start_dt = datetime.fromisoformat(start + 'T00:00:00+00:00')
+                    end_dt = datetime.fromisoformat(end + 'T23:59:59+00:00')
+                
+                # Create availability exception
+                exception = AvailabilityException(
+                    user_id=current_user.id,
+                    start=start_dt,
+                    end=end_dt,
+                    reason='Google Calendar Event',
+                    is_blocked=True
+                )
+                db.session.add(exception)
+                synced_count += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'synced_events': synced_count,
+            'message': f'Synced {synced_count} calendar events'
+        })
+        
+    except Exception as e:
+        print(f"Error syncing Google Calendar: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/availability/calendar-status', methods=['GET'])
+@login_required
+def api_calendar_status():
+    """Get Google Calendar connection status"""
+    print(f"DEBUG: Calendar status check for user {current_user.id}: connected={current_user.google_calendar_connected}")
+    return jsonify({
+        'connected': current_user.google_calendar_connected,
+        'calendar_id': current_user.google_calendar_id
+    })
 
 @app.route('/booking/confirm', methods=['GET', 'POST'])
 @login_required
@@ -2113,16 +2225,104 @@ def auth_google_callback():
     if not email:
         flash('Google account did not return an email.', 'error')
         return redirect(url_for('login'))
+    
     # Check if user exists
     user = User.query.filter_by(email=email).first()
+    is_new_user = False
+    
     if not user:
         # Register new user
         user = User(username=username, email=email, full_name=user_info.get('name'))
         db.session.add(user)
         db.session.commit()
+        is_new_user = True
+        print(f"New Google user registered: {user.email}")
+    
+    # Check if this is a calendar integration request (has calendar scope)
+    if 'calendar' in token.get('scope', ''):
+        print(f"DEBUG: Calendar integration detected. Scope: {token.get('scope', '')}")
+        try:
+            # Store the calendar tokens for the current user
+            user.google_calendar_connected = True
+            user.google_calendar_token = token.get('access_token')
+            user.google_calendar_refresh_token = token.get('refresh_token')
+            print(f"DEBUG: Stored calendar tokens for user {user.id}")
+            
+            # Get the primary calendar ID
+            from googleapiclient.discovery import build
+            from google.oauth2.credentials import Credentials
+            
+            # Create credentials object
+            credentials = Credentials(
+                token=token.get('access_token'),
+                refresh_token=token.get('refresh_token'),
+                token_uri='https://oauth2.googleapis.com/token',
+                client_id=app.config['GOOGLE_CLIENT_ID'],
+                client_secret=app.config['GOOGLE_CLIENT_SECRET']
+            )
+            
+            print("DEBUG: Building calendar service...")
+            service = build('calendar', 'v3', credentials=credentials)
+            calendar_list = service.calendarList().list().execute()
+            print(f"DEBUG: Retrieved {len(calendar_list.get('items', []))} calendars")
+            
+            # Find primary calendar
+            primary_calendar = None
+            for calendar in calendar_list.get('items', []):
+                if calendar.get('primary'):
+                    primary_calendar = calendar
+                    break
+            
+            if primary_calendar:
+                user.google_calendar_id = primary_calendar['id']
+                print(f"DEBUG: Set primary calendar ID: {primary_calendar['id']}")
+            else:
+                print("DEBUG: No primary calendar found, using first calendar")
+                if calendar_list.get('items'):
+                    user.google_calendar_id = calendar_list['items'][0]['id']
+            
+            db.session.commit()
+            print("DEBUG: Calendar integration completed successfully")
+            flash('Google Calendar connected successfully!', 'success')
+            
+        except Exception as e:
+            print(f"ERROR: Failed to connect Google Calendar: {e}")
+            import traceback
+            traceback.print_exc()
+            flash('Failed to connect Google Calendar. Please try again.', 'error')
+    
     login_user(user)
-    flash('Logged in with Google!', 'success')
-    return redirect(url_for('dashboard'))
+    
+    if is_new_user:
+        flash('Welcome! Please complete your profile setup.', 'success')
+        return redirect(url_for('onboarding'))
+    else:
+        if 'calendar' not in token.get('scope', ''):
+            flash('Logged in with Google!', 'success')
+        return redirect(url_for('account'))
+
+# Google Calendar Integration Routes
+@app.route('/auth/google-calendar')
+@login_required
+def auth_google_calendar():
+    """Connect Google Calendar for availability sync"""
+    # Use the existing Google OAuth but with calendar scope
+    redirect_uri = url_for('auth_google_callback', _external=True)
+    # Request calendar scope in addition to basic profile
+    return google.authorize_redirect(redirect_uri, scope='openid email profile https://www.googleapis.com/auth/calendar.readonly')
+
+@app.route('/disconnect-google-calendar', methods=['POST'])
+@login_required
+def disconnect_google_calendar():
+    """Disconnect Google Calendar integration"""
+    current_user.google_calendar_connected = False
+    current_user.google_calendar_token = None
+    current_user.google_calendar_refresh_token = None
+    current_user.google_calendar_id = None
+    
+    db.session.commit()
+    flash('Google Calendar disconnected successfully.', 'success')
+    return redirect(url_for('account'))
 
 @app.route('/meeting/<int:booking_id>')
 @login_required
