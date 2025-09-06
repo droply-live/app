@@ -563,10 +563,13 @@ def account():
 @login_required
 def delete_account():
     """Delete user account"""
+    print("=" * 50)
+    print("DELETE ACCOUNT ROUTE CALLED")
     print(f"Delete account request received from user: {current_user.email}")
     print(f"Form data: {request.form}")
     print(f"Request method: {request.method}")
     print(f"Request headers: {dict(request.headers)}")
+    print("=" * 50)
     
     try:
         # Get the confirmation text and reason
@@ -2113,16 +2116,27 @@ def auth_google_callback():
     if not email:
         flash('Google account did not return an email.', 'error')
         return redirect(url_for('login'))
+    
     # Check if user exists
     user = User.query.filter_by(email=email).first()
+    is_new_user = False
+    
     if not user:
         # Register new user
         user = User(username=username, email=email, full_name=user_info.get('name'))
         db.session.add(user)
         db.session.commit()
+        is_new_user = True
+        print(f"New Google user registered: {user.email}")
+    
     login_user(user)
-    flash('Logged in with Google!', 'success')
-    return redirect(url_for('dashboard'))
+    
+    if is_new_user:
+        flash('Welcome! Please complete your profile setup.', 'success')
+        return redirect(url_for('onboarding'))
+    else:
+        flash('Logged in with Google!', 'success')
+        return redirect(url_for('dashboard'))
 
 @app.route('/meeting/<int:booking_id>')
 @login_required
