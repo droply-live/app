@@ -8,22 +8,18 @@ services:
     volumes:
       - .:/app
     environment:
-      - FLASK_APP=app.py
       - FLASK_ENV=development
+      - ENVIRONMENT=development
       - FLASK_DEBUG=1
-    depends_on:
-      - db
+      - TZ=America/New_York
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - DAILY_API_KEY=${DAILY_API_KEY}
+      - YOUR_DOMAIN=${YOUR_DOMAIN:-https://f6b540a7cf43.ngrok-free.app}
+      - REPLIT_DEV_DOMAIN=f6b540a7cf43.ngrok-free.app
+    command: python -m flask run --host=0.0.0.0 --port=5000
 
-  db:
-    image: postgres:16
-    environment:
-      - POSTGRES_USER=droply
-      - POSTGRES_PASSWORD=droply
-      - POSTGRES_DB=droply
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+# Removed db service and depends_on
 
-volumes:
-  postgres_data: 
+# volumes:
+#   postgres_data: 

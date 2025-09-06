@@ -1,0 +1,45 @@
+<aside id="sidebar" class="sidebar d-flex flex-column justify-content-between">
+  <div>
+    <div class="sidebar-logo text-center py-4 mb-3">
+      <a href="{{ url_for('dashboard') }}" class="sidebar-logo-link" style="font-size: 1.5rem; font-weight: 900; color: #059669; text-decoration: none; letter-spacing: -1px;">D</a>
+    </div>
+    <nav class="sidebar-nav flex-grow-1">
+      <ul class="list-unstyled mb-0">
+        <li class="mb-2">
+          <a href="{{ url_for('dashboard') }}" class="sidebar-link-icon {% if request.endpoint == 'dashboard' %}active{% endif %}" title="Dashboard">
+            <i class="fas fa-home"></i>
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('find_experts') }}" class="sidebar-link-icon {% if request.endpoint == 'find_experts' %}active{% endif %}" title="Find Experts">
+            <i class="fas fa-search"></i>
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('bookings') }}" class="sidebar-link-icon {% if request.endpoint == 'bookings' %}active{% endif %}" title="My Bookings">
+            <i class="fas fa-calendar"></i>
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('expert_payouts') }}" class="sidebar-link-icon {% if request.endpoint == 'expert_payouts' %}active{% endif %}" title="Earnings">
+            <i class="fas fa-dollar-sign"></i>
+          </a>
+        </li>
+        <li class="mb-2">
+          <a href="{{ url_for('account') }}" class="sidebar-link-icon {% if request.endpoint == 'account' %}active{% endif %}" title="Account & Settings">
+            <i class="fas fa-user"></i>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  
+  <!-- Logout Button -->
+  <div class="sidebar-logout">
+    <a href="{{ url_for('logout') }}" class="sidebar-link-icon logout-icon" title="Log Out">
+      <i class="fas fa-sign-out-alt"></i>
+    </a>
+  </div>
+  
+  <button id="sidebar-burger" class="d-md-none sidebar-burger" aria-label="Open sidebar">&#9776;</button>
+</aside> 

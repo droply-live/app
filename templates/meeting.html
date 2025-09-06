@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Meeting - Droply</title>
+<script src="https://unpkg.com/@daily-co/daily-js"></script>
+<style>
+.meeting-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #1a1a1a;
+}
+
+.meeting-header {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.meeting-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.meeting-participants {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.participant-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.meeting-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.meeting-main {
+    flex: 1;
+    display: flex;
+    position: relative;
+}
+
+.video-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    align-items: center;
+    justify-items: center;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 16/9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #2a2a2a;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.video-element {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-overlay {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 14px;
+    backdrop-filter: blur(10px);
+}
+
+.meeting-sidebar {
+    width: 300px;
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.chat-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+.chat-message {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.chat-input {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chat-input input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: white;
+}
+
+.chat-input input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.meeting-footer {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.control-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 18px;
+}
+
+.control-btn.primary {
+    background: #667eea;
+    color: white;
+}
+
+.control-btn.danger {
+    background: #e53e3e;
+    color: white;
+}
+
+.control-btn.secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.control-btn:hover {
+    transform: scale(1.1);
+}
+
+.control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.waiting-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+}
+
+.waiting-spinner {
+    width: 60px;
+    height: 60px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 2rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.meeting-notes {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.meeting-notes h4 {
+    color: white;
+    margin-bottom: 0.5rem;
+    font-size: 14px;
+}
+
+.meeting-notes textarea {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 0.5rem;
+    color: white;
+    font-size: 12px;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.meeting-notes textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="meeting-container">
+    <!-- Meeting Header -->
+    <div class="meeting-header">
+        <div class="meeting-info">
+            <div>
+                <h4 class="mb-0">Video Meeting</h4>
+                <small class="text-muted">
+                    {{ booking.start_time.strftime('%B %d, %Y at %I:%M %p') }} - 
+                    {{ booking.end_time.strftime('%I:%M %p') }}
+                </small>
+            </div>
+        </div>
+        
+        <div class="meeting-participants">
+            <div class="participant-avatar">
+                {{ current_user.full_name[0] if current_user.full_name else current_user.username[0] }}
+            </div>
+            <span>•</span>
+            <div class="participant-avatar">
+                {{ other_user.full_name[0] if other_user.full_name else other_user.username[0] }}
+            </div>
+            <span class="ms-2">{{ other_user.full_name or other_user.username }}</span>
+        </div>
+        
+        <div class="meeting-controls">
+            <button class="btn btn-outline-light btn-sm" onclick="toggleSidebar()">
+                <i data-feather="message-circle"></i>
+            </button>
+            <a href="{{ url_for('bookings') }}" class="btn btn-outline-light btn-sm">
+                <i data-feather="x"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Meeting Main Area -->
+    <div class="meeting-main">
+        <!-- Video Grid -->
+        <div class="video-grid" id="videoGrid">
+            <div class="video-container">
+                <video id="localVideo" class="video-element" autoplay muted playsinline></video>
+                <div class="video-overlay">
+                    {{ current_user.full_name or current_user.username }} (You)
+                </div>
+            </div>
+            <div class="video-container">
+                <div id="remoteVideoContainer" class="video-element">
+                    <div class="waiting-screen">
+                        <div class="waiting-spinner"></div>
+                        <h5>Waiting for {{ other_user.full_name or other_user.username }} to join...</h5>
+                        <p class="text-muted">The meeting will start automatically when both participants are present</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="meeting-sidebar" id="meetingSidebar">
+            <div class="chat-container">
+                <h5 class="text-white mb-3">Meeting Chat</h5>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-message">
+                        <strong>System:</strong> Welcome to your Droply video meeting!
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Type a message..." maxlength="500">
+                    <button class="btn btn-primary btn-sm" onclick="sendMessage()">
+                        <i data-feather="send"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="meeting-notes">
+                <h4>Meeting Notes</h4>
+                <textarea id="meetingNotes" placeholder="Take notes during your meeting..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meeting Footer -->
+    <div class="meeting-footer">
+        <button class="control-btn secondary" onclick="toggleMute()" id="muteBtn">
+            <i data-feather="mic"></i>
+        </button>
+        <button class="control-btn secondary" onclick="toggleVideo()" id="videoBtn">
+            <i data-feather="video"></i>
+        </button>
+        <button class="control-btn secondary" onclick="toggleSidebar()">
+            <i data-feather="message-circle"></i>
+        </button>
+        {% if current_user.id == booking.expert_id %}
+        <button class="control-btn primary" onclick="startMeeting()" id="startBtn">
+            <i data-feather="play"></i>
+        </button>
+        <button class="control-btn danger" onclick="endMeeting()" id="endBtn">
+            <i data-feather="phone-off"></i>
+        </button>
+        {% else %}
+        <button class="control-btn danger" onclick="leaveMeeting()">
+            <i data-feather="phone-off"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+let callObject = null;
+let isMuted = false;
+let isVideoOn = true;
+let isSidebarOpen = true;
+
+// Initialize Daily.co call
+async function initializeCall() {
+    try {
+        callObject = DailyIframe.createFrame(document.getElementById('remoteVideoContainer'), {
+            iframeStyle: {
+                width: '100%',
+                height: '100%',
+                border: '0',
+                borderRadius: '12px'
+            },
+            showLeaveButton: false,
+            showFullscreenButton: false,
+            showLocalVideo: false
+        });
+
+        // Set up event listeners
+        callObject.on('joined-meeting', handleJoinedMeeting);
+        callObject.on('participant-joined', handleParticipantJoined);
+        callObject.on('participant-left', handleParticipantLeft);
+        callObject.on('left-meeting', handleLeftMeeting);
+        callObject.on('error', handleError);
+        callObject.on('message', handleMessage);
+
+        // Join the meeting
+        await callObject.join({
+            url: '{{ booking.meeting_url }}',
+            token: '{{ token }}'
+        });
+
+    } catch (error) {
+        console.error('Error initializing call:', error);
+        showError('Failed to join meeting. Please try again.');
+    }
+}
+
+function handleJoinedMeeting(event) {
+    console.log('Joined meeting:', event);
+    updateMeetingStatus();
+}
+
+function handleParticipantJoined(event) {
+    console.log('Participant joined:', event);
+    const participant = event.participant;
+    if (participant.user_id !== '{{ current_user.id }}') {
+        addChatMessage('System', `${participant.user_name || 'Someone'} joined the meeting`);
+        updateMeetingStatus();
+    }
+}
+
+function handleParticipantLeft(event) {
+    console.log('Participant left:', event);
+    const participant = event.participant;
+    addChatMessage('System', `${participant.user_name || 'Someone'} left the meeting`);
+    updateMeetingStatus();
+}
+
+function handleLeftMeeting(event) {
+    console.log('Left meeting:', event);
+    window.location.href = '{{ url_for("bookings") }}';
+}
+
+function handleError(event) {
+    console.error('Call error:', event);
+    showError('Meeting error occurred. Please try again.');
+}
+
+function handleMessage(event) {
+    console.log('Message received:', event);
+    const { fromId, data } = event;
+    if (data.type === 'chat') {
+        addChatMessage(fromId, data.message);
+    }
+}
+
+function toggleMute() {
+    if (callObject) {
+        isMuted = !isMuted;
+        callObject.setLocalAudio(!isMuted);
+        document.getElementById('muteBtn').innerHTML = isMuted ? 
+            '<i data-feather="mic-off"></i>' : '<i data-feather="mic"></i>';
+        feather.replace();
+    }
+}
+
+function toggleVideo() {
+    if (callObject) {
+        isVideoOn = !isVideoOn;
+        callObject.setLocalVideo(isVideoOn);
+        document.getElementById('videoBtn').innerHTML = isVideoOn ? 
+            '<i data-feather="video"></i>' : '<i data-feather="video-off"></i>';
+        feather.replace();
+    }
+}
+
+function toggleSidebar() {
+    isSidebarOpen = !isSidebarOpen;
+    const sidebar = document.getElementById('meetingSidebar');
+    sidebar.style.display = isSidebarOpen ? 'block' : 'none';
+}
+
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (message && callObject) {
+        callObject.sendAppMessage({
+            type: 'chat',
+            message: message
+        }, '*');
+        
+        addChatMessage('{{ current_user.full_name or current_user.username }}', message);
+        input.value = '';
+    }
+}
+
+function addChatMessage(sender, message) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'chat-message';
+    messageDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function startMeeting() {
+    try {
+        const response = await fetch('{{ url_for("start_meeting", booking_id=booking.id) }}');
+        if (response.ok) {
+            addChatMessage('System', 'Meeting started by expert');
+            document.getElementById('startBtn').disabled = true;
+        }
+    } catch (error) {
+        console.error('Error starting meeting:', error);
+    }
+}
+
+async function endMeeting() {
+    if (confirm('Are you sure you want to end this meeting?')) {
+        try {
+            const response = await fetch('{{ url_for("end_meeting", booking_id=booking.id) }}');
+            if (response.ok) {
+                if (callObject) {
+                    await callObject.leave();
+                }
+            }
+        } catch (error) {
+            console.error('Error ending meeting:', error);
+        }
+    }
+}
+
+function leaveMeeting() {
+    if (confirm('Are you sure you want to leave this meeting?')) {
+        if (callObject) {
+            callObject.leave();
+        }
+    }
+}
+
+function updateMeetingStatus() {
+    // Update UI based on meeting status
+    const participants = callObject ? Object.keys(callObject.participants()).length : 0;
+    if (participants >= 2) {
+        document.getElementById('startBtn').disabled = false;
+    }
+}
+
+function showError(message) {
+    addChatMessage('System', `Error: ${message}`);
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    feather.replace();
+    initializeCall();
+    
+    // Handle chat input enter key
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+    
+    // Auto-save meeting notes
+    let notesTimeout;
+    document.getElementById('meetingNotes').addEventListener('input', function() {
+        clearTimeout(notesTimeout);
+        notesTimeout = setTimeout(() => {
+            localStorage.setItem('meeting-notes-{{ booking.id }}', this.value);
+        }, 1000);
+    });
+    
+    // Load saved notes
+    const savedNotes = localStorage.getItem('meeting-notes-{{ booking.id }}');
+    if (savedNotes) {
+        document.getElementById('meetingNotes').value = savedNotes;
+    }
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', function() {
+    if (callObject) {
+        callObject.leave();
+    }
+});
+</script>
+</body>
+</html> 

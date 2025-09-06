@@ -1,17 +1,35 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, FloatField, BooleanField, PasswordField, DateTimeLocalField, HiddenField
-from wtforms.validators import DataRequired, Email, Length, NumberRange, Optional
+from wtforms import StringField, TextAreaField, SelectField, FloatField, BooleanField, PasswordField, DateTimeLocalField, HiddenField, IntegerField, SubmitField
+from wtforms.validators import DataRequired, Email, Length, NumberRange, Optional, EqualTo
 from models import Category
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=64)])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
-    full_name = StringField('Full Name', validators=[DataRequired(), Length(max=100)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
+    submit = SubmitField('Sign Up')
+
+class OnboardingForm(FlaskForm):
+    profession = StringField('Professional Title', validators=[DataRequired(), Length(max=100)])
+    bio = TextAreaField('Bio', validators=[DataRequired(), Length(max=500)])
+    hourly_rate = IntegerField('Hourly Rate ($)', validators=[Optional()])
+    industry = SelectField('Industry', choices=[
+        ('technology', 'Technology'),
+        ('business', 'Business'),
+        ('marketing', 'Marketing'),
+        ('finance', 'Finance'),
+        ('healthcare', 'Healthcare'),
+        ('education', 'Education'),
+        ('consulting', 'Consulting'),
+        ('creative', 'Creative'),
+        ('fitness', 'Fitness & Wellness'),
+        ('other', 'Other')
+    ], validators=[DataRequired()])
 
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember Me')
+    submit = SubmitField('Sign In')
 
 class ProfileForm(FlaskForm):
     full_name = StringField('Full Name', validators=[DataRequired(), Length(max=100)])
@@ -172,7 +190,6 @@ class ProfileForm(FlaskForm):
         ('hobart-au', 'Hobart, Australia'),
         ('berlin-de', 'Berlin, Germany'),
         ('hamburg-de', 'Hamburg, Germany'),
-        ('munich-de', 'Munich, Germany'),
         ('cologne-de', 'Cologne, Germany'),
         ('frankfurt-de', 'Frankfurt, Germany'),
         ('stuttgart-de', 'Stuttgart, Germany'),
@@ -219,7 +236,6 @@ class ProfileForm(FlaskForm):
     # Availability settings
     is_available = BooleanField('Currently Available for Sessions')
 
-
 class TimeSlotForm(FlaskForm):
     title = StringField('Session Title', validators=[DataRequired(), Length(max=200)])
     description = TextAreaField('Description', validators=[Optional(), Length(max=500)])
@@ -234,8 +250,6 @@ class TimeSlotForm(FlaskForm):
         ('other', 'Other')
     ], default='consultation')
     
-
-    
     location_details = StringField('Meeting Details', validators=[Optional(), Length(max=200)])
     price = FloatField('Price', validators=[Optional(), NumberRange(min=0, max=10000)])
 
@@ -247,8 +261,8 @@ class BookingForm(FlaskForm):
 
 class SearchForm(FlaskForm):
     query = StringField('Search', validators=[Optional()])
-    industry = SelectField('Industry', choices=[
-        ('', 'All Industries'),
+    category = SelectField('Category', choices=[
+        ('All Categories', 'All Categories'),
         ('technology', 'Technology'),
         ('business', 'Business'),
         ('marketing', 'Marketing'),
@@ -259,74 +273,13 @@ class SearchForm(FlaskForm):
         ('creative', 'Creative'),
         ('fitness', 'Fitness & Wellness'),
         ('other', 'Other')
-    ], default='')
-    
-    profession = SelectField('Profession', choices=[
-        ('', 'All Professions'),
-        ('coach', 'Coach'),
-        ('mentor', 'Mentor'),
-        ('consultant', 'Consultant'),
-        ('advisor', 'Advisor'),
-        ('trainer', 'Trainer'),
-        ('therapist', 'Therapist'),
-        ('instructor', 'Instructor'),
-        ('specialist', 'Specialist'),
-        ('other', 'Other')
-    ], default='')
-    
-    location = SelectField('Location', choices=[
-        ('', 'All Locations'),
-        ('new-york-ny', 'New York, NY'),
-        ('los-angeles-ca', 'Los Angeles, CA'),
-        ('chicago-il', 'Chicago, IL'),
-        ('houston-tx', 'Houston, TX'),
-        ('phoenix-az', 'Phoenix, AZ'),
-        ('philadelphia-pa', 'Philadelphia, PA'),
-        ('san-antonio-tx', 'San Antonio, TX'),
-        ('san-diego-ca', 'San Diego, CA'),
-        ('dallas-tx', 'Dallas, TX'),
-        ('san-jose-ca', 'San Jose, CA'),
-        ('austin-tx', 'Austin, TX'),
-        ('seattle-wa', 'Seattle, WA'),
-        ('denver-co', 'Denver, CO'),
-        ('washington-dc', 'Washington, DC'),
-        ('boston-ma', 'Boston, MA'),
-        ('san-francisco-ca', 'San Francisco, CA'),
-        ('atlanta-ga', 'Atlanta, GA'),
-        ('miami-fl', 'Miami, FL'),
-        ('portland-or', 'Portland, OR'),
-        ('nashville-tn', 'Nashville, TN'),
-        ('las-vegas-nv', 'Las Vegas, NV'),
-        ('detroit-mi', 'Detroit, MI'),
-        ('baltimore-md', 'Baltimore, MD'),
-        ('milwaukee-wi', 'Milwaukee, WI'),
-        ('kansas-city-mo', 'Kansas City, MO'),
-        ('colorado-springs-co', 'Colorado Springs, CO'),
-        ('raleigh-nc', 'Raleigh, NC'),
-        ('minneapolis-mn', 'Minneapolis, MN'),
-        ('tampa-fl', 'Tampa, FL'),
-        ('new-orleans-la', 'New Orleans, LA'),
-        ('cleveland-oh', 'Cleveland, OH'),
-        ('honolulu-hi', 'Honolulu, HI'),
-        ('anchorage-ak', 'Anchorage, AK'),
-        ('orlando-fl', 'Orlando, FL'),
-        ('london-uk', 'London, UK'),
-        ('manchester-uk', 'Manchester, UK'),
-        ('birmingham-uk', 'Birmingham, UK'),
-        ('glasgow-uk', 'Glasgow, UK'),
-        ('toronto-ca', 'Toronto, Canada'),
-        ('montreal-ca', 'Montreal, Canada'),
-        ('vancouver-ca', 'Vancouver, Canada'),
-        ('sydney-au', 'Sydney, Australia'),
-        ('melbourne-au', 'Melbourne, Australia'),
-        ('berlin-de', 'Berlin, Germany'),
-        ('paris-fr', 'Paris, France'),
-        ('remote-worldwide', 'Remote (Worldwide)'),
-        ('remote-us', 'Remote (US Only)'),
-        ('remote-europe', 'Remote (Europe Only)'),
-        ('remote-asia', 'Remote (Asia Pacific)')
-    ], validators=[Optional()])
-
-    
-    min_rate = FloatField('Min Rate', validators=[Optional(), NumberRange(min=0)])
-    max_rate = FloatField('Max Rate', validators=[Optional(), NumberRange(min=0)])
+    ], default='All Categories')
+    price = SelectField('Price', choices=[
+        ('Any Price', 'Any Price'),
+        ('free', 'Free'),
+        ('paid', 'Paid')
+    ], default='Any Price')
+    rating = SelectField('Rating', choices=[
+        ('Any Rating', 'Any Rating'),
+        ('Top Rated', 'Top Rated')
+    ], default='Any Rating')

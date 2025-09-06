@@ -1,26 +1,32 @@
-{% extends "base.html" %}
-
-{% block title %}Page Not Found - Droply{% endblock %}
-
-{% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-6 text-center">
-            <div class="error-page">
-                <h1 class="display-1 fw-bold text-primary">404</h1>
-                <h2 class="mb-3">Page Not Found</h2>
-                <p class="lead text-muted mb-4">The page you're looking for doesn't exist or has been moved.</p>
-                
-                <div class="d-flex gap-3 justify-content-center">
-                    <a href="{{ url_for('index') }}" class="btn btn-primary">
-                        <i data-feather="home" class="me-2"></i>Go Home
-                    </a>
-                    <a href="{{ url_for('search') }}" class="btn btn-outline-primary">
-                        <i data-feather="search" class="me-2"></i>Search Experts
-                    </a>
-                </div>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - Droply</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .error-container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1 class="display-4">404</h1>
+        <p class="lead">Sorry, the page you are looking for does not exist.</p>
+        <a href="{{ url_for('homepage') }}" class="btn btn-primary mt-3">Go Home</a>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>

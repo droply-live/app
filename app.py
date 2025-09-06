@@ -1,23 +1,45 @@
 import os
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
+from extensions import db, login_manager
+from authlib.integrations.flask_client import OAuth
 from flask_login import LoginManager
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime, timezone, timedelta
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-class Base(DeclarativeBase):
-    pass
-
-db = SQLAlchemy(model_class=Base)
+# Configure timezone to Eastern Time
+EASTERN_TIMEZONE = timezone(timedelta(hours=-4))  # EDT (UTC-4)
+# For EST (UTC-5), use: timezone(timedelta(hours=-5))
 
 # create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
+app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')
+app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-12345')
+
+# Debug: Print loaded credentials (remove in production)
+print(f"Loaded GOOGLE_CLIENT_ID: {app.config['GOOGLE_CLIENT_ID']}")
+print(f"Loaded GOOGLE_CLIENT_SECRET: {app.config['GOOGLE_CLIENT_SECRET'][:10]}..." if app.config['GOOGLE_CLIENT_SECRET'] != 'YOUR_GOOGLE_CLIENT_SECRET' else "Using placeholder secret")
+
+# OAuth setup
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=app.config['GOOGLE_CLIENT_ID'],
+    client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'},
+)
+
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
 
 # configure the database
@@ -26,25 +48,50 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # initialize the app with the extension
 db.init_app(app)
 
 # Setup Flask-Login
-login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
 @login_manager.user_loader
 def load_user(user_id):
+    # Import here to avoid circular import
     from models import User
     return User.query.get(int(user_id))
 
+def update_past_bookings():
+    with app.app_context():
+        from models import Booking
+        from app import db
+        now = datetime.now(EASTERN_TIMEZONE)  # Use Eastern Time instead of UTC
+        bookings = Booking.query.filter(
+            Booking.status == 'confirmed',
+            Booking.end_time < now
+        ).all()
+        updated = 0
+        for booking in bookings:
+            booking.status = 'completed'
+            updated += 1
+        if updated > 0:
+            db.session.commit()
+            print(f"[APScheduler] Updated {updated} bookings to completed.")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(update_past_bookings, 'interval', minutes=5)
+scheduler.start()
+
 with app.app_context():
     # Make sure to import the models here or their tables won't be created
-    import models  # noqa: F401
+    from models import User, AvailabilityRule, AvailabilityException, Booking, Category
     db.create_all()
 
 # Import routes after app initialization
 from routes import *  # noqa: F401,F403
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5001)

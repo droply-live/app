@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_signed_in.html" %}
 
 {% block title %}Booking Confirmed - Droply{% endblock %}
 
@@ -88,8 +88,8 @@
                     <!-- Action Buttons -->
                     <div class="d-flex gap-3 justify-content-center">
                         {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
-                            <i data-feather="home" class="me-2"></i>Go to Dashboard
+                        <a href="{{ url_for('homepage') }}" class="btn btn-primary">
+                            <i data-feather="home" class="me-2"></i>Go to Home
                         </a>
                         {% endif %}
                         
@@ -97,7 +97,7 @@
                             <i data-feather="user" class="me-2"></i>View Provider Profile
                         </a>
                         
-                        <a href="{{ url_for('search') }}" class="btn btn-outline-secondary">
+                        <a href="{{ url_for('homepage') }}" class="btn btn-outline-secondary">
                             <i data-feather="search" class="me-2"></i>Find More Experts
                         </a>
                     </div>

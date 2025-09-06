@@ -1,0 +1,262 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Bookings - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Bookings Header -->
+  <div class="mb-4">
+    <h1 class="h2 mb-1">Bookings</h1>
+    <p class="text-muted mb-0">Manage your sessions and appointments</p>
+  </div>
+
+  <!-- Tabbed Interface -->
+  <div id="bookings-tabs" class="tabbed-interface">
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-button active" data-tab="received-bookings">
+        <i class="fas fa-users d-none d-md-inline"></i>
+        <span>Received</span>
+        {% set pending_count = (upcoming_as_expert|selectattr('status', 'equalto', 'pending')|list|length) %}
+        {% if pending_count > 0 %}
+        <span class="tab-badge warning">{{ pending_count }}</span>
+        {% endif %}
+      </button>
+      <button class="tab-button" data-tab="my-bookings">
+        <i class="fas fa-calendar d-none d-md-inline"></i>
+        <span>Scheduled</span>
+        {% set my_bookings_count = upcoming_as_client|length %}
+        {% if my_bookings_count > 0 %}
+        <span class="tab-badge">{{ my_bookings_count }}</span>
+        {% endif %}
+      </button>
+      <button class="tab-button" data-tab="past-sessions">
+        <i class="fas fa-history d-none d-md-inline"></i>
+        <span>Past</span>
+      </button>
+    </div>
+    <div class="tab-indicator"></div>
+
+    <!-- Tab Content Container -->
+    <div class="tab-content-container">
+      <!-- Received Bookings Tab -->
+      <div class="tab-content active" data-tab-content="received-bookings">
+        <div class="tab-header">
+          <div>
+            <p class="tab-subtitle">People booking sessions with you as an expert</p>
+          </div>
+        </div>
+
+        {% set pending_bookings = upcoming_as_expert|selectattr('status', 'equalto', 'pending')|list %}
+        {% set confirmed_upcoming = upcoming_as_expert|selectattr('status', 'equalto', 'confirmed')|list %}
+        
+        {% if not pending_bookings and not confirmed_upcoming %}
+        <div class="tab-empty-state">
+          <i class="fas fa-users"></i>
+          <h3>No Bookings Received Yet</h3>
+          <p>When clients book sessions with you, they'll appear here for your review and approval.</p>
+        </div>
+        {% else %}
+        <!-- Pending Bookings Section -->
+        {% if pending_bookings %}
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-clock"></i>
+            Pending Approval ({{ pending_bookings|length }})
+          </h3>
+          <div class="booking-list">
+            {% for booking in pending_bookings %}
+            <div class="booking-card pending">
+              <div class="booking-header">
+                <div class="booking-client">
+                  <h4>{{ booking.user.full_name or booking.user.username }}</h4>
+                  <p class="booking-time">{{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
+                </div>
+                <div class="booking-status">
+                  <span class="status-badge pending">Pending</span>
+                  {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
+                  <div class="booking-amount">${{ "%.2f"|format(booking.payment_amount) }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              {% if booking.client_message %}
+              <div class="booking-message">
+                <strong>Message:</strong> {{ booking.client_message }}
+              </div>
+              {% endif %}
+              <div class="booking-actions">
+                <a href="{{ url_for('accept_booking', booking_id=booking.id) }}" 
+                   class="btn btn-success btn-sm"
+                   onclick="return confirm('Accept this booking request?')">
+                  <i class="fas fa-check"></i> Accept
+                </a>
+                <a href="{{ url_for('decline_booking', booking_id=booking.id) }}" 
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('Decline this booking request? Payment will be refunded.')">
+                  <i class="fas fa-times"></i> Decline
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Confirmed Upcoming Bookings Section -->
+        {% if confirmed_upcoming %}
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-calendar-check"></i>
+            Confirmed Sessions ({{ confirmed_upcoming|length }})
+          </h3>
+          <div class="booking-list">
+            {% for booking in confirmed_upcoming %}
+            <div class="booking-card confirmed">
+              <div class="booking-header">
+                <div class="booking-client">
+                  <h4>{{ booking.user.full_name or booking.user.username }}</h4>
+                  <p class="booking-time">{{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
+                </div>
+                <div class="booking-status">
+                  <span class="status-badge confirmed">Confirmed</span>
+                  {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
+                  <div class="booking-amount">${{ "%.2f"|format(booking.payment_amount) }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="booking-actions">
+                {% if booking.can_join_meeting() %}
+                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                   class="btn btn-success btn-sm">
+                  <i class="fas fa-video"></i> Join Meeting
+                </a>
+                {% elif booking.is_ongoing() %}
+                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                   class="btn btn-success btn-sm">
+                  <i class="fas fa-video"></i> Join Meeting
+                </a>
+                {% else %}
+                <span class="meeting-status">
+                  <i class="fas fa-clock"></i>
+                  {% if (booking.start_time|to_eastern) > now %}
+                    Starts in {{ (((booking.start_time|to_eastern) - now).total_seconds() / 3600)|round(1) }} hours
+                  {% else %}
+                    Meeting time has passed
+                  {% endif %}
+                </span>
+                {% endif %}
+                <a href="{{ url_for('cancel_booking_by_expert', booking_id=booking.id) }}" 
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('Cancel this booking? Client will receive a full refund.')">
+                  <i class="fas fa-times"></i> Cancel Session
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- Scheduled Sessions Tab -->
+      <div class="tab-content" data-tab-content="my-bookings">
+        <div class="tab-header">
+          <div>
+            <p class="tab-subtitle">Sessions you've booked with other experts</p>
+          </div>
+          <div class="tab-actions">
+            <a href="{{ url_for('find_experts') }}" class="tab-action-btn primary">
+              <i class="fas fa-search"></i>
+              Find Experts
+            </a>
+          </div>
+        </div>
+
+        {% if upcoming_as_client %}
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-calendar"></i>
+            Upcoming Sessions ({{ upcoming_as_client|length }})
+          </h3>
+          <div class="booking-list">
+            {% for booking in upcoming_as_client %}
+            <div class="booking-card confirmed">
+              <div class="booking-header">
+                <div class="booking-client">
+                  <h4>{{ booking.expert.full_name or booking.expert.username }}</h4>
+                  <p class="booking-time">{{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}</p>
+                </div>
+                <div class="booking-status">
+                  <span class="status-badge confirmed">Confirmed</span>
+                  {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
+                  <div class="booking-amount">${{ "%.2f"|format(booking.payment_amount) }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="booking-actions">
+                {% if booking.can_join_meeting() %}
+                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                   class="btn btn-success btn-sm">
+                  <i class="fas fa-video"></i> Join Meeting
+                </a>
+                {% elif booking.is_ongoing() %}
+                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                   class="btn btn-success btn-sm">
+                  <i class="fas fa-video"></i> Join Meeting
+                </a>
+                {% else %}
+                <span class="meeting-status">
+                  <i class="fas fa-clock"></i>
+                  {% if (booking.start_time|to_eastern) > now %}
+                    Starts in {{ (((booking.start_time|to_eastern) - now).total_seconds() / 3600)|round(1) }} hours
+                  {% else %}
+                    Meeting time has passed
+                  {% endif %}
+                </span>
+                {% endif %}
+                <a href="{{ url_for('cancel_booking_by_client', booking_id=booking.id) }}" 
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('Cancel this booking? You will receive a full refund.')">
+                  <i class="fas fa-times"></i> Cancel Session
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <div class="tab-empty-state">
+          <i class="fas fa-calendar"></i>
+          <h3>No Bookings Yet</h3>
+          <p>You haven't booked any sessions yet. Find experts and start booking sessions!</p>
+          <a href="{{ url_for('find_experts') }}" class="btn btn-primary">
+            <i class="fas fa-search"></i>
+            Find Experts
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Past Sessions Tab -->
+      <div class="tab-content" data-tab-content="past-sessions">
+        <div class="tab-header">
+          <div>
+            <p class="tab-subtitle">Your completed sessions and history</p>
+          </div>
+        </div>
+
+        <div class="tab-empty-state">
+          <i class="fas fa-history"></i>
+          <h3>No Past Sessions</h3>
+          <p>Your completed sessions will appear here once you have some sessions under your belt.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include tabs CSS and JS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tabs.css') }}">
+<script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
+{% endblock %} 

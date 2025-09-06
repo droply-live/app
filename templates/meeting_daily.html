@@ -1,0 +1,280 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Video Call - {{ booking.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <!-- Video Call Container -->
+        <div class="col-12">
+            <div class="video-call-container">
+                <!-- Header -->
+                <div class="call-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">
+                            <i class="fas fa-video me-2"></i>
+                            {{ booking.title or "Video Call" }}
+                        </h4>
+                        <small class="text-muted">
+                            with {{ other_user.name }} • 
+                            {{ booking.start_time.strftime('%B %d, %Y at %I:%M %p') }}
+                        </small>
+                        <div class="mt-1">
+                            <span class="badge bg-primary" id="meeting-status">Active</span>
+                            <span class="badge bg-warning text-dark ms-2" id="countdown-timer">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="call-controls">
+                        <button class="btn btn-outline-light btn-sm me-2" onclick="toggleMute()">
+                            <i class="fas fa-microphone" id="mute-icon"></i>
+                        </button>
+                        <button class="btn btn-outline-light btn-sm me-2" onclick="toggleVideo()">
+                            <i class="fas fa-video" id="video-icon"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="endCall()">
+                            <i class="fas fa-phone-slash"></i> End Call
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video Container -->
+                <div id="video-container" style="width: 100%; height: calc(100vh - 140px); background: #000;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily.co Script -->
+<script src="https://unpkg.com/@daily-co/daily-js"></script>
+
+<script>
+let callObject = null;
+let isMuted = false;
+let isVideoOn = true;
+let countdownInterval = null;
+
+// Parse the meeting end time properly
+let meetingEndTime;
+try {
+    // Get the meeting end time from the server (in UTC)
+    const serverEndTime = '{{ booking.end_time.isoformat() }}';
+    console.log('Server end time:', serverEndTime);
+    
+    // Create a Date object and treat it as UTC, then convert to local time
+    const utcDate = new Date(serverEndTime + 'Z'); // Add Z to indicate UTC
+    meetingEndTime = utcDate.getTime();
+    console.log('Meeting end time (local):', new Date(meetingEndTime).toLocaleString());
+    console.log('Meeting end time (UTC):', utcDate.toISOString());
+} catch (error) {
+    console.error('Error parsing meeting end time:', error);
+    // Fallback: create a 30-minute meeting from now
+    meetingEndTime = new Date().getTime() + (30 * 60 * 1000);
+}
+
+// Initialize the call
+async function initializeCall() {
+    try {
+        // Check if room URL is available
+        const roomUrl = '{{ room_url }}';
+        if (!roomUrl || roomUrl === 'None' || roomUrl === '') {
+            throw new Error('Meeting room URL is not available. Please try refreshing the page.');
+        }
+
+        console.log('Initializing call with room URL:', roomUrl);
+
+        callObject = DailyIframe.createFrame(document.getElementById('video-container'), {
+            iframeStyle: {
+                width: '100%',
+                height: '100%',
+                border: '0'
+            }
+        });
+
+        // Set up event listeners
+        callObject.on('joined-meeting', () => {
+            console.log('Joined meeting successfully');
+            startCountdown();
+        });
+
+        callObject.on('left-meeting', () => {
+            console.log('Left meeting');
+            stopCountdown();
+            window.location.href = '{{ url_for("bookings") }}';
+        });
+
+        callObject.on('error', (error) => {
+            console.error('Call error:', error);
+            alert('Error joining call: ' + (error.errorMsg || error.message || 'Unknown error'));
+        });
+
+        // Join the meeting without authentication
+        await callObject.join({
+            url: roomUrl,
+            userName: '{{ current_user.full_name or current_user.username }}',
+            showLocalVideo: true,
+            showParticipantsBar: true
+        });
+
+    } catch (error) {
+        console.error('Error initializing call:', error);
+        alert('Error initializing video call: ' + (error.message || 'Unknown error'));
+    }
+}
+
+// Countdown timer
+function startCountdown() {
+    console.log('Starting countdown...');
+    console.log('Meeting end time:', new Date(meetingEndTime).toLocaleString());
+    console.log('Current time:', new Date().toLocaleString());
+    
+    countdownInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const timeLeft = meetingEndTime - now;
+        
+        console.log('Time left (ms):', timeLeft);
+        
+        if (timeLeft <= 0) {
+            // Meeting time is up
+            stopCountdown();
+            document.getElementById('meeting-status').textContent = 'Ended';
+            document.getElementById('meeting-status').className = 'badge bg-danger';
+            document.getElementById('countdown-timer').textContent = 'Meeting ended';
+            document.getElementById('countdown-timer').className = 'badge bg-danger text-white';
+            
+            // Auto-end the call after 30 seconds
+            setTimeout(() => {
+                if (callObject) {
+                    callObject.leave();
+                }
+            }, 30000);
+            
+            return;
+        }
+        
+        // Calculate time remaining
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+        
+        // Update countdown display
+        let timeDisplay = '';
+        if (hours > 0) {
+            timeDisplay = `${hours}h ${minutes}m ${seconds}s`;
+        } else if (minutes > 0) {
+            timeDisplay = `${minutes}m ${seconds}s`;
+        } else {
+            timeDisplay = `${seconds}s`;
+        }
+        
+        document.getElementById('countdown-timer').textContent = timeDisplay;
+        
+        // Change color when time is running low
+        if (timeLeft < 5 * 60 * 1000) { // Less than 5 minutes
+            document.getElementById('countdown-timer').className = 'badge bg-warning text-dark';
+        }
+        if (timeLeft < 1 * 60 * 1000) { // Less than 1 minute
+            document.getElementById('countdown-timer').className = 'badge bg-danger text-white';
+        }
+        
+    }, 1000);
+}
+
+function stopCountdown() {
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+}
+
+// Toggle mute
+function toggleMute() {
+    if (callObject) {
+        isMuted = !isMuted;
+        callObject.setLocalAudio(!isMuted);
+        
+        const icon = document.getElementById('mute-icon');
+        if (isMuted) {
+            icon.className = 'fas fa-microphone-slash';
+        } else {
+            icon.className = 'fas fa-microphone';
+        }
+    }
+}
+
+// Toggle video
+function toggleVideo() {
+    if (callObject) {
+        isVideoOn = !isVideoOn;
+        callObject.setLocalVideo(isVideoOn);
+        
+        const icon = document.getElementById('video-icon');
+        if (!isVideoOn) {
+            icon.className = 'fas fa-video-slash';
+        } else {
+            icon.className = 'fas fa-video';
+        }
+    }
+}
+
+// End call
+function endCall() {
+    if (callObject) {
+        callObject.leave();
+    } else {
+        window.location.href = '{{ url_for("bookings") }}';
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', initializeCall);
+
+// Handle page unload
+window.addEventListener('beforeunload', () => {
+    if (callObject) {
+        callObject.leave();
+    }
+    stopCountdown();
+});
+</script>
+
+<style>
+.video-call-container {
+    height: 100vh;
+    background: #000;
+}
+
+.call-header {
+    position: relative;
+    z-index: 1000;
+}
+
+.call-controls {
+    display: flex;
+    align-items: center;
+}
+
+#video-container {
+    position: relative;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .call-header {
+        padding: 0.5rem !important;
+    }
+    
+    .call-header h4 {
+        font-size: 1rem;
+    }
+    
+    .call-header small {
+        font-size: 0.75rem;
+    }
+    
+    .call-controls .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+}
+</style>
+{% endblock %} 

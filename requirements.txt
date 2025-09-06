@@ -1,0 +1,15 @@
+apscheduler
+requests
+flask
+flask-sqlalchemy
+flask-login
+flask-wtf
+wtforms
+sqlalchemy
+stripe
+werkzeug
+python-dotenv
+authlib
+email-validator
+psycopg2-binary
+gunicorn 

@@ -1,12 +1,42 @@
 /**
- * Calendar functionality for Droply
+ * Modern Calendar functionality for Droply
  */
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeCalendar();
     initializeViewSwitcher();
     initializeFormValidation();
+    // Add listeners for auto-update
+    document.getElementById('defaultDuration').addEventListener('change', function() {
+        updateTimeSlotRules();
+        generateCalendarView();
+    });
+    document.getElementById('workingHoursStart').addEventListener('change', function() {
+        updateTimeSlotRules();
+        generateCalendarView();
+    });
+    document.getElementById('workingHoursEnd').addEventListener('change', function() {
+        updateTimeSlotRules();
+        generateCalendarView();
+    });
+    document.getElementById('lockWeekends').addEventListener('change', function() {
+        timeSlotRules.lockWeekends = this.checked;
+        generateCalendarView();
+    });
 });
+
+// Global state for time slot rules
+const timeSlotRules = {
+    defaultDuration: 30, // minutes
+    workingHours: {
+        start: 9, // 9 AM
+        end: 17,  // 5 PM
+    },
+    daysOff: [], // Array of dates that are blocked
+    customRules: {}, // Specific rules for certain dates
+    lockWeekends: false, // Whether weekends should be locked
+    lockedDays: {} // Track locked days by date key
+};
 
 /**
  * Initialize calendar functionality
@@ -56,64 +86,179 @@ function generateCalendarView() {
     const calendarGrid = document.getElementById('calendarGrid');
     if (!calendarGrid) return;
     
+    // Create date at noon to avoid timezone issues
     const now = new Date();
+    now.setHours(12, 0, 0, 0);
     const year = now.getFullYear();
     const month = now.getMonth();
     
-    // Clear existing content
     calendarGrid.innerHTML = '';
+    calendarGrid.className = 'calendar-grid';
     
-    // Add day headers
-    const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    // Add day headers - starting with Monday (1) to Sunday (0)
+    const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     dayHeaders.forEach(day => {
         const header = document.createElement('div');
-        header.className = 'calendar-header text-center fw-bold p-2 bg-light';
+        header.className = 'calendar-header';
         header.textContent = day;
         calendarGrid.appendChild(header);
     });
     
-    // Get first day of month and number of days
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    const firstDay = new Date(year, month, 1, 12, 0, 0, 0);
+    const lastDay = new Date(year, month + 1, 0, 12, 0, 0, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+    // Adjust starting day to match our new header order (Monday = 0, Sunday = 6)
+    let startingDayOfWeek = (firstDay.getDay() + 6) % 7;
     
     // Add empty cells for days before month starts
     for (let i = 0; i < startingDayOfWeek; i++) {
         const emptyDay = document.createElement('div');
         emptyDay.className = 'calendar-day other-month';
-        const prevMonthDate = new Date(year, month, -startingDayOfWeek + i + 1);
-        emptyDay.innerHTML = `<div class="calendar-date">${prevMonthDate.getDate()}</div>`;
         calendarGrid.appendChild(emptyDay);
     }
     
     // Add days of current month
     for (let day = 1; day <= daysInMonth; day++) {
+        const currentDate = new Date(year, month, day, 12, 0, 0, 0);
+        
+        // Skip past days completely
+        if (currentDate < new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0)) {
+            continue;
+        }
+        
         const dayElement = document.createElement('div');
         dayElement.className = 'calendar-day';
         
-        const currentDate = new Date(year, month, day);
         const isToday = currentDate.toDateString() === now.toDateString();
         
         if (isToday) {
             dayElement.classList.add('today');
         }
         
+        // Check if day has custom rules
+        const dateKey = currentDate.toISOString().split('T')[0];
+        const hasCustomRules = timeSlotRules.customRules[dateKey];
+        
         dayElement.innerHTML = `
-            <div class="calendar-date fw-bold">${day}</div>
-            <div class="calendar-events" id="events-${year}-${month}-${day}"></div>
+            <div class="calendar-date">${day}</div>
+            <div class="calendar-time-slots" id="slots-${dateKey}"></div>
         `;
         
-        // Add click handler for adding events
+        // Add click handler for day customization
         dayElement.addEventListener('click', function() {
-            openAddEventModal(currentDate);
+            openDayCustomizationModal(currentDate);
         });
         
         calendarGrid.appendChild(dayElement);
+        
+        // Generate time slots for this day
+        generateTimeSlotsForDay(currentDate, hasCustomRules);
+    }
+}
+
+function generateTimeSlotsForDay(date, customRules) {
+    const dateKey = date.toISOString().split('T')[0];
+    const slotsContainer = document.getElementById(`slots-${dateKey}`);
+    if (!slotsContainer) return;
+    
+    // Check if it's a weekend (0 = Sunday, 6 = Saturday)
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    
+    // If day is explicitly locked or it's a weekend with weekend locking enabled (and not in custom rules), don't generate slots
+    if (timeSlotRules.lockedDays[dateKey] || (isWeekend && timeSlotRules.lockWeekends && !timeSlotRules.customRules[dateKey])) {
+        return;
     }
     
-    // Load and display time slots
-    loadTimeSlots();
+    const rules = customRules || timeSlotRules;
+    const startHour = rules.workingHours.start;
+    const endHour = rules.workingHours.end;
+    const duration = rules.defaultDuration;
+    
+    for (let hour = startHour; hour < endHour; hour += duration / 60) {
+        const slot = document.createElement('div');
+        slot.className = 'time-slot';
+        slot.innerHTML = `
+            <div class="time-slot-time">
+                ${formatTime(hour)} - ${formatTime(hour + duration / 60)}
+            </div>
+        `;
+        slotsContainer.appendChild(slot);
+    }
+}
+
+function formatTime(hour) {
+    const h = Math.floor(hour);
+    const m = Math.round((hour - h) * 60);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+}
+
+function openDayCustomizationModal(date) {
+    // Ensure date is at noon to avoid timezone issues
+    date.setHours(12, 0, 0, 0);
+    const dateKey = date.toISOString().split('T')[0];
+    const modal = new bootstrap.Modal(document.getElementById('dayCustomizationModal'));
+    
+    // Check if it's a weekend (0 = Sunday, 6 = Saturday)
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    
+    // Populate modal with current rules
+    const currentRules = timeSlotRules.customRules[dateKey] || timeSlotRules;
+    document.getElementById('customStartTime').value = `${currentRules.workingHours.start.toString().padStart(2, '0')}:00`;
+    document.getElementById('customEndTime').value = `${currentRules.workingHours.end.toString().padStart(2, '0')}:00`;
+    document.getElementById('customDuration').value = currentRules.defaultDuration;
+    
+    // Set lock checkbox state
+    const lockCheckbox = document.getElementById('customLockDay');
+    // For weekends, check if either explicitly locked or weekend locking is enabled
+    const isLocked = timeSlotRules.lockedDays[dateKey] || (isWeekend && timeSlotRules.lockWeekends);
+    lockCheckbox.checked = isLocked;
+    
+    // Disable time inputs if day is locked
+    const timeInputs = document.querySelectorAll('#customStartTime, #customEndTime, #customDuration');
+    timeInputs.forEach(input => {
+        input.disabled = isLocked;
+    });
+    
+    // Add change handler for lock checkbox
+    lockCheckbox.onchange = function() {
+        timeInputs.forEach(input => {
+            input.disabled = this.checked;
+        });
+    };
+    
+    // Save button handler
+    document.getElementById('saveCustomRules').onclick = function() {
+        const isLocked = document.getElementById('customLockDay').checked;
+        
+        if (isLocked) {
+            // If day is locked, remove any custom rules and mark as locked
+            delete timeSlotRules.customRules[dateKey];
+            timeSlotRules.lockedDays[dateKey] = true;
+        } else {
+            // If day is unlocked, save custom rules and remove from locked days
+            const newRules = {
+                workingHours: {
+                    start: parseInt(document.getElementById('customStartTime').value.split(':')[0]),
+                    end: parseInt(document.getElementById('customEndTime').value.split(':')[0])
+                },
+                defaultDuration: parseInt(document.getElementById('customDuration').value)
+            };
+            
+            timeSlotRules.customRules[dateKey] = newRules;
+            delete timeSlotRules.lockedDays[dateKey];
+            
+            // If it's a weekend and weekend locking is enabled, we need to remove it from the weekend lock
+            if (isWeekend && timeSlotRules.lockWeekends) {
+                // Add to custom rules to prevent it from being re-locked
+                timeSlotRules.customRules[dateKey] = newRules;
+            }
+        }
+        
+        generateCalendarView();
+        modal.hide();
+    };
+    
+    modal.show();
 }
 
 /**
@@ -394,3 +539,92 @@ function initializeAutoRefresh() {
 
 // Initialize auto-refresh
 initializeAutoRefresh();
+
+function updateTimeSlotRules() {
+    timeSlotRules.defaultDuration = parseInt(document.getElementById('defaultDuration').value);
+    timeSlotRules.workingHours.start = parseInt(document.getElementById('workingHoursStart').value.split(':')[0]);
+    timeSlotRules.workingHours.end = parseInt(document.getElementById('workingHoursEnd').value.split(':')[0]);
+    timeSlotRules.lockWeekends = document.getElementById('lockWeekends').checked;
+    
+    // Update locked days when weekend locking changes
+    if (timeSlotRules.lockWeekends) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+            const dateKey = date.toISOString().split('T')[0];
+            
+            // Only lock weekends that aren't in custom rules
+            if (isWeekend && !timeSlotRules.customRules[dateKey]) {
+                timeSlotRules.lockedDays[dateKey] = true;
+            }
+        }
+    } else {
+        // Remove weekend locks when weekend locking is disabled
+        Object.keys(timeSlotRules.lockedDays).forEach(dateKey => {
+            const date = new Date(dateKey);
+            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+            if (isWeekend) {
+                delete timeSlotRules.lockedDays[dateKey];
+            }
+        });
+    }
+}
+
+// Stepper/tab logic for homepage hero section 2 with timer bar
+
+document.addEventListener('DOMContentLoaded', function() {
+    function setupStepperTabs() {
+        const stepTabs = document.querySelectorAll('.stepper-tab');
+        const stepImage = document.getElementById('step-image');
+        const stepImages = [
+            '/static/img/mockup-hero.png',
+            '/static/img/mockup-hero-2.png',
+            '/static/img/generated-icon.png',
+            '/static/img/default-avatar.png',
+            '/static/img/mockup-hero.png'
+        ];
+        let timer = null;
+        let currentIdx = 0;
+        const TIMER_DURATION = 5000;
+
+        function activateStep(idx, userClick=false) {
+            stepTabs.forEach((t, i) => {
+                t.classList.toggle('active', i === idx);
+                // Reset timer bar animation
+                const bar = t.querySelector('.step-timer-bar');
+                if (bar) {
+                    bar.style.animation = 'none';
+                    bar.offsetHeight; // force reflow
+                    if (i === idx) {
+                        bar.style.animation = `timerBarGrow ${TIMER_DURATION}ms linear forwards`;
+                    } else {
+                        bar.style.animation = '';
+                    }
+                }
+            });
+            // Instantly switch image, no animation
+            stepImage.src = stepImages[idx];
+            currentIdx = idx;
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                let nextIdx = (currentIdx + 1) % stepTabs.length;
+                activateStep(nextIdx);
+            }, TIMER_DURATION);
+        }
+
+        if (stepTabs.length && stepImage) {
+            stepTabs.forEach((tab, idx) => {
+                tab.onclick = function() {
+                    activateStep(idx, true);
+                };
+            });
+            activateStep(0);
+        }
+    }
+    setupStepperTabs();
+});

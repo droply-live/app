@@ -1,0 +1,406 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Account - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Account Header -->
+  <div class="mb-4">
+    <h1 class="h2 mb-1">Account</h1>
+    <p class="text-muted mb-0">View your profile and manage your settings</p>
+  </div>
+
+  <!-- Tabbed Interface -->
+  <div id="account-tabs" class="tabbed-interface">
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-button active" data-tab="personal-info">
+        <i class="fas fa-user d-none d-md-inline"></i>
+        <span>Profile</span>
+      </button>
+      <button class="tab-button" data-tab="availability">
+        <i class="fas fa-calendar d-none d-md-inline"></i>
+        <span>Availability</span>
+      </button>
+      <button class="tab-button" data-tab="settings">
+        <i class="fas fa-cog d-none d-md-inline"></i>
+        <span>Settings</span>
+      </button>
+      <button class="tab-button" data-tab="support">
+        <i class="fas fa-question-circle d-none d-md-inline"></i>
+        <span>Support</span>
+      </button>
+    </div>
+    <div class="tab-indicator"></div>
+
+    <!-- Tab Content Container -->
+    <div class="tab-content-container">
+      <!-- Personal Info Tab -->
+      <div class="tab-content active" data-tab-content="personal-info">
+        <div class="tab-header">
+          <div>
+            <p class="tab-subtitle">Update your profile details and preferences</p>
+          </div>
+          <div class="tab-actions">
+            <button class="tab-action-btn primary">
+              <i class="fas fa-save"></i>
+              Save Changes
+            </button>
+          </div>
+        </div>
+
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-user-circle"></i>
+            Profile Details
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" class="form-control" value="{{ current_user.full_name or '' }}" placeholder="Enter your full name">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" class="form-control" value="{{ current_user.username }}" readonly>
+                    <small class="text-muted">Username cannot be changed</small>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-control" value="{{ current_user.email }}" readonly>
+                    <small class="text-muted">Email cannot be changed</small>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" class="form-control" value="{{ current_user.phone or '' }}" placeholder="Enter your phone number">
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Bio</label>
+                <textarea class="form-control" rows="3" placeholder="Tell us about yourself">{{ current_user.bio or '' }}</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-cog"></i>
+            Preferences
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <div class="form-group">
+                <label>Language</label>
+                <select class="form-control">
+                  <option>English</option>
+                  <option>Spanish</option>
+                  <option>French</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Time Zone</label>
+                <select class="form-control">
+                  <option>Eastern Time (ET)</option>
+                  <option>Central Time (CT)</option>
+                  <option>Mountain Time (MT)</option>
+                  <option>Pacific Time (PT)</option>
+                </select>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="emailNotifications">
+                <label class="form-check-label" for="emailNotifications">
+                  Receive email notifications
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Availability Tab -->
+      <div class="tab-content" data-tab-content="availability">
+        <div class="tab-header">
+          <div>
+            <p class="tab-subtitle">Set when you're available for sessions</p>
+          </div>
+          <div class="tab-actions">
+            <button class="tab-action-btn primary">
+              <i class="fas fa-save"></i>
+              Save Availability
+            </button>
+          </div>
+        </div>
+
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-clock"></i>
+            Weekly Schedule
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <p class="text-muted">Configure your availability for each day of the week. Clients will see these times when booking sessions with you.</p>
+              <!-- Availability configuration will go here -->
+              <div class="availability-placeholder">
+                <i class="fas fa-calendar-alt"></i>
+                <h4>Availability Settings</h4>
+                <p>Configure your weekly schedule and time slots.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div class="tab-content" data-tab-content="settings">
+        <div class="tab-header">
+          <div>
+            <p class="tab-subtitle">Manage your account preferences and security</p>
+          </div>
+        </div>
+
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-shield-alt"></i>
+            Security Settings
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <div class="form-group">
+                <label>Current Password</label>
+                <input type="password" class="form-control" placeholder="Enter current password">
+              </div>
+              <div class="form-group">
+                <label>New Password</label>
+                <input type="password" class="form-control" placeholder="Enter new password">
+              </div>
+              <div class="form-group">
+                <label>Confirm New Password</label>
+                <input type="password" class="form-control" placeholder="Confirm new password">
+              </div>
+              <button class="btn btn-primary">
+                <i class="fas fa-key"></i>
+                Update Password
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-trash"></i>
+            Delete Account
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <div class="alert alert-danger">
+                <h5><i class="fas fa-exclamation-triangle"></i> Warning</h5>
+                <p>This action cannot be undone. All your data, including bookings, earnings, and profile information will be permanently deleted.</p>
+              </div>
+              
+              <form id="deleteAccountForm" action="{{ url_for('delete_account') }}" method="POST">
+                <div class="form-group">
+                  <label for="confirmation">Type "DELETE" to confirm</label>
+                  <input type="text" id="confirmation" name="confirmation" class="form-control" placeholder="Type DELETE to confirm">
+                </div>
+                
+                <div class="form-group">
+                  <label for="reason">Reason for deletion (optional)</label>
+                  <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Tell us why you're leaving..."></textarea>
+                </div>
+                
+                <button type="submit" id="deleteButton" class="btn btn-danger" disabled>
+                  <i class="fas fa-trash"></i>
+                  Permanently Delete Account
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-credit-card"></i>
+            Payment Setup
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              {% if current_user.stripe_account_id %}
+                {% if current_user.stripe_account_status == 'active' %}
+                  <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle"></i> Stripe Connected</h6>
+                    <p class="mb-0">Your account is connected to Stripe and ready to receive payments.</p>
+                  </div>
+                  
+                  <div class="text-center py-3">
+                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary">
+                      <i class="fas fa-external-link-alt"></i>
+                      Open Stripe Dashboard
+                    </a>
+                  </div>
+                {% elif current_user.stripe_account_status == 'pending' %}
+                  <div class="alert alert-warning">
+                    <h6><i class="fas fa-clock"></i> Stripe Setup Pending</h6>
+                    <p class="mb-0">You've started the Stripe setup process but haven't completed it yet.</p>
+                  </div>
+                  
+                  <div class="text-center py-3">
+                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary">
+                      <i class="fas fa-external-link-alt"></i>
+                      Complete Stripe Setup
+                    </a>
+                  </div>
+                {% else %}
+                  <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Stripe Setup Required</h6>
+                    <p class="mb-0">You need to complete your Stripe account setup to receive payments.</p>
+                  </div>
+                  
+                  <div class="text-center py-3">
+                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary">
+                      <i class="fas fa-link"></i>
+                      Set Up Stripe Account
+                    </a>
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="alert alert-info">
+                  <h6><i class="fas fa-info-circle"></i> Setup Required</h6>
+                  <p class="mb-0">Connect your Stripe account to start receiving payments for your sessions.</p>
+                </div>
+                
+                <div class="text-center py-3">
+                  <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary">
+                    <i class="fas fa-link"></i>
+                    Connect Stripe Account
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Support Tab -->
+      <div class="tab-content" data-tab-content="support">
+        <div class="tab-header">
+          <div>
+            <p class="tab-subtitle">Get help and support from our team</p>
+          </div>
+        </div>
+
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-envelope"></i>
+            Send us a Message
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <div class="form-group">
+                <label>Subject</label>
+                <select class="form-control">
+                  <option>General Inquiry</option>
+                  <option>Technical Support</option>
+                  <option>Billing Question</option>
+                  <option>Feature Request</option>
+                  <option>Bug Report</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Message</label>
+                <textarea class="form-control" rows="5" placeholder="Describe your issue or question..."></textarea>
+              </div>
+              <button class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i>
+                Send Message
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-info-circle"></i>
+            Other Ways to Reach Us
+          </h3>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body text-center">
+                  <i class="fas fa-envelope fa-2x text-primary mb-3"></i>
+                  <h5>Email Support</h5>
+                  <p class="text-muted">support@droply.live</p>
+                  <p class="small">Response within 24 hours</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body text-center">
+                  <i class="fas fa-comments fa-2x text-primary mb-3"></i>
+                  <h5>Live Chat</h5>
+                  <p class="text-muted">Available 9AM-5PM ET</p>
+                  <p class="small">Instant support</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include tabs CSS and JS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tabs.css') }}">
+<script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize tabs
+  initializeTabs('account-tabs');
+  
+  // Delete account functionality
+  const confirmationInput = document.getElementById('confirmation');
+  const deleteButton = document.getElementById('deleteButton');
+  const deleteForm = document.getElementById('deleteAccountForm');
+  
+  if (confirmationInput && deleteButton) {
+    confirmationInput.addEventListener('input', function() {
+      if (this.value.trim() === 'DELETE') {
+        deleteButton.disabled = false;
+        deleteButton.classList.remove('btn-secondary');
+        deleteButton.classList.add('btn-danger');
+      } else {
+        deleteButton.disabled = true;
+        deleteButton.classList.remove('btn-danger');
+        deleteButton.classList.add('btn-secondary');
+      }
+    });
+    
+    deleteForm.addEventListener('submit', function(e) {
+      if (confirmationInput.value.trim() !== 'DELETE') {
+        e.preventDefault();
+        alert('Please type "DELETE" exactly to confirm account deletion.');
+        return false;
+      }
+      
+      if (!confirm('Are you absolutely sure you want to permanently delete your account? This action cannot be undone.')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+  }
+});
+</script>
+{% endblock %} 

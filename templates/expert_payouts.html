@@ -1,0 +1,340 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Earnings - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Earnings Header -->
+  <div class="mb-4">
+    <h1 class="h2 mb-1">Earnings</h1>
+    <p class="text-muted mb-0">Track your revenue and manage your payouts</p>
+  </div>
+
+  <!-- Tabbed Interface -->
+  <div id="earnings-tabs" class="tabbed-interface">
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-button active" data-tab="overview">
+        <i class="fas fa-chart-line d-none d-md-inline"></i>
+        <span>Overview</span>
+      </button>
+      <button class="tab-button" data-tab="withdraw">
+        <i class="fas fa-dollar-sign d-none d-md-inline"></i>
+        <span>Withdraw</span>
+        {% set available_balance = (payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) %}
+        {% if available_balance > 0 %}
+          <span class="tab-badge success">${{ "%.2f"|format(available_balance / 100) }}</span>
+        {% endif %}
+      </button>
+      <button class="tab-button" data-tab="settings">
+        <i class="fas fa-cog d-none d-md-inline"></i>
+        <span>Settings</span>
+      </button>
+    </div>
+    <div class="tab-indicator"></div>
+
+    <!-- Tab Content Container -->
+    <div class="tab-content-container">
+      <!-- Overview Tab -->
+      <div class="tab-content active" data-tab-content="overview">
+        <div class="tab-header">
+          <div>
+            <p class="tab-subtitle">Your earnings summary and recent activity</p>
+          </div>
+        </div>
+
+        <!-- Earnings Summary Cards -->
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-chart-pie"></i>
+            Earnings Summary
+          </h3>
+          <div class="row">
+            <div class="col-md-4 mb-4">
+              <div class="card text-center">
+                <div class="card-body">
+                  <i class="fas fa-dollar-sign fa-2x text-success mb-3"></i>
+                  <h4>${{ "%.2f"|format((payouts|selectattr('status', 'equalto', 'paid')|sum(attribute='amount')) / 100) }}</h4>
+                  <p class="text-muted">Total Earned</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card text-center">
+                <div class="card-body">
+                  <i class="fas fa-clock fa-2x text-warning mb-3"></i>
+                  <h4>${{ "%.2f"|format((payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) / 100) }}</h4>
+                  <p class="text-muted">Available to Withdraw</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card text-center">
+                <div class="card-body">
+                  <i class="fas fa-calendar fa-2x text-primary mb-3"></i>
+                  <h4>{{ payouts|length }}</h4>
+                  <p class="text-muted">Total Sessions</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-history"></i>
+            Recent Activity
+          </h3>
+          
+          {% if payouts %}
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Session</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for payout in payouts[:5] %}
+                  <tr>
+                    <td>{{ payout.created_at|format_datetime }}</td>
+                    <td>{{ payout.description or 'Session' }}</td>
+                    <td>${{ "%.2f"|format(payout.amount / 100) }}</td>
+                    <td>
+                      <span class="status-badge {{ payout.status }}">{{ payout.status|title }}</span>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="tab-empty-state">
+              <i class="fas fa-dollar-sign"></i>
+              <h3>No Earnings Yet</h3>
+              <p>Your earnings will appear here once you start completing sessions.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Withdraw Tab -->
+      <div class="tab-content" data-tab-content="withdraw">
+        <div class="tab-header">
+          <div>
+            <p class="tab-subtitle">Transfer your earnings to your connected payment method</p>
+          </div>
+        </div>
+
+        {% set available_balance = (payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) %}
+        
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-wallet"></i>
+            Available Balance
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle"></i> Ready to Withdraw</h6>
+                <h3 class="text-primary mb-0">${{ "%.2f"|format(available_balance / 100) }}</h3>
+                <small class="text-muted">Available for withdrawal</small>
+              </div>
+              
+              {% if available_balance > 0 %}
+                <form action="{{ url_for('request_payout') }}" method="POST">
+                  <div class="form-group">
+                    <label for="withdraw_amount">Withdrawal Amount</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" 
+                             class="form-control" 
+                             id="withdraw_amount" 
+                             name="amount" 
+                             value="{{ "%.2f"|format(available_balance / 100) }}"
+                             max="{{ "%.2f"|format(available_balance / 100) }}"
+                             min="10"
+                             step="0.01"
+                             required>
+                    </div>
+                    <small class="text-muted">Minimum withdrawal: $10.00</small>
+                  </div>
+                  
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-dollar-sign"></i>
+                    Request Withdrawal
+                  </button>
+                </form>
+              {% else %}
+                <div class="text-center py-4">
+                  <i class="fas fa-wallet fa-3x text-muted mb-3"></i>
+                  <h5>No Funds Available</h5>
+                  <p class="text-muted">You need to complete sessions to earn money for withdrawal.</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-section">
+          <h3 class="tab-section-title">
+            <i class="fas fa-info-circle"></i>
+            Withdrawal Information
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <ul class="list-unstyled">
+                <li><i class="fas fa-clock text-warning"></i> Processing: 2-5 business days</li>
+                <li><i class="fas fa-percentage text-info"></i> Fee: 2.9% + $0.30</li>
+                <li><i class="fas fa-dollar-sign text-success"></i> Minimum: $10.00</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div class="tab-content" data-tab-content="settings">
+        <div class="tab-header">
+          <div>
+            <p class="tab-subtitle">Configure your Stripe Connect account to receive payments</p>
+          </div>
+        </div>
+
+        {% if current_user.stripe_account_id %}
+          {% if current_user.stripe_account_status == 'active' %}
+            <div class="tab-section">
+              <h3 class="tab-section-title">
+                <i class="fas fa-check-circle"></i>
+                Stripe Connected
+              </h3>
+              <div class="card">
+                <div class="card-body">
+                  <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle"></i> Account Connected</h6>
+                    <p class="mb-0">Your account is connected to Stripe and ready to receive payments.</p>
+                  </div>
+                  
+                  <div class="text-center py-4">
+                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-lg">
+                      <i class="fas fa-external-link-alt"></i>
+                      Open Stripe Dashboard
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% elif current_user.stripe_account_status == 'pending' %}
+            <div class="tab-section">
+              <h3 class="tab-section-title">
+                <i class="fas fa-clock"></i>
+                Stripe Setup Pending
+              </h3>
+              <div class="card">
+                <div class="card-body">
+                  <div class="alert alert-warning">
+                    <h6><i class="fas fa-clock"></i> Setup In Progress</h6>
+                    <p class="mb-0">You've started the Stripe setup process but haven't completed it yet.</p>
+                  </div>
+                  
+                  <div class="text-center py-4">
+                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-lg">
+                      <i class="fas fa-external-link-alt"></i>
+                      Complete Stripe Setup
+                    </a>
+                  </div>
+                </div>
+              </div>
+          {% else %}
+            <div class="tab-section">
+              <h3 class="tab-section-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Stripe Setup Required
+              </h3>
+              <div class="card">
+                <div class="card-body">
+                  <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Setup Required</h6>
+                    <p class="mb-0">You need to complete your Stripe account setup to receive payments.</p>
+                  </div>
+                  
+                  <div class="text-center py-4">
+                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-lg">
+                      <i class="fas fa-link"></i>
+                      Set Up Stripe Account
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="tab-section">
+            <h3 class="tab-section-title">
+              <i class="fas fa-credit-card"></i>
+              Connect Stripe Account
+            </h3>
+            <div class="card">
+              <div class="card-body">
+                <div class="alert alert-info">
+                  <h6><i class="fas fa-info-circle"></i> Setup Required</h6>
+                  <p class="mb-0">Connect your Stripe account to start receiving payments for your sessions.</p>
+                </div>
+                
+                <div class="text-center py-4">
+                  <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                  <h5>Connect Your Payment Method</h5>
+                  <p class="text-muted">Set up Stripe Connect to start receiving payments for your sessions.</p>
+                  
+                  <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-link"></i>
+                    Connect Stripe Account
+                  </a>
+                  
+                  <div class="mt-3">
+                    <small class="text-muted">
+                      <i class="fas fa-shield-alt"></i>
+                      Secure payment processing powered by Stripe
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include tabs CSS and JS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tabs.css') }}">
+<script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize tabs
+  initializeTabs('earnings-tabs');
+  
+  // Handle withdrawal amount validation
+  const withdrawAmount = document.getElementById('withdraw_amount');
+  if (withdrawAmount) {
+    withdrawAmount.addEventListener('input', function() {
+      const maxAmount = parseFloat(this.getAttribute('max'));
+      const currentAmount = parseFloat(this.value);
+      
+      if (currentAmount > maxAmount) {
+        this.value = maxAmount.toFixed(2);
+      }
+    });
+  }
+});
+
+function updateStripeSettings() {
+  window.location.href = "{{ url_for('expert_stripe_onboarding') }}";
+}
+</script>
+{% endblock %} 

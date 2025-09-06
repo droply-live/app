@@ -1,0 +1,640 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Find Experts - Droply{% endblock %}
+
+{% block content %}
+<!-- Compact Find Experts Page - Inspired by modern design -->
+<div class="find-experts-page">
+  <!-- Compact Search Section -->
+  <div class="search-section">
+    <form method="GET" action="{{ url_for('find_experts') }}" class="search-form">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" 
+             name="search" 
+             class="search-input" 
+             placeholder="Search experts"
+             value="{{ request.args.get('search', '') }}">
+    </form>
+  </div>
+
+  <!-- Category Filters -->
+  <div class="category-filters">
+    <div class="category-scroll">
+      <a href="{{ url_for('find_experts') }}" 
+         class="category-item {{ 'active' if not request.args.get('category') }}">
+        <div class="category-image category-all">
+          <i class="fas fa-users"></i>
+        </div>
+        <span>All Experts</span>
+      </a>
+      
+      <a href="{{ url_for('find_experts', category='favorites') }}" 
+         class="category-item {{ 'active' if request.args.get('category') == 'favorites' }}">
+        <div class="category-image category-favorites">
+          <i class="fas fa-heart"></i>
+        </div>
+        <span>Favorites</span>
+      </a>
+      
+      <a href="{{ url_for('find_experts', category='top') }}" 
+         class="category-item {{ 'active' if request.args.get('category') == 'top' }}">
+        <div class="category-image category-top">
+          <i class="fas fa-star"></i>
+        </div>
+        <span>Top Experts</span>
+      </a>
+      
+      <a href="{{ url_for('find_experts', category='home') }}" 
+         class="category-item {{ 'active' if request.args.get('category') == 'home' }}">
+        <div class="category-image category-home">
+          <i class="fas fa-home"></i>
+        </div>
+        <span>Home</span>
+      </a>
+      
+      <a href="{{ url_for('find_experts', category='health') }}" 
+         class="category-item {{ 'active' if request.args.get('category') == 'health' }}">
+        <div class="category-image category-wellness">
+          <i class="fas fa-leaf"></i>
+        </div>
+        <span>Wellness</span>
+      </a>
+      
+      <a href="{{ url_for('find_experts', category='business') }}" 
+         class="category-item {{ 'active' if request.args.get('category') == 'business' }}">
+        <div class="category-image category-business">
+          <i class="fas fa-briefcase"></i>
+        </div>
+        <span>Career & Business</span>
+      </a>
+      
+      <a href="{{ url_for('find_experts', category='design') }}" 
+         class="category-item {{ 'active' if request.args.get('category') == 'design' }}">
+        <div class="category-image category-beauty">
+          <i class="fas fa-palette"></i>
+        </div>
+        <span>Style & Beauty</span>
+      </a>
+      
+      <a href="{{ url_for('find_experts', category='education') }}" 
+         class="category-item {{ 'active' if request.args.get('category') == 'education' }}">
+        <div class="category-image category-astrology">
+          <i class="fas fa-moon"></i>
+        </div>
+        <span>Astrology & more</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Expert Section -->
+  <div class="expert-sections">
+    {% if experts %}
+      <div class="expert-section">
+        <div class="section-header">
+          <h2 class="section-title">All Experts. Find the perfect expert for your needs.</h2>
+        </div>
+        
+        <div class="expert-carousel">
+          <div class="expert-scroll">
+            {% for expert in experts %}
+            <div class="expert-card">
+              <div class="card-image">
+                <img src="{{ expert.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
+                     alt="{{ expert.full_name }}" 
+                     class="expert-avatar">
+                {% if expert.is_top_expert %}
+                <div class="top-expert-badge">Top Expert</div>
+                {% endif %}
+                <button class="favorite-btn" 
+                        data-expert-id="{{ expert.id }}" 
+                        data-expert-username="{{ expert.username }}"
+                        title="{{ 'Remove from favorites' if expert.id in current_user_favorites else 'Add to favorites' }}">
+                  <i class="fas fa-heart {{ 'favorited' if expert.id in current_user_favorites }}"></i>
+                </button>
+                <a href="{{ url_for('expert_profile', username=expert.username) }}" 
+                   class="see-times-btn">See Times</a>
+              </div>
+              
+              <div class="card-content">
+                <h3 class="expert-name">{{ expert.full_name }}</h3>
+                <div class="expert-price">
+                  ${{ expert.hourly_rate or 0 }} • Session
+                  {% if expert.is_top_expert %}
+                  <i class="fas fa-check-circle verified-icon"></i>
+                  {% endif %}
+                </div>
+                <p class="expert-bio">
+                  {{ expert.bio or expert.profession or 'Expert in their field' }}
+                  {% if expert.bio and expert.bio|length > 80 %}
+                    {{ expert.bio[:80] }}...
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% if experts|length > 3 %}
+          <button class="carousel-arrow carousel-next">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <!-- Empty State -->
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="fas fa-search"></i>
+        </div>
+        <h3>No experts found</h3>
+        <p>Try adjusting your search criteria or browse different categories</p>
+        <a href="{{ url_for('find_experts') }}" class="btn-primary">Browse All Experts</a>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<style>
+/* Compact Find Experts Page Styles */
+.find-experts-page {
+  padding: 0;
+  background: white;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Compact Search Section */
+.search-section {
+  padding: 1rem 2rem;
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: #f8f9fa;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #059669;
+  background: white;
+}
+
+/* Category Filters */
+.category-filters {
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #f0f0f0;
+  background: white;
+}
+
+.category-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.category-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #666;
+  min-width: 80px;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.category-item:hover {
+  color: #059669;
+  text-decoration: none;
+}
+
+.category-item.active {
+  color: #059669;
+}
+
+.category-item.active span {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.category-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+  border: 2px solid #f0f0f0;
+}
+
+.category-all {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.category-favorites {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+}
+
+.category-top {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.category-home {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.category-wellness {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.category-business {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.category-beauty {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.category-astrology {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+}
+
+.category-item span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Expert Sections */
+.expert-sections {
+  padding: 2rem;
+}
+
+.expert-section {
+  margin-bottom: 3rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.see-all-link {
+  color: #059669;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.see-all-link:hover {
+  text-decoration: underline;
+}
+
+/* Expert Carousel */
+.expert-carousel {
+  position: relative;
+}
+
+.expert-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.expert-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.carousel-arrow:hover {
+  border-color: #059669;
+  color: #059669;
+}
+
+.carousel-next {
+  right: -20px;
+}
+
+/* Expert Cards */
+.expert-card {
+  min-width: 280px;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.expert-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.expert-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.top-expert-badge {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  background: #1a1a1a;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.favorite-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.favorite-btn:hover {
+  color: #e74c3c;
+  border-color: #e74c3c;
+}
+
+.favorite-btn .favorited {
+  color: #e74c3c;
+}
+
+.favorite-btn:hover .favorited {
+  color: #c0392b;
+}
+
+.see-times-btn {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.see-times-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  text-decoration: none;
+}
+
+.card-content {
+  padding: 1rem;
+}
+
+.expert-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.expert-price {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #059669;
+  margin-bottom: 0.5rem;
+}
+
+.verified-icon {
+  color: #f39c12;
+  font-size: 0.75rem;
+}
+
+.expert-bio {
+  color: #666;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.btn-primary {
+  padding: 0.75rem 1.5rem;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary:hover {
+  background: #047857;
+  color: white;
+  text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .expert-sections {
+    padding: 1rem;
+  }
+  
+  .expert-card {
+    min-width: 240px;
+  }
+  
+  .carousel-arrow {
+    display: none;
+  }
+}
+</style>
+
+<script>
+// Simple carousel functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const carousels = document.querySelectorAll('.expert-carousel');
+  
+  carousels.forEach(carousel => {
+    const scroll = carousel.querySelector('.expert-scroll');
+    const nextBtn = carousel.querySelector('.carousel-next');
+    
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        scroll.scrollBy({
+          left: 300,
+          behavior: 'smooth'
+        });
+      });
+    }
+  });
+  
+  // Favorite button functionality
+  const favoriteBtns = document.querySelectorAll('.favorite-btn');
+  
+  favoriteBtns.forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const expertId = this.dataset.expertId;
+      const expertUsername = this.dataset.expertUsername;
+      const heartIcon = this.querySelector('i');
+      const isFavorited = heartIcon.classList.contains('favorited');
+      
+      try {
+        const response = await fetch('/api/favorites/toggle', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({
+            expert_id: expertId,
+            expert_username: expertUsername
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          if (isFavorited) {
+            heartIcon.classList.remove('favorited');
+            this.title = 'Add to favorites';
+          } else {
+            heartIcon.classList.add('favorited');
+            this.title = 'Remove from favorites';
+          }
+        } else {
+          console.error('Error toggling favorite:', data.error);
+        }
+      } catch (error) {
+        console.error('Error toggling favorite:', error);
+      }
+    });
+  });
+});
+</script>
+{% endblock %} 
