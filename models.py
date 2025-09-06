@@ -54,6 +54,17 @@ class User(UserMixin, db.Model):
     total_payouts = db.Column(db.Float, default=0.0)  # Total amount paid out
     pending_balance = db.Column(db.Float, default=0.0)  # Current pending balance
 
+    # User preferences
+    language = db.Column(db.String(10), default='en')  # Language preference
+    timezone = db.Column(db.String(50), default='America/New_York')  # Timezone preference
+    email_notifications = db.Column(db.Boolean, default=True)  # Email notifications preference
+    
+    # Google Calendar integration
+    google_calendar_connected = db.Column(db.Boolean, default=False)  # Whether user has connected Google Calendar
+    google_calendar_token = db.Column(db.Text)  # Encrypted Google Calendar access token
+    google_calendar_refresh_token = db.Column(db.Text)  # Encrypted Google Calendar refresh token
+    google_calendar_id = db.Column(db.String(100))  # Primary Google Calendar ID to sync with
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
@@ -109,6 +120,15 @@ class AvailabilityRule(db.Model):
     weekday = db.Column(db.Integer, nullable=False)  # 0=Monday, 6=Sunday
     start = db.Column(db.Time, nullable=False)
     end = db.Column(db.Time, nullable=False)
+    is_active = db.Column(db.Boolean, default=True)  # Whether this rule is active
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    updated_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE), onupdate=datetime.now(EASTERN_TIMEZONE))
+    
+    # Relationships
+    user = db.relationship('User', backref='availability_rules')
+    
+    def __repr__(self):
+        return f'<AvailabilityRule {self.weekday} {self.start}-{self.end}>'
 
 class AvailabilityException(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -116,6 +136,14 @@ class AvailabilityException(db.Model):
     start = db.Column(db.DateTime, nullable=False)
     end = db.Column(db.DateTime, nullable=False)
     reason = db.Column(db.String(255))
+    is_blocked = db.Column(db.Boolean, default=True)  # True = blocked time, False = available time
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    
+    # Relationships
+    user = db.relationship('User', backref='availability_exceptions')
+    
+    def __repr__(self):
+        return f'<AvailabilityException {self.start}-{self.end} ({self.reason})>'
 
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)

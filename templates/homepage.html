@@ -46,6 +46,22 @@
             color: #059669;
             text-decoration: none;
             letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .top-nav-brand-icon {
+            width: 32px;
+            height: 32px;
+            background: #059669;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
         }
 
         .top-nav-links {
@@ -125,6 +141,22 @@
             color: #059669;
             text-decoration: none;
             letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-brand-icon {
+            width: 32px;
+            height: 32px;
+            background: #059669;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
         }
 
         /* Mobile Login Button */
@@ -248,7 +280,10 @@
     <!-- Top Navigation Bar (Desktop) -->
     <nav class="top-nav">
         <div class="container">
-            <a href="{{ url_for('homepage') }}" class="top-nav-brand">Droply</a>
+            <a href="{{ url_for('homepage') }}" class="top-nav-brand">
+                <div class="top-nav-brand-icon">D</div>
+                Droply
+            </a>
             <div class="top-nav-links">
                 <a href="{{ url_for('homepage') }}" class="top-nav-link">Home</a>
                 <a href="{{ url_for('find_experts') }}" class="top-nav-link">Find Experts</a>
@@ -266,7 +301,10 @@
     <!-- Mobile Navigation (only visible on mobile) -->
     <nav class="mobile-nav">
         <div class="nav-header">
-            <a href="{{ url_for('homepage') }}" class="nav-brand">droply</a>
+            <a href="{{ url_for('homepage') }}" class="nav-brand">
+                <div class="nav-brand-icon">D</div>
+                droply
+            </a>
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('dashboard') }}" class="mobile-login-btn">Dashboard</a>
             {% else %}
@@ -282,7 +320,10 @@
         <nav class="navbar" id="navbar">
             <div class="container">
                 <div class="d-flex justify-content-between align-items-center">
-                    <a href="{{ url_for('homepage') }}" class="navbar-brand">Droply</a>
+                    <a href="{{ url_for('homepage') }}" class="navbar-brand">
+                        <div class="navbar-brand-icon">D</div>
+                        Droply
+                    </a>
                     <div class="navbar-nav">
                         {% if current_user.is_authenticated %}
                             <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
@@ -313,15 +354,15 @@
                 </div>
                 <div class="hero-animation">
                     <div class="hero-images-features">
-                        <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Main Feature" class="main-feature">
-                        <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Feature 1" class="feature-item pos1">
-                        <img src="{{ url_for('static', filename='img/generated-icon.png') }}" alt="Feature 2" class="feature-item pos2">
-                        <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Feature 3" class="feature-item pos3">
-                        <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Feature 4" class="feature-item pos4">
-                        <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Feature 5" class="feature-item pos5">
-                        <img src="{{ url_for('static', filename='img/generated-icon.png') }}" alt="Feature 6" class="feature-item pos6">
-                        <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Feature 7" class="feature-item pos7">
-                        <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Feature 8" class="feature-item pos8">
+                        <img src="{{ url_for('static', filename='img/main-animation1.png') }}" alt="Main Feature" class="main-feature">
+                        <img src="{{ url_for('static', filename='img/feature1.png') }}" alt="Feature 1" class="feature-item pos1">
+                        <img src="{{ url_for('static', filename='img/feature2.png') }}" alt="Feature 2" class="feature-item pos2">
+                        <img src="{{ url_for('static', filename='img/feature3.png') }}" alt="Feature 3" class="feature-item pos3">
+                        <img src="{{ url_for('static', filename='img/feature4.png') }}" alt="Feature 4" class="feature-item pos4">
+                        <img src="{{ url_for('static', filename='img/feature5.png') }}" alt="Feature 5" class="feature-item pos5">
+                        <img src="{{ url_for('static', filename='img/feature6.png') }}" alt="Feature 6" class="feature-item pos6">
+                        <img src="{{ url_for('static', filename='img/feature7.png') }}" alt="Feature 7" class="feature-item pos7">
+                        <img src="{{ url_for('static', filename='img/feature8.png') }}" alt="Feature 8" class="feature-item pos8">
                     </div>
                 </div>
             </div>

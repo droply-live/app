@@ -72,8 +72,8 @@
         .logo-icon {
             width: 32px;
             height: 32px;
-            background: linear-gradient(135deg, #FF6B35, #F7931E);
-            border-radius: 50%;
+            background: #059669;
+            border-radius: 8px;
             margin-right: 12px;
             display: flex;
             align-items: center;
@@ -85,8 +85,9 @@
 
         .logo-text {
             font-size: 24px;
-            font-weight: 700;
-            color: #1a1a1a;
+            font-weight: 900;
+            color: #059669;
+            letter-spacing: -1px;
         }
 
         .welcome-title {
@@ -165,7 +166,8 @@
 
         .form-input:focus {
             outline: none;
-            border-color: #007bff;
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
         }
 
         .password-row {
@@ -182,13 +184,13 @@
         }
 
         .forgot-link:hover {
-            color: #007bff;
+            color: #059669;
         }
 
         .login-btn {
             width: 100%;
             padding: 12px 16px;
-            background: #1a1a1a;
+            background: #059669;
             color: white;
             border: none;
             border-radius: 8px;
@@ -197,10 +199,12 @@
             cursor: pointer;
             transition: background 0.2s ease;
             margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
         }
 
         .login-btn:hover {
-            background: #333;
+            background: #047857;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
         }
 
         .login-btn:disabled {
@@ -244,12 +248,13 @@
         }
 
         .signup-link {
-            color: #007bff;
+            color: #059669;
             text-decoration: none;
             font-weight: 500;
         }
 
         .signup-link:hover {
+            color: #047857;
             text-decoration: underline;
         }
 
@@ -269,12 +274,13 @@
         }
 
         .consent-link {
-            color: #007bff;
+            color: #059669;
             text-decoration: none;
             font-weight: 500;
         }
 
         .consent-link:hover {
+            color: #047857;
             text-decoration: underline;
         }
 
@@ -318,7 +324,7 @@
 
         .strength-progress {
             height: 100%;
-            background: #ff6b35;
+            background: #059669;
             border-radius: 2px;
             transition: width 0.3s ease, background-color 0.3s ease;
         }
@@ -445,7 +451,7 @@
         <!-- Left Section - Signup Form -->
         <div class="login-left">
             <div class="logo">
-                <div class="logo-icon">☀️</div>
+                <div class="logo-icon">D</div>
                 <div class="logo-text">Droply</div>
             </div>
             
@@ -549,86 +555,68 @@
             <div class="testimonials-card">
                 <div class="testimonials-container">
                     <div class="testimonial-card">
-                        <div class="testimonial-text">Droply looks perfect for founders who want to build fast without...</div>
+                        <div class="testimonial-text">"Droply has revolutionized how I connect with experts. The booking process is seamless!"</div>
                         <div class="testimonial-author">
-                            <div class="author-avatar">U</div>
+                            <div class="author-avatar">👤</div>
                             <div class="author-info">
-                                <div class="author-name">user_one</div>
-                                <div class="author-handle">@user_one</div>
+                                <div class="author-name">Sarah M.</div>
+                                <div class="author-handle"></div>
                             </div>
-                            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                            </svg>
                         </div>
                     </div>
 
                     <div class="testimonial-card">
-                        <div class="testimonial-text">You can now build a full AI app without writing any code. This to...</div>
+                        <div class="testimonial-text">"Finally found a platform that makes expert consultations accessible and affordable."</div>
                         <div class="testimonial-author">
-                            <div class="author-avatar">U</div>
+                            <div class="author-avatar">👤</div>
                             <div class="author-info">
-                                <div class="author-name">user_two</div>
-                                <div class="author-handle">@user_two</div>
+                                <div class="author-name">Mike R.</div>
+                                <div class="author-handle"></div>
                             </div>
-                            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                            </svg>
                         </div>
                     </div>
 
                     <div class="testimonial-card">
-                        <div class="testimonial-text">Ok</div>
+                        <div class="testimonial-text">"Love how Droply connects me with the right experts in minutes, not days."</div>
                         <div class="testimonial-author">
-                            <div class="author-avatar">U</div>
+                            <div class="author-avatar">👤</div>
                             <div class="author-info">
-                                <div class="author-name">user_three</div>
-                                <div class="author-handle">@user_three</div>
+                                <div class="author-name">Emma L.</div>
+                                <div class="author-handle"></div>
                             </div>
-                            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                            </svg>
                         </div>
                     </div>
 
                     <div class="testimonial-card">
-                        <div class="testimonial-text">...nizes app development t...</div>
+                        <div class="testimonial-text">"Droply's video calling feature makes remote consultations feel personal and effective."</div>
                         <div class="testimonial-author">
-                            <div class="author-avatar">U</div>
+                            <div class="author-avatar">👤</div>
                             <div class="author-info">
-                                <div class="author-name">user_four</div>
-                                <div class="author-handle">@user_four</div>
+                                <div class="author-name">David K.</div>
+                                <div class="author-handle"></div>
                             </div>
-                            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/>
-                            </svg>
                         </div>
                     </div>
 
                     <div class="testimonial-card">
-                        <div class="testimonial-text">Fastest Aha! moment I have ever had.</div>
+                        <div class="testimonial-text">"The quality of experts on Droply is outstanding. Every session has been valuable!"</div>
                         <div class="testimonial-author">
-                            <div class="author-avatar">U</div>
+                            <div class="author-avatar">👤</div>
                             <div class="author-info">
-                                <div class="author-name">user_five</div>
-                                <div class="author-handle">@user_five</div>
+                                <div class="author-name">Lisa T.</div>
+                                <div class="author-handle"></div>
                             </div>
-                            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/>
-                            </svg>
                         </div>
                     </div>
 
                     <div class="testimonial-card">
-                        <div class="testimonial-text">Start building in minute immediately. Great!</div>
+                        <div class="testimonial-text">"Droply has become my go-to platform for getting expert advice quickly and efficiently."</div>
                         <div class="testimonial-author">
-                            <div class="author-avatar">U</div>
+                            <div class="author-avatar">👤</div>
                             <div class="author-info">
-                                <div class="author-name">user_six</div>
-                                <div class="author-handle">@user_six</div>
+                                <div class="author-name">James W.</div>
+                                <div class="author-handle"></div>
                             </div>
-                            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/>
-                            </svg>
                         </div>
                     </div>
                 </div>
@@ -676,19 +664,19 @@
             if (score === 0) {
                 strength = 'Weak';
                 progressWidth = '0%';
-                progressColor = '#ff6b35';
+                progressColor = '#dc3545';
             } else if (score === 1) {
                 strength = 'Weak';
                 progressWidth = '33%';
-                progressColor = '#ff6b35';
+                progressColor = '#dc3545';
             } else if (score === 2) {
                 strength = 'Medium';
                 progressWidth = '66%';
-                progressColor = '#ffa726';
+                progressColor = '#ffc107';
             } else if (score === 3) {
                 strength = 'Strong';
                 progressWidth = '100%';
-                progressColor = '#4caf50';
+                progressColor = '#059669';
             }
 
             strengthTitle.textContent = strength + ' password';

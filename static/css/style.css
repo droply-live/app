@@ -28,15 +28,15 @@ html, body {
 
 /* Money Green Theme Color Palette - DARK FOREST POWER */
 :root {
-    --money-primary: #1B4332;           /* Deep forest green - power & wealth */
-    --money-secondary: #2D5A3D;         /* Rich emerald - sophistication */
-    --money-accent: #D4AF37;            /* Rich gold - luxury & premium */
-    --money-dark: #0F2E1C;              /* Darkest forest - authority */
-    --money-light: #4A7C59;             /* Medium forest - growth */
-    --money-lighter: #E8F5E8;           /* Very light forest - subtle background */
-    --money-gradient: linear-gradient(135deg, #1B4332 0%, #2D5A3D 100%);
-    --money-gradient-alt: linear-gradient(135deg, #2D5A3D 0%, #4A7C59 100%);
-    --money-gradient-dark: linear-gradient(135deg, #0F2E1C 0%, #1B4332 100%);
+    --money-primary: #059669;           /* Droply green - primary brand color */
+    --money-secondary: #047857;         /* Darker Droply green - secondary actions */
+    --money-accent: #10B981;            /* Lighter Droply green - accents */
+    --money-dark: #064E3B;              /* Darkest Droply green - authority */
+    --money-light: #34D399;             /* Light Droply green - growth */
+    --money-lighter: #ECFDF5;           /* Very light Droply green - subtle background */
+    --money-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
+    --money-gradient-alt: linear-gradient(135deg, #047857 0%, #10B981 100%);
+    --money-gradient-dark: linear-gradient(135deg, #064E3B 0%, #059669 100%);
     --money-gradient-premium: linear-gradient(135deg, #D4AF37 0%, #1B4332 100%);
 }
 
@@ -100,14 +100,31 @@ body {
 
 .navbar-brand {
     font-size: 1.5rem;
-    font-weight: 700;
-    color: #1a1a1a;
+    font-weight: 900;
+    color: #059669;
     text-decoration: none;
     transition: color 0.2s ease;
+    letter-spacing: -1px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .navbar-brand:hover {
-    color: var(--money-primary);
+    color: #047857;
+}
+
+.navbar-brand-icon {
+    width: 32px;
+    height: 32px;
+    background: #059669;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+    font-weight: bold;
 }
 
 .nav-link {
@@ -184,7 +201,7 @@ body {
 
 /* Hero Sections with Better Colors and Spacing */
 .hero-section {
-    padding: 8rem 0;
+    padding: 2rem 0 8rem 0;
     min-height: 600px;
     display: flex;
     align-items: center;
@@ -263,33 +280,33 @@ body {
 
 .main-feature {
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 270px;
-    height: 270px;
+    width: 350px;
+    height: auto;
     border-radius: 28px;
-    object-fit: cover;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
     z-index: 10;
 }
 
 .feature-item {
     position: absolute;
-    width: 100px;
-    height: 100px;
+    width: 130px;
+    height: 130px;
     border-radius: 18px;
+    border: 3px solid #006400;
     object-fit: cover;
     box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
     z-index: 5;
-    top: 50%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     animation: feature-pop 6s ease-in-out infinite;
 }
 
-/* 8 positions around a circle (every 45deg, radius 200px) */
+/* 8 positions around a circle (every 45deg, radius 250px) */
 .feature-item.pos1 { --angle: 0deg; }
 .feature-item.pos2 { --angle: 45deg; }
 .feature-item.pos3 { --angle: 90deg; }
@@ -307,9 +324,9 @@ body {
         opacity: 0;
     }
     20%, 80% {
-        /* 200px radius from center, angle from --angle */
-        top: calc(50% + 200px * sin(var(--angle)));
-        left: calc(50% + 200px * cos(var(--angle)));
+        /* 250px radius from center, angle from --angle */
+        top: calc(45% + 250px * sin(var(--angle)));
+        left: calc(50% + 250px * cos(var(--angle)));
         transform: translate(-50%, -50%) scale(1);
         opacity: 1;
     }
@@ -1458,13 +1475,14 @@ body {
     }
     
     .main-feature {
-        width: 150px;
-        height: 150px;
+        width: 220px;
+        height: auto;
     }
     
     .feature-item {
-        width: 60px;
-        height: 60px;
+        width: 90px;
+        height: 90px;
+        border: 2px solid #006400;
     }
     
     .hero-images-cube {
@@ -2084,7 +2102,7 @@ body {
 }
 .connected-stepper .stepper-tab.active {
     background: #f8f9fa;
-    color: #5f2eea;
+    color: #059669;
     font-weight: 600;
     position: relative;
     z-index: 2;
@@ -2106,7 +2124,7 @@ body {
     vertical-align: middle;
 }
 .connected-stepper .stepper-tab.active .stepper-icon {
-    color: #5f2eea;
+    color: #059669;
     background: transparent !important;
 }
 
@@ -2128,7 +2146,7 @@ body {
 }
 .stepper-tab.active .step-timer-bar {
     width: 100%;
-    background: linear-gradient(90deg, #5f2eea 0%, #a18cd1 100%);
+    background: linear-gradient(90deg, #059669 0%, #047857 100%);
     animation: timerBarGrow 3s linear forwards;
 }
 @keyframes timerBarGrow {
@@ -3466,7 +3484,7 @@ body {
 /* Sidebar Logout Button */
 .sidebar-logout {
   padding: 1rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid #e5e5e5;
 }
 
 .logout-icon {
@@ -3477,6 +3495,21 @@ body {
 .logout-icon:hover {
   color: #c82333 !important;
   transform: scale(1.1);
+}
+
+/* Hide animations on mobile */
+@media (max-width: 768px) {
+    .feature-animation,
+    .hero-animation,
+    .hero-images-features,
+    .hero-images-cube,
+    .cube-face,
+    .anim-circle,
+    .anim-rect,
+    .anim-circle2,
+    .anim-rect2 {
+        display: none !important;
+    }
 }
 
 
