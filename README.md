@@ -1,4 +1,4 @@
-# Droply - Professional Networking Platform
+# Droply - Automated Deployment Test - Professional Networking Platform
 
 A modern platform for connecting professionals, coaches, and mentors. Built with Flask, featuring a beautiful UI and advanced search capabilities.
 
