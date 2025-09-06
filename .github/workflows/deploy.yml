@@ -22,6 +22,16 @@ jobs:
         script: |
           cd /opt/droply
           git pull origin main
+          export SECRET_KEY='${{ secrets.SECRET_KEY }}'
+          export STRIPE_SECRET_KEY='${{ secrets.STRIPE_SECRET_KEY }}'
+          export STRIPE_WEBHOOK_SECRET='${{ secrets.STRIPE_WEBHOOK_SECRET }}'
+          export GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'
+          export GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}'
+          export DAILY_API_KEY='${{ secrets.DAILY_API_KEY }}'
+          export YOUR_DOMAIN='https://droply.live'
+          export FLASK_ENV='production'
+          export ENVIRONMENT='production'
+          export FLASK_DEBUG='0'
           docker compose down
           docker compose build --no-cache
           docker compose up -d

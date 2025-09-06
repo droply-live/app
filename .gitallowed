@@ -37,3 +37,11 @@ DAILY_API_KEY=\$\{DAILY_API_KEY\}
 SECRET_KEY=\$\{SECRET_KEY\}
 GOOGLE_CLIENT_SECRET=\$\{GOOGLE_CLIENT_SECRET\}
 password_hash.*=.*db\.Column
+
+# Allow GitHub Actions secret references
+export SECRET_KEY='\${{ secrets\.SECRET_KEY }}'
+export STRIPE_SECRET_KEY='\${{ secrets\.STRIPE_SECRET_KEY }}'
+export STRIPE_WEBHOOK_SECRET='\${{ secrets\.STRIPE_WEBHOOK_SECRET }}'
+export GOOGLE_CLIENT_ID='\${{ secrets\.GOOGLE_CLIENT_ID }}'
+export GOOGLE_CLIENT_SECRET='\${{ secrets\.GOOGLE_CLIENT_SECRET }}'
+export DAILY_API_KEY='\${{ secrets\.DAILY_API_KEY }}'
