@@ -1,0 +1,39 @@
+# Git Secrets Allowed Patterns
+# These patterns are allowed even though they match secret patterns
+
+# Allow password field definitions in forms
+password.*=.*PasswordField
+password.*=.*form-control
+password.*=.*placeholder
+
+# Allow password-related HTML attributes
+type="password"
+placeholder=".*password.*"
+
+# Allow password hash column definitions
+password_hash.*=.*db\.Column
+
+# Allow password validation functions
+generate_password_hash
+check_password_hash
+
+# Allow password strength checking
+checkPasswordStrength
+passwordInput
+passwordPopup
+
+# Allow password length validation
+password\.length
+
+# Allow password popup HTML
+password-popup
+
+# Allow documentation examples
+DAILY_API_KEY=your_.*_api_key_here
+DAILY_API_KEY=your_production_api_key
+DAILY_API_KEY=\$\{DAILY_API_KEY\}
+
+# Allow environment variable references in docker-compose.yml
+SECRET_KEY=\$\{SECRET_KEY\}
+GOOGLE_CLIENT_SECRET=\$\{GOOGLE_CLIENT_SECRET\}
+password_hash.*=.*db\.Column

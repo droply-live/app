@@ -142,7 +142,7 @@ def get_meeting_token(room_name, user_id, is_owner=False):
     return f"simple-token-{user_id}-{is_owner}", None
 
 # Configure Stripe
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_4eC39HqLyjWDarjtT1zdp7dc')  # Use environment variable or fallback
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')  # Use environment variable
 YOUR_DOMAIN = os.environ.get('YOUR_DOMAIN', 'https://f6b540a7cf43.ngrok-free.app')
 
 # Production safeguards

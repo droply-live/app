@@ -8,15 +8,18 @@ services:
     volumes:
       - .:/app
     environment:
-      - FLASK_ENV=development
-      - ENVIRONMENT=development
-      - FLASK_DEBUG=1
+      - FLASK_ENV=production
+      - ENVIRONMENT=production
+      - FLASK_DEBUG=0
       - TZ=America/New_York
+      - SECRET_KEY=${SECRET_KEY}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - DAILY_API_KEY=${DAILY_API_KEY}
-      - YOUR_DOMAIN=${YOUR_DOMAIN:-https://f6b540a7cf43.ngrok-free.app}
-      - REPLIT_DEV_DOMAIN=f6b540a7cf43.ngrok-free.app
+      - YOUR_DOMAIN=${YOUR_DOMAIN:-https://droply.live}
+      - REPLIT_DEV_DOMAIN=droply.live
     command: python -m flask run --host=0.0.0.0 --port=5000
 
 # Removed db service and depends_on
