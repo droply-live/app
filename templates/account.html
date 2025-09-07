@@ -102,12 +102,6 @@
           <div>
             <p class="tab-subtitle">Set when you're available for sessions</p>
           </div>
-          <div class="tab-actions">
-            <button id="save-availability-btn" class="tab-action-btn primary">
-              <i class="fas fa-save"></i>
-              Save Availability
-            </button>
-          </div>
         </div>
 
         <!-- Google Calendar Integration -->
@@ -126,8 +120,7 @@
                 </div>
                 <div class="alert alert-success" id="calendar-connected" style="display: none;">
                   <i class="fas fa-check-circle"></i>
-                  <strong>Google Calendar Connected</strong><br>
-                  Your calendar is synced and will automatically block busy times.
+                  <strong>Google Calendar Connected</strong>
                 </div>
               </div>
               
@@ -136,206 +129,238 @@
                   <i class="fab fa-google"></i>
                   Connect Google Calendar
                 </a>
-                <button class="btn btn-outline-secondary" id="sync-calendar-btn" style="display: none;">
-                  <i class="fas fa-sync"></i>
-                  Sync Calendar
-                </button>
                 <form action="/disconnect-google-calendar" method="POST" style="display: inline;" id="disconnect-calendar-form">
-                  <button type="submit" class="btn btn-outline-danger" id="disconnect-calendar-btn" style="display: none;">
+                  <button type="submit" class="btn btn-outline-danger btn-sm" id="disconnect-calendar-btn" style="display: none;">
                     <i class="fas fa-unlink"></i>
                     Disconnect
                   </button>
                 </form>
               </div>
-              
-              <div id="sync-status" class="mt-3" style="display: none;">
-                <div class="alert alert-info">
-                  <i class="fas fa-spinner fa-spin"></i>
-                  Syncing calendar events...
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
-        <!-- Weekly Schedule -->
+        <!-- Weekly Calendar View -->
         <div class="tab-section">
           <h3 class="tab-section-title">
-            <i class="fas fa-clock"></i>
-            Weekly Schedule
+            <i class="fas fa-calendar-week"></i>
+            Weekly Calendar & Availability
           </h3>
           <div class="card">
             <div class="card-body">
-              <p class="text-muted">Configure your availability for each day of the week. Clients will see these times when booking sessions with you.</p>
+              <p class="text-muted">View your Google Calendar events and set your availability for each day. Events from your calendar will automatically block those times.</p>
               
-              <div class="availability-schedule">
-                <div class="row">
-                  <div class="col-md-8">
-                    <div class="schedule-grid">
-                      <div class="schedule-header">
-                        <div class="day-header">Day</div>
-                        <div class="time-header">Available Hours</div>
-                        <div class="action-header">Action</div>
+              <!-- Calendar Navigation -->
+              <div class="calendar-navigation mb-3">
+                <div class="d-flex align-items-center justify-content-center">
+                  <button class="btn btn-outline-secondary btn-xs me-1" id="prev-week">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <span class="text-muted small mx-2" id="current-week-display">This Week</span>
+                  <button class="btn btn-outline-secondary btn-xs ms-1" id="next-week">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                  <button class="btn btn-outline-secondary btn-xs ms-2" id="sync-calendar-events" title="Sync Calendar Events">
+                    <i class="fas fa-sync-alt"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Weekly Calendar Grid -->
+              <div class="weekly-calendar">
+                <div class="calendar-grid">
+                  <!-- Monday Column -->
+                  <div class="day-column" data-day="0">
+                    <div class="day-header">
+                      <div class="day-name">Monday</div>
+                      <div class="date-display" id="date-0">-</div>
+                    </div>
+                    <div class="status-section">
+                      <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input day-enabled" id="day-0">
+                        <label class="form-check-label" for="day-0">Active</label>
                       </div>
-                      
-                      <div class="schedule-row" data-day="0">
-                        <div class="day-cell">
-                          <div class="day-name">Monday</div>
-                        </div>
-                        <div class="time-cell">
-                          <div class="time-inputs">
-                            <input type="time" class="form-control time-start" value="09:00">
-                            <span class="time-separator">to</span>
-                            <input type="time" class="form-control time-end" value="17:00">
-                          </div>
-                        </div>
-                        <div class="action-cell">
-                          <div class="form-check">
-                            <input type="checkbox" class="form-check-input day-enabled" id="day-0">
-                            <label class="form-check-label" for="day-0">Available</label>
-                          </div>
-                        </div>
+                    </div>
+                    <div class="availability-section">
+                      <div class="section-label">Available Hours</div>
+                      <div class="time-inputs">
+                        <input type="time" class="form-control time-start" value="09:00">
+                        <span class="time-separator">to</span>
+                        <input type="time" class="form-control time-end" value="17:00">
                       </div>
-                      
-                      <div class="schedule-row" data-day="1">
-                        <div class="day-cell">
-                          <div class="day-name">Tuesday</div>
-                        </div>
-                        <div class="time-cell">
-                          <div class="time-inputs">
-                            <input type="time" class="form-control time-start" value="09:00">
-                            <span class="time-separator">to</span>
-                            <input type="time" class="form-control time-end" value="17:00">
-                          </div>
-                        </div>
-                        <div class="action-cell">
-                          <div class="form-check">
-                            <input type="checkbox" class="form-check-input day-enabled" id="day-1">
-                            <label class="form-check-label" for="day-1">Available</label>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div class="schedule-row" data-day="2">
-                        <div class="day-cell">
-                          <div class="day-name">Wednesday</div>
-                        </div>
-                        <div class="time-cell">
-                          <div class="time-inputs">
-                            <input type="time" class="form-control time-start" value="09:00">
-                            <span class="time-separator">to</span>
-                            <input type="time" class="form-control time-end" value="17:00">
-                          </div>
-                        </div>
-                        <div class="action-cell">
-                          <div class="form-check">
-                            <input type="checkbox" class="form-check-input day-enabled" id="day-2">
-                            <label class="form-check-label" for="day-2">Available</label>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div class="schedule-row" data-day="3">
-                        <div class="day-cell">
-                          <div class="day-name">Thursday</div>
-                        </div>
-                        <div class="time-cell">
-                          <div class="time-inputs">
-                            <input type="time" class="form-control time-start" value="09:00">
-                            <span class="time-separator">to</span>
-                            <input type="time" class="form-control time-end" value="17:00">
-                          </div>
-                        </div>
-                        <div class="action-cell">
-                          <div class="form-check">
-                            <input type="checkbox" class="form-check-input day-enabled" id="day-3">
-                            <label class="form-check-label" for="day-3">Available</label>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div class="schedule-row" data-day="4">
-                        <div class="day-cell">
-                          <div class="day-name">Friday</div>
-                        </div>
-                        <div class="time-cell">
-                          <div class="time-inputs">
-                            <input type="time" class="form-control time-start" value="09:00">
-                            <span class="time-separator">to</span>
-                            <input type="time" class="form-control time-end" value="17:00">
-                          </div>
-                        </div>
-                        <div class="action-cell">
-                          <div class="form-check">
-                            <input type="checkbox" class="form-check-input day-enabled" id="day-4">
-                            <label class="form-check-label" for="day-4">Available</label>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div class="schedule-row" data-day="5">
-                        <div class="day-cell">
-                          <div class="day-name">Saturday</div>
-                        </div>
-                        <div class="time-cell">
-                          <div class="time-inputs">
-                            <input type="time" class="form-control time-start" value="10:00">
-                            <span class="time-separator">to</span>
-                            <input type="time" class="form-control time-end" value="15:00">
-                          </div>
-                        </div>
-                        <div class="action-cell">
-                          <div class="form-check">
-                            <input type="checkbox" class="form-check-input day-enabled" id="day-5">
-                            <label class="form-check-label" for="day-5">Available</label>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div class="schedule-row" data-day="6">
-                        <div class="day-cell">
-                          <div class="day-name">Sunday</div>
-                        </div>
-                        <div class="time-cell">
-                          <div class="time-inputs">
-                            <input type="time" class="form-control time-start" value="10:00">
-                            <span class="time-separator">to</span>
-                            <input type="time" class="form-control time-end" value="15:00">
-                          </div>
-                        </div>
-                        <div class="action-cell">
-                          <div class="form-check">
-                            <input type="checkbox" class="form-check-input day-enabled" id="day-6">
-                            <label class="form-check-label" for="day-6">Available</label>
-                          </div>
-                        </div>
+                    </div>
+                    <div class="events-section">
+                      <div class="section-label">Events</div>
+                      <div class="events-list" id="events-0">
+                        <div class="no-events">No events</div>
                       </div>
                     </div>
                   </div>
                   
-                  <div class="col-md-4">
-                    <div class="availability-preview">
-                      <h5>Quick Actions</h5>
-                      <div class="quick-actions">
-                        <button class="btn btn-outline-primary btn-sm" id="set-weekdays">
-                          <i class="fas fa-briefcase"></i>
-                          Set Weekdays (9-5)
-                        </button>
-                        <button class="btn btn-outline-primary btn-sm" id="set-weekends">
-                          <i class="fas fa-coffee"></i>
-                          Set Weekends (10-3)
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" id="clear-all">
-                          <i class="fas fa-times"></i>
-                          Clear All
-                        </button>
+                  <!-- Tuesday Column -->
+                  <div class="day-column" data-day="1">
+                    <div class="day-header">
+                      <div class="day-name">Tuesday</div>
+                      <div class="date-display" id="date-1">-</div>
+                    </div>
+                    <div class="status-section">
+                      <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input day-enabled" id="day-1">
+                        <label class="form-check-label" for="day-1">Active</label>
                       </div>
-                      
-                      <div class="preview-info mt-3">
-                        <h6>Preview</h6>
-                        <div id="availability-preview-content">
-                          <p class="text-muted">Configure your schedule to see a preview</p>
-                        </div>
+                    </div>
+                    <div class="availability-section">
+                      <div class="section-label">Available Hours</div>
+                      <div class="time-inputs">
+                        <input type="time" class="form-control time-start" value="09:00">
+                        <span class="time-separator">to</span>
+                        <input type="time" class="form-control time-end" value="17:00">
+                      </div>
+                    </div>
+                    <div class="events-section">
+                      <div class="section-label">Events</div>
+                      <div class="events-list" id="events-1">
+                        <div class="no-events">No events</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Wednesday Column -->
+                  <div class="day-column" data-day="2">
+                    <div class="day-header">
+                      <div class="day-name">Wednesday</div>
+                      <div class="date-display" id="date-2">-</div>
+                    </div>
+                    <div class="status-section">
+                      <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input day-enabled" id="day-2">
+                        <label class="form-check-label" for="day-2">Active</label>
+                      </div>
+                    </div>
+                    <div class="availability-section">
+                      <div class="section-label">Available Hours</div>
+                      <div class="time-inputs">
+                        <input type="time" class="form-control time-start" value="09:00">
+                        <span class="time-separator">to</span>
+                        <input type="time" class="form-control time-end" value="17:00">
+                      </div>
+                    </div>
+                    <div class="events-section">
+                      <div class="section-label">Events</div>
+                      <div class="events-list" id="events-2">
+                        <div class="no-events">No events</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Thursday Column -->
+                  <div class="day-column" data-day="3">
+                    <div class="day-header">
+                      <div class="day-name">Thursday</div>
+                      <div class="date-display" id="date-3">-</div>
+                    </div>
+                    <div class="status-section">
+                      <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input day-enabled" id="day-3">
+                        <label class="form-check-label" for="day-3">Active</label>
+                      </div>
+                    </div>
+                    <div class="availability-section">
+                      <div class="section-label">Available Hours</div>
+                      <div class="time-inputs">
+                        <input type="time" class="form-control time-start" value="09:00">
+                        <span class="time-separator">to</span>
+                        <input type="time" class="form-control time-end" value="17:00">
+                      </div>
+                    </div>
+                    <div class="events-section">
+                      <div class="section-label">Events</div>
+                      <div class="events-list" id="events-3">
+                        <div class="no-events">No events</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Friday Column -->
+                  <div class="day-column" data-day="4">
+                    <div class="day-header">
+                      <div class="day-name">Friday</div>
+                      <div class="date-display" id="date-4">-</div>
+                    </div>
+                    <div class="status-section">
+                      <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input day-enabled" id="day-4">
+                        <label class="form-check-label" for="day-4">Active</label>
+                      </div>
+                    </div>
+                    <div class="availability-section">
+                      <div class="section-label">Available Hours</div>
+                      <div class="time-inputs">
+                        <input type="time" class="form-control time-start" value="09:00">
+                        <span class="time-separator">to</span>
+                        <input type="time" class="form-control time-end" value="17:00">
+                      </div>
+                    </div>
+                    <div class="events-section">
+                      <div class="section-label">Events</div>
+                      <div class="events-list" id="events-4">
+                        <div class="no-events">No events</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Saturday Column -->
+                  <div class="day-column" data-day="5">
+                    <div class="day-header">
+                      <div class="day-name">Saturday</div>
+                      <div class="date-display" id="date-5">-</div>
+                    </div>
+                    <div class="status-section">
+                      <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input day-enabled" id="day-5">
+                        <label class="form-check-label" for="day-5">Active</label>
+                      </div>
+                    </div>
+                    <div class="availability-section">
+                      <div class="section-label">Available Hours</div>
+                      <div class="time-inputs">
+                        <input type="time" class="form-control time-start" value="10:00">
+                        <span class="time-separator">to</span>
+                        <input type="time" class="form-control time-end" value="15:00">
+                      </div>
+                    </div>
+                    <div class="events-section">
+                      <div class="section-label">Events</div>
+                      <div class="events-list" id="events-5">
+                        <div class="no-events">No events</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Sunday Column -->
+                  <div class="day-column" data-day="6">
+                    <div class="day-header">
+                      <div class="day-name">Sunday</div>
+                      <div class="date-display" id="date-6">-</div>
+                    </div>
+                    <div class="status-section">
+                      <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input day-enabled" id="day-6">
+                        <label class="form-check-label" for="day-6">Active</label>
+                      </div>
+                    </div>
+                    <div class="availability-section">
+                      <div class="section-label">Available Hours</div>
+                      <div class="time-inputs">
+                        <input type="time" class="form-control time-start" value="10:00">
+                        <span class="time-separator">to</span>
+                        <input type="time" class="form-control time-end" value="15:00">
+                      </div>
+                    </div>
+                    <div class="events-section">
+                      <div class="section-label">Events</div>
+                      <div class="events-list" id="events-6">
+                        <div class="no-events">No events</div>
                       </div>
                     </div>
                   </div>
@@ -583,7 +608,6 @@ function checkCalendarStatus() {
       const notConnectedDiv = document.getElementById('calendar-not-connected');
       const connectedDiv = document.getElementById('calendar-connected');
       const connectBtn = document.getElementById('connect-calendar-btn');
-      const syncBtn = document.getElementById('sync-calendar-btn');
       const disconnectBtn = document.getElementById('disconnect-calendar-btn');
       
       if (connected) {
@@ -591,14 +615,12 @@ function checkCalendarStatus() {
         notConnectedDiv.style.display = 'none';
         connectedDiv.style.display = 'block';
         connectBtn.style.display = 'none';
-        syncBtn.style.display = 'inline-block';
         disconnectBtn.style.display = 'inline-block';
       } else {
         console.log('Calendar is not connected, updating UI...');
         notConnectedDiv.style.display = 'block';
         connectedDiv.style.display = 'none';
         connectBtn.style.display = 'inline-block';
-        syncBtn.style.display = 'none';
         disconnectBtn.style.display = 'none';
       }
     })
@@ -608,17 +630,7 @@ function checkCalendarStatus() {
 }
 
 function setupAvailabilityEventListeners() {
-  // Save availability button
-  const saveBtn = document.getElementById('save-availability-btn');
-  if (saveBtn) {
-    saveBtn.addEventListener('click', saveAvailability);
-  }
-  
-  // Sync calendar button
-  const syncBtn = document.getElementById('sync-calendar-btn');
-  if (syncBtn) {
-    syncBtn.addEventListener('click', syncCalendar);
-  }
+  // Auto-save functionality - no manual save button needed
   
   // Quick action buttons
   const setWeekdaysBtn = document.getElementById('set-weekdays');
@@ -636,16 +648,22 @@ function setupAvailabilityEventListeners() {
     clearAllBtn.addEventListener('click', clearAllDays);
   }
   
-  // Day enabled checkboxes
+  // Day enabled checkboxes - auto-save on change
   const dayCheckboxes = document.querySelectorAll('.day-enabled');
   dayCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', updatePreview);
+    checkbox.addEventListener('change', () => {
+      updatePreview();
+      saveAvailability();
+    });
   });
   
-  // Time inputs
+  // Time inputs - auto-save on change
   const timeInputs = document.querySelectorAll('.time-start, .time-end');
   timeInputs.forEach(input => {
-    input.addEventListener('change', updatePreview);
+    input.addEventListener('change', () => {
+      updatePreview();
+      saveAvailability();
+    });
   });
 }
 
@@ -661,16 +679,21 @@ function loadAvailabilityRules() {
       
       // Apply loaded rules
       rules.forEach(rule => {
-        const dayRow = document.querySelector(`[data-day="${rule.weekday}"]`);
-        if (dayRow) {
-          const checkbox = dayRow.querySelector('.day-enabled');
-          const startInput = dayRow.querySelector('.time-start');
-          const endInput = dayRow.querySelector('.time-end');
+        const dayColumn = document.querySelector(`.day-column[data-day="${rule.weekday}"]`);
+        if (dayColumn) {
+          const checkbox = dayColumn.querySelector('.day-enabled');
+          const startInput = dayColumn.querySelector('.time-start');
+          const endInput = dayColumn.querySelector('.time-end');
           
           if (checkbox && startInput && endInput) {
             checkbox.checked = true;
             startInput.value = rule.start;
             endInput.value = rule.end;
+            // Update label text
+            const label = checkbox.nextElementSibling;
+            if (label) {
+              label.textContent = 'Active';
+            }
           }
         }
       });
@@ -686,12 +709,12 @@ function saveAvailability() {
   const rules = [];
   
   // Collect all enabled days
-  const dayRows = document.querySelectorAll('.schedule-row');
-  dayRows.forEach(row => {
-    const checkbox = row.querySelector('.day-enabled');
-    const startInput = row.querySelector('.time-start');
-    const endInput = row.querySelector('.time-end');
-    const day = row.getAttribute('data-day');
+  const dayColumns = document.querySelectorAll('.day-column');
+  dayColumns.forEach(column => {
+    const checkbox = column.querySelector('.day-enabled');
+    const startInput = column.querySelector('.time-start');
+    const endInput = column.querySelector('.time-end');
+    const day = column.getAttribute('data-day');
     
     if (checkbox && checkbox.checked && startInput && endInput) {
       rules.push({
@@ -714,24 +737,26 @@ function saveAvailability() {
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      showAvailabilitySaveStatus();
+      showAutoSaveStatus();
     } else {
-      console.error('Error saving availability:', data.error);
-      alert('Failed to save availability. Please try again.');
+      console.error('Error auto-saving availability:', data.error);
+      showAutoSaveError();
     }
   })
   .catch(error => {
-    console.error('Error saving availability:', error);
-    alert('Failed to save availability. Please try again.');
+    console.error('Error auto-saving availability:', error);
+    showAutoSaveError();
   });
 }
 
 function syncCalendar() {
   const syncStatus = document.getElementById('sync-status');
-  const syncBtn = document.getElementById('sync-calendar-btn');
+  const syncBtn = document.getElementById('sync-calendar-events');
   
   syncStatus.style.display = 'block';
-  syncBtn.disabled = true;
+  if (syncBtn) {
+    syncBtn.disabled = true;
+  }
   
   fetch('/api/availability/sync-calendar', {
     method: 'POST',
@@ -742,7 +767,9 @@ function syncCalendar() {
   .then(response => response.json())
   .then(data => {
     syncStatus.style.display = 'none';
-    syncBtn.disabled = false;
+    if (syncBtn) {
+      syncBtn.disabled = false;
+    }
     
     if (data.success) {
       alert(`Calendar synced successfully! ${data.message}`);
@@ -752,7 +779,9 @@ function syncCalendar() {
   })
   .catch(error => {
     syncStatus.style.display = 'none';
-    syncBtn.disabled = false;
+    if (syncBtn) {
+      syncBtn.disabled = false;
+    }
     console.error('Error syncing calendar:', error);
     alert('Failed to sync calendar. Please try again.');
   });
@@ -838,21 +867,75 @@ function updatePreview() {
   }
 }
 
-function showAvailabilitySaveStatus() {
-  // Create a temporary status element
+function showAutoSaveStatus() {
+  // Create a subtle auto-save indicator
   const statusDiv = document.createElement('div');
-  statusDiv.className = 'alert alert-success';
-  statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Availability saved successfully!';
+  statusDiv.className = 'auto-save-indicator';
+  statusDiv.innerHTML = '<i class="fas fa-check"></i> Saved';
   statusDiv.style.position = 'fixed';
   statusDiv.style.top = '20px';
   statusDiv.style.right = '20px';
   statusDiv.style.zIndex = '9999';
+  statusDiv.style.background = '#10b981';
+  statusDiv.style.color = 'white';
+  statusDiv.style.padding = '8px 12px';
+  statusDiv.style.borderRadius = '6px';
+  statusDiv.style.fontSize = '12px';
+  statusDiv.style.fontWeight = '500';
+  statusDiv.style.opacity = '0';
+  statusDiv.style.transition = 'opacity 0.3s ease';
   
   document.body.appendChild(statusDiv);
   
-  // Remove after 3 seconds
+  // Fade in
   setTimeout(() => {
-    document.body.removeChild(statusDiv);
+    statusDiv.style.opacity = '1';
+  }, 10);
+  
+  // Fade out and remove after 2 seconds
+  setTimeout(() => {
+    statusDiv.style.opacity = '0';
+    setTimeout(() => {
+      if (document.body.contains(statusDiv)) {
+        document.body.removeChild(statusDiv);
+      }
+    }, 300);
+  }, 2000);
+}
+
+function showAutoSaveError() {
+  // Create a subtle error indicator
+  const statusDiv = document.createElement('div');
+  statusDiv.className = 'auto-save-error';
+  statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Save failed';
+  statusDiv.style.position = 'fixed';
+  statusDiv.style.top = '20px';
+  statusDiv.style.right = '20px';
+  statusDiv.style.zIndex = '9999';
+  statusDiv.style.background = '#ef4444';
+  statusDiv.style.color = 'white';
+  statusDiv.style.padding = '8px 12px';
+  statusDiv.style.borderRadius = '6px';
+  statusDiv.style.fontSize = '12px';
+  statusDiv.style.fontWeight = '500';
+  statusDiv.style.opacity = '0';
+  statusDiv.style.transition = 'opacity 0.3s ease';
+  
+  document.body.appendChild(statusDiv);
+  
+  // Fade in
+  setTimeout(() => {
+    statusDiv.style.opacity = '1';
+  }, 10);
+  
+  // Fade out and remove after 3 seconds
+  setTimeout(() => {
+    statusDiv.style.opacity = '0';
+    setTimeout(() => {
+      if (document.body.contains(statusDiv)) {
+        document.body.removeChild(statusDiv);
+      }
+    }, 300);
   }, 3000);
 }
 
@@ -986,11 +1069,288 @@ function setupAutoSave() {
   });
 }
 
+// Weekly Calendar Management
+let currentWeekStart = new Date();
+// Set to start of current week (Sunday)
+const today = new Date();
+const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+currentWeekStart.setDate(today.getDate() - dayOfWeek);
+currentWeekStart.setHours(0, 0, 0, 0); // Reset time to start of day
+
+function setupWeeklyCalendar() {
+  // Initialize current week
+  updateWeekDisplay();
+  loadWeekEvents();
+  
+  // Initialize toggle labels
+  initializeToggleLabels();
+  
+  // Setup event listeners
+  setupWeeklyCalendarEventListeners();
+}
+
+function initializeToggleLabels() {
+  for (let day = 0; day < 7; day++) {
+    const checkbox = document.querySelector(`.day-column[data-day="${day}"] .day-enabled`);
+    if (checkbox) {
+      const label = checkbox.nextElementSibling;
+      if (label) {
+        label.textContent = checkbox.checked ? 'Active' : 'Inactive';
+      }
+    }
+  }
+}
+
+function setupWeeklyCalendarEventListeners() {
+  // Week navigation
+  const prevWeekBtn = document.getElementById('prev-week');
+  const nextWeekBtn = document.getElementById('next-week');
+  const syncEventsBtn = document.getElementById('sync-calendar-events');
+  
+  if (prevWeekBtn) {
+    prevWeekBtn.addEventListener('click', () => {
+      currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+      updateWeekDisplay();
+      loadWeekEvents();
+    });
+  }
+  
+  if (nextWeekBtn) {
+    nextWeekBtn.addEventListener('click', () => {
+      currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+      updateWeekDisplay();
+      loadWeekEvents();
+    });
+  }
+  
+  if (syncEventsBtn) {
+    syncEventsBtn.addEventListener('click', syncCalendarEvents);
+  }
+  
+  // Availability time inputs
+  for (let day = 0; day < 7; day++) {
+    const timeStart = document.querySelector(`.day-column[data-day="${day}"] .time-start`);
+    const timeEnd = document.querySelector(`.day-column[data-day="${day}"] .time-end`);
+    const dayEnabled = document.querySelector(`.day-column[data-day="${day}"] .day-enabled`);
+    
+    if (timeStart) {
+      timeStart.addEventListener('change', () => saveAvailability());
+    }
+    if (timeEnd) {
+      timeEnd.addEventListener('change', () => saveAvailability());
+    }
+    if (dayEnabled) {
+      dayEnabled.addEventListener('change', (e) => {
+        const label = e.target.nextElementSibling;
+        if (label) {
+          label.textContent = e.target.checked ? 'Active' : 'Inactive';
+        }
+        saveAvailability();
+      });
+    }
+  }
+}
+
+function updateWeekDisplay() {
+  const weekEnd = new Date(currentWeekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  
+  const weekDisplay = document.getElementById('current-week-display');
+  if (weekDisplay) {
+    const startStr = currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    // Only show year if it's different from current year
+    const currentYear = new Date().getFullYear();
+    const weekYear = currentWeekStart.getFullYear();
+    const yearSuffix = weekYear !== currentYear ? `, ${weekYear}` : '';
+    weekDisplay.textContent = `${startStr} - ${endStr}${yearSuffix}`;
+  }
+  
+  // Update date displays for each day
+  for (let day = 0; day < 7; day++) {
+    const date = new Date(currentWeekStart);
+    date.setDate(date.getDate() + day);
+    
+    const dateDisplay = document.getElementById(`date-${day}`);
+    if (dateDisplay) {
+      dateDisplay.textContent = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+  }
+}
+
+function loadWeekEvents() {
+  // Check if calendar is connected
+  fetch('/api/availability/calendar-status')
+    .then(response => response.json())
+    .then(data => {
+      if (data.connected) {
+        fetchWeekEvents();
+      } else {
+        clearWeekEvents();
+      }
+    })
+    .catch(error => {
+      console.error('Error checking calendar status:', error);
+      clearWeekEvents();
+    });
+}
+
+function fetchWeekEvents() {
+  const weekEnd = new Date(currentWeekStart);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+  
+  const params = new URLSearchParams({
+    start: currentWeekStart.toISOString(),
+    end: weekEnd.toISOString()
+  });
+  
+  fetch(`/api/availability/calendar-events?${params}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        displayWeekEvents(data.events);
+      } else {
+        console.error('Error fetching events:', data.error);
+        clearWeekEvents();
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching calendar events:', error);
+      clearWeekEvents();
+    });
+}
+
+function displayWeekEvents(events) {
+  // Clear existing events
+  clearWeekEvents();
+  
+  // Group events by day
+  const eventsByDay = {};
+  for (let day = 0; day < 7; day++) {
+    eventsByDay[day] = [];
+  }
+  
+  // Sort events by day
+  events.forEach(event => {
+    const eventDate = new Date(event.start);
+    const dayOfWeek = eventDate.getDay();
+    eventsByDay[dayOfWeek].push(event);
+  });
+  
+  // Display events for each day
+  for (let day = 0; day < 7; day++) {
+    const eventsList = document.getElementById(`events-${day}`);
+    if (eventsList && eventsByDay[day].length > 0) {
+      eventsList.innerHTML = '';
+      eventsByDay[day].forEach(event => {
+        const eventElement = createEventElement(event);
+        eventsList.appendChild(eventElement);
+      });
+    }
+  }
+}
+
+function createEventElement(event) {
+  const eventDiv = document.createElement('div');
+  eventDiv.className = 'calendar-event';
+  
+  const startTime = new Date(event.start).toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  });
+  
+  eventDiv.innerHTML = `
+    <span class="event-time">${startTime}</span>
+    <span class="event-title">${event.title}</span>
+  `;
+  
+  // Add event type styling
+  if (event.title.toLowerCase().includes('meeting')) {
+    eventDiv.classList.add('meeting');
+  } else if (event.title.toLowerCase().includes('busy')) {
+    eventDiv.classList.add('busy');
+  } else {
+    eventDiv.classList.add('personal');
+  }
+  
+  return eventDiv;
+}
+
+function clearWeekEvents() {
+  for (let day = 0; day < 7; day++) {
+    const eventsList = document.getElementById(`events-${day}`);
+    if (eventsList) {
+      eventsList.innerHTML = '<div class="no-events">No events</div>';
+    }
+  }
+}
+
+function syncCalendarEvents() {
+  const syncBtn = document.getElementById('sync-calendar-events');
+  if (syncBtn) {
+    syncBtn.disabled = true;
+    syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  }
+  
+  fetch('/api/availability/sync-calendar', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      loadWeekEvents();
+      showNotification('Calendar events synced successfully!', 'success');
+    } else {
+      showNotification('Failed to sync calendar events: ' + data.error, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error syncing calendar:', error);
+    showNotification('Error syncing calendar events', 'error');
+  })
+  .finally(() => {
+    if (syncBtn) {
+      syncBtn.disabled = false;
+      syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    }
+  });
+}
+
+function showNotification(message, type) {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+  notification.style.position = 'fixed';
+  notification.style.top = '20px';
+  notification.style.right = '20px';
+  notification.style.zIndex = '9999';
+  notification.style.minWidth = '300px';
+  
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 5000);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // Setup auto-save with a delay to ensure DOM is fully ready
   setTimeout(() => {
     setupAutoSave();
     setupAvailabilityManagement();
+    setupWeeklyCalendar();
   }, 100);
 });
 

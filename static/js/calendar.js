@@ -582,11 +582,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const stepTabs = document.querySelectorAll('.stepper-tab');
         const stepImage = document.getElementById('step-image');
         const stepImages = [
-            '/static/img/mockup-hero.png',
-            '/static/img/mockup-hero-2.png',
-            '/static/img/generated-icon.png',
-            '/static/img/default-avatar.png',
-            '/static/img/mockup-hero.png'
+            '/static/img/section2/item1.png',  // Connect your calendars
+            '/static/img/section2/item2.png',  // Add your availability
+            '/static/img/section2/item3.png',  // Integrated video calls
+            '/static/img/section2/item4.png'   // Start making money
         ];
         let timer = null;
         let currentIdx = 0;
@@ -607,8 +606,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
-            // Instantly switch image, no animation
-            stepImage.src = stepImages[idx];
+            // Smooth fade transition for image changes
+            stepImage.style.opacity = '0';
+            setTimeout(() => {
+                stepImage.src = stepImages[idx];
+                stepImage.style.opacity = '1';
+            }, 150);
             currentIdx = idx;
             if (timer) clearTimeout(timer);
             timer = setTimeout(() => {

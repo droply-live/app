@@ -1602,6 +1602,74 @@ def api_calendar_status():
         'calendar_id': current_user.google_calendar_id
     })
 
+@app.route('/api/availability/calendar-events', methods=['GET'])
+@login_required
+def api_calendar_events():
+    """Get Google Calendar events for a date range"""
+    if not current_user.google_calendar_connected:
+        return jsonify({'success': False, 'error': 'Google Calendar not connected'}), 400
+    
+    try:
+        from googleapiclient.discovery import build
+        from google.oauth2.credentials import Credentials
+        from datetime import datetime
+        
+        # Get date range from query parameters
+        start_date = request.args.get('start')
+        end_date = request.args.get('end')
+        
+        if not start_date or not end_date:
+            return jsonify({'success': False, 'error': 'Start and end dates required'}), 400
+        
+        # Create credentials object
+        credentials = Credentials(
+            token=current_user.google_calendar_token,
+            refresh_token=current_user.google_calendar_refresh_token,
+            token_uri='https://oauth2.googleapis.com/token',
+            client_id=app.config['GOOGLE_CLIENT_ID'],
+            client_secret=app.config['GOOGLE_CLIENT_SECRET']
+        )
+        
+        # Build calendar service
+        service = build('calendar', 'v3', credentials=credentials)
+        
+        # Get events for the date range
+        events_result = service.events().list(
+            calendarId=current_user.google_calendar_id,
+            timeMin=start_date,
+            timeMax=end_date,
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+        
+        events = events_result.get('items', [])
+        
+        # Format events for frontend
+        formatted_events = []
+        for event in events:
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            end = event['end'].get('dateTime', event['end'].get('date'))
+            
+            formatted_events.append({
+                'id': event['id'],
+                'title': event.get('summary', 'No Title'),
+                'start': start,
+                'end': end,
+                'description': event.get('description', ''),
+                'location': event.get('location', '')
+            })
+        
+        return jsonify({
+            'success': True,
+            'events': formatted_events
+        })
+        
+    except Exception as e:
+        print(f"ERROR: Failed to fetch calendar events: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/booking/confirm', methods=['GET', 'POST'])
 @login_required
 def booking_confirmation():
@@ -2284,12 +2352,19 @@ def auth_google_callback():
             db.session.commit()
             print("DEBUG: Calendar integration completed successfully")
             flash('Google Calendar connected successfully!', 'success')
+            # Redirect back to account page for calendar connection
+            login_user(user)
+            return redirect(url_for('account'))
             
         except Exception as e:
             print(f"ERROR: Failed to connect Google Calendar: {e}")
             import traceback
             traceback.print_exc()
             flash('Failed to connect Google Calendar. Please try again.', 'error')
+            # If this was a calendar connection attempt, redirect back to account page
+            if 'calendar' in token.get('scope', ''):
+                login_user(user)
+                return redirect(url_for('account'))
     
     login_user(user)
     
@@ -2299,7 +2374,7 @@ def auth_google_callback():
     else:
         if 'calendar' not in token.get('scope', ''):
             flash('Logged in with Google!', 'success')
-        return redirect(url_for('account'))
+        return redirect(url_for('dashboard'))
 
 # Google Calendar Integration Routes
 @app.route('/auth/google-calendar')
