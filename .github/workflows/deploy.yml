@@ -26,9 +26,13 @@ jobs:
         script: |
           cd /opt/droply
           echo "📋 Current commit before pull:"
-          git log --oneline -1
-          echo "🔄 Pulling latest changes..."
-          git pull origin main
+          git log --oneline -1 2>/dev/null || echo "No commits found"
+          echo "🔄 Cleaning up and pulling latest changes..."
+          # Reset to clean state and pull latest
+          git reset --hard HEAD
+          git clean -fd
+          git fetch origin
+          git reset --hard origin/main
           echo "📋 Current commit after pull:"
           git log --oneline -1
           # Remove any existing .env file to ensure we use GitHub Secrets
