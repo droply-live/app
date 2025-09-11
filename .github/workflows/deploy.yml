@@ -43,6 +43,8 @@ jobs:
           echo "🚀 Starting deployment..."
           # Stop and remove old containers
           docker compose down
+          # Force remove any remaining containers with the same name
+          docker rm -f droply-web-1 2>/dev/null || true
           # Build and start new containers
           docker compose build --no-cache
           docker compose up -d
