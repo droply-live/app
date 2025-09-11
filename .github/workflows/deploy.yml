@@ -25,7 +25,12 @@ jobs:
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
           cd /opt/droply
+          echo "📋 Current commit before pull:"
+          git log --oneline -1
+          echo "🔄 Pulling latest changes..."
           git pull origin main
+          echo "📋 Current commit after pull:"
+          git log --oneline -1
           # Remove any existing .env file to ensure we use GitHub Secrets
           rm -f .env
           # Set environment variables from GitHub Secrets
