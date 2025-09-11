@@ -4,13 +4,13 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    types: [closed]
+    types: [opened, synchronize, closed]
     branches: [ main ]
   workflow_dispatch: # Allows manual triggering
 
 jobs:
   deploy:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && (github.event.pull_request.merged == true || github.event.action == 'opened' || github.event.action == 'synchronize'))
     runs-on: ubuntu-latest
     
     steps:
@@ -39,10 +39,39 @@ jobs:
           export FLASK_ENV='production'
           export ENVIRONMENT='production'
           export FLASK_DEBUG='0'
-          # Deploy with environment variables
-          docker compose down
-          docker compose build --no-cache
-          docker compose up -d
+          # Zero-downtime deployment
+          echo "🚀 Starting zero-downtime deployment..."
+          # Build new image with timestamp tag
+          NEW_IMAGE_TAG="droply-web:$(date +%s)"
+          docker build -t $NEW_IMAGE_TAG .
+          # Start new container with different name
+          NEW_CONTAINER_NAME="droply-web-new-$(date +%s)"
+          docker run -d --name $NEW_CONTAINER_NAME \
+            -p 5001:5000 \
+            --env-file <(env | grep -E '^(SECRET_KEY|STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET|GOOGLE_CLIENT_ID|GOOGLE_CLIENT_SECRET|DAILY_API_KEY|YOUR_DOMAIN|FLASK_ENV|ENVIRONMENT|FLASK_DEBUG)=') \
+            $NEW_IMAGE_TAG
+          # Wait for new container to be healthy
+          echo "⏳ Waiting for new container to be ready..."
+          sleep 10
+          # Test new container
+          if curl -f http://localhost:5001 > /dev/null 2>&1; then
+            echo "✅ New container is healthy, switching traffic..."
+            # Stop old containers
+            docker compose down
+            # Start new container on port 5000
+            docker stop $NEW_CONTAINER_NAME
+            docker rm $NEW_CONTAINER_NAME
+            docker run -d --name droply-web-1 \
+              -p 5000:5000 \
+              --env-file <(env | grep -E '^(SECRET_KEY|STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET|GOOGLE_CLIENT_ID|GOOGLE_CLIENT_SECRET|DAILY_API_KEY|YOUR_DOMAIN|FLASK_ENV|ENVIRONMENT|FLASK_DEBUG)=') \
+              $NEW_IMAGE_TAG
+            echo "🎉 Zero-downtime deployment completed!"
+          else
+            echo "❌ New container failed health check, rolling back..."
+            docker stop $NEW_CONTAINER_NAME
+            docker rm $NEW_CONTAINER_NAME
+            exit 1
+          fi
           
     - name: Verify deployment
       uses: appleboy/ssh-action@v1.0.3
