@@ -2317,6 +2317,21 @@ def expert_payout_details():
         'payout_schedule': payout_schedule
     })
 
+@app.route('/debug/oauth')
+def debug_oauth():
+    """Debug endpoint to check OAuth configuration"""
+    debug_info = {
+        'google_client_id': app.config.get('GOOGLE_CLIENT_ID', 'NOT_SET'),
+        'google_client_secret_set': app.config.get('GOOGLE_CLIENT_SECRET', 'NOT_SET') != 'YOUR_GOOGLE_CLIENT_SECRET',
+        'redirect_uri': url_for('auth_google_callback', _external=True),
+        'request_url': request.url,
+        'request_host': request.host,
+        'request_headers': dict(request.headers),
+        'flask_env': os.environ.get('FLASK_ENV', 'NOT_SET'),
+        'environment': os.environ.get('ENVIRONMENT', 'NOT_SET'),
+    }
+    return jsonify(debug_info)
+
 @app.route('/admin/update-bookings-status')
 def update_bookings_status():
     """Update all bookings whose end_time is in the past and status is 'confirmed' to 'completed'."""
@@ -2336,12 +2351,26 @@ def update_bookings_status():
 def auth_google():
     redirect_uri = url_for('auth_google_callback', _external=True)
     print(f"DEBUG: Google OAuth redirect_uri = {redirect_uri}")
+    print(f"DEBUG: GOOGLE_CLIENT_ID = {app.config.get('GOOGLE_CLIENT_ID', 'NOT_SET')}")
+    print(f"DEBUG: GOOGLE_CLIENT_SECRET = {app.config.get('GOOGLE_CLIENT_SECRET', 'NOT_SET')[:10]}..." if app.config.get('GOOGLE_CLIENT_SECRET') != 'YOUR_GOOGLE_CLIENT_SECRET' else "Using placeholder secret")
+    print(f"DEBUG: Request headers = {dict(request.headers)}")
+    print(f"DEBUG: Request URL = {request.url}")
+    print(f"DEBUG: Request host = {request.host}")
     return google.authorize_redirect(redirect_uri)
 
 @app.route('/auth/google/callback')
 def auth_google_callback():
-    token = google.authorize_access_token()
-    user_info = google.userinfo()
+    print(f"DEBUG: Google OAuth callback - Request URL = {request.url}")
+    print(f"DEBUG: Google OAuth callback - Request args = {dict(request.args)}")
+    print(f"DEBUG: Google OAuth callback - Request headers = {dict(request.headers)}")
+    try:
+        token = google.authorize_access_token()
+        user_info = google.userinfo()
+        print(f"DEBUG: Google OAuth callback - Token received successfully")
+    except Exception as e:
+        print(f"DEBUG: Google OAuth callback - Error: {str(e)}")
+        flash(f'Google authentication failed: {str(e)}', 'error')
+        return redirect(url_for('login'))
     email = user_info.get('email')
     username = user_info.get('name') or email.split('@')[0]
     if not email:
