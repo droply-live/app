@@ -26,6 +26,9 @@ app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE
 app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-12345')
 
+# Force HTTPS for OAuth redirects (required by Google OAuth)
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+
 # Debug: Print loaded credentials (remove in production)
 print(f"Loaded GOOGLE_CLIENT_ID: {app.config['GOOGLE_CLIENT_ID']}")
 print(f"Loaded GOOGLE_CLIENT_SECRET: {app.config['GOOGLE_CLIENT_SECRET'][:10]}..." if app.config['GOOGLE_CLIENT_SECRET'] != 'YOUR_GOOGLE_CLIENT_SECRET' else "Using placeholder secret")
@@ -40,7 +43,7 @@ google = oauth.register(
     client_kwargs={'scope': 'openid email profile'},
 )
 
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_for=1)  # needed for url_for to generate with https
 
 # configure the database
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///droply.db")

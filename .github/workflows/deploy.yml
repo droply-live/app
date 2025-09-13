@@ -52,7 +52,7 @@ jobs:
           echo "🚀 Starting zero-downtime deployment..."
           # Build new image with timestamp tag
           NEW_IMAGE_TAG="droply-web:$(date +%s)"
-          docker build -t $NEW_IMAGE_TAG .
+          docker build --build-arg BUILD_DATE="$(date)" -t $NEW_IMAGE_TAG .
           
           # Start new container on different port
           NEW_CONTAINER_NAME="droply-web-new-$(date +%s)"
