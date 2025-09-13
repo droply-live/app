@@ -65,6 +65,12 @@ class User(UserMixin, db.Model):
     google_calendar_refresh_token = db.Column(db.Text)  # Encrypted Google Calendar refresh token
     google_calendar_id = db.Column(db.String(100))  # Primary Google Calendar ID to sync with
 
+    # Referral system fields
+    referral_code = db.Column(db.String(20), unique=True)  # User's unique referral code
+    referred_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # User who referred this user
+    total_referral_earnings = db.Column(db.Float, default=0.0)  # Total earnings from referrals
+    referral_count = db.Column(db.Integer, default=0)  # Number of successful referrals
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
@@ -93,6 +99,31 @@ class User(UserMixin, db.Model):
     def get_location_display(self):
         """Return location display string - placeholder for now"""
         return None
+
+    def generate_referral_code(self):
+        """Generate a unique referral code for the user"""
+        import secrets
+        import string
+        
+        if not self.referral_code:
+            # Generate a 8-character alphanumeric code
+            alphabet = string.ascii_uppercase + string.digits
+            code = ''.join(secrets.choice(alphabet) for _ in range(8))
+            
+            # Ensure uniqueness
+            while User.query.filter_by(referral_code=code).first():
+                code = ''.join(secrets.choice(alphabet) for _ in range(8))
+            
+            self.referral_code = code
+            return code
+        return self.referral_code
+
+    def get_referral_link(self):
+        """Get the full referral link for this user"""
+        from flask import url_for
+        if not self.referral_code:
+            self.generate_referral_code()
+        return f"{url_for('homepage', _external=True)}?ref={self.referral_code}"
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -249,3 +280,42 @@ class Payout(db.Model):
     
     def __repr__(self):
         return f'<Payout {self.id} - ${self.amount/100:.2f} - {self.status}>'
+
+class Referral(db.Model):
+    """Track referral relationships between users"""
+    id = db.Column(db.Integer, primary_key=True)
+    referrer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # User who made the referral
+    referred_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # User who was referred
+    referral_code = db.Column(db.String(20), nullable=False)  # The referral code used
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    status = db.Column(db.String(20), default='pending')  # pending, completed, expired
+    
+    # Relationships
+    referrer = db.relationship('User', foreign_keys=[referrer_id], backref='referrals_made')
+    referred_user = db.relationship('User', foreign_keys=[referred_user_id], backref='referrals_received')
+    
+    # Ensure unique combinations
+    __table_args__ = (db.UniqueConstraint('referrer_id', 'referred_user_id', name='_referrer_referred_uc'),)
+    
+    def __repr__(self):
+        return f'<Referral {self.referrer_id} -> {self.referred_user_id} ({self.status})>'
+
+class ReferralReward(db.Model):
+    """Track referral rewards earned by users"""
+    id = db.Column(db.Integer, primary_key=True)
+    referrer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # User who earned the reward
+    referred_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # User who triggered the reward
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=False)  # Booking that triggered the reward
+    reward_amount = db.Column(db.Float, nullable=False)  # Reward amount in dollars
+    reward_type = db.Column(db.String(20), default='booking')  # booking, signup, etc.
+    status = db.Column(db.String(20), default='pending')  # pending, paid, cancelled
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    paid_at = db.Column(db.DateTime)  # When reward was actually paid
+    
+    # Relationships
+    referrer = db.relationship('User', foreign_keys=[referrer_id], backref='referral_rewards_earned')
+    referred_user = db.relationship('User', foreign_keys=[referred_user_id], backref='referral_rewards_triggered')
+    booking = db.relationship('Booking', backref='referral_rewards')
+    
+    def __repr__(self):
+        return f'<ReferralReward {self.id} - ${self.reward_amount:.2f} - {self.status}>'
