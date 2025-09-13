@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, case, func
 from app import app
 from extensions import db
-from models import User, AvailabilityRule, AvailabilityException, Booking, Payout, Favorite
+from models import User, AvailabilityRule, AvailabilityException, Booking, Payout, Favorite, Referral, ReferralReward
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm, TimeSlotForm, BookingForm
 # Removed unused imports: utils and keyword_mappings
 import json
@@ -182,6 +182,13 @@ model = None  # Temporarily disabled
 
 @app.route('/')
 def homepage():
+    # Handle referral code from URL parameter
+    referral_code = request.args.get('ref')
+    if referral_code:
+        # Store referral code in session for use during registration
+        session['referral_code'] = referral_code
+        print(f"Referral code stored in session: {referral_code}")
+    
     # Redirect authenticated users to dashboard
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
@@ -226,8 +233,40 @@ def register():
         )
         user.set_password(form.password.data)
         
+        # Generate referral code for the new user
+        user.generate_referral_code()
+        
         db.session.add(user)
         db.session.commit()
+        
+        # Handle referral tracking if referral code is provided
+        referral_code = request.args.get('ref') or request.form.get('referral_code') or session.get('referral_code')
+        if referral_code:
+            try:
+                # Find the referrer by referral code
+                referrer = User.query.filter_by(referral_code=referral_code).first()
+                if referrer and referrer.id != user.id:  # Can't refer yourself
+                    # Create the referral record
+                    referral = Referral(
+                        referrer_id=referrer.id,
+                        referred_user_id=user.id,
+                        referral_code=referral_code,
+                        status='pending'
+                    )
+                    
+                    # Update the referred user's referred_by field
+                    user.referred_by = referrer.id
+                    
+                    db.session.add(referral)
+                    db.session.commit()
+                    
+                    print(f"Referral tracked: {referrer.username} referred {user.username}")
+                    
+                    # Clear referral code from session after successful tracking
+                    session.pop('referral_code', None)
+            except Exception as e:
+                print(f"Error tracking referral: {e}")
+                # Don't fail registration if referral tracking fails
         
         # Log in user but redirect to onboarding
         login_user(user)
@@ -560,6 +599,12 @@ def account():
     """Account management page"""
     return render_template('account.html')
 
+@app.route('/referrals')
+@login_required
+def referrals():
+    """Referrals page"""
+    return render_template('referrals.html')
+
 @app.route('/delete-account', methods=['POST'])
 @login_required
 def delete_account():
@@ -886,6 +931,14 @@ def booking_success(booking_id):
     booking.payment_status = 'paid'
     # Do NOT auto-confirm; leave as 'pending' for expert to accept/decline
     db.session.commit()
+    
+    # Process referral reward if applicable
+    try:
+        process_referral_reward_for_booking(booking_id)
+    except Exception as e:
+        print(f"Error processing referral reward: {e}")
+        # Don't fail the booking success if referral processing fails
+    
     flash('🎉 Payment successful! Your booking request has been sent to the expert for approval.', 'success')
     return redirect(url_for('bookings'))
 
@@ -2780,3 +2833,332 @@ def debug_auth():
     }
     
     return jsonify(debug_info)
+
+# Referral Helper Functions
+
+def process_referral_reward_for_booking(booking_id):
+    """Process referral reward for a booking - helper function"""
+    booking = Booking.query.get(booking_id)
+    if not booking:
+        return False
+    
+    # Check if the user was referred
+    if not booking.user.referred_by:
+        return False
+    
+    # Get the referrer
+    referrer = User.query.get(booking.user.referred_by)
+    if not referrer:
+        return False
+    
+    # Check if this is the user's first paid booking
+    previous_paid_bookings = Booking.query.filter_by(
+        user_id=booking.user.id,
+        payment_status='paid'
+    ).filter(Booking.id != booking_id).count()
+    
+    if previous_paid_bookings > 0:
+        return False  # Not the first booking
+    
+    # Check if reward already exists
+    existing_reward = ReferralReward.query.filter_by(
+        referrer_id=referrer.id,
+        referred_user_id=booking.user.id,
+        booking_id=booking_id
+    ).first()
+    
+    if existing_reward:
+        return False  # Reward already processed
+    
+    # Create the reward
+    reward_amount = 10.0  # $10 per successful referral
+    reward = ReferralReward(
+        referrer_id=referrer.id,
+        referred_user_id=booking.user.id,
+        booking_id=booking_id,
+        reward_amount=reward_amount,
+        reward_type='booking',
+        status='pending'
+    )
+    
+    # Update referral status
+    referral = Referral.query.filter_by(
+        referrer_id=referrer.id,
+        referred_user_id=booking.user.id
+    ).first()
+    
+    if referral:
+        referral.status = 'completed'
+    
+    # Update referrer's stats
+    referrer.referral_count += 1
+    referrer.total_referral_earnings += reward_amount
+    
+    db.session.add(reward)
+    db.session.commit()
+    
+    print(f"Referral reward processed: ${reward_amount} for referrer {referrer.username}")
+    return True
+
+# Referral API Endpoints
+
+@app.route('/api/referrals/generate-code', methods=['POST'])
+@login_required
+def generate_referral_code():
+    """Generate a new referral code for the current user"""
+    try:
+        # Generate new referral code
+        new_code = current_user.generate_referral_code()
+        db.session.commit()
+        
+        # Get the full referral link
+        referral_link = current_user.get_referral_link()
+        
+        return jsonify({
+            'success': True,
+            'referral_code': new_code,
+            'referral_link': referral_link
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/referrals/history', methods=['GET'])
+@login_required
+def get_referral_history():
+    """Get referral history for the current user"""
+    try:
+        # Get all referrals made by this user
+        referrals = Referral.query.filter_by(referrer_id=current_user.id).order_by(Referral.created_at.desc()).all()
+        
+        referral_data = []
+        for referral in referrals:
+            # Get reward information if available
+            reward = ReferralReward.query.filter_by(
+                referrer_id=current_user.id,
+                referred_user_id=referral.referred_user_id
+            ).first()
+            
+            referral_data.append({
+                'id': referral.id,
+                'referred_user_name': referral.referred_user.full_name or referral.referred_user.username,
+                'created_at': referral.created_at.isoformat(),
+                'status': referral.status,
+                'reward_amount': reward.reward_amount if reward else None
+            })
+        
+        return jsonify({
+            'success': True,
+            'referrals': referral_data
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/referrals/stats', methods=['GET'])
+@login_required
+def get_referral_stats():
+    """Get referral statistics for the current user"""
+    try:
+        # Get total referrals
+        total_referrals = Referral.query.filter_by(referrer_id=current_user.id).count()
+        
+        # Get completed referrals (users who made bookings)
+        completed_referrals = Referral.query.filter_by(
+            referrer_id=current_user.id,
+            status='completed'
+        ).count()
+        
+        # Get total earnings
+        total_earnings = current_user.total_referral_earnings or 0
+        
+        # Get pending earnings
+        pending_rewards = ReferralReward.query.filter_by(
+            referrer_id=current_user.id,
+            status='pending'
+        ).all()
+        pending_earnings = sum(reward.reward_amount for reward in pending_rewards)
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_referrals': total_referrals,
+                'completed_referrals': completed_referrals,
+                'total_earnings': total_earnings,
+                'pending_earnings': pending_earnings
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/referrals/track', methods=['POST'])
+def track_referral():
+    """Track a referral when someone signs up with a referral code"""
+    try:
+        data = request.get_json()
+        referral_code = data.get('referral_code')
+        user_id = data.get('user_id')
+        
+        if not referral_code or not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'Missing referral_code or user_id'
+            }), 400
+        
+        # Find the referrer by referral code
+        referrer = User.query.filter_by(referral_code=referral_code).first()
+        if not referrer:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid referral code'
+            }), 400
+        
+        # Get the referred user
+        referred_user = User.query.get(user_id)
+        if not referred_user:
+            return jsonify({
+                'success': False,
+                'error': 'User not found'
+            }), 400
+        
+        # Check if this user was already referred
+        existing_referral = Referral.query.filter_by(
+            referrer_id=referrer.id,
+            referred_user_id=referred_user.id
+        ).first()
+        
+        if existing_referral:
+            return jsonify({
+                'success': False,
+                'error': 'User already referred'
+            }), 400
+        
+        # Create the referral record
+        referral = Referral(
+            referrer_id=referrer.id,
+            referred_user_id=referred_user.id,
+            referral_code=referral_code,
+            status='pending'
+        )
+        
+        # Update the referred user's referred_by field
+        referred_user.referred_by = referrer.id
+        
+        db.session.add(referral)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'referral_id': referral.id
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/referrals/process-reward', methods=['POST'])
+def process_referral_reward():
+    """Process a referral reward when a referred user makes their first booking"""
+    try:
+        data = request.get_json()
+        booking_id = data.get('booking_id')
+        
+        if not booking_id:
+            return jsonify({
+                'success': False,
+                'error': 'Missing booking_id'
+            }), 400
+        
+        # Get the booking
+        booking = Booking.query.get(booking_id)
+        if not booking:
+            return jsonify({
+                'success': False,
+                'error': 'Booking not found'
+            }), 400
+        
+        # Check if the user was referred
+        if not booking.user.referred_by:
+            return jsonify({
+                'success': False,
+                'error': 'User was not referred'
+            }), 400
+        
+        # Get the referrer
+        referrer = User.query.get(booking.user.referred_by)
+        if not referrer:
+            return jsonify({
+                'success': False,
+                'error': 'Referrer not found'
+            }), 400
+        
+        # Check if this is the user's first booking
+        previous_bookings = Booking.query.filter_by(
+            user_id=booking.user.id,
+            payment_status='paid'
+        ).filter(Booking.id != booking_id).count()
+        
+        if previous_bookings > 0:
+            return jsonify({
+                'success': False,
+                'error': 'Not the user\'s first booking'
+            }), 400
+        
+        # Check if reward already exists
+        existing_reward = ReferralReward.query.filter_by(
+            referrer_id=referrer.id,
+            referred_user_id=booking.user.id,
+            booking_id=booking_id
+        ).first()
+        
+        if existing_reward:
+            return jsonify({
+                'success': False,
+                'error': 'Reward already processed'
+            }), 400
+        
+        # Create the reward
+        reward_amount = 10.0  # $10 per successful referral
+        reward = ReferralReward(
+            referrer_id=referrer.id,
+            referred_user_id=booking.user.id,
+            booking_id=booking_id,
+            reward_amount=reward_amount,
+            reward_type='booking',
+            status='pending'
+        )
+        
+        # Update referral status
+        referral = Referral.query.filter_by(
+            referrer_id=referrer.id,
+            referred_user_id=booking.user.id
+        ).first()
+        
+        if referral:
+            referral.status = 'completed'
+        
+        # Update referrer's stats
+        referrer.referral_count += 1
+        referrer.total_referral_earnings += reward_amount
+        
+        db.session.add(reward)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'reward_id': reward.id,
+            'reward_amount': reward_amount
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

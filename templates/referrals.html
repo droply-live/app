@@ -1,0 +1,480 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Referrals - Droply{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Referrals Header -->
+  <div class="mb-4">
+    <h1 class="h2 mb-1">Referrals</h1>
+    <p class="text-muted mb-0">Earn rewards by referring friends to Droply</p>
+  </div>
+
+  <!-- Referral Overview -->
+  <div class="tab-section">
+    <h3 class="tab-section-title">
+      <i class="fas fa-gift"></i>
+      Referral Program
+    </h3>
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="referral-stat">
+              <div class="stat-number" id="total-referrals">{{ current_user.referral_count or 0 }}</div>
+              <div class="stat-label">Total Referrals</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="referral-stat">
+              <div class="stat-number" id="total-earnings">${{ "%.2f"|format(current_user.total_referral_earnings or 0) }}</div>
+              <div class="stat-label">Total Earnings</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="referral-stat">
+              <div class="stat-number">$10</div>
+              <div class="stat-label">Per Successful Referral</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Referral Link -->
+  <div class="tab-section">
+    <h3 class="tab-section-title">
+      <i class="fas fa-link"></i>
+      Your Referral Link
+    </h3>
+    <div class="card">
+      <div class="card-body">
+        <p class="text-muted mb-3">Share this link with friends to earn $10 for each person who signs up and makes their first booking!</p>
+        
+        <div class="referral-link-container">
+          <div class="input-group">
+            <input type="text" class="form-control" id="referral-link" readonly value="{{ current_user.get_referral_link() if current_user.referral_code else 'Generating...' }}">
+            <button class="btn btn-outline-primary" type="button" id="copy-referral-link">
+              <i class="fas fa-copy"></i>
+              Copy
+            </button>
+          </div>
+        </div>
+        
+        <div class="mt-3">
+          <button class="btn btn-primary me-2" id="share-email">
+            <i class="fas fa-envelope"></i>
+            Share via Email
+          </button>
+          <button class="btn btn-primary me-2" id="share-social">
+            <i class="fas fa-share-alt"></i>
+            Share on Social
+          </button>
+          <button class="btn btn-outline-secondary" id="generate-new-code">
+            <i class="fas fa-refresh"></i>
+            Generate New Code
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Referral History -->
+  <div class="tab-section">
+    <h3 class="tab-section-title">
+      <i class="fas fa-history"></i>
+      Referral History
+    </h3>
+    <div class="card">
+      <div class="card-body">
+        <div id="referral-history">
+          <div class="text-center text-muted py-4">
+            <i class="fas fa-spinner fa-spin"></i>
+            Loading referral history...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works -->
+  <div class="tab-section">
+    <h3 class="tab-section-title">
+      <i class="fas fa-info-circle"></i>
+      How It Works
+    </h3>
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="how-it-works-step">
+              <div class="step-number">1</div>
+              <h5>Share Your Link</h5>
+              <p>Copy and share your unique referral link with friends, family, or on social media.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="how-it-works-step">
+              <div class="step-number">2</div>
+              <h5>They Sign Up</h5>
+              <p>When someone clicks your link and creates an account, they're automatically linked to you.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="how-it-works-step">
+              <div class="step-number">3</div>
+              <h5>You Earn $10</h5>
+              <p>Once they complete their first booking, you'll earn $10 credited to your account!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Referral-specific styles -->
+<style>
+.referral-stat {
+  text-align: center;
+  padding: 1rem;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #059669;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.referral-link-container {
+  margin-bottom: 1rem;
+}
+
+.how-it-works-step {
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #059669;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin: 0 auto 1rem;
+  font-size: 1.2rem;
+}
+
+.how-it-works-step h5 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.how-it-works-step p {
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.share-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.tab-section {
+  margin-bottom: 2rem;
+}
+
+.tab-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.tab-section-title i {
+  color: #059669;
+}
+
+@media (max-width: 768px) {
+  .referral-stat {
+    padding: 0.5rem;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .how-it-works-step {
+    padding: 1rem 0.5rem;
+  }
+  
+  .share-buttons {
+    flex-direction: column;
+  }
+  
+  .share-buttons .btn {
+    margin-bottom: 0.5rem;
+  }
+}
+</style>
+
+<script>
+// Referral Management Functions
+function setupReferralManagement() {
+  // Copy referral link functionality
+  const copyBtn = document.getElementById('copy-referral-link');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', copyReferralLink);
+  }
+  
+  // Share via email
+  const shareEmailBtn = document.getElementById('share-email');
+  if (shareEmailBtn) {
+    shareEmailBtn.addEventListener('click', shareViaEmail);
+  }
+  
+  // Share on social
+  const shareSocialBtn = document.getElementById('share-social');
+  if (shareSocialBtn) {
+    shareSocialBtn.addEventListener('click', shareOnSocial);
+  }
+  
+  // Generate new code
+  const generateNewBtn = document.getElementById('generate-new-code');
+  if (generateNewBtn) {
+    generateNewBtn.addEventListener('click', generateNewReferralCode);
+  }
+  
+  // Load referral history on page load
+  loadReferralHistory();
+}
+
+function copyReferralLink() {
+  const referralLinkInput = document.getElementById('referral-link');
+  const copyBtn = document.getElementById('copy-referral-link');
+  
+  if (referralLinkInput && referralLinkInput.value) {
+    navigator.clipboard.writeText(referralLinkInput.value).then(function() {
+      // Update button to show success
+      const originalText = copyBtn.innerHTML;
+      copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      copyBtn.classList.remove('btn-outline-primary');
+      copyBtn.classList.add('btn-success');
+      
+      // Reset after 2 seconds
+      setTimeout(function() {
+        copyBtn.innerHTML = originalText;
+        copyBtn.classList.remove('btn-success');
+        copyBtn.classList.add('btn-outline-primary');
+      }, 2000);
+    }).catch(function(err) {
+      console.error('Failed to copy: ', err);
+      showNotification('Failed to copy link. Please try again.', 'error');
+    });
+  }
+}
+
+function shareViaEmail() {
+  const referralLink = document.getElementById('referral-link').value;
+  const subject = encodeURIComponent('Join me on Droply - Expert Consultations');
+  const body = encodeURIComponent(`Hi! I've been using Droply for expert consultations and thought you might be interested. You can connect with experts in various fields for personalized advice and guidance.
+
+Check it out here: ${referralLink}
+
+When you sign up and make your first booking, we both get $10!`);
+  
+  const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
+  window.open(mailtoLink);
+}
+
+function shareOnSocial() {
+  const referralLink = document.getElementById('referral-link').value;
+  const text = encodeURIComponent('Check out Droply - connect with experts for personalized consultations!');
+  
+  // Create a simple share modal
+  const shareModal = document.createElement('div');
+  shareModal.className = 'share-modal';
+  shareModal.innerHTML = `
+    <div class="share-modal-content">
+      <h5>Share on Social Media</h5>
+      <div class="share-buttons">
+        <a href="https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(referralLink)}" target="_blank" class="btn btn-primary me-2">
+          <i class="fab fa-twitter"></i> Twitter
+        </a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}" target="_blank" class="btn btn-primary me-2">
+          <i class="fab fa-facebook"></i> Facebook
+        </a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(referralLink)}" target="_blank" class="btn btn-primary me-2">
+          <i class="fab fa-linkedin"></i> LinkedIn
+        </a>
+        <button class="btn btn-secondary" onclick="this.closest('.share-modal').remove()">Close</button>
+      </div>
+    </div>
+  `;
+  
+  // Add modal styles
+  shareModal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  `;
+  
+  shareModal.querySelector('.share-modal-content').style.cssText = `
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+  `;
+  
+  document.body.appendChild(shareModal);
+  
+  // Close on background click
+  shareModal.addEventListener('click', function(e) {
+    if (e.target === shareModal) {
+      shareModal.remove();
+    }
+  });
+}
+
+function generateNewReferralCode() {
+  const generateBtn = document.getElementById('generate-new-code');
+  const originalText = generateBtn.innerHTML;
+  
+  generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+  generateBtn.disabled = true;
+  
+  fetch('/api/referrals/generate-code', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('referral-link').value = data.referral_link;
+      showNotification('New referral code generated successfully!', 'success');
+    } else {
+      showNotification('Failed to generate new code: ' + data.error, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error generating new code:', error);
+    showNotification('Error generating new code', 'error');
+  })
+  .finally(() => {
+    generateBtn.innerHTML = originalText;
+    generateBtn.disabled = false;
+  });
+}
+
+function loadReferralHistory() {
+  const historyContainer = document.getElementById('referral-history');
+  
+  fetch('/api/referrals/history')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        displayReferralHistory(data.referrals);
+      } else {
+        historyContainer.innerHTML = '<div class="text-center text-muted py-4">Failed to load referral history</div>';
+      }
+    })
+    .catch(error => {
+      console.error('Error loading referral history:', error);
+      historyContainer.innerHTML = '<div class="text-center text-muted py-4">Error loading referral history</div>';
+    });
+}
+
+function displayReferralHistory(referrals) {
+  const historyContainer = document.getElementById('referral-history');
+  
+  if (!referrals || referrals.length === 0) {
+    historyContainer.innerHTML = `
+      <div class="text-center text-muted py-4">
+        <i class="fas fa-users fa-3x mb-3"></i>
+        <h5>No referrals yet</h5>
+        <p>Start sharing your referral link to earn rewards!</p>
+      </div>
+    `;
+    return;
+  }
+  
+  let html = '<div class="table-responsive"><table class="table table-hover">';
+  html += '<thead><tr><th>Referred User</th><th>Date</th><th>Status</th><th>Reward</th></tr></thead><tbody>';
+  
+  referrals.forEach(referral => {
+    const date = new Date(referral.created_at).toLocaleDateString();
+    const statusClass = referral.status === 'completed' ? 'text-success' : 
+                       referral.status === 'pending' ? 'text-warning' : 'text-muted';
+    const rewardText = referral.reward_amount ? `$${referral.reward_amount.toFixed(2)}` : '-';
+    
+    html += `
+      <tr>
+        <td>${referral.referred_user_name || 'Unknown'}</td>
+        <td>${date}</td>
+        <td><span class="${statusClass}">${referral.status}</span></td>
+        <td>${rewardText}</td>
+      </tr>
+    `;
+  });
+  
+  html += '</tbody></table></div>';
+  historyContainer.innerHTML = html;
+}
+
+function showNotification(message, type) {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+  notification.style.position = 'fixed';
+  notification.style.top = '20px';
+  notification.style.right = '20px';
+  notification.style.zIndex = '9999';
+  notification.style.minWidth = '300px';
+  
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  setupReferralManagement();
+});
+</script>
+{% endblock %}

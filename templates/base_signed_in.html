@@ -328,6 +328,10 @@
         <i class="fas fa-dollar-sign"></i>
         <span>Earnings</span>
       </a>
+      <a href="{{ url_for('referrals') }}" class="mobile-nav-item {% if request.endpoint == 'referrals' %}active{% endif %}">
+        <i class="fas fa-share-alt"></i>
+        <span>Referrals</span>
+      </a>
       <a href="{{ url_for('account') }}" class="mobile-nav-item {% if request.endpoint == 'account' %}active{% endif %}">
         <i class="fas fa-user"></i>
         <span>Account</span>

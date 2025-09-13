@@ -28,6 +28,11 @@
           </a>
         </li>
         <li class="mb-2">
+          <a href="{{ url_for('referrals') }}" class="sidebar-link-icon {% if request.endpoint == 'referrals' %}active{% endif %}" title="Referrals">
+            <i class="fas fa-share-alt"></i>
+          </a>
+        </li>
+        <li class="mb-2">
           <a href="{{ url_for('account') }}" class="sidebar-link-icon {% if request.endpoint == 'account' %}active{% endif %}" title="Account & Settings">
             <i class="fas fa-user"></i>
           </a>
