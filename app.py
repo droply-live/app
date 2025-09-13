@@ -26,9 +26,8 @@ app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE
 app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-12345')
 
-# Force HTTPS in production
-if os.environ.get('FLASK_ENV') == 'production' or os.environ.get('ENVIRONMENT') == 'production':
-    app.config['PREFERRED_URL_SCHEME'] = 'https'
+# Force HTTPS for OAuth redirects (required by Google OAuth)
+app.config['PREFERRED_URL_SCHEME'] = 'https'
 
 # Debug: Print loaded credentials (remove in production)
 print(f"Loaded GOOGLE_CLIENT_ID: {app.config['GOOGLE_CLIENT_ID']}")

@@ -324,6 +324,10 @@
         <i class="fas fa-calendar-check"></i>
         <span>Bookings</span>
       </a>
+      <a href="{{ url_for('availability') }}" class="mobile-nav-item {% if request.endpoint == 'availability' %}active{% endif %}">
+        <i class="fas fa-calendar-plus"></i>
+        <span>Availability</span>
+      </a>
       <a href="{{ url_for('expert_payouts') }}" class="mobile-nav-item {% if request.endpoint == 'expert_payouts' %}active{% endif %}">
         <i class="fas fa-dollar-sign"></i>
         <span>Earnings</span>

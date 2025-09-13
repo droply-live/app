@@ -859,11 +859,29 @@ def dashboard():
                          provider_bookings=provider_bookings,
                          client_bookings=client_bookings)
 
-# @app.route('/calendar')
-# @login_required
-# def calendar():
-#     """Calendar view - Temporarily disabled due to missing TimeSlot model"""
-#     return render_template('calendar.html', time_slots=[])
+@app.route('/debug-user')
+@login_required
+def debug_user():
+    """Debug endpoint to check user status"""
+    return jsonify({
+        'user_id': current_user.id,
+        'email': current_user.email,
+        'has_google_token': bool(current_user.google_calendar_token),
+        'google_calendar_connected': current_user.google_calendar_connected,
+        'google_calendar_id': current_user.google_calendar_id
+    })
+
+@app.route('/availability')
+@login_required
+def availability():
+    """Availability management page"""
+    print(f"DEBUG: Availability page - User {current_user.id}")
+    print(f"DEBUG: google_calendar_token: {bool(current_user.google_calendar_token)}")
+    print(f"DEBUG: google_calendar_connected: {current_user.google_calendar_connected}")
+    
+    # Allow users to access availability page even without Google Calendar connected
+    # The frontend will handle showing the connection status and options
+    return render_template('availability.html')
 
 # @app.route('/calendar/add', methods=['GET', 'POST'])
 # @login_required
@@ -1651,10 +1669,146 @@ def api_sync_google_calendar():
 def api_calendar_status():
     """Get Google Calendar connection status"""
     print(f"DEBUG: Calendar status check for user {current_user.id}: connected={current_user.google_calendar_connected}")
+    
+    # Check if user has Google tokens but calendar is not connected
+    # This happens when users logged in before calendar scope was added
+    needs_reauth = False
+    if current_user.google_calendar_token and not current_user.google_calendar_connected:
+        needs_reauth = True
+    
     return jsonify({
         'connected': current_user.google_calendar_connected,
-        'calendar_id': current_user.google_calendar_id
+        'calendar_id': current_user.google_calendar_id,
+        'needs_reauth': needs_reauth
     })
+
+@app.route('/api/availability/monthly-data', methods=['GET'])
+@login_required
+def api_monthly_availability_data():
+    """Get monthly availability data for calendar display"""
+    try:
+        year = request.args.get('year', type=int)
+        month = request.args.get('month', type=int)
+        
+        if not year or not month:
+            return jsonify({'success': False, 'error': 'Year and month required'}), 400
+        
+        # Get availability rules
+        rules = AvailabilityRule.query.filter_by(user_id=current_user.id).all()
+        availability_rules = {}
+        for rule in rules:
+            availability_rules[rule.weekday] = {
+                'start': rule.start.strftime('%H:%M'),
+                'end': rule.end.strftime('%H:%M'),
+                'enabled': rule.is_active
+            }
+        
+        # Get availability exceptions for the month
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1)
+        else:
+            end_date = datetime(year, month + 1, 1)
+        
+        exceptions = AvailabilityException.query.filter(
+            AvailabilityException.user_id == current_user.id,
+            AvailabilityException.start >= start_date,
+            AvailabilityException.start < end_date
+        ).all()
+        
+        exceptions_data = []
+        for ex in exceptions:
+            exceptions_data.append({
+                'date': ex.start.strftime('%Y-%m-%d'),
+                'start': ex.start.strftime('%H:%M'),
+                'end': ex.end.strftime('%H:%M'),
+                'is_blocked': ex.is_blocked,
+                'reason': ex.reason
+            })
+        
+        return jsonify({
+            'success': True,
+            'availability_rules': availability_rules,
+            'exceptions': exceptions_data
+        })
+        
+    except Exception as e:
+        print(f"Error getting monthly availability data: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/availability/time-slots', methods=['GET'])
+@login_required
+def api_availability_time_slots():
+    """Get available time slots for a specific date"""
+    try:
+        date_str = request.args.get('date')
+        if not date_str:
+            return jsonify({'success': False, 'error': 'Date required'}), 400
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        weekday = target_date.weekday()
+        
+        # Get availability rule for this weekday
+        rule = AvailabilityRule.query.filter_by(
+            user_id=current_user.id, 
+            weekday=weekday
+        ).first()
+        
+        if not rule or not rule.is_active:
+            return jsonify({
+                'success': True,
+                'time_slots': [],
+                'message': 'No availability set for this day'
+            })
+        
+        # Generate time slots
+        time_slots = []
+        start_time = rule.start
+        end_time = rule.end
+        duration_minutes = 60  # Default 1 hour sessions
+        
+        current_time = datetime.combine(target_date, start_time)
+        end_datetime = datetime.combine(target_date, end_time)
+        
+        while current_time < end_datetime:
+            slot_end = current_time + timedelta(minutes=duration_minutes)
+            if slot_end <= end_datetime:
+                time_slots.append({
+                    'start': current_time.strftime('%H:%M'),
+                    'end': slot_end.strftime('%H:%M'),
+                    'start_datetime': current_time.isoformat(),
+                    'end_datetime': slot_end.isoformat(),
+                    'available': True
+                })
+            current_time += timedelta(minutes=duration_minutes)
+        
+        # Check for exceptions (blocked times)
+        exceptions = AvailabilityException.query.filter(
+            AvailabilityException.user_id == current_user.id,
+            AvailabilityException.start >= datetime.combine(target_date, time(0, 0)),
+            AvailabilityException.start < datetime.combine(target_date, time(23, 59))
+        ).all()
+        
+        # Mark slots as unavailable if they conflict with exceptions
+        for exception in exceptions:
+            for slot in time_slots:
+                slot_start = datetime.fromisoformat(slot['start_datetime'])
+                slot_end = datetime.fromisoformat(slot['end_datetime'])
+                
+                if (slot_start < exception.end and slot_end > exception.start):
+                    slot['available'] = False
+                    slot['blocked_reason'] = exception.reason
+        
+        return jsonify({
+            'success': True,
+            'time_slots': time_slots,
+            'date': date_str,
+            'weekday': weekday
+        })
+        
+    except Exception as e:
+        print(f"Error getting time slots: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/availability/calendar-events', methods=['GET'])
 @login_required
@@ -2349,14 +2503,16 @@ def update_bookings_status():
 
 @app.route('/auth/google')
 def auth_google():
-    redirect_uri = url_for('auth_google_callback', _external=True)
+    # Force HTTPS for OAuth redirect URI
+    redirect_uri = url_for('auth_google_callback', _external=True).replace('http://', 'https://')
     print(f"DEBUG: Google OAuth redirect_uri = {redirect_uri}")
     print(f"DEBUG: GOOGLE_CLIENT_ID = {app.config.get('GOOGLE_CLIENT_ID', 'NOT_SET')}")
     print(f"DEBUG: GOOGLE_CLIENT_SECRET = {app.config.get('GOOGLE_CLIENT_SECRET', 'NOT_SET')[:10]}..." if app.config.get('GOOGLE_CLIENT_SECRET') != 'YOUR_GOOGLE_CLIENT_SECRET' else "Using placeholder secret")
     print(f"DEBUG: Request headers = {dict(request.headers)}")
     print(f"DEBUG: Request URL = {request.url}")
     print(f"DEBUG: Request host = {request.host}")
-    return google.authorize_redirect(redirect_uri)
+    # Always include calendar scope for automatic calendar connection
+    return google.authorize_redirect(redirect_uri, scope='openid email profile https://www.googleapis.com/auth/calendar.readonly')
 
 @app.route('/auth/google/callback')
 def auth_google_callback():
@@ -2389,7 +2545,10 @@ def auth_google_callback():
         is_new_user = True
         print(f"New Google user registered: {user.email}")
     
-    # Check if this is a calendar integration request (has calendar scope)
+    # Automatically connect Google Calendar if calendar scope is present
+    print(f"DEBUG: Token scope: {token.get('scope', '')}")
+    print(f"DEBUG: Token keys: {list(token.keys())}")
+    print(f"DEBUG: Full token: {token}")
     if 'calendar' in token.get('scope', ''):
         print(f"DEBUG: Calendar integration detected. Scope: {token.get('scope', '')}")
         try:
@@ -2398,6 +2557,7 @@ def auth_google_callback():
             user.google_calendar_token = token.get('access_token')
             user.google_calendar_refresh_token = token.get('refresh_token')
             print(f"DEBUG: Stored calendar tokens for user {user.id}")
+            print(f"DEBUG: google_calendar_connected set to: {user.google_calendar_connected}")
             
             # Get the primary calendar ID
             from googleapiclient.discovery import build
@@ -2434,30 +2594,32 @@ def auth_google_callback():
             
             db.session.commit()
             print("DEBUG: Calendar integration completed successfully")
-            flash('Google Calendar connected successfully!', 'success')
-            # Redirect back to account page for calendar connection
-            login_user(user)
-            return redirect(url_for('account'))
+            flash('Google Calendar connected automatically!', 'success')
             
         except Exception as e:
             print(f"ERROR: Failed to connect Google Calendar: {e}")
             import traceback
             traceback.print_exc()
-            flash('Failed to connect Google Calendar. Please try again.', 'error')
-            # If this was a calendar connection attempt, redirect back to account page
-            if 'calendar' in token.get('scope', ''):
-                login_user(user)
-                return redirect(url_for('account'))
+            flash('Failed to connect Google Calendar automatically. You can connect it later in your availability settings.', 'warning')
     
     login_user(user)
+    
+    # Check if there's a redirect parameter
+    redirect_to = request.args.get('redirect_to', 'dashboard')
     
     if is_new_user:
         flash('Welcome! Please complete your profile setup.', 'success')
         return redirect(url_for('onboarding'))
     else:
+        # Only show generic login message if calendar wasn't connected
         if 'calendar' not in token.get('scope', ''):
             flash('Logged in with Google!', 'success')
-        return redirect(url_for('dashboard'))
+        
+        # Redirect to the specified page or dashboard
+        if redirect_to == 'availability':
+            return redirect(url_for('availability'))
+        else:
+            return redirect(url_for('dashboard'))
 
 # Google Calendar Integration Routes
 @app.route('/auth/google-calendar')
@@ -2465,7 +2627,8 @@ def auth_google_callback():
 def auth_google_calendar():
     """Connect Google Calendar for availability sync"""
     # Use the existing Google OAuth but with calendar scope
-    redirect_uri = url_for('auth_google_callback', _external=True)
+    # Force HTTPS for OAuth redirect URI
+    redirect_uri = url_for('auth_google_callback', _external=True, redirect_to='availability').replace('http://', 'https://')
     # Request calendar scope in addition to basic profile
     return google.authorize_redirect(redirect_uri, scope='openid email profile https://www.googleapis.com/auth/calendar.readonly')
 

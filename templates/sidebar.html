@@ -23,6 +23,11 @@
           </a>
         </li>
         <li class="mb-2">
+          <a href="{{ url_for('availability') }}" class="sidebar-link-icon {% if request.endpoint == 'availability' %}active{% endif %}" title="Availability">
+            <i class="fas fa-calendar-check"></i>
+          </a>
+        </li>
+        <li class="mb-2">
           <a href="{{ url_for('expert_payouts') }}" class="sidebar-link-icon {% if request.endpoint == 'expert_payouts' %}active{% endif %}" title="Earnings">
             <i class="fas fa-dollar-sign"></i>
           </a>
