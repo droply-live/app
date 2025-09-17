@@ -3,43 +3,103 @@
 {% block title %}Video Call - {{ booking.title }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid p-0">
-    <div class="row g-0">
-        <!-- Video Call Container -->
-        <div class="col-12">
-            <div class="video-call-container">
-                <!-- Header -->
-                <div class="call-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h4 class="mb-0">
-                            <i class="fas fa-video me-2"></i>
-                            {{ booking.title or "Video Call" }}
-                        </h4>
-                        <small class="text-muted">
-                            with {{ other_user.name }} • 
-                            {{ booking.start_time.strftime('%B %d, %Y at %I:%M %p') }}
-                        </small>
-                        <div class="mt-1">
-                            <span class="badge bg-primary" id="meeting-status">Active</span>
-                            <span class="badge bg-warning text-dark ms-2" id="countdown-timer">Loading...</span>
-                        </div>
-                    </div>
-                    <div class="call-controls">
-                        <button class="btn btn-outline-light btn-sm me-2" onclick="toggleMute()">
-                            <i class="fas fa-microphone" id="mute-icon"></i>
-                        </button>
-                        <button class="btn btn-outline-light btn-sm me-2" onclick="toggleVideo()">
-                            <i class="fas fa-video" id="video-icon"></i>
-                        </button>
-                        <button class="btn btn-danger btn-sm" onclick="endCall()">
-                            <i class="fas fa-phone-slash"></i> End Call
-                        </button>
-                    </div>
-                </div>
+<div class="video-call-wrapper">
+    <!-- Top Header -->
+    <div class="top-header">
+        <div class="logo-section">
+            <a href="{{ url_for('homepage') }}" class="logo-link">
+                <i class="fas fa-video"></i>
+                <span class="logo-text">Droply</span>
+            </a>
+        </div>
+        <div class="header-actions">
+            <button class="header-btn" onclick="toggleSettings()">
+                <i class="fas fa-ellipsis-h"></i>
+            </button>
+        </div>
+    </div>
 
-                <!-- Video Container -->
-                <div id="video-container" style="width: 100%; height: calc(100vh - 140px); background: #000;"></div>
+    <!-- Video Container -->
+    <div class="video-container-wrapper">
+        <div id="video-container" class="video-container"></div>
+        
+        <!-- Participant Names Overlay -->
+        <div class="participant-names">
+            <div class="name-tag local-participant">
+                <span>{{ current_user.full_name or current_user.username }}</span>
             </div>
+            <div class="name-tag remote-participant">
+                <span>{{ other_user.name }}</span>
+            </div>
+        </div>
+        
+        <!-- Powered by Droply Badge -->
+        <div class="powered-by">
+            <span>Powered by Droply</span>
+        </div>
+    </div>
+
+    <!-- Bottom Control Bar -->
+    <div class="control-bar">
+        <div class="control-left">
+            <button class="control-btn video-btn" onclick="toggleVideo()" id="video-btn">
+                <i class="fas fa-video"></i>
+            </button>
+            <button class="control-btn audio-btn" onclick="toggleAudio()" id="audio-btn">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button class="control-btn participants-btn" onclick="toggleParticipants()">
+                <i class="fas fa-users"></i>
+            </button>
+            <button class="control-btn share-btn" onclick="toggleShare()">
+                <i class="fas fa-share"></i>
+            </button>
+        </div>
+        
+        <div class="control-center">
+            <div class="time-progress">
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="time-display" id="time-display">00:00</div>
+            </div>
+        </div>
+        
+        <div class="control-right">
+            {% if is_owner %}
+            <button class="control-btn extend-btn" onclick="extendMeeting()" id="extend-btn" disabled>
+                <i class="fas fa-clock"></i>
+                <span class="btn-text">Extend</span>
+            </button>
+            {% endif %}
+            <button class="control-btn end-call-btn" onclick="endCall()">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Say Goodbye Modal -->
+    <div class="goodbye-modal" id="goodbye-modal" style="display: none;">
+        <div class="goodbye-content">
+            <h3>Say goodbye</h3>
+            <div class="goodbye-timer">
+                <div class="timer-circle" id="timer-circle">
+                    <span id="goodbye-countdown">0:30</span>
+                </div>
+            </div>
+            <p class="goodbye-message">Call automatically ends in <span id="auto-end-timer">0:30</span></p>
+            {% if is_owner %}
+            <div class="goodbye-actions">
+                <button class="goodbye-btn extend-btn" onclick="extendMeeting()" id="goodbye-extend-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>Extend +1min</span>
+                </button>
+                <button class="goodbye-btn close-btn" onclick="closeGoodbyeModal()">
+                    <i class="fas fa-times"></i>
+                    <span>Close</span>
+                </button>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -52,19 +112,25 @@ let callObject = null;
 let isMuted = false;
 let isVideoOn = true;
 let countdownInterval = null;
+let isRecording = false;
+let extensionCount = 0;
+let maxExtensions = 3;
+let goodbyeModalShown = false;
+let totalMeetingTime = 30 * 60 * 1000; // 30 minutes in milliseconds
+let meetingStartTime = null;
 
 // Parse the meeting end time properly
 let meetingEndTime;
 try {
-    // Get the meeting end time from the server (in UTC)
+    // Get the meeting end time from the server (timezone-naive, treat as local time)
     const serverEndTime = '{{ booking.end_time.isoformat() }}';
     console.log('Server end time:', serverEndTime);
     
-    // Create a Date object and treat it as UTC, then convert to local time
-    const utcDate = new Date(serverEndTime + 'Z'); // Add Z to indicate UTC
-    meetingEndTime = utcDate.getTime();
+    // Create a Date object and treat it as local time (no Z suffix)
+    const localDate = new Date(serverEndTime);
+    meetingEndTime = localDate.getTime();
     console.log('Meeting end time (local):', new Date(meetingEndTime).toLocaleString());
-    console.log('Meeting end time (UTC):', utcDate.toISOString());
+    console.log('Meeting end time (ISO):', localDate.toISOString());
 } catch (error) {
     console.error('Error parsing meeting end time:', error);
     // Fallback: create a 30-minute meeting from now
@@ -87,7 +153,17 @@ async function initializeCall() {
                 width: '100%',
                 height: '100%',
                 border: '0'
-            }
+            },
+            showLeaveButton: true,
+            showFullscreenButton: true,
+            showLocalVideo: true,
+            {% if is_owner %}
+            // Expert view - more controls
+            showParticipantsBar: true,
+            {% else %}
+            // Client view - simplified controls
+            showParticipantsBar: false,
+            {% endif %}
         });
 
         // Set up event listeners
@@ -121,59 +197,74 @@ async function initializeCall() {
     }
 }
 
-// Countdown timer
+// Countdown timer with progress bar
 function startCountdown() {
     console.log('Starting countdown...');
     console.log('Meeting end time:', new Date(meetingEndTime).toLocaleString());
     console.log('Current time:', new Date().toLocaleString());
     
+    meetingStartTime = new Date().getTime();
+    
     countdownInterval = setInterval(() => {
         const now = new Date().getTime();
         const timeLeft = meetingEndTime - now;
+        const elapsed = now - meetingStartTime;
         
         console.log('Time left (ms):', timeLeft);
         
         if (timeLeft <= 0) {
             // Meeting time is up
             stopCountdown();
-            document.getElementById('meeting-status').textContent = 'Ended';
-            document.getElementById('meeting-status').className = 'badge bg-danger';
-            document.getElementById('countdown-timer').textContent = 'Meeting ended';
-            document.getElementById('countdown-timer').className = 'badge bg-danger text-white';
-            
-            // Auto-end the call after 30 seconds
-            setTimeout(() => {
-                if (callObject) {
-                    callObject.leave();
-                }
-            }, 30000);
-            
+            showGoodbyeModal(0);
             return;
         }
         
         // Calculate time remaining
-        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const minutes = Math.floor(timeLeft / (1000 * 60));
         const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
         
-        // Update countdown display
-        let timeDisplay = '';
-        if (hours > 0) {
-            timeDisplay = `${hours}h ${minutes}m ${seconds}s`;
-        } else if (minutes > 0) {
-            timeDisplay = `${minutes}m ${seconds}s`;
+        // Update time display
+        const timeDisplay = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        document.getElementById('time-display').textContent = timeDisplay;
+        
+        // Update progress bar
+        const progressPercent = Math.min((elapsed / totalMeetingTime) * 100, 100);
+        const progressFill = document.getElementById('progress-fill');
+        const progressBar = document.getElementById('progress-bar');
+        
+        progressFill.style.width = `${progressPercent}%`;
+        
+        // Change progress bar color based on time left
+        if (timeLeft > 10 * 60 * 1000) { // More than 10 minutes
+            progressBar.className = 'progress-bar green';
+        } else if (timeLeft > 2 * 60 * 1000) { // More than 2 minutes
+            progressBar.className = 'progress-bar yellow';
+        } else { // Less than 2 minutes
+            progressBar.className = 'progress-bar red';
+        }
+        
+        // Show goodbye modal 30 seconds before end
+        if (timeLeft <= 30 * 1000 && timeLeft > 0 && !goodbyeModalShown) {
+            showGoodbyeModal(timeLeft);
+        }
+        
+        // Enable extension button 1 minute before end (Expert only)
+        if (timeLeft <= 1 * 60 * 1000 && timeLeft > 0) {
+            {% if is_owner %}
+            const extendBtn = document.getElementById('extend-btn');
+            if (extendBtn && extensionCount < maxExtensions) {
+                extendBtn.disabled = false;
+                extendBtn.classList.add('active');
+            }
+            {% endif %}
         } else {
-            timeDisplay = `${seconds}s`;
-        }
-        
-        document.getElementById('countdown-timer').textContent = timeDisplay;
-        
-        // Change color when time is running low
-        if (timeLeft < 5 * 60 * 1000) { // Less than 5 minutes
-            document.getElementById('countdown-timer').className = 'badge bg-warning text-dark';
-        }
-        if (timeLeft < 1 * 60 * 1000) { // Less than 1 minute
-            document.getElementById('countdown-timer').className = 'badge bg-danger text-white';
+            {% if is_owner %}
+            const extendBtn = document.getElementById('extend-btn');
+            if (extendBtn && extensionCount < maxExtensions) {
+                extendBtn.disabled = true;
+                extendBtn.classList.remove('active');
+            }
+            {% endif %}
         }
         
     }, 1000);
@@ -186,34 +277,184 @@ function stopCountdown() {
     }
 }
 
-// Toggle mute
-function toggleMute() {
-    if (callObject) {
-        isMuted = !isMuted;
-        callObject.setLocalAudio(!isMuted);
+// Note: Mute and video controls are now handled by Daily.co's built-in interface
+// This removes duplicate controls and provides a cleaner experience
+
+// Show goodbye modal
+function showGoodbyeModal(timeLeft) {
+    if (goodbyeModalShown) return;
+    goodbyeModalShown = true;
+    
+    const modal = document.getElementById('goodbye-modal');
+    const countdown = document.getElementById('goodbye-countdown');
+    const autoEndTimer = document.getElementById('auto-end-timer');
+    
+    modal.style.display = 'flex';
+    
+    // Start countdown in modal
+    let remainingTime = Math.floor(timeLeft / 1000);
+    const modalCountdown = setInterval(() => {
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         
-        const icon = document.getElementById('mute-icon');
-        if (isMuted) {
-            icon.className = 'fas fa-microphone-slash';
-        } else {
-            icon.className = 'fas fa-microphone';
+        countdown.textContent = timeStr;
+        autoEndTimer.textContent = timeStr;
+        
+        if (remainingTime <= 0) {
+            clearInterval(modalCountdown);
+            if (callObject) {
+                callObject.leave();
+            }
         }
+        
+        remainingTime--;
+    }, 1000);
+}
+
+// Close goodbye modal
+function closeGoodbyeModal() {
+    const modal = document.getElementById('goodbye-modal');
+    modal.style.display = 'none';
+}
+
+// Extend meeting (Expert only)
+async function extendMeeting() {
+    if (extensionCount >= maxExtensions) {
+        showNotification('Maximum extensions reached (3 times)', 'warning');
+        return;
+    }
+    
+    try {
+        // Extend meeting by 1 minute
+        meetingEndTime += (1 * 60 * 1000);
+        totalMeetingTime += (1 * 60 * 1000);
+        extensionCount++;
+        goodbyeModalShown = false; // Reset modal flag
+        
+        // Close goodbye modal if open
+        closeGoodbyeModal();
+        
+        // Update UI
+        const extendBtn = document.getElementById('extend-btn');
+        
+        if (extensionCount >= maxExtensions) {
+            extendBtn.disabled = true;
+            extendBtn.innerHTML = '<i class="fas fa-ban"></i><span class="btn-text">Max</span>';
+            extendBtn.classList.add('disabled');
+        } else {
+            extendBtn.innerHTML = `<i class="fas fa-clock"></i><span class="btn-text">Extend (${extensionCount}/${maxExtensions})</span>`;
+        }
+        
+        // Show notification to expert
+        showNotification(`Meeting extended by 1 minute! (${extensionCount}/${maxExtensions})`, 'success');
+        
+        // Notify client about extension
+        notifyClientExtension(extensionCount);
+        
+        console.log(`Meeting extended by 1 minute (${extensionCount}/${maxExtensions})`);
+    } catch (error) {
+        console.error('Error extending meeting:', error);
+        showNotification('Error extending meeting', 'error');
     }
 }
 
-// Toggle video
+// Notify client about extension
+function notifyClientExtension(count) {
+    // This would typically send a real-time notification to the client
+    // For now, we'll show a notification that simulates client notification
+    showNotification(`Expert extended the meeting by 1 minute (${count} total)`, 'info');
+}
+
+// Control functions
 function toggleVideo() {
     if (callObject) {
         isVideoOn = !isVideoOn;
         callObject.setLocalVideo(isVideoOn);
         
-        const icon = document.getElementById('video-icon');
-        if (!isVideoOn) {
-            icon.className = 'fas fa-video-slash';
+        const btn = document.getElementById('video-btn');
+        if (isVideoOn) {
+            btn.classList.remove('disabled');
         } else {
-            icon.className = 'fas fa-video';
+            btn.classList.add('disabled');
         }
     }
+}
+
+function toggleAudio() {
+    if (callObject) {
+        isMuted = !isMuted;
+        callObject.setLocalAudio(!isMuted);
+        
+        const btn = document.getElementById('audio-btn');
+        if (isMuted) {
+            btn.classList.add('disabled');
+        } else {
+            btn.classList.remove('disabled');
+        }
+    }
+}
+
+function toggleParticipants() {
+    // Toggle participants panel
+    console.log('Toggle participants');
+}
+
+function toggleShare() {
+    // Toggle screen sharing
+    console.log('Toggle screen share');
+}
+
+function toggleSettings() {
+    // Toggle settings menu
+    console.log('Toggle settings');
+}
+
+// Toggle recording (Expert only)
+async function toggleRecording() {
+    if (!callObject) return;
+    
+    try {
+        if (!isRecording) {
+            // Start recording
+            await callObject.startRecording();
+            isRecording = true;
+            document.getElementById('record-btn').innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+            document.getElementById('record-btn').className = 'btn btn-warning btn-sm me-2';
+            showNotification('Recording started', 'info');
+        } else {
+            // Stop recording
+            await callObject.stopRecording();
+            isRecording = false;
+            document.getElementById('record-btn').innerHTML = '<i class="fas fa-record-vinyl"></i> Record';
+            document.getElementById('record-btn').className = 'btn btn-outline-warning btn-sm me-2';
+            showNotification('Recording stopped', 'info');
+        }
+    } catch (error) {
+        console.error('Error toggling recording:', error);
+        showNotification('Recording feature not available', 'warning');
+    }
+}
+
+// Show notification
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 3000);
 }
 
 // End call
@@ -238,42 +479,481 @@ window.addEventListener('beforeunload', () => {
 </script>
 
 <style>
-.video-call-container {
-    height: 100vh;
-    background: #000;
+/* Video Call Interface - Inspired by modern video conferencing apps */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-.call-header {
-    position: relative;
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f5;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.video-call-wrapper {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f5f5f5;
+}
+
+/* Top Header */
+.top-header {
+    background: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e5e5e5;
     z-index: 1000;
 }
 
-.call-controls {
+.logo-section {
     display: flex;
     align-items: center;
 }
 
-#video-container {
+.logo-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.logo-link i {
+    color: #667eea;
+    font-size: 1.3rem;
+}
+
+.logo-text {
+    color: #333;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.header-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #666;
+    font-size: 1.1rem;
+    transition: background-color 0.2s;
+}
+
+.header-btn:hover {
+    background: #f0f0f0;
+}
+
+/* Video Container */
+.video-container-wrapper {
+    flex: 1;
+    position: relative;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-container {
+    width: 100%;
+    height: 100%;
     position: relative;
 }
 
-/* Responsive adjustments */
+/* Participant Names */
+.participant-names {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.name-tag {
+    position: absolute;
+    bottom: 1rem;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.local-participant {
+    left: 1rem;
+}
+
+.remote-participant {
+    right: 1rem;
+}
+
+/* Powered by Badge */
+.powered-by {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    color: #666;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    z-index: 10;
+}
+
+/* Control Bar */
+.control-bar {
+    background: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #e5e5e5;
+    gap: 1rem;
+}
+
+.control-left,
+.control-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.control-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Time Progress */
+.time-progress {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 200px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 4px;
+    background: #e5e5e5;
+    border-radius: 2px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.progress-bar.green .progress-fill {
+    background: #10b981;
+}
+
+.progress-bar.yellow .progress-fill {
+    background: #f59e0b;
+}
+
+.progress-bar.red .progress-fill {
+    background: #ef4444;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #10b981;
+    transition: width 1s ease;
+    width: 0%;
+}
+
+.time-display {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* Control Buttons */
+.control-btn {
+    background: #f8f9fa;
+    border: 1px solid #e5e5e5;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.control-btn:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+}
+
+.control-btn.disabled {
+    background: #f8f9fa;
+    color: #adb5bd;
+    border-color: #e5e5e5;
+}
+
+.control-btn.disabled:hover {
+    background: #f8f9fa;
+    transform: none;
+}
+
+/* End Call Button */
+.end-call-btn {
+    background: #ef4444;
+    border: none;
+    color: white;
+}
+
+.end-call-btn:hover {
+    background: #dc2626;
+}
+
+/* Extend Button */
+.extend-btn {
+    background: #10b981;
+    border: none;
+    color: white;
+    border-radius: 25px;
+    width: auto;
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+}
+
+.extend-btn:hover {
+    background: #059669;
+}
+
+.extend-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+}
+
+.extend-btn:disabled:hover {
+    background: #6b7280;
+    transform: none;
+}
+
+.extend-btn.active {
+    background: #10b981;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Goodbye Modal */
+.goodbye-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.goodbye-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.goodbye-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.goodbye-timer {
+    margin-bottom: 1.5rem;
+}
+
+.timer-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.goodbye-message {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.goodbye-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.goodbye-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.goodbye-btn.extend-btn {
+    background: #10b981;
+    color: white;
+}
+
+.goodbye-btn.extend-btn:hover {
+    background: #059669;
+}
+
+.goodbye-btn.close-btn {
+    background: #6b7280;
+    color: white;
+}
+
+.goodbye-btn.close-btn:hover {
+    background: #4b5563;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-    .call-header {
-        padding: 0.5rem !important;
+    .top-header {
+        padding: 0.75rem 1rem;
     }
     
-    .call-header h4 {
+    .control-bar {
+        padding: 0.75rem 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .control-left,
+    .control-right {
+        justify-content: center;
+    }
+    
+    .control-center {
+        order: -1;
+    }
+    
+    .time-progress {
+        min-width: 150px;
+    }
+    
+    .control-btn {
+        width: 44px;
+        height: 44px;
         font-size: 1rem;
     }
     
-    .call-header small {
-        font-size: 0.75rem;
+    .extend-btn {
+        width: auto;
+        padding: 0.5rem 0.75rem;
     }
     
-    .call-controls .btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
+    .goodbye-content {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .goodbye-actions {
+        flex-direction: column;
+    }
+    
+    .goodbye-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-header {
+        padding: 0.5rem;
+    }
+    
+    .logo-text {
+        font-size: 1rem;
+    }
+    
+    .control-bar {
+        padding: 0.5rem;
+    }
+    
+    .control-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+    
+    .time-progress {
+        min-width: 120px;
+    }
+    
+    .time-display {
+        font-size: 0.8rem;
+    }
+    
+    .name-tag {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .powered-by {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
+    }
+}
+
+/* Landscape orientation for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .top-header {
+        padding: 0.5rem 1rem;
+    }
+    
+    .control-bar {
+        padding: 0.5rem 1rem;
+        flex-direction: row;
+    }
+    
+    .control-center {
+        order: 0;
     }
 }
 </style>
