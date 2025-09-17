@@ -23,11 +23,11 @@
                         <div class="row text-start">
                             <div class="col-sm-6">
                                 <small class="text-muted d-block mb-1">Session</small>
-                                <strong>{{ booking.time_slot.title }}</strong>
+                                <strong>{{ booking.duration }}-minute consultation</strong>
                             </div>
                             <div class="col-sm-6">
-                                <small class="text-muted d-block mb-1">Provider</small>
-                                <strong>{{ booking.provider.full_name }}</strong>
+                                <small class="text-muted d-block mb-1">Expert</small>
+                                <strong>{{ booking.expert.full_name or booking.expert.username }}</strong>
                             </div>
                         </div>
                         
@@ -36,11 +36,11 @@
                         <div class="row text-start">
                             <div class="col-sm-6">
                                 <small class="text-muted d-block mb-1">Date</small>
-                                <strong>{{ booking.time_slot.start_datetime.strftime('%B %d, %Y') }}</strong>
+                                <strong>{{ booking.start_time.strftime('%B %d, %Y') }}</strong>
                             </div>
                             <div class="col-sm-6">
                                 <small class="text-muted d-block mb-1">Time</small>
-                                <strong>{{ booking.time_slot.start_datetime.strftime('%I:%M %p') }} - {{ booking.time_slot.end_datetime.strftime('%I:%M %p') }}</strong>
+                                <strong>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</strong>
                             </div>
                         </div>
                         
@@ -63,11 +63,11 @@
                             </div>
                         </div>
                         
-                        {% if booking.time_slot.meeting_details %}
+                        {% if booking.meeting_url %}
                         <hr class="my-3">
                         <div class="text-start">
-                            <small class="text-muted d-block mb-1">Meeting Details</small>
-                            <strong>{{ booking.time_slot.meeting_details }}</strong>
+                            <small class="text-muted d-block mb-1">Meeting Link</small>
+                            <strong><a href="{{ booking.meeting_url }}" target="_blank">Join Meeting</a></strong>
                         </div>
                         {% endif %}
                     </div>
@@ -79,7 +79,7 @@
                         </h6>
                         <ul class="small mb-0">
                             <li>You will receive a confirmation email at <strong>{{ booking.client_email }}</strong></li>
-                            <li>The provider will contact you with session details</li>
+                            <li>The expert will contact you with session details</li>
                             <li>Meeting link will be shared before the session</li>
                             <li>Please arrive on time for your scheduled session</li>
                         </ul>
@@ -93,8 +93,8 @@
                         </a>
                         {% endif %}
                         
-                        <a href="{{ url_for('profile', username=booking.provider.username) }}" class="btn btn-outline-primary">
-                            <i data-feather="user" class="me-2"></i>View Provider Profile
+                        <a href="{{ url_for('user_profile', username=booking.expert.username) }}" class="btn btn-outline-primary">
+                            <i data-feather="user" class="me-2"></i>View Expert Profile
                         </a>
                         
                         <a href="{{ url_for('homepage') }}" class="btn btn-outline-secondary">

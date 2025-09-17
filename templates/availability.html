@@ -3,1099 +3,1388 @@
 {% block title %}Availability - Droply{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container-fluid h-100 d-flex align-items-start justify-content-center" style="min-height: 100vh; overflow: hidden; padding-top: 8vh;">
+    <div class="container">
     <div class="row">
-        <!-- Availability Header -->
-        <div class="col-12 mb-4">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="fw-bold mb-1">
-                        <i data-feather="calendar-check" class="me-2"></i>Availability Management
-                    </h2>
-                    <p class="text-muted mb-0">Set when you're available for sessions and manage your calendar</p>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- Google Calendar Status - Minimal -->
-    <div class="row mb-2">
-        <div class="col-12">
-            <div class="d-flex align-items-center justify-content-between py-2 px-3 bg-light rounded">
-                <div class="d-flex align-items-center">
-                    <i class="fab fa-google text-primary me-2" style="font-size: 0.9rem;"></i>
-                <div id="calendar-connection-status">
-                    <div id="calendar-not-connected" style="display: none;">
-                        <small class="text-muted">Calendar not connected</small>
-                    </div>
-                    <div id="calendar-connected">
-                        <small class="text-success">
-                            <i class="fas fa-check-circle me-1"></i>
-                            Calendar connected
-                        </small>
-                    </div>
-                </div>
-                </div>
-                <div class="calendar-actions">
-                    <a href="/auth/google-calendar" class="btn btn-outline-primary btn-sm" id="connect-calendar-btn" style="display: none; font-size: 0.75rem; padding: 0.25rem 0.5rem;">
-                        <i class="fab fa-google me-1"></i>
-                        Connect
-                    </a>
-                    <form action="/disconnect-google-calendar" method="POST" style="display: inline;" id="disconnect-calendar-form">
-                        <button type="submit" class="btn btn-outline-danger btn-sm" id="disconnect-calendar-btn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
-                            <i class="fas fa-unlink me-1"></i>
-                            Disconnect
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Monthly Calendar View -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
+        <!-- Two Column Layout -->
+        <div class="row" id="availability-content" style="opacity: 0; transition: opacity 0.3s ease;">
+        <!-- Calendar & Timezone Section - Left Column -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
                 <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-calendar-alt text-primary me-2"></i>
-                            Monthly Calendar & Availability
-                        </h5>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-primary btn-sm" id="bulk-settings-btn">
-                                <i class="fas fa-cog me-1"></i>Bulk Settings
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm" id="sync-calendar-events" title="Sync Calendar Events">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
+                    <h6 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Calendar & Timezone
+                    </h6>
+                    </div>
+                <div class="card-body">
+                    <!-- Timezone Section -->
+                    <div class="mb-4">
+                        <label for="timezone-select" class="form-label fw-bold">Your Timezone</label>
+                        <select id="timezone-select" class="form-select form-select-sm">
+                            <option value="">Select your timezone...</option>
+                            <!-- Timezone options will be populated by JavaScript -->
+                        </select>
+                        <div class="form-text">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Your availability will be automatically converted to each client's timezone.
+                        </small>
+        </div>
+    </div>
+
+                    <!-- Google Calendar Section -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Connected Calendars</label>
+                        <div class="d-flex align-items-center mb-2">
+                            <span id="calendar-status-indicator" class="status-indicator disconnected"></span>
+                            <span id="calendar-status-text" class="fw-bold">Not Connected</span>
                         </div>
+                        <div id="connected-calendars" class="mb-3" style="display: none;">
+                            <div class="calendar-list">
+                                <!-- Connected calendars will be populated here -->
                     </div>
                 </div>
-                <div class="card-body">
-                    <p class="text-muted">Click on any day to set your availability. Green days are available for booking, gray days are not available.</p>
-                    
-                    <!-- Calendar Navigation -->
-                    <div class="calendar-navigation mb-4">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <button class="btn btn-outline-secondary" id="prev-month">
-                                <i class="fas fa-chevron-left"></i>
+                        <button id="connect-calendar-btn" class="btn btn-primary w-100">
+                            <i class="fab fa-google"></i>
+                            Connect Calendar
                             </button>
-                            <h4 class="mb-0" id="current-month-display">September 2025</h4>
-                            <button class="btn btn-outline-secondary" id="next-month">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
                     </div>
 
-                    <!-- Availability Management Interface -->
-                    <div class="availability-interface">
-                        <!-- Instructions -->
-                        <div class="instructions mb-3">
-                            <p class="text-muted mb-0">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Click on any day to set your availability. Green days are available for booking, gray days are not available.
-                            </p>
+                    <div class="alert alert-light py-2">
+                            <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Connect multiple calendars to avoid conflicts with personal or work schedules.
+                            </small>
                         </div>
-                        
-                        <!-- Two Column Layout -->
-                        <div class="row">
-                            <!-- Calendar Column -->
-                            <div class="col-md-8">
-                                <div class="availability-calendar">
-                                    <div class="calendar-grid" id="calendar-grid">
-                                        <!-- Calendar will be populated by JavaScript -->
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Time Slots Column -->
-                            <div class="col-md-4">
-                                <div class="time-slots-panel" id="time-slots-panel">
-                                    <div class="time-slots-header">
-                                        <h6 id="time-slots-title">Select a day to set availability</h6>
+        <!-- Working Hours Section - Right Column -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-3">Set when you are typically available for meetings.</p>
+                    
+                    <!-- Compact Day List -->
+                    <div class="weekly-hours-list">
+                        <!-- Saturday -->
+                        <div class="day-row inactive" data-day="saturday">
+                            <div class="day-info">
+                                <div class="day-circle">S</div>
+                                <span class="day-name">Saturday</span>
+                                <div class="form-check form-switch ms-4">
+                                    <input class="form-check-input day-toggle" type="checkbox" id="saturday-toggle">
+                                    <label class="form-check-label" for="saturday-toggle">
+                                        <small>Activate/Deactivate</small>
+                                    </label>
                                     </div>
-                                    <div class="time-slots-content" id="time-slots-content">
-                                        <div class="time-slots-placeholder">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            <p>Click on any day in the calendar to set your availability</p>
                                         </div>
+                            <div class="day-schedule" style="display: none;">
+                                <div class="time-slot">
+                                    <input type="time" class="form-control form-control-sm time-input" id="saturday-start" value="09:00">
+                                    <span class="time-separator">-</span>
+                                    <input type="time" class="form-control form-control-sm time-input" id="saturday-end" value="17:00">
                                     </div>
                                 </div>
+                            <div class="day-status">
+                                <span class="unavailable-text">Unavailable</span>
+                                        </div>
+                                            </div>
+                    
+                        <!-- Monday -->
+                        <div class="day-row active" data-day="monday">
+                            <div class="day-info">
+                                <div class="day-circle">M</div>
+                                <span class="day-name">Monday</span>
+                                <div class="form-check form-switch ms-4">
+                                    <input class="form-check-input day-toggle" type="checkbox" id="monday-toggle" checked>
+                                    <label class="form-check-label" for="monday-toggle">
+                                        <small>Activate/Deactivate</small>
+                                    </label>
+                                        </div>
+                                    </div>
+                            <div class="day-schedule">
+                                <div class="time-slot">
+                                    <input type="time" class="form-control form-control-sm time-input" id="monday-start" value="09:00">
+                                    <span class="time-separator">-</span>
+                                    <input type="time" class="form-control form-control-sm time-input" id="monday-end" value="17:00">
+                                </div>
                             </div>
+                            <div class="day-status" style="display: none;">
+                                <span class="unavailable-text">Unavailable</span>
                         </div>
                     </div>
                     
-                    
-                    
-                    <!-- Bulk Actions -->
-                    <div class="mt-4">
-                        <div class="d-flex gap-2 flex-wrap">
-                            <button class="btn btn-outline-success btn-sm" id="set-weekdays-btn">
-                                <i class="fas fa-calendar-week me-1"></i>SET WEEKDAYS (MON-FRI)
-                            </button>
-                            <button class="btn btn-outline-success btn-sm" id="set-weekends-btn">
-                                <i class="fas fa-calendar-week me-1"></i>SET WEEKENDS (SAT-SUN)
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm" id="clear-all-btn">
-                                <i class="fas fa-times me-1"></i>CLEAR ALL
-                            </button>
+                        <!-- Tuesday -->
+                        <div class="day-row active" data-day="tuesday">
+                            <div class="day-info">
+                                <div class="day-circle">T</div>
+                                <span class="day-name">Tuesday</span>
+                                <div class="form-check form-switch ms-4">
+                                    <input class="form-check-input day-toggle" type="checkbox" id="tuesday-toggle" checked>
+                                    <label class="form-check-label" for="tuesday-toggle">
+                                        <small>Activate/Deactivate</small>
+                                    </label>
                         </div>
                     </div>
+                            <div class="day-schedule">
+                                <div class="time-slot">
+                                    <input type="time" class="form-control form-control-sm time-input" id="tuesday-start" value="09:00">
+                                    <span class="time-separator">-</span>
+                                    <input type="time" class="form-control form-control-sm time-input" id="tuesday-end" value="17:00">
                 </div>
             </div>
+                            <div class="day-status" style="display: none;">
+                                <span class="unavailable-text">Unavailable</span>
         </div>
     </div>
 
-    <!-- Bulk Settings Modal -->
-    <div class="modal fade" id="bulkSettingsModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Bulk Availability Settings</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <!-- Wednesday -->
+                        <div class="day-row active" data-day="wednesday">
+                            <div class="day-info">
+                                <div class="day-circle">W</div>
+                                <span class="day-name">Wednesday</span>
+                                <div class="form-check form-switch ms-4">
+                                    <input class="form-check-input day-toggle" type="checkbox" id="wednesday-toggle" checked>
+                                    <label class="form-check-label" for="wednesday-toggle">
+                                        <small>Activate/Deactivate</small>
+                                    </label>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-4">
-                        <h6>Default Weekday Hours (Monday - Friday)</h6>
-                        <div class="row">
-                            <div class="col-6">
-                                <label class="form-label">Start Time</label>
-                                <input type="time" class="form-control" id="weekday-start" value="09:00">
                             </div>
-                            <div class="col-6">
-                                <label class="form-label">End Time</label>
-                                <input type="time" class="form-control" id="weekday-end" value="17:00">
+                            <div class="day-schedule">
+                                <div class="time-slot">
+                                    <input type="time" class="form-control form-control-sm time-input" id="wednesday-start" value="09:00">
+                                    <span class="time-separator">-</span>
+                                    <input type="time" class="form-control form-control-sm time-input" id="wednesday-end" value="17:00">
                             </div>
                         </div>
-                        <div class="form-check mt-2">
-                            <input type="checkbox" class="form-check-input" id="weekdays-enabled" checked>
-                            <label class="form-check-label" for="weekdays-enabled">Enable weekdays</label>
+                            <div class="day-status" style="display: none;">
+                                <span class="unavailable-text">Unavailable</span>
                         </div>
                     </div>
                     
-                    <div class="mb-4">
-                        <h6>Default Weekend Hours (Saturday - Sunday)</h6>
-                        <div class="row">
-                            <div class="col-6">
-                                <label class="form-label">Start Time</label>
-                                <input type="time" class="form-control" id="weekend-start" value="10:00">
+                        <!-- Thursday -->
+                        <div class="day-row active" data-day="thursday">
+                            <div class="day-info">
+                                <div class="day-circle">T</div>
+                                <span class="day-name">Thursday</span>
+                                <div class="form-check form-switch ms-4">
+                                    <input class="form-check-input day-toggle" type="checkbox" id="thursday-toggle" checked>
+                                    <label class="form-check-label" for="thursday-toggle">
+                                        <small>Activate/Deactivate</small>
+                                    </label>
                             </div>
-                            <div class="col-6">
-                                <label class="form-label">End Time</label>
-                                <input type="time" class="form-control" id="weekend-end" value="15:00">
                             </div>
+                            <div class="day-schedule">
+                                <div class="time-slot">
+                                    <input type="time" class="form-control form-control-sm time-input" id="thursday-start" value="09:00">
+                                    <span class="time-separator">-</span>
+                                    <input type="time" class="form-control form-control-sm time-input" id="thursday-end" value="17:00">
                         </div>
-                        <div class="form-check mt-2">
-                            <input type="checkbox" class="form-check-input" id="weekends-enabled">
-                            <label class="form-check-label" for="weekends-enabled">Enable weekends</label>
+            </div>
+                            <div class="day-status" style="display: none;">
+                                <span class="unavailable-text">Unavailable</span>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <h6>Timezone</h6>
-                        <select class="form-select" id="user-timezone">
-                            <option value="America/New_York">Eastern Time (ET)</option>
-                            <option value="America/Chicago">Central Time (CT)</option>
-                            <option value="America/Denver">Mountain Time (MT)</option>
-                            <option value="America/Los_Angeles">Pacific Time (PT)</option>
-                            <option value="Europe/London">London (GMT)</option>
-                            <option value="Europe/Paris">Paris (CET)</option>
-                            <option value="Asia/Tokyo">Tokyo (JST)</option>
-                            <option value="Australia/Sydney">Sydney (AEST)</option>
-                        </select>
+                        <!-- Friday -->
+                        <div class="day-row active" data-day="friday">
+                            <div class="day-info">
+                                <div class="day-circle">F</div>
+                                <span class="day-name">Friday</span>
+                                <div class="form-check form-switch ms-4">
+                                    <input class="form-check-input day-toggle" type="checkbox" id="friday-toggle" checked>
+                                    <label class="form-check-label" for="friday-toggle">
+                                        <small>Activate/Deactivate</small>
+                                    </label>
                     </div>
+                </div>
+                            <div class="day-schedule">
+                                <div class="time-slot">
+                                    <input type="time" class="form-control form-control-sm time-input" id="friday-start" value="09:00">
+                                    <span class="time-separator">-</span>
+                                    <input type="time" class="form-control form-control-sm time-input" id="friday-end" value="17:00">
+                </div>
+            </div>
+                            <div class="day-status" style="display: none;">
+                                <span class="unavailable-text">Unavailable</span>
+        </div>
+    </div>
+
+                        <!-- Sunday -->
+                        <div class="day-row inactive" data-day="sunday">
+                            <div class="day-info">
+                                <div class="day-circle">S</div>
+                                <span class="day-name">Sunday</span>
+                                <div class="form-check form-switch ms-4">
+                                    <input class="form-check-input day-toggle" type="checkbox" id="sunday-toggle">
+                                    <label class="form-check-label" for="sunday-toggle">
+                                        <small>Activate/Deactivate</small>
+                                    </label>
+                </div>
+                        </div>
+                            <div class="day-schedule" style="display: none;">
+                                <div class="time-slot">
+                                    <input type="time" class="form-control form-control-sm time-input" id="sunday-start" value="09:00">
+                                    <span class="time-separator">-</span>
+                                    <input type="time" class="form-control form-control-sm time-input" id="sunday-end" value="17:00">
+                    </div>
+                            </div>
+                            <div class="day-status">
+                                <span class="unavailable-text">Unavailable</span>
+                        </div>
+                            </div>
+                        </div>
+                        
+                    <!-- Save Button -->
+                    <div class="text-end mt-4">
+                        <button id="save-availability-btn" class="btn btn-primary" disabled>
+                            <i class="fas fa-save"></i>
+                            Save Availability
+                        </button>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                            </div>
+                        </div>
+                            </div>
+                        </div>
+                    </div>
+
+<!-- Corporate Warning Modal -->
+<div class="modal fade" id="unsavedChangesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content corporate-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Unsaved Changes
+                </h5>
+                            </div>
+            <div class="modal-body">
+                <p class="mb-3">You have unsaved changes to your availability settings.</p>
+                <p class="text-muted mb-0">Make sure to click "Save Availability" to save your changes before proceeding.</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="apply-bulk-settings">Apply Settings</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Go Back
+                </button>
+                <button type="button" class="btn btn-danger" id="discardChangesBtn">
+                    <i class="fas fa-times me-2"></i>
+                    Discard Changes
+                </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Time Slot Selection Modal -->
-    <div class="modal fade" id="timeSlotModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="timeSlotModalTitle">Set Availability for <span id="selected-date-display"></span></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            <input type="checkbox" class="form-check-input" id="day-enabled">
-                            <label class="form-check-label" for="day-enabled">Available on this day</label>
-                        </div>
-                    </div>
-                    
-                    <div id="time-settings" style="display: none;">
-                        <div class="row">
-                            <div class="col-6">
-                                <label class="form-label">Start Time</label>
-                                <input type="time" class="form-control" id="day-start-time" value="09:00">
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">End Time</label>
-                                <input type="time" class="form-control" id="day-end-time" value="17:00">
-                            </div>
-                        </div>
-                        
-                        <div class="mt-3">
-                            <label class="form-label">Session Duration</label>
-                            <select class="form-select" id="session-duration">
-                                <option value="30">30 minutes</option>
-                                <option value="60" selected>1 hour</option>
-                                <option value="90">1.5 hours</option>
-                                <option value="120">2 hours</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mt-3">
-                            <label class="form-label">Available Time Slots</label>
-                            <div class="time-slots-preview" id="time-slots-preview">
-                                <!-- Time slots will be generated here -->
-                            </div>
-                        </div>
-                        
-                        <div class="mt-3">
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>Booking Preview:</strong> Users will be able to book sessions during these time slots. Each session will be <span id="duration-display">1 hour</span> long.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="save-day-availability">Save Availability</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block styles %}
 <style>
-/* Availability Management Styles */
-.availability-interface {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+/* Page Layout - Prevent Scrolling and Center Content */
+body {
+    overflow: hidden;
+    height: 100vh;
 }
 
-.instructions {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 1rem;
-    border-left: 4px solid #28a745;
+.container-fluid {
+    padding: 0;
+    margin: 0;
 }
 
-.availability-calendar {
-    margin-top: 1rem;
+/* Compact Weekly Hours Styles */
+.weekly-hours-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
-    max-width: 100%;
+.day-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    min-height: 48px;
+    height: 48px;
 }
 
-.day-header {
-    text-align: center;
-    font-weight: 600;
+.day-row.active {
+    background: #f0f8f0;
+    border-color: #d4edda;
+}
+
+.day-row.inactive {
+    background: #fef5f5;
+    border-color: #f5c6cb;
+}
+
+
+.day-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.day-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #495057;
     color: white;
-    background-color: #28a745;
-    font-size: 0.85rem;
-    padding: 0.75rem 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-radius: 4px;
-}
-
-.calendar-day {
-    aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    font-size: 0.9rem;
-    color: #6c757d;
-    position: relative;
-    min-height: 50px;
-    border-radius: 4px;
-    border: 1px solid #e9ecef;
-    background-color: #f8f9fa;
-}
-
-.calendar-day:hover {
-    background-color: #e9ecef;
-    color: #495057;
-}
-
-.calendar-day.other-month {
-    color: #ccc;
-    cursor: default;
-    background-color: #f8f9fa;
-}
-
-.calendar-day.other-month:hover {
-    background-color: #f8f9fa;
-    color: #ccc;
-}
-
-.calendar-day.available {
-    background-color: #28a745;
-    color: white;
-    border-color: #28a745;
-}
-
-.calendar-day.available:hover {
-    background-color: #218838;
-    color: white;
-}
-
-.calendar-day.unavailable {
-    background-color: #f8f9fa;
-    color: #6c757d;
-    border-color: #e9ecef;
-}
-
-.calendar-day.unavailable:hover {
-    background-color: #e9ecef;
-    color: #495057;
-}
-
-.day-number {
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.day-name {
+    font-weight: 500;
+    color: #495057;
+    font-size: 13px;
+    min-width: 70px;
 }
 
 .day-status {
-    font-size: 0.7rem;
-    font-weight: 500;
-    margin-top: 0.25rem;
-    padding: 0.125rem 0.25rem;
-    border-radius: 3px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.day-status.available {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.day-status.unavailable {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-.day-status.no-data {
-    background-color: #e2e3e5;
+.unavailable-text {
     color: #6c757d;
+    font-size: 13px;
+    font-style: italic;
 }
 
-/* Time Slots Panel */
-.time-slots-panel {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    height: fit-content;
-    min-height: 400px;
-}
-
-.time-slots-header {
-    background: #28a745;
-    color: white;
-    padding: 1rem;
-    border-radius: 12px 12px 0 0;
-}
-
-.time-slots-header h6 {
-    margin: 0;
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-.time-slots-content {
-    padding: 1.5rem;
-}
-
-.time-slots-placeholder {
-    text-align: center;
-    color: #6c757d;
-    padding: 2rem 1rem;
-}
-
-.time-slots-placeholder i {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #dee2e6;
-}
-
-.time-slots-placeholder p {
-    margin: 0;
-    font-size: 0.9rem;
-}
-
-.time-slot-btn {
-    display: block;
-    width: 100%;
-    background: white;
-    border: 2px solid #007bff;
-    color: #007bff;
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
-}
-
-.time-slot-btn:hover {
-    background: #f8f9fa;
-    border-color: #0056b3;
-    color: #0056b3;
-}
-
-.time-slot-btn.selected {
-    background: #6c757d;
-    border-color: #6c757d;
-    color: white;
-}
-
-.time-slot-btn.selected:hover {
-    background: #5a6268;
-    border-color: #5a6268;
-    color: white;
-}
-
-.time-slots-preview {
-    background: #f8f9fa;
-    border-radius: 6px;
-    padding: 0.75rem;
-    max-height: 200px;
-    overflow-y: auto;
+.day-schedule {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    justify-content: flex-end;
+    margin-left: 20px;
 }
 
 .time-slot {
-    display: inline-block;
-    background: #e3f2fd;
-    color: #1976d2;
-    padding: 0.25rem 0.5rem;
-    margin: 0.125rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    border: 1px solid #bbdefb;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-/* Time Slots Grid */
-.time-slots-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.5rem;
-    max-height: 300px;
+.time-input {
+    width: 90px;
+    font-size: 13px;
+    padding: 4px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.time-separator {
+    color: #6c757d;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.day-actions {
+    display: flex;
+    gap: 2px;
+    margin-left: 8px;
+}
+
+.day-actions .btn {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    border-radius: 3px;
+}
+
+/* Form Switch Styles */
+.form-check-input {
+    width: 1.2em;
+    height: 0.6em;
+}
+
+.form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.form-check-label {
+    font-size: 11px;
+    color: #6c757d;
+    margin-left: 4px;
+}
+
+/* Calendar List Styles */
+.calendar-list {
+    max-height: 120px;
     overflow-y: auto;
 }
 
-.time-slot-item {
-    background: #e8f5e8;
-    border: 1px solid #28a745;
-    border-radius: 6px;
-    padding: 0.75rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
+.calendar-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    font-size: 12px;
 }
 
-.time-slot-item:hover {
-    background: #d4edda;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.calendar-item:last-child {
+    margin-bottom: 0;
 }
 
-.time-slot-item.booked {
-    background: #f8d7da;
-    border-color: #dc3545;
-    color: #721c24;
-    cursor: not-allowed;
-}
-
-.time-slot-item.booked:hover {
-    background: #f5c6cb;
-    transform: none;
-    box-shadow: none;
-}
-
-.time-slot-time {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #155724;
-}
-
-.time-slot-item.booked .time-slot-time {
-    color: #721c24;
-}
-
-.time-slot-duration {
-    font-size: 0.75rem;
-    color: #6c757d;
-    margin-top: 0.25rem;
-}
-
-.time-slot-item.booked .time-slot-duration {
-    color: #721c24;
-}
-
-.calendar-navigation {
-    text-align: center;
-}
-
-/* Modal Styles */
-.modal-body .form-label {
-    font-weight: 600;
+.calendar-name {
+    font-weight: 500;
     color: #495057;
 }
 
-/* Mobile Responsive */
+.calendar-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.calendar-actions .btn {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    font-size: 9px;
+    border-radius: 2px;
+}
+
+/* Status Indicators */
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-indicator.connected {
+    background-color: #28a745;
+}
+
+.status-indicator.disconnected {
+    background-color: #dc3545;
+}
+
+/* Card Enhancements */
+.card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    box-shadow: none;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Add shadow on hover */
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    transform: none !important;
+}
+
+.card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 12px 16px;
+}
+
+.card-body {
+    padding: 16px;
+}
+
+/* Form Controls */
+.form-select, .form-control {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border: none;
+    transition: none;
+    min-width: 140px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transform: none;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: #e9ecef;
+    color: #6c757d;
+    box-shadow: none;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+    min-width: 120px;
+    height: 36px;
+}
+
+/* Button state management */
+#save-availability-btn {
+    min-width: 160px;
+    height: 42px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+#connect-calendar-btn {
+    min-width: 100%;
+    height: 42px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Success and error states for save button */
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3) !important;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
+}
+
+.btn-outline-primary {
+    color: #007bff;
+    border-color: #007bff;
+}
+
+
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+
+/* Modal Enhancements */
+.modal-content {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.corporate-modal {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.corporate-modal .modal-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 12px 12px 0 0;
+    padding: 20px 24px;
+}
+
+.corporate-modal .modal-title {
+    color: #495057;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.corporate-modal .modal-body {
+    padding: 24px;
+    color: #495057;
+    line-height: 1.6;
+}
+
+.corporate-modal .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 20px 24px;
+    border-radius: 0 0 12px 12px;
+    gap: 12px;
+}
+
+.modal-body .btn {
+    text-align: left;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border: 1px solid #e9ecef;
+    background: white;
+    color: #495057;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-    .calendar-day {
-        min-height: 60px;
-        padding: 0.25rem;
+    .day-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
     }
     
-    .day-number {
-        font-size: 0.8rem;
+    .day-schedule {
+        width: 100%;
+        justify-content: space-between;
     }
     
-    .day-status {
-        font-size: 0.6rem;
-        padding: 0.1rem 0.2rem;
+    .time-slot {
+        flex: 1;
     }
     
-    .calendar-header .day-header {
-        padding: 0.75rem 0.25rem;
-        font-size: 0.8rem;
+    .day-actions {
+        justify-content: flex-end;
     }
 }
 
 @media (max-width: 576px) {
-    .calendar-day {
-        min-height: 50px;
-        padding: 0.2rem;
+    .container {
+        padding: 16px;
     }
     
-    .day-number {
-        font-size: 0.75rem;
+    .card-body {
+        padding: 12px;
     }
     
-    .day-status {
-        font-size: 0.55rem;
-    }
-    
-    .calendar-header .day-header {
-        padding: 0.5rem 0.2rem;
-        font-size: 0.75rem;
+    .day-row {
+        padding: 8px 12px;
     }
 }
 </style>
-{% endblock %}
 
-{% block extra_scripts %}
 <script>
-// Monthly Calendar Management
-let currentDate = new Date();
-let selectedDate = null;
-let availabilityRules = {};
-let timeSlots = {};
-
-// Initialize calendar immediately
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM loaded, rendering calendar immediately...');
-  
-  // Render calendar immediately - no dependencies
-  renderCalendar();
-  
-  // Setup event listeners
-  setupEventListeners();
-  
-  // Load other things in background
-  setTimeout(() => {
-    checkCalendarStatus();
-    loadAvailabilityRules();
-  }, 100);
+    // Populate timezone options first
+    populateTimezoneOptions();
+    
+    // Load data before initializing UI to prevent flashing
+    Promise.all([
+        loadAvailabilityRulesAsync(),
+        loadCurrentTimezoneAsync()
+    ]).then(() => {
+        // Initialize the availability management system after data is loaded
+        initializeAvailabilitySystem();
+        
+        // Check Google Calendar connection status
+        checkCalendarConnectionStatus();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Show the content with a smooth fade-in
+        document.getElementById('availability-content').style.opacity = '1';
+    });
 });
 
-function testCalendar() {
-  console.log('Testing calendar...');
-  renderCalendar();
+function initializeAvailabilitySystem() {
+    console.log('Initializing availability system...');
+    
+    // Store initial state for change detection
+    storeInitialState();
+    
+    // Set up change detection
+    setupChangeDetection();
 }
 
-function showFallbackCalendar() {
-  const loadingElement = document.getElementById('calendar-loading');
-  const fallbackElement = document.getElementById('fallback-calendar');
-  
-  if (loadingElement) {
-    loadingElement.style.display = 'none';
-  }
-  if (fallbackElement) {
-    fallbackElement.style.display = 'block';
-  }
-}
-
-
-function renderCalendar() {
-  console.log('Rendering calendar...');
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  
-  // Update month display
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
-  const monthDisplay = document.getElementById('current-month-display');
-  if (monthDisplay) {
-    monthDisplay.textContent = `${monthNames[month]} ${year}`;
-  }
-  
-  // Get first day of month and number of days
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const daysInMonth = lastDay.getDate();
-  const startingDayOfWeek = firstDay.getDay();
-  
-  const calendarGrid = document.getElementById('calendar-grid');
-  if (!calendarGrid) {
-    console.error('Calendar grid element not found!');
-    return;
-  }
-  
-  calendarGrid.innerHTML = '';
-  
-  // Add day headers (green background)
-  const dayHeaders = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-  dayHeaders.forEach(day => {
-    const header = document.createElement('div');
-    header.className = 'day-header';
-    header.textContent = day;
-    calendarGrid.appendChild(header);
-  });
-  
-  // Add empty cells for days before the first day of the month
-  for (let i = 0; i < startingDayOfWeek; i++) {
-    const emptyDay = document.createElement('div');
-    emptyDay.className = 'calendar-day other-month';
-    calendarGrid.appendChild(emptyDay);
-  }
-  
-  // Add days of the month
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dayElement = document.createElement('div');
-    dayElement.className = 'calendar-day';
-    dayElement.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    
-    const date = new Date(year, month, day);
-    const today = new Date();
-    const isToday = date.toDateString() === today.toDateString();
-    
-    if (isToday) {
-      dayElement.classList.add('today');
-    }
-    
-    dayElement.innerHTML = `
-      <div class="day-number">${day}</div>
-      <div class="day-status no-data">Not set</div>
-    `;
-    
-    dayElement.addEventListener('click', () => handleDayClick(date, dayElement));
-    calendarGrid.appendChild(dayElement);
-  }
-  
-  console.log(`Added ${daysInMonth} days to calendar grid`);
-  
-  // Update availability status for each day
-  updateCalendarAvailability();
-  console.log('Calendar rendered successfully');
-}
-
-
-function handleDayClick(date, dayElement) {
-  selectedDate = date;
-  const dateStr = dayElement.dataset.date;
-  
-  // Update time slots panel
-  const timeSlotsTitle = document.getElementById('time-slots-title');
-  const timeSlotsContent = document.getElementById('time-slots-content');
-  
-  if (timeSlotsTitle) {
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'];
-    timeSlotsTitle.textContent = `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${date.getDate()}`;
-  }
-  
-  // Generate time slots
-  if (timeSlotsContent) {
-    timeSlotsContent.innerHTML = '';
-    const timeSlots = ['10:00am', '11:00am', '1:00pm', '2:30pm', '4:00pm'];
-    
-    timeSlots.forEach((time, index) => {
-      const slot = document.createElement('button');
-      slot.className = 'time-slot-btn';
-      slot.textContent = time;
-      slot.type = 'button';
-      
-      // Add click handler for individual time slots
-      slot.addEventListener('click', () => {
-        // Toggle selection of this specific time slot
-        slot.classList.toggle('selected');
-        
-        // Update day availability based on selected slots
-        const selectedSlots = timeSlotsContent.querySelectorAll('.time-slot-btn.selected');
-        if (selectedSlots.length > 0) {
-          dayElement.classList.remove('unavailable');
-          dayElement.classList.add('available');
-          // Update the day status
-          const statusElement = dayElement.querySelector('.day-status');
-          if (statusElement) {
-            statusElement.textContent = 'Available';
-            statusElement.className = 'day-status available';
-          }
-        } else {
-          dayElement.classList.remove('available');
-          dayElement.classList.add('unavailable');
-          // Update the day status
-          const statusElement = dayElement.querySelector('.day-status');
-          if (statusElement) {
-            statusElement.textContent = 'Not available';
-            statusElement.className = 'day-status unavailable';
-          }
-        }
-      });
-      
-      timeSlotsContent.appendChild(slot);
-    });
-  }
-}
-
-function loadTimeSlotsForDate(dateStr) {
-  const timeSlotsList = document.getElementById('time-slots-list');
-  timeSlotsList.innerHTML = '<div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> Loading time slots...</div>';
-  
-  fetch(`/api/availability/time-slots?date=${dateStr}`)
+function loadAvailabilityRulesAsync() {
+    return fetch('/api/availability/rules')
     .then(response => response.json())
     .then(data => {
-      if (data.success) {
-        displayTimeSlots(data.time_slots);
-      } else {
-        timeSlotsList.innerHTML = `<div class="text-danger text-center py-3">Error: ${data.error}</div>`;
-      }
+            // The API returns an array directly, not wrapped in success object
+            if (Array.isArray(data)) {
+                updateAvailabilityDisplay(data);
+                return data;
+            }
+            return [];
     })
     .catch(error => {
-      console.error('Error loading time slots:', error);
-      timeSlotsList.innerHTML = '<div class="text-danger text-center py-3">Error loading time slots</div>';
-    });
-}
-
-function displayTimeSlots(slots) {
-  const timeSlotsList = document.getElementById('time-slots-list');
-  
-  if (slots.length === 0) {
-    timeSlotsList.innerHTML = '<div class="text-muted text-center py-3">No availability set for this day</div>';
-    return;
-  }
-  
-  timeSlotsList.innerHTML = '';
-  slots.forEach(slot => {
-    const slotElement = document.createElement('div');
-    slotElement.className = `time-slot-item ${!slot.available ? 'booked' : ''}`;
-    
-    const startTime = new Date(`2000-01-01T${slot.start}`).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    
-    const endTime = new Date(`2000-01-01T${slot.end}`).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    
-    slotElement.innerHTML = `
-      <div class="time-slot-time">${startTime} - ${endTime}</div>
-      <div class="time-slot-duration">1 hour</div>
-      ${!slot.available ? `<div class="text-danger small">${slot.blocked_reason || 'Blocked'}</div>` : ''}
-    `;
-    
-    if (slot.available) {
-      slotElement.addEventListener('click', () => {
-        // Handle booking this time slot
-        console.log('Booking slot:', slot);
-        // You can add booking functionality here
-      });
-    }
-    
-    timeSlotsList.appendChild(slotElement);
-  });
-}
-
-function generateTimeSlots(startTime, endTime, durationMinutes) {
-  const slots = [];
-  const start = new Date(`2000-01-01T${startTime}`);
-  const end = new Date(`2000-01-01T${endTime}`);
-  
-  let current = new Date(start);
-  while (current < end) {
-    const timeStr = current.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: true 
-    });
-    slots.push(timeStr);
-    current.setMinutes(current.getMinutes() + durationMinutes);
-  }
-  
-  return slots;
-}
-
-function updateCalendarAvailability() {
-  document.querySelectorAll('.calendar-day:not(.other-month)').forEach(dayElement => {
-    const dateStr = dayElement.dataset.date;
-    const date = new Date(dateStr);
-    const weekday = date.getDay();
-    
-    const statusElement = dayElement.querySelector('.day-status');
-    
-    if (availabilityRules[weekday]) {
-      dayElement.classList.add('available');
-      dayElement.classList.remove('unavailable');
-      statusElement.textContent = 'Available';
-      statusElement.className = 'day-status available';
-    } else {
-      dayElement.classList.add('unavailable');
-      dayElement.classList.remove('available');
-      statusElement.textContent = 'Not available';
-      statusElement.className = 'day-status unavailable';
-    }
-  });
+            console.error('Error loading availability rules:', error);
+            return [];
+        });
 }
 
 function loadAvailabilityRules() {
-  fetch('/api/availability/rules')
+    loadAvailabilityRulesAsync().then(() => {
+        // Store initial state after loading data
+        setTimeout(() => {
+            storeInitialState();
+            checkForChanges();
+        }, 100);
+    });
+}
+
+function loadCurrentTimezoneAsync() {
+    return fetch('/api/user/timezone')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.timezone) {
+                document.getElementById('timezone-select').value = data.timezone;
+                return data.timezone;
+            } else {
+                // If no timezone is set, detect and set the user's current timezone
+                detectAndSetTimezone();
+                return document.getElementById('timezone-select').value;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading timezone:', error);
+            // Fallback to timezone detection
+            detectAndSetTimezone();
+            return document.getElementById('timezone-select').value;
+        });
+}
+
+function loadCurrentTimezone() {
+    loadCurrentTimezoneAsync().then(() => {
+        // Update initial state after timezone is set
+        setTimeout(() => {
+            if (typeof storeInitialState === 'function') {
+                storeInitialState();
+                checkForChanges();
+            }
+        }, 100);
+    });
+}
+
+function detectAndSetTimezone() {
+    try {
+        // Get the user's current timezone
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        
+        // Set it in the dropdown
+        const timezoneSelect = document.getElementById('timezone-select');
+        timezoneSelect.value = userTimezone;
+        
+        // Save it to the server
+        saveTimezone(userTimezone);
+        
+        console.log('Auto-detected timezone:', userTimezone);
+    } catch (error) {
+        console.error('Error detecting timezone:', error);
+        // Fallback to Eastern Time
+        const timezoneSelect = document.getElementById('timezone-select');
+        timezoneSelect.value = 'America/New_York';
+        saveTimezone('America/New_York');
+    }
+}
+
+function checkCalendarConnectionStatus() {
+    fetch('/api/availability/calendar-status')
     .then(response => response.json())
     .then(data => {
-      availabilityRules = {};
-      data.forEach(rule => {
-        availabilityRules[rule.weekday] = rule;
-      });
-      updateCalendarAvailability();
+            updateCalendarStatus(data.connected);
     })
     .catch(error => {
-      console.error('Error loading availability rules:', error);
-    });
+            console.error('Error checking calendar status:', error);
+        });
 }
 
-function setupEventListeners() {
-  // Month navigation
-  document.getElementById('prev-month').addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    renderCalendar();
-  });
-  
-  document.getElementById('next-month').addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    renderCalendar();
-  });
-  
-  // Bulk settings
-  document.getElementById('bulk-settings-btn').addEventListener('click', () => {
-    new bootstrap.Modal(document.getElementById('bulkSettingsModal')).show();
-  });
-  
-  // Quick actions
-  const setWeekdaysBtn = document.getElementById('set-weekdays-btn');
-  if (setWeekdaysBtn) {
-    setWeekdaysBtn.addEventListener('click', () => {
-      setBulkAvailability([1, 2, 3, 4, 5], '09:00', '17:00');
+function updateAvailabilityDisplay(rules) {
+    console.log('Updating availability display with rules:', rules);
+    
+    // First, set all days to inactive
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    dayNames.forEach((dayName, index) => {
+        const dayRow = document.querySelector(`[data-day="${dayName}"]`);
+        const toggle = document.getElementById(`${dayName}-toggle`);
+        const daySchedule = dayRow.querySelector('.day-schedule');
+        const dayStatus = dayRow.querySelector('.day-status');
+        
+        // Set toggle to unchecked
+        if (toggle) {
+            toggle.checked = false;
+        }
+        
+        // Set row to inactive
+        dayRow.classList.remove('active');
+        dayRow.classList.add('inactive');
+        
+        // Hide time inputs
+        if (daySchedule) {
+            daySchedule.style.display = 'none';
+        }
+        
+        // Show unavailable text
+        if (dayStatus) {
+            dayStatus.style.display = 'flex';
+            dayStatus.innerHTML = `
+                <span class="unavailable-text">Unavailable</span>
+            `;
+        }
     });
-  }
-  
-  const setWeekendsBtn = document.getElementById('set-weekends-btn');
-  if (setWeekendsBtn) {
-    setWeekendsBtn.addEventListener('click', () => {
-      setBulkAvailability([0, 6], '10:00', '15:00');
-    });
-  }
-  
-  const clearAllBtn = document.getElementById('clear-all-btn');
-  if (clearAllBtn) {
-    clearAllBtn.addEventListener('click', () => {
-      clearAllAvailability();
-    });
-  }
-  
-  // Apply bulk settings
-  document.getElementById('apply-bulk-settings').addEventListener('click', () => {
-    applyBulkSettings();
-  });
-  
-  // Edit day availability
-  document.getElementById('edit-day-availability').addEventListener('click', () => {
-    if (selectedDate) {
-      new bootstrap.Modal(document.getElementById('timeSlotModal')).show();
+    
+    // Apply rules
+    rules.forEach(rule => {
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const dayName = dayNames[rule.weekday];
+        const dayRow = document.querySelector(`[data-day="${dayName}"]`);
+        const toggle = document.getElementById(`${dayName}-toggle`);
+        const daySchedule = dayRow.querySelector('.day-schedule');
+        const dayStatus = dayRow.querySelector('.day-status');
+        
+        if (dayRow && rule.is_active) {
+            // Set toggle to checked
+            if (toggle) {
+                toggle.checked = true;
+            }
+            
+            // Set row to active
+            dayRow.classList.remove('inactive');
+            dayRow.classList.add('active');
+            
+            // Show time inputs
+            if (daySchedule) {
+                daySchedule.style.display = 'flex';
+                const startInput = daySchedule.querySelector(`#${dayName}-start`);
+                const endInput = daySchedule.querySelector(`#${dayName}-end`);
+                
+                if (startInput) startInput.value = rule.start;
+                if (endInput) endInput.value = rule.end;
+            }
+            
+            // Hide unavailable text
+            if (dayStatus) {
+                dayStatus.style.display = 'none';
+            }
     }
   });
 }
 
-function setBulkAvailability(weekdays, startTime, endTime) {
-  const rules = weekdays.map(weekday => ({
-    weekday: weekday,
-    start: startTime,
-    end: endTime,
-    enabled: true
-  }));
-  
-  // Update local availability rules
-  rules.forEach(rule => {
-    availabilityRules[rule.weekday] = rule;
-  });
-  
-  // Update calendar display
-  updateCalendarAvailability();
-  
-  // Save to server
-  saveAvailabilityRules(rules);
-}
-
-function clearAllAvailability() {
-  // Clear local availability rules
-  availabilityRules = {};
-  
-  // Update calendar display
-  updateCalendarAvailability();
-  
-  // Save to server
-  saveAvailabilityRules([]);
-}
-
-function applyBulkSettings() {
-  const weekdayEnabled = document.getElementById('weekdays-enabled').checked;
-  const weekendEnabled = document.getElementById('weekends-enabled').checked;
-  const weekdayStart = document.getElementById('weekday-start').value;
-  const weekdayEnd = document.getElementById('weekday-end').value;
-  const weekendStart = document.getElementById('weekend-start').value;
-  const weekendEnd = document.getElementById('weekend-end').value;
-  
-  const rules = [];
-  
-  if (weekdayEnabled) {
-    for (let i = 1; i <= 5; i++) {
-      rules.push({
-        weekday: i,
-        start: weekdayStart,
-        end: weekdayEnd,
-        enabled: true
-      });
+function updateCalendarStatus(connected) {
+    const statusIndicator = document.getElementById('calendar-status-indicator');
+    const statusText = document.getElementById('calendar-status-text');
+    const connectBtn = document.getElementById('connect-calendar-btn');
+    const connectedCalendars = document.getElementById('connected-calendars');
+    
+    if (connected) {
+        statusIndicator.className = 'status-indicator connected';
+        statusText.textContent = 'Connected';
+        connectBtn.textContent = 'Add Another Calendar';
+        connectBtn.onclick = () => connectCalendar();
+        connectedCalendars.style.display = 'block';
+        
+        // Load connected calendars
+        loadConnectedCalendars();
+      } else {
+        statusIndicator.className = 'status-indicator disconnected';
+        statusText.textContent = 'Not Connected';
+        connectBtn.innerHTML = '<i class="fab fa-google me-2"></i>Connect Calendar';
+        connectBtn.onclick = () => connectCalendar();
+        connectedCalendars.style.display = 'none';
     }
-  }
-  
-  if (weekendEnabled) {
-    rules.push({
-      weekday: 0,
-      start: weekendStart,
-      end: weekendEnd,
-      enabled: true
-    });
-    rules.push({
-      weekday: 6,
-      start: weekendStart,
-      end: weekendEnd,
-      enabled: true
-    });
-  }
-  
-  saveAvailabilityRules(rules);
-  bootstrap.Modal.getInstance(document.getElementById('bulkSettingsModal')).hide();
 }
 
-function saveAvailabilityRules(rules) {
-  fetch('/api/availability/rules', {
+function loadConnectedCalendars() {
+    // This would fetch from an API endpoint
+    const calendarList = document.querySelector('.calendar-list');
+    calendarList.innerHTML = `
+        <div class="calendar-item">
+            <span class="calendar-name">Primary Calendar</span>
+            <div class="calendar-actions">
+                <button class="btn btn-xs btn-outline-primary" title="Sync">
+                    <i class="fas fa-sync"></i>
+                </button>
+                <button class="btn btn-xs btn-outline-danger" title="Disconnect">
+                    <i class="fas fa-times"></i>
+            </button>
+        </div>
+      </div>
+    `;
+}
+
+function toggleDay(day, isActive) {
+    const dayRow = document.querySelector(`[data-day="${day}"]`);
+    const daySchedule = dayRow.querySelector('.day-schedule');
+    const dayStatus = dayRow.querySelector('.day-status');
+    
+    if (isActive) {
+        dayRow.classList.remove('inactive');
+        dayRow.classList.add('active');
+        
+        // Show time inputs
+        if (daySchedule) {
+            daySchedule.style.display = 'flex';
+        } else {
+            // Create time schedule if it doesn't exist
+            const dayInfo = dayRow.querySelector('.day-info');
+            const newSchedule = document.createElement('div');
+            newSchedule.className = 'day-schedule';
+            newSchedule.innerHTML = `
+                <div class="time-slot">
+                    <input type="time" class="form-control form-control-sm time-input" id="${day}-start" value="09:00">
+                    <span class="time-separator">-</span>
+                    <input type="time" class="form-control form-control-sm time-input" id="${day}-end" value="17:00">
+                </div>
+            `;
+            dayRow.appendChild(newSchedule);
+        }
+        
+        // Hide unavailable text
+        if (dayStatus) {
+            dayStatus.style.display = 'none';
+        }
+    } else {
+        dayRow.classList.remove('active');
+        dayRow.classList.add('inactive');
+        
+        // Hide time inputs
+        if (daySchedule) {
+            daySchedule.style.display = 'none';
+        }
+        
+        // Show unavailable text
+        if (dayStatus) {
+            dayStatus.style.display = 'flex';
+            dayStatus.innerHTML = `
+                <span class="unavailable-text">Unavailable</span>
+            `;
+    } else {
+            // Create unavailable status if it doesn't exist
+            const newStatus = document.createElement('div');
+            newStatus.className = 'day-status';
+            newStatus.innerHTML = `
+                <span class="unavailable-text">Unavailable</span>
+            `;
+            dayRow.appendChild(newStatus);
+        }
+    }
+}
+
+function connectCalendar() {
+    window.location.href = '/auth/google-calendar';
+}
+
+function syncCalendar() {
+    fetch('/api/availability/sync-calendar', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ rules: rules })
+        }
   })
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      loadAvailabilityRules();
-      showNotification('Availability updated successfully!', 'success');
+            alert('Calendar synced successfully!');
     } else {
-      showNotification('Error updating availability: ' + data.error, 'error');
+            alert('Error syncing calendar: ' + data.message);
     }
   })
   .catch(error => {
-    console.error('Error saving availability:', error);
-    showNotification('Error saving availability', 'error');
-  });
-}
-
-function checkCalendarStatus() {
-  fetch('/api/availability/calendar-status')
-    .then(response => response.json())
-    .then(data => {
-      const notConnectedDiv = document.getElementById('calendar-not-connected');
-      const connectedDiv = document.getElementById('calendar-connected');
-      const connectBtn = document.getElementById('connect-calendar-btn');
-      const disconnectBtn = document.getElementById('disconnect-calendar-btn');
-      
-      if (data.connected) {
-        notConnectedDiv.style.display = 'none';
-        connectedDiv.style.display = 'block';
-        connectBtn.style.display = 'none';
-        disconnectBtn.style.display = 'inline-block';
-      } else {
-        notConnectedDiv.style.display = 'block';
-        connectedDiv.style.display = 'none';
-        connectBtn.style.display = 'inline-block';
-        disconnectBtn.style.display = 'none';
-      }
-    })
-    .catch(error => {
-      console.error('Error checking calendar status:', error);
+        console.error('Error syncing calendar:', error);
+        alert('Error syncing calendar');
     });
 }
 
-function showNotification(message, type) {
-  const notification = document.createElement('div');
-  notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
-  notification.style.position = 'fixed';
-  notification.style.top = '20px';
-  notification.style.right = '20px';
-  notification.style.zIndex = '9999';
-  notification.innerHTML = `
-    ${message}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  `;
+function setupEventListeners() {
+    // Timezone change
+    document.getElementById('timezone-select').addEventListener('change', function() {
+        saveTimezone(this.value);
+        checkForChanges();
+    });
+    
+    // Save availability button
+    document.getElementById('save-availability-btn').addEventListener('click', function() {
+        saveAvailabilityRules();
+    });
+    
+    // Day toggle switches
+    document.querySelectorAll('.day-toggle').forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const day = this.id.replace('-toggle', '');
+            toggleDay(day, this.checked);
+            checkForChanges();
+        });
+    });
   
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    if (notification.parentNode) {
-      notification.parentNode.removeChild(notification);
+  // Time input changes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('time-input')) {
+            checkForChanges();
+        }
+    });
+    
+    // Navigation warning system
+    setupNavigationWarning();
+    
+    // Modal event handlers
+    setupModalHandlers();
+}
+
+function setupNavigationWarning() {
+    // Intercept navigation attempts
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link && hasUnsavedChanges) {
+            e.preventDefault();
+            pendingNavigation = link.href;
+            showUnsavedChangesModal();
+        }
+    });
+    
+    // Intercept form submissions
+    document.addEventListener('submit', function(e) {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            showUnsavedChangesModal();
+        }
+    });
+    
+    // Intercept browser back/forward
+    window.addEventListener('beforeunload', function(e) {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            return e.returnValue;
+        }
+    });
+}
+
+function setupModalHandlers() {
+    // Discard changes button
+    document.getElementById('discardChangesBtn').addEventListener('click', function() {
+        hasUnsavedChanges = false;
+        if (pendingNavigation) {
+            window.location.href = pendingNavigation;
+        }
+        bootstrap.Modal.getInstance(document.getElementById('unsavedChangesModal')).hide();
+    });
+}
+
+function showUnsavedChangesModal() {
+    const modal = new bootstrap.Modal(document.getElementById('unsavedChangesModal'));
+    modal.show();
+}
+
+// Store initial state for change detection
+let initialState = {};
+let hasUnsavedChanges = false;
+let pendingNavigation = null;
+
+function storeInitialState() {
+    initialState = {
+        timezone: document.getElementById('timezone-select').value,
+        toggles: {},
+        times: {}
+    };
+    
+    // Store toggle states
+    document.querySelectorAll('.day-toggle').forEach(toggle => {
+        const day = toggle.id.replace('-toggle', '');
+        initialState.toggles[day] = toggle.checked;
+    });
+    
+    // Store time values
+    document.querySelectorAll('.time-input').forEach(input => {
+        initialState.times[input.id] = input.value;
+    });
+    
+    hasUnsavedChanges = false;
+}
+
+function setupChangeDetection() {
+    // Check for changes every 500ms
+    setInterval(checkForChanges, 500);
+}
+
+function checkForChanges() {
+    const saveBtn = document.getElementById('save-availability-btn');
+    let hasChanges = false;
+    
+    // Check timezone
+    if (document.getElementById('timezone-select').value !== initialState.timezone) {
+        hasChanges = true;
     }
-  }, 5000);
+    
+    // Check toggles
+    document.querySelectorAll('.day-toggle').forEach(toggle => {
+        const day = toggle.id.replace('-toggle', '');
+        if (toggle.checked !== initialState.toggles[day]) {
+            hasChanges = true;
+        }
+    });
+    
+    // Check time inputs
+    document.querySelectorAll('.time-input').forEach(input => {
+        if (input.value !== initialState.times[input.id]) {
+            hasChanges = true;
+        }
+    });
+    
+    // Update unsaved changes flag
+    hasUnsavedChanges = hasChanges;
+    
+    // Enable/disable save button
+    if (hasChanges) {
+        saveBtn.disabled = false;
+        saveBtn.classList.remove('btn-secondary');
+        saveBtn.classList.add('btn-primary');
+  } else {
+        saveBtn.disabled = true;
+        saveBtn.classList.remove('btn-primary');
+        saveBtn.classList.add('btn-secondary');
+    }
+}
+
+function saveTimezone(timezone) {
+    fetch('/api/user/timezone', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+        body: JSON.stringify({ timezone: timezone })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+            console.log('Timezone saved successfully');
+    } else {
+            console.error('Error saving timezone:', data.message);
+    }
+  })
+  .catch(error => {
+        console.error('Error saving timezone:', error);
+    });
+}
+
+function saveAvailabilityRules() {
+    const rules = [];
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    
+    dayNames.forEach((dayName, index) => {
+        const toggle = document.getElementById(`${dayName}-toggle`);
+        const startInput = document.getElementById(`${dayName}-start`);
+        const endInput = document.getElementById(`${dayName}-end`);
+        
+        // Only include active days with valid times
+        if (toggle && toggle.checked && startInput && endInput && startInput.value && endInput.value) {
+            rules.push({
+                weekday: index,
+                start: startInput.value,
+                end: endInput.value,
+                enabled: true  // Changed from is_active to enabled to match API
+            });
+        }
+    });
+    
+    console.log('Saving availability rules:', rules);
+    
+    // Show loading state
+    const saveBtn = document.getElementById('save-availability-btn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>Saving...';
+    saveBtn.disabled = true;
+    
+    fetch('/api/availability/rules', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ rules: rules })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update initial state to reflect saved changes
+            storeInitialState();
+            
+            // Show success message
+            saveBtn.innerHTML = '<i class="fas fa-check"></i>Saved!';
+            saveBtn.classList.remove('btn-primary');
+            saveBtn.classList.add('btn-success');
+            
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                saveBtn.innerHTML = originalText;
+                saveBtn.classList.remove('btn-success');
+                saveBtn.classList.add('btn-primary');
+                checkForChanges(); // This will disable the button if no changes
+            }, 2000);
+            
+            console.log('Availability saved successfully!');
+        } else {
+            throw new Error(data.message || 'Failed to save availability');
+      }
+    })
+    .catch(error => {
+        console.error('Error saving availability:', error);
+        
+        // Show error state
+        saveBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error';
+        saveBtn.classList.remove('btn-primary');
+        saveBtn.classList.add('btn-danger');
+        
+        // Reset button after 3 seconds
+        setTimeout(() => {
+            saveBtn.innerHTML = originalText;
+            saveBtn.classList.remove('btn-danger');
+            saveBtn.classList.add('btn-primary');
+            saveBtn.disabled = false;
+        }, 3000);
+        
+        alert('Error saving availability: ' + error.message);
+    });
+}
+
+function addTimeSlot(day) {
+    const dayRow = document.querySelector(`[data-day="${day}"]`);
+    const dayStatus = dayRow.querySelector('.day-status');
+    const daySchedule = dayRow.querySelector('.day-schedule');
+    
+    if (daySchedule) {
+        daySchedule.style.display = 'flex';
+        daySchedule.innerHTML = `
+            <div class="time-slot">
+                <input type="time" class="form-control form-control-sm time-input" id="${day}-start" value="09:00">
+                <span class="time-separator">-</span>
+                <input type="time" class="form-control form-control-sm time-input" id="${day}-end" value="17:00">
+            </div>
+        `;
+    }
+    if (dayStatus) {
+        dayStatus.style.display = 'none';
+    }
+    
+    // Update row state
+    dayRow.classList.remove('inactive');
+    dayRow.classList.add('active');
+}
+
+
+// Populate timezone options
+function populateTimezoneOptions() {
+    const timezones = [
+        // North America
+        { value: 'America/New_York', label: 'Eastern Time (ET) - New York' },
+        { value: 'America/Chicago', label: 'Central Time (CT) - Chicago' },
+        { value: 'America/Denver', label: 'Mountain Time (MT) - Denver' },
+        { value: 'America/Los_Angeles', label: 'Pacific Time (PT) - Los Angeles' },
+        { value: 'America/Toronto', label: 'Eastern Time (ET) - Toronto' },
+        { value: 'America/Vancouver', label: 'Pacific Time (PT) - Vancouver' },
+        { value: 'America/Montreal', label: 'Eastern Time (ET) - Montreal' },
+        { value: 'America/Calgary', label: 'Mountain Time (MT) - Calgary' },
+        { value: 'America/Winnipeg', label: 'Central Time (CT) - Winnipeg' },
+        { value: 'America/Halifax', label: 'Atlantic Time (AT) - Halifax' },
+        { value: 'America/St_Johns', label: 'Newfoundland Time (NT) - St. John\'s' },
+        
+        // Europe
+        { value: 'Europe/London', label: 'Greenwich Mean Time (GMT) - London' },
+        { value: 'Europe/Paris', label: 'Central European Time (CET) - Paris' },
+        { value: 'Europe/Berlin', label: 'Central European Time (CET) - Berlin' },
+        { value: 'Europe/Rome', label: 'Central European Time (CET) - Rome' },
+        { value: 'Europe/Madrid', label: 'Central European Time (CET) - Madrid' },
+        { value: 'Europe/Amsterdam', label: 'Central European Time (CET) - Amsterdam' },
+        { value: 'Europe/Zurich', label: 'Central European Time (CET) - Zurich' },
+        { value: 'Europe/Vienna', label: 'Central European Time (CET) - Vienna' },
+        { value: 'Europe/Stockholm', label: 'Central European Time (CET) - Stockholm' },
+        { value: 'Europe/Oslo', label: 'Central European Time (CET) - Oslo' },
+        { value: 'Europe/Copenhagen', label: 'Central European Time (CET) - Copenhagen' },
+        { value: 'Europe/Helsinki', label: 'Eastern European Time (EET) - Helsinki' },
+        { value: 'Europe/Warsaw', label: 'Central European Time (CET) - Warsaw' },
+        { value: 'Europe/Prague', label: 'Central European Time (CET) - Prague' },
+        { value: 'Europe/Budapest', label: 'Central European Time (CET) - Budapest' },
+        { value: 'Europe/Athens', label: 'Eastern European Time (EET) - Athens' },
+        { value: 'Europe/Istanbul', label: 'Turkey Time (TRT) - Istanbul' },
+        { value: 'Europe/Moscow', label: 'Moscow Time (MSK) - Moscow' },
+        
+        // Asia
+        { value: 'Asia/Tokyo', label: 'Japan Standard Time (JST) - Tokyo' },
+        { value: 'Asia/Shanghai', label: 'China Standard Time (CST) - Shanghai' },
+        { value: 'Asia/Hong_Kong', label: 'Hong Kong Time (HKT) - Hong Kong' },
+        { value: 'Asia/Singapore', label: 'Singapore Time (SGT) - Singapore' },
+        { value: 'Asia/Seoul', label: 'Korea Standard Time (KST) - Seoul' },
+        { value: 'Asia/Taipei', label: 'Taiwan Time (CST) - Taipei' },
+        { value: 'Asia/Bangkok', label: 'Indochina Time (ICT) - Bangkok' },
+        { value: 'Asia/Jakarta', label: 'Western Indonesia Time (WIB) - Jakarta' },
+        { value: 'Asia/Manila', label: 'Philippine Time (PHT) - Manila' },
+        { value: 'Asia/Kolkata', label: 'India Standard Time (IST) - Mumbai' },
+        { value: 'Asia/Dubai', label: 'Gulf Standard Time (GST) - Dubai' },
+        { value: 'Asia/Tehran', label: 'Iran Standard Time (IRST) - Tehran' },
+        { value: 'Asia/Karachi', label: 'Pakistan Standard Time (PKT) - Karachi' },
+        { value: 'Asia/Dhaka', label: 'Bangladesh Standard Time (BST) - Dhaka' },
+        
+        // Australia & Oceania
+        { value: 'Australia/Sydney', label: 'Australian Eastern Time (AEST) - Sydney' },
+        { value: 'Australia/Melbourne', label: 'Australian Eastern Time (AEST) - Melbourne' },
+        { value: 'Australia/Brisbane', label: 'Australian Eastern Time (AEST) - Brisbane' },
+        { value: 'Australia/Perth', label: 'Australian Western Time (AWST) - Perth' },
+        { value: 'Australia/Adelaide', label: 'Australian Central Time (ACST) - Adelaide' },
+        { value: 'Australia/Darwin', label: 'Australian Central Time (ACST) - Darwin' },
+        { value: 'Pacific/Auckland', label: 'New Zealand Time (NZST) - Auckland' },
+        { value: 'Pacific/Fiji', label: 'Fiji Time (FJT) - Suva' },
+        
+        // Africa
+        { value: 'Africa/Cairo', label: 'Eastern European Time (EET) - Cairo' },
+        { value: 'Africa/Johannesburg', label: 'South Africa Time (SAST) - Johannesburg' },
+        { value: 'Africa/Lagos', label: 'West Africa Time (WAT) - Lagos' },
+        { value: 'Africa/Casablanca', label: 'Western European Time (WET) - Casablanca' },
+        { value: 'Africa/Nairobi', label: 'East Africa Time (EAT) - Nairobi' },
+        
+        // South America
+        { value: 'America/Sao_Paulo', label: 'Brasilia Time (BRT) - São Paulo' },
+        { value: 'America/Argentina/Buenos_Aires', label: 'Argentina Time (ART) - Buenos Aires' },
+        { value: 'America/Santiago', label: 'Chile Time (CLT) - Santiago' },
+        { value: 'America/Lima', label: 'Peru Time (PET) - Lima' },
+        { value: 'America/Bogota', label: 'Colombia Time (COT) - Bogotá' },
+        { value: 'America/Caracas', label: 'Venezuela Time (VET) - Caracas' },
+        { value: 'America/Mexico_City', label: 'Central Time (CT) - Mexico City' },
+        
+        // UTC
+        { value: 'UTC', label: 'Coordinated Universal Time (UTC)' }
+    ];
+    
+    const select = document.getElementById('timezone-select');
+    timezones.forEach(tz => {
+        const option = document.createElement('option');
+        option.value = tz.value;
+        option.textContent = tz.label;
+        select.appendChild(option);
+    });
 }
 </script>
 {% endblock %}

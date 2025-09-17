@@ -128,7 +128,8 @@ CREATE TABLE user (
    ```
 
 6. **Access the application**
-   - Open your browser and go to `http://localhost:5000`
+   - Open your browser and go to `
+   `
    - If port 5000 is in use, the app will automatically use port 5001
 
 ## 📱 User Flow

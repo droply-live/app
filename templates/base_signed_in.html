@@ -288,7 +288,7 @@
     }
   </style>
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
   <!-- Sidebar for Desktop -->
   {% include 'sidebar.html' %}
   
@@ -316,9 +316,9 @@
         <i class="fas fa-home"></i>
         <span>Dashboard</span>
       </a>
-      <a href="{{ url_for('find_experts') }}" class="mobile-nav-item {% if request.endpoint == 'find_experts' %}active{% endif %}">
+      <a href="{{ url_for('search') }}" class="mobile-nav-item {% if request.endpoint == 'search' %}active{% endif %}">
         <i class="fas fa-search"></i>
-        <span>Find Experts</span>
+        <span>Search</span>
       </a>
       <a href="{{ url_for('bookings') }}" class="mobile-nav-item {% if request.endpoint == 'bookings' %}active{% endif %}">
         <i class="fas fa-calendar-check"></i>
@@ -328,7 +328,7 @@
         <i class="fas fa-calendar-plus"></i>
         <span>Availability</span>
       </a>
-      <a href="{{ url_for('expert_payouts') }}" class="mobile-nav-item {% if request.endpoint == 'expert_payouts' %}active{% endif %}">
+      <a href="{{ url_for('earnings') }}" class="mobile-nav-item {% if request.endpoint == 'earnings' %}active{% endif %}">
         <i class="fas fa-dollar-sign"></i>
         <span>Earnings</span>
       </a>

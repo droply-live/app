@@ -586,22 +586,22 @@
                 
                 <div class="form-section">
                     <div class="form-group">
-                        <label>Hourly Rate (USD)</label>
+                        <label>Session Price (USD)</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" id="hourlyRate" class="form-control" placeholder="0" min="0" value="{{ current_user.hourly_rate or '' }}">
+                            <input type="number" id="sessionPrice" class="form-control" placeholder="0" min="0" value="{{ current_user.hourly_rate or '' }}">
                         </div>
-                        <small class="form-text">Set to 0 if you offer free sessions</small>
+                        <small class="form-text">Set to 0 if you offer free sessions. All sessions are 30 minutes.</small>
                     </div>
                     
                     <div class="pricing-options">
                         <h3>Quick Pricing Options</h3>
                         <div class="pricing-buttons">
                             <button type="button" class="pricing-btn" data-rate="0">Free</button>
-                            <button type="button" class="pricing-btn" data-rate="25">$25/hr</button>
-                            <button type="button" class="pricing-btn" data-rate="50">$50/hr</button>
-                            <button type="button" class="pricing-btn" data-rate="100">$100/hr</button>
-                            <button type="button" class="pricing-btn" data-rate="200">$200/hr</button>
+                            <button type="button" class="pricing-btn" data-rate="25">$25/session</button>
+                            <button type="button" class="pricing-btn" data-rate="50">$50/session</button>
+                            <button type="button" class="pricing-btn" data-rate="100">$100/session</button>
+                            <button type="button" class="pricing-btn" data-rate="200">$200/session</button>
                         </div>
                     </div>
                 </div>
@@ -815,7 +815,7 @@
             // Update summary in step 5
             document.getElementById('summaryProfession').textContent = document.getElementById('profession').value || '-';
             document.getElementById('summaryIndustry').textContent = document.getElementById('industry').value || '-';
-            document.getElementById('summaryRate').textContent = document.getElementById('hourlyRate').value ? `$${document.getElementById('hourlyRate').value}/hr` : 'Free';
+            document.getElementById('summaryRate').textContent = document.getElementById('sessionPrice').value ? `$${document.getElementById('sessionPrice').value}/session` : 'Free';
             
             // Get selected expertise with proper display names
             const selectedExpertise = Array.from(document.querySelectorAll('input[name="expertise"]:checked'))
@@ -835,12 +835,12 @@
             }
             
             const pricingButtons = document.querySelectorAll('.pricing-btn');
-            const hourlyRateInput = document.getElementById('hourlyRate');
+            const sessionPriceInput = document.getElementById('sessionPrice');
             
             pricingButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
                     const rate = this.dataset.rate;
-                    hourlyRateInput.value = rate;
+                    sessionPriceInput.value = rate;
                     
                     // Update active state
                     pricingButtons.forEach(b => b.classList.remove('active'));
@@ -853,15 +853,15 @@
             const profession = document.getElementById('profession').value;
             const bio = document.getElementById('bio').value;
             const industry = document.getElementById('industry').value;
-            const hourlyRate = document.getElementById('hourlyRate').value;
+            const sessionPrice = document.getElementById('sessionPrice').value;
             
             // Always start at step 1 (username) for new users
             // Only skip to later steps if user has already completed previous steps
-            if (username && profession && bio && industry && !hourlyRate) {
+            if (username && profession && bio && industry && !sessionPrice) {
                 currentStep = 4;
                 showStep(currentStep);
             }
-            else if (username && profession && bio && industry && hourlyRate) {
+            else if (username && profession && bio && industry && sessionPrice) {
                 currentStep = 5;
                 showStep(currentStep);
                 updateSummary();
@@ -883,7 +883,7 @@
                 profession: document.getElementById('profession').value,
                 bio: document.getElementById('bio').value,
                 industry: document.getElementById('industry').value,
-                hourly_rate: document.getElementById('hourlyRate').value || 0,
+                hourly_rate: document.getElementById('sessionPrice').value || 0,
                 expertise: Array.from(document.querySelectorAll('input[name="expertise"]:checked'))
                     .map(cb => cb.value)
             };
