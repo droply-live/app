@@ -789,6 +789,181 @@ def referrals():
     """Referrals page"""
     return render_template('referrals.html')
 
+@app.route('/watch')
+@login_required
+def watch():
+    """Display the Watch feed with user profiles"""
+    # Generate fake user data for the feed
+    fake_users = [
+        {
+            'id': 1,
+            'name': 'Sarah Chen',
+            'title': 'UX Designer',
+            'company': 'Google',
+            'bio': 'Creating beautiful digital experiences ✨',
+            'image': 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.9,
+            'reviews': 127,
+            'price': 75
+        },
+        {
+            'id': 2,
+            'name': 'Marcus Johnson',
+            'title': 'Marketing Strategist',
+            'company': 'Meta',
+            'bio': 'Helping brands grow through data-driven marketing 📈',
+            'image': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.8,
+            'reviews': 89,
+            'price': 95
+        },
+        {
+            'id': 3,
+            'name': 'Emily Rodriguez',
+            'title': 'Product Manager',
+            'company': 'Apple',
+            'bio': 'Building products that matter 🚀',
+            'image': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.9,
+            'reviews': 156,
+            'price': 120
+        },
+        {
+            'id': 4,
+            'name': 'David Kim',
+            'title': 'Software Engineer',
+            'company': 'Netflix',
+            'bio': 'Full-stack developer passionate about clean code 💻',
+            'image': 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.7,
+            'reviews': 203,
+            'price': 85
+        },
+        {
+            'id': 5,
+            'name': 'Lisa Thompson',
+            'title': 'Data Scientist',
+            'company': 'Tesla',
+            'bio': 'Turning data into insights that drive decisions 📊',
+            'image': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.8,
+            'reviews': 91,
+            'price': 110
+        },
+        {
+            'id': 6,
+            'name': 'Alex Morgan',
+            'title': 'Content Creator',
+            'company': 'YouTube',
+            'bio': 'Storytelling through video and social media 🎬',
+            'image': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.6,
+            'reviews': 78,
+            'price': 65
+        },
+        {
+            'id': 7,
+            'name': 'Zoe Williams',
+            'title': 'Brand Strategist',
+            'company': 'Nike',
+            'bio': 'Building brands that inspire and connect 🌟',
+            'image': 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.9,
+            'reviews': 134,
+            'price': 100
+        },
+        {
+            'id': 8,
+            'name': 'Ryan Patel',
+            'title': 'Sales Director',
+            'company': 'Salesforce',
+            'bio': 'Helping teams close more deals and build relationships 🤝',
+            'image': 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.7,
+            'reviews': 167,
+            'price': 90
+        },
+        {
+            'id': 9,
+            'name': 'Maya Singh',
+            'title': 'Financial Advisor',
+            'company': 'Goldman Sachs',
+            'bio': 'Making finance accessible and understandable 💰',
+            'image': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.8,
+            'reviews': 112,
+            'price': 125
+        },
+        {
+            'id': 10,
+            'name': 'James Wilson',
+            'title': 'Startup Founder',
+            'company': 'TechCrunch',
+            'bio': 'Building the future, one startup at a time 🚀',
+            'image': 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.9,
+            'reviews': 89,
+            'price': 150
+        },
+        {
+            'id': 11,
+            'name': 'Nina Chen',
+            'title': 'Graphic Designer',
+            'company': 'Adobe',
+            'bio': 'Creating visual stories that captivate and inspire 🎨',
+            'image': 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.7,
+            'reviews': 145,
+            'price': 70
+        },
+        {
+            'id': 12,
+            'name': 'Carlos Mendez',
+            'title': 'Operations Manager',
+            'company': 'Amazon',
+            'bio': 'Optimizing processes for maximum efficiency ⚡',
+            'image': 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.6,
+            'reviews': 98,
+            'price': 80
+        },
+        {
+            'id': 13,
+            'name': 'Aisha Okafor',
+            'title': 'HR Specialist',
+            'company': 'Microsoft',
+            'bio': 'Building inclusive teams and company culture 🤗',
+            'image': 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.8,
+            'reviews': 76,
+            'price': 85
+        },
+        {
+            'id': 14,
+            'name': 'Tom Anderson',
+            'title': 'Business Analyst',
+            'company': 'Deloitte',
+            'bio': 'Transforming data into strategic insights 📈',
+            'image': 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.7,
+            'reviews': 123,
+            'price': 95
+        },
+        {
+            'id': 15,
+            'name': 'Priya Sharma',
+            'title': 'Research Scientist',
+            'company': 'MIT',
+            'bio': 'Pushing the boundaries of AI and machine learning 🤖',
+            'image': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face',
+            'rating': 4.9,
+            'reviews': 67,
+            'price': 140
+        }
+    ]
+    
+    return render_template('watch.html', users=fake_users)
+
 @app.route('/delete-account', methods=['POST'])
 @login_required
 def delete_account():

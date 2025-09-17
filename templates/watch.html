@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch - Droply</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .watch-container {
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            background: #000;
+        }
+
+        .watch-feed {
+            height: 100vh;
+            overflow-y: auto;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .watch-item {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            scroll-snap-align: start;
+            position: relative;
+            padding: 20px;
+        }
+
+        .watch-item:nth-child(1) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .watch-item:nth-child(2) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .watch-item:nth-child(3) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .watch-item:nth-child(4) {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .watch-item:nth-child(5) {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .watch-item:nth-child(6) {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .watch-item:nth-child(7) {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .watch-item:nth-child(8) {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        }
+
+        .user-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #333;
+        }
+
+        .user-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 20px;
+            border: 4px solid #fff;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .user-title {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .user-company {
+            font-size: 16px;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .user-bio {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .user-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            padding: 15px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .book-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .book-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .scroll-indicator {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .scroll-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scroll-dot.active {
+            background: white;
+            transform: scale(1.2);
+        }
+
+        .floating-actions {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .action-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-button:hover {
+            transform: scale(1.1);
+            background: white;
+        }
+
+        .action-button i {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 80px;
+            height: 100vh;
+            background: white;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-logo {
+            font-size: 12px;
+            font-weight: 900;
+            color: #059669;
+            margin-bottom: 30px;
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: #059669;
+            color: white;
+        }
+
+        .sidebar-link i {
+            font-size: 18px;
+        }
+
+        /* Hide scrollbar */
+        .watch-feed::-webkit-scrollbar {
+            display: none;
+        }
+
+        .watch-feed {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .user-card {
+                margin: 0 20px;
+                padding: 30px;
+            }
+
+            .user-avatar {
+                width: 100px;
+                height: 100px;
+            }
+
+            .user-name {
+                font-size: 24px;
+            }
+
+            .sidebar {
+                width: 60px;
+            }
+
+            .sidebar-link {
+                width: 35px;
+                height: 35px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">droply</div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="sidebar-link" title="Dashboard">
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="/search" class="sidebar-link" title="Search">
+                <i class="fas fa-search"></i>
+            </a>
+            <a href="/watch" class="sidebar-link active" title="Watch">
+                <i class="fas fa-play-circle"></i>
+            </a>
+            <a href="/bookings" class="sidebar-link" title="My Bookings">
+                <i class="fas fa-calendar"></i>
+            </a>
+            <a href="/availability" class="sidebar-link" title="Availability">
+                <i class="fas fa-calendar-check"></i>
+            </a>
+            <a href="/earnings" class="sidebar-link" title="Earnings">
+                <i class="fas fa-dollar-sign"></i>
+            </a>
+            <a href="/referrals" class="sidebar-link" title="Referrals">
+                <i class="fas fa-share-alt"></i>
+            </a>
+            <a href="/account" class="sidebar-link" title="Account">
+                <i class="fas fa-user"></i>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Watch Container -->
+    <div class="watch-container">
+        <div class="watch-feed" id="watchFeed">
+            <!-- User 1 -->
+            <div class="watch-item" data-user-id="1">
+                <div class="user-card">
+                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face" alt="Sarah Chen" class="user-avatar">
+                    <h2 class="user-name">Sarah Chen</h2>
+                    <p class="user-title">UX Designer</p>
+                    <p class="user-company">Google</p>
+                    <p class="user-bio">Creating beautiful digital experiences ✨</p>
+                    
+                    <div class="user-stats">
+                        <div class="stat">
+                            <span class="stat-value">4.9</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">127</span>
+                            <span class="stat-label">Reviews</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">$75</span>
+                            <span class="stat-label">Per Hour</span>
+                        </div>
+                    </div>
+                    
+                    <button class="book-button" onclick="bookUser(1)">
+                        Book Session
+                    </button>
+                </div>
+            </div>
+
+            <!-- User 2 -->
+            <div class="watch-item" data-user-id="2">
+                <div class="user-card">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face" alt="Marcus Johnson" class="user-avatar">
+                    <h2 class="user-name">Marcus Johnson</h2>
+                    <p class="user-title">Marketing Strategist</p>
+                    <p class="user-company">Meta</p>
+                    <p class="user-bio">Helping brands grow through data-driven marketing 📈</p>
+                    
+                    <div class="user-stats">
+                        <div class="stat">
+                            <span class="stat-value">4.8</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">89</span>
+                            <span class="stat-label">Reviews</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">$95</span>
+                            <span class="stat-label">Per Hour</span>
+                        </div>
+                    </div>
+                    
+                    <button class="book-button" onclick="bookUser(2)">
+                        Book Session
+                    </button>
+                </div>
+            </div>
+
+            <!-- User 3 -->
+            <div class="watch-item" data-user-id="3">
+                <div class="user-card">
+                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face" alt="Emily Rodriguez" class="user-avatar">
+                    <h2 class="user-name">Emily Rodriguez</h2>
+                    <p class="user-title">Product Manager</p>
+                    <p class="user-company">Apple</p>
+                    <p class="user-bio">Building products that matter 🚀</p>
+                    
+                    <div class="user-stats">
+                        <div class="stat">
+                            <span class="stat-value">4.9</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">156</span>
+                            <span class="stat-label">Reviews</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">$120</span>
+                            <span class="stat-label">Per Hour</span>
+                        </div>
+                    </div>
+                    
+                    <button class="book-button" onclick="bookUser(3)">
+                        Book Session
+                    </button>
+                </div>
+            </div>
+
+            <!-- User 4 -->
+            <div class="watch-item" data-user-id="4">
+                <div class="user-card">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face" alt="David Kim" class="user-avatar">
+                    <h2 class="user-name">David Kim</h2>
+                    <p class="user-title">Software Engineer</p>
+                    <p class="user-company">Netflix</p>
+                    <p class="user-bio">Full-stack developer passionate about clean code 💻</p>
+                    
+                    <div class="user-stats">
+                        <div class="stat">
+                            <span class="stat-value">4.7</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">203</span>
+                            <span class="stat-label">Reviews</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">$85</span>
+                            <span class="stat-label">Per Hour</span>
+                        </div>
+                    </div>
+                    
+                    <button class="book-button" onclick="bookUser(4)">
+                        Book Session
+                    </button>
+                </div>
+            </div>
+
+            <!-- User 5 -->
+            <div class="watch-item" data-user-id="5">
+                <div class="user-card">
+                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face" alt="Lisa Thompson" class="user-avatar">
+                    <h2 class="user-name">Lisa Thompson</h2>
+                    <p class="user-title">Data Scientist</p>
+                    <p class="user-company">Tesla</p>
+                    <p class="user-bio">Turning data into insights that drive decisions 📊</p>
+                    
+                    <div class="user-stats">
+                        <div class="stat">
+                            <span class="stat-value">4.8</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">91</span>
+                            <span class="stat-label">Reviews</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">$110</span>
+                            <span class="stat-label">Per Hour</span>
+                        </div>
+                    </div>
+                    
+                    <button class="book-button" onclick="bookUser(5)">
+                        Book Session
+                    </button>
+                </div>
+            </div>
+
+            <!-- User 6 -->
+            <div class="watch-item" data-user-id="6">
+                <div class="user-card">
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face" alt="Alex Morgan" class="user-avatar">
+                    <h2 class="user-name">Alex Morgan</h2>
+                    <p class="user-title">Content Creator</p>
+                    <p class="user-company">YouTube</p>
+                    <p class="user-bio">Storytelling through video and social media 🎬</p>
+                    
+                    <div class="user-stats">
+                        <div class="stat">
+                            <span class="stat-value">4.6</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">78</span>
+                            <span class="stat-label">Reviews</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">$65</span>
+                            <span class="stat-label">Per Hour</span>
+                        </div>
+                    </div>
+                    
+                    <button class="book-button" onclick="bookUser(6)">
+                        Book Session
+                    </button>
+                </div>
+            </div>
+
+            <!-- User 7 -->
+            <div class="watch-item" data-user-id="7">
+                <div class="user-card">
+                    <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face" alt="Zoe Williams" class="user-avatar">
+                    <h2 class="user-name">Zoe Williams</h2>
+                    <p class="user-title">Brand Strategist</p>
+                    <p class="user-company">Nike</p>
+                    <p class="user-bio">Building brands that inspire and connect 🌟</p>
+                    
+                    <div class="user-stats">
+                        <div class="stat">
+                            <span class="stat-value">4.9</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">134</span>
+                            <span class="stat-label">Reviews</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">$100</span>
+                            <span class="stat-label">Per Hour</span>
+                        </div>
+                    </div>
+                    
+                    <button class="book-button" onclick="bookUser(7)">
+                        Book Session
+                    </button>
+                </div>
+            </div>
+
+            <!-- User 8 -->
+            <div class="watch-item" data-user-id="8">
+                <div class="user-card">
+                    <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face" alt="Ryan Patel" class="user-avatar">
+                    <h2 class="user-name">Ryan Patel</h2>
+                    <p class="user-title">Sales Director</p>
+                    <p class="user-company">Salesforce</p>
+                    <p class="user-bio">Helping teams close more deals and build relationships 🤝</p>
+                    
+                    <div class="user-stats">
+                        <div class="stat">
+                            <span class="stat-value">4.7</span>
+                            <span class="stat-label">Rating</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">167</span>
+                            <span class="stat-label">Reviews</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">$90</span>
+                            <span class="stat-label">Per Hour</span>
+                        </div>
+                    </div>
+                    
+                    <button class="book-button" onclick="bookUser(8)">
+                        Book Session
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll indicator dots -->
+        <div class="scroll-indicator" id="scrollIndicator">
+            <div class="scroll-dot active" data-user-id="1" onclick="scrollToUser(0)"></div>
+            <div class="scroll-dot" data-user-id="2" onclick="scrollToUser(1)"></div>
+            <div class="scroll-dot" data-user-id="3" onclick="scrollToUser(2)"></div>
+            <div class="scroll-dot" data-user-id="4" onclick="scrollToUser(3)"></div>
+            <div class="scroll-dot" data-user-id="5" onclick="scrollToUser(4)"></div>
+            <div class="scroll-dot" data-user-id="6" onclick="scrollToUser(5)"></div>
+            <div class="scroll-dot" data-user-id="7" onclick="scrollToUser(6)"></div>
+            <div class="scroll-dot" data-user-id="8" onclick="scrollToUser(7)"></div>
+        </div>
+
+        <!-- Floating action buttons -->
+        <div class="floating-actions">
+            <button class="action-button" onclick="scrollUp()" title="Previous">
+                <i class="fas fa-chevron-up"></i>
+            </button>
+            <button class="action-button" onclick="scrollDown()" title="Next">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <button class="action-button" onclick="togglePause()" title="Pause/Play">
+                <i class="fas fa-pause" id="pauseIcon"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentIndex = 0;
+        let isPaused = false;
+        let autoScrollInterval;
+        const totalUsers = 8;
+
+        // Initialize
+        updateScrollIndicator();
+        startAutoScroll();
+
+        // Auto scroll functionality
+        function startAutoScroll() {
+            if (autoScrollInterval) clearInterval(autoScrollInterval);
+            autoScrollInterval = setInterval(() => {
+                if (!isPaused) {
+                    scrollDown();
+                }
+            }, 5000); // Auto scroll every 5 seconds
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const icon = document.getElementById('pauseIcon');
+            icon.className = isPaused ? 'fas fa-play' : 'fas fa-pause';
+            
+            if (!isPaused) {
+                startAutoScroll();
+            } else {
+                clearInterval(autoScrollInterval);
+            }
+        }
+
+        // Scroll functions
+        function scrollToUser(index) {
+            currentIndex = index;
+            const item = document.querySelector(`[data-user-id="${index + 1}"]`);
+            if (item) {
+                item.scrollIntoView({ behavior: 'smooth' });
+                updateScrollIndicator();
+            }
+        }
+
+        function scrollUp() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                scrollToUser(currentIndex);
+            }
+        }
+
+        function scrollDown() {
+            if (currentIndex < totalUsers - 1) {
+                currentIndex++;
+                scrollToUser(currentIndex);
+            } else {
+                // Loop back to start
+                currentIndex = 0;
+                scrollToUser(currentIndex);
+            }
+        }
+
+        function updateScrollIndicator() {
+            const dots = document.querySelectorAll('.scroll-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+        }
+
+        // Handle scroll events
+        const feed = document.getElementById('watchFeed');
+        feed.addEventListener('scroll', () => {
+            const scrollTop = feed.scrollTop;
+            const itemHeight = window.innerHeight;
+            const newIndex = Math.round(scrollTop / itemHeight);
+            
+            if (newIndex !== currentIndex && newIndex >= 0 && newIndex < totalUsers) {
+                currentIndex = newIndex;
+                updateScrollIndicator();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp':
+                    e.preventDefault();
+                    scrollUp();
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    scrollDown();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    togglePause();
+                    break;
+            }
+        });
+
+        // Touch/swipe support for mobile
+        let startY = 0;
+        let endY = 0;
+
+        feed.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+        });
+
+        feed.addEventListener('touchend', (e) => {
+            endY = e.changedTouches[0].clientY;
+            const diff = startY - endY;
+            
+            if (Math.abs(diff) > 50) { // Minimum swipe distance
+                if (diff > 0) {
+                    scrollDown();
+                } else {
+                    scrollUp();
+                }
+            }
+        });
+
+        // Book user function
+        function bookUser(userId) {
+            // Redirect to booking page with user ID
+            window.location.href = `/search?expert_id=${userId}`;
+        }
+
+        // Pause auto-scroll when user is interacting
+        feed.addEventListener('mouseenter', () => {
+            clearInterval(autoScrollInterval);
+        });
+
+        feed.addEventListener('mouseleave', () => {
+            if (!isPaused) {
+                startAutoScroll();
+            }
+        });
+
+        // Handle visibility change (pause when tab is not active)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(autoScrollInterval);
+            } else if (!isPaused) {
+                startAutoScroll();
+            }
+        });
+    </script>
+</body>
+</html>
+

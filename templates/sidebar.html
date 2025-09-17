@@ -18,6 +18,11 @@
           </a>
         </li>
         <li class="mb-2">
+          <a href="{{ url_for('watch') }}" class="sidebar-link-icon {% if request.endpoint == 'watch' %}active{% endif %}" title="Watch">
+            <i class="fas fa-play-circle"></i>
+          </a>
+        </li>
+        <li class="mb-2">
           <a href="{{ url_for('bookings') }}" class="sidebar-link-icon {% if request.endpoint == 'bookings' %}active{% endif %}" title="My Bookings">
             <i class="fas fa-calendar"></i>
           </a>
