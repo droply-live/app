@@ -1,18 +1,18 @@
 {% extends "base_signed_in.html" %}
 
-{% block title %}Find Experts - Droply{% endblock %}
+{% block title %}Search - Droply{% endblock %}
 
 {% block content %}
 <!-- Compact Find Experts Page - Inspired by modern design -->
 <div class="find-experts-page">
   <!-- Compact Search Section -->
   <div class="search-section">
-    <form method="GET" action="{{ url_for('find_experts') }}" class="search-form">
+    <form method="GET" action="{{ url_for('search') }}" class="search-form">
       <i class="fas fa-search search-icon"></i>
       <input type="text" 
              name="search" 
              class="search-input" 
-             placeholder="Search experts"
+             placeholder="Search users"
              value="{{ request.args.get('search', '') }}">
     </form>
   </div>
@@ -20,15 +20,15 @@
   <!-- Category Filters -->
   <div class="category-filters">
     <div class="category-scroll">
-      <a href="{{ url_for('find_experts') }}" 
+      <a href="{{ url_for('search') }}" 
          class="category-item {{ 'active' if not request.args.get('category') }}">
         <div class="category-image category-all">
           <i class="fas fa-users"></i>
         </div>
-        <span>All Experts</span>
+        <span>All Users</span>
       </a>
       
-      <a href="{{ url_for('find_experts', category='favorites') }}" 
+      <a href="{{ url_for('search', category='favorites') }}" 
          class="category-item {{ 'active' if request.args.get('category') == 'favorites' }}">
         <div class="category-image category-favorites">
           <i class="fas fa-heart"></i>
@@ -36,15 +36,15 @@
         <span>Favorites</span>
       </a>
       
-      <a href="{{ url_for('find_experts', category='top') }}" 
+      <a href="{{ url_for('search', category='top') }}" 
          class="category-item {{ 'active' if request.args.get('category') == 'top' }}">
         <div class="category-image category-top">
           <i class="fas fa-star"></i>
         </div>
-        <span>Top Experts</span>
+        <span>Top Users</span>
       </a>
       
-      <a href="{{ url_for('find_experts', category='home') }}" 
+      <a href="{{ url_for('search', category='home') }}" 
          class="category-item {{ 'active' if request.args.get('category') == 'home' }}">
         <div class="category-image category-home">
           <i class="fas fa-home"></i>
@@ -52,7 +52,7 @@
         <span>Home</span>
       </a>
       
-      <a href="{{ url_for('find_experts', category='health') }}" 
+      <a href="{{ url_for('search', category='health') }}" 
          class="category-item {{ 'active' if request.args.get('category') == 'health' }}">
         <div class="category-image category-wellness">
           <i class="fas fa-leaf"></i>
@@ -60,7 +60,7 @@
         <span>Wellness</span>
       </a>
       
-      <a href="{{ url_for('find_experts', category='business') }}" 
+      <a href="{{ url_for('search', category='business') }}" 
          class="category-item {{ 'active' if request.args.get('category') == 'business' }}">
         <div class="category-image category-business">
           <i class="fas fa-briefcase"></i>
@@ -68,7 +68,7 @@
         <span>Career & Business</span>
       </a>
       
-      <a href="{{ url_for('find_experts', category='design') }}" 
+      <a href="{{ url_for('search', category='design') }}" 
          class="category-item {{ 'active' if request.args.get('category') == 'design' }}">
         <div class="category-image category-beauty">
           <i class="fas fa-palette"></i>
@@ -76,7 +76,7 @@
         <span>Style & Beauty</span>
       </a>
       
-      <a href="{{ url_for('find_experts', category='education') }}" 
+      <a href="{{ url_for('search', category='education') }}" 
          class="category-item {{ 'active' if request.args.get('category') == 'education' }}">
         <div class="category-image category-astrology">
           <i class="fas fa-moon"></i>
@@ -86,54 +86,54 @@
     </div>
   </div>
 
-  <!-- Expert Section -->
-  <div class="expert-sections">
-    {% if experts %}
-      <div class="expert-section">
+  <!-- User Section -->
+  <div class="user-sections">
+    {% if users %}
+      <div class="user-section">
         <div class="section-header">
-          <h2 class="section-title">All Experts. Find the perfect expert for your needs.</h2>
+          <h2 class="section-title">All Users. Find the perfect user for your needs.</h2>
         </div>
         
-        <div class="expert-carousel">
-          <div class="expert-scroll">
-            {% for expert in experts %}
-            <div class="expert-card">
+        <div class="user-carousel">
+          <div class="user-scroll">
+            {% for user in users %}
+            <div class="user-card">
               <div class="card-image">
-                <img src="{{ expert.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
-                     alt="{{ expert.full_name }}" 
-                     class="expert-avatar">
-                {% if expert.is_top_expert %}
-                <div class="top-expert-badge">Top Expert</div>
+                <img src="{{ user.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
+                     alt="{{ user.full_name }}" 
+                     class="user-avatar">
+                {% if user.is_top_expert %}
+                <div class="top-user-badge">Top User</div>
                 {% endif %}
                 <button class="favorite-btn" 
-                        data-expert-id="{{ expert.id }}" 
-                        data-expert-username="{{ expert.username }}"
-                        title="{{ 'Remove from favorites' if expert.id in current_user_favorites else 'Add to favorites' }}">
-                  <i class="fas fa-heart {{ 'favorited' if expert.id in current_user_favorites }}"></i>
+                        data-user-id="{{ user.id }}" 
+                        data-user-username="{{ user.username }}"
+                        title="{{ 'Remove from favorites' if user.id in current_user_favorites else 'Add to favorites' }}">
+                  <i class="fas fa-heart {{ 'favorited' if user.id in current_user_favorites }}"></i>
                 </button>
-                <a href="{{ url_for('expert_profile', username=expert.username) }}" 
+                <a href="{{ url_for('user_profile', username=user.username) }}" 
                    class="see-times-btn">See Times</a>
               </div>
               
               <div class="card-content">
-                <h3 class="expert-name">{{ expert.full_name }}</h3>
-                <div class="expert-price">
-                  ${{ expert.hourly_rate or 0 }} • Session
-                  {% if expert.is_top_expert %}
+                <h3 class="user-name">{{ user.full_name }}</h3>
+                <div class="user-price">
+                  ${{ "%.0f"|format(user.hourly_rate or 0) }} • Session
+                  {% if user.is_top_expert %}
                   <i class="fas fa-check-circle verified-icon"></i>
                   {% endif %}
                 </div>
-                <p class="expert-bio">
-                  {{ expert.bio or expert.profession or 'Expert in their field' }}
-                  {% if expert.bio and expert.bio|length > 80 %}
-                    {{ expert.bio[:80] }}...
+                <p class="user-bio">
+                  {{ user.bio or user.profession or 'User in their field' }}
+                  {% if user.bio and user.bio|length > 80 %}
+                    {{ user.bio[:80] }}...
                   {% endif %}
                 </p>
               </div>
             </div>
             {% endfor %}
           </div>
-          {% if experts|length > 3 %}
+          {% if users|length > 3 %}
           <button class="carousel-arrow carousel-next">
             <i class="fas fa-chevron-right"></i>
           </button>
@@ -146,9 +146,9 @@
         <div class="empty-icon">
           <i class="fas fa-search"></i>
         </div>
-        <h3>No experts found</h3>
+        <h3>No users found</h3>
         <p>Try adjusting your search criteria or browse different categories</p>
-        <a href="{{ url_for('find_experts') }}" class="btn-primary">Browse All Experts</a>
+        <a href="{{ url_for('search') }}" class="btn-primary">Browse All Users</a>
       </div>
     {% endif %}
   </div>
@@ -305,12 +305,12 @@
   white-space: nowrap;
 }
 
-/* Expert Sections */
-.expert-sections {
+/* User Sections */
+.user-sections {
   padding: 2rem;
 }
 
-.expert-section {
+.user-section {
   margin-bottom: 3rem;
 }
 
@@ -339,12 +339,12 @@
   text-decoration: underline;
 }
 
-/* Expert Carousel */
-.expert-carousel {
+/* User Carousel */
+.user-carousel {
   position: relative;
 }
 
-.expert-scroll {
+.user-scroll {
   display: flex;
   gap: 1rem;
   overflow-x: auto;
@@ -353,7 +353,7 @@
   -ms-overflow-style: none;
 }
 
-.expert-scroll::-webkit-scrollbar {
+.user-scroll::-webkit-scrollbar {
   display: none;
 }
 
@@ -384,8 +384,8 @@
   right: -20px;
 }
 
-/* Expert Cards */
-.expert-card {
+/* User Cards */
+.user-card {
   min-width: 280px;
   background: white;
   border: 1px solid #e5e5e5;
@@ -395,7 +395,7 @@
   cursor: pointer;
 }
 
-.expert-card:hover {
+.user-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -406,13 +406,13 @@
   overflow: hidden;
 }
 
-.expert-avatar {
+.user-avatar {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.top-expert-badge {
+.top-user-badge {
   position: absolute;
   bottom: 0.75rem;
   left: 0.75rem;
@@ -478,14 +478,14 @@
   padding: 1rem;
 }
 
-.expert-name {
+.user-name {
   font-size: 1rem;
   font-weight: 600;
   color: #1a1a1a;
   margin: 0 0 0.5rem 0;
 }
 
-.expert-price {
+.user-price {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -500,7 +500,7 @@
   font-size: 0.75rem;
 }
 
-.expert-bio {
+.user-bio {
   color: #666;
   font-size: 0.8rem;
   line-height: 1.4;
@@ -558,11 +558,11 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .expert-sections {
+  .user-sections {
     padding: 1rem;
   }
   
-  .expert-card {
+  .user-card {
     min-width: 240px;
   }
   
@@ -575,10 +575,10 @@
 <script>
 // Simple carousel functionality
 document.addEventListener('DOMContentLoaded', function() {
-  const carousels = document.querySelectorAll('.expert-carousel');
+  const carousels = document.querySelectorAll('.user-carousel');
   
   carousels.forEach(carousel => {
-    const scroll = carousel.querySelector('.expert-scroll');
+    const scroll = carousel.querySelector('.user-scroll');
     const nextBtn = carousel.querySelector('.carousel-next');
     
     if (nextBtn) {
@@ -599,8 +599,8 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
       e.stopPropagation();
       
-      const expertId = this.dataset.expertId;
-      const expertUsername = this.dataset.expertUsername;
+      const userId = this.dataset.userId;
+      const userUsername = this.dataset.userUsername;
       const heartIcon = this.querySelector('i');
       const isFavorited = heartIcon.classList.contains('favorited');
       
@@ -612,8 +612,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'X-Requested-With': 'XMLHttpRequest'
           },
           body: JSON.stringify({
-            expert_id: expertId,
-            expert_username: expertUsername
+            user_id: userId,
+            user_username: userUsername
           })
         });
         

@@ -81,6 +81,40 @@
                                     <h5><i class="fas fa-cog me-2"></i>Settings & Security</h5>
                                 </div>
                                 
+                                <!-- Pricing -->
+                                <div class="settings-card">
+                                    <h6><i class="fas fa-dollar-sign me-2"></i>Pricing</h6>
+                                    <div class="form-group">
+                                        <label for="sessionPrice">Session Price (USD)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" id="sessionPrice" class="form-control" 
+                                                   value="{{ current_user.hourly_rate or 0 }}" 
+                                                   min="0" step="0.01" placeholder="0.00">
+                                        </div>
+                                        <small class="form-text text-muted">
+                                            This is your price for a 30-minute session. All sessions are 30 minutes by default.
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="pricing-preview">
+                                        <h6>Session Details</h6>
+                                        <div class="pricing-item">
+                                            <span>Session duration:</span>
+                                            <span class="price">30 minutes</span>
+                                        </div>
+                                        <div class="pricing-item">
+                                            <span>Session price:</span>
+                                            <span class="price">${{ "%.2f"|format(current_user.hourly_rate or 0) }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <button class="btn btn-primary" onclick="savePricing()">
+                                        <i class="fas fa-save"></i>
+                                        Save Pricing
+                                    </button>
+                                </div>
+                                
                                 <!-- Preferences -->
                                 <div class="settings-card">
                                     <h6><i class="fas fa-sliders-h me-2"></i>Preferences</h6>
@@ -837,6 +871,45 @@ html, body {
         gap: 8px;
     }
 }
+
+/* Pricing Preview Styles */
+.pricing-preview {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.pricing-preview h6 {
+    color: #495057;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    font-size: 14px;
+}
+
+.pricing-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.pricing-item:last-child {
+    border-bottom: none;
+}
+
+.pricing-item .price {
+    font-weight: 600;
+    color: #28a745;
+}
+
+.input-group-text {
+    background: #f8f9fa;
+    border-color: #ced4da;
+    color: #495057;
+}
 </style>
 
 <script>
@@ -859,6 +932,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (contentWrapper) {
         contentWrapper.classList.add('account-page');
         console.log('Applied account-page class to content-wrapper');
+    }
+    
+    // Add event listener for session price input to update pricing preview
+    const sessionPriceInput = document.getElementById('sessionPrice');
+    if (sessionPriceInput) {
+        sessionPriceInput.addEventListener('input', updatePricingPreview);
     }
     
     console.log('Applied account-page-body class to body');
@@ -1071,6 +1150,48 @@ function saveProfile() {
         console.error('Error updating profile:', error);
         showNotification('Failed to update profile: ' + error.message, 'error');
     });
+}
+
+// Save Pricing Function
+function savePricing() {
+    const sessionPrice = parseFloat(document.getElementById('sessionPrice').value) || 0;
+    
+    const data = {
+        rate: sessionPrice
+    };
+    
+    fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Pricing updated successfully!', 'success');
+            // Update the pricing preview
+            updatePricingPreview();
+        } else {
+            throw new Error(data.message || 'Failed to update pricing');
+        }
+    })
+    .catch(error => {
+        console.error('Error saving pricing:', error);
+        showNotification('Failed to update pricing: ' + error.message, 'error');
+    });
+}
+
+// Update pricing preview when session price changes
+function updatePricingPreview() {
+    const sessionPrice = parseFloat(document.getElementById('sessionPrice').value) || 0;
+    const pricingItems = document.querySelectorAll('.pricing-item .price');
+    
+    if (pricingItems.length >= 2) {
+        pricingItems[0].textContent = '30 minutes';
+        pricingItems[1].textContent = '$' + sessionPrice.toFixed(2);
+    }
 }
 
 // Save Preferences Function

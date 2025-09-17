@@ -45,6 +45,12 @@ from app import oauth, google
 def setup_default_availability(user):
     """Set up default 9-5 availability for weekdays only for new users"""
     try:
+        # Check if user already has availability rules
+        existing_rules = AvailabilityRule.query.filter_by(user_id=user.id).count()
+        if existing_rules > 0:
+            print(f"User {user.username} already has {existing_rules} availability rules, skipping setup")
+            return
+        
         # Detect user's current timezone
         import tzlocal
         try:
@@ -78,6 +84,25 @@ def setup_default_availability(user):
     except Exception as e:
         print(f"Error setting up default availability for user {user.username}: {e}")
         db.session.rollback()
+
+def fix_all_users_default_availability():
+    """Fix all existing users who don't have default availability"""
+    try:
+        users = User.query.all()
+        fixed_count = 0
+        
+        for user in users:
+            existing_rules = AvailabilityRule.query.filter_by(user_id=user.id).count()
+            if existing_rules == 0:
+                setup_default_availability(user)
+                fixed_count += 1
+        
+        print(f"Fixed default availability for {fixed_count} users")
+        return fixed_count
+        
+    except Exception as e:
+        print(f"Error fixing default availability for all users: {e}")
+        return 0
 
 def convert_to_local_time(dt, user_timezone='America/New_York'):
     """Convert timezone-naive datetime to user's local timezone"""
@@ -231,6 +256,10 @@ def create_meeting_room(booking_id):
         # Generate a unique room name
         room_name = f"droply-{booking_id}"
         
+        print(f"[DEBUG] Creating meeting room for booking {booking_id}")
+        print(f"[DEBUG] Room name: {room_name}")
+        print(f"[DEBUG] API Key: {DAILY_API_KEY[:10]}...")
+        
         # Create the room on Daily.co with minimal settings for free tier
         headers = {
             'Authorization': f'Bearer {DAILY_API_KEY}',
@@ -240,13 +269,10 @@ def create_meeting_room(booking_id):
         # Use minimal room data that works with free tier
         room_data = {
             'name': room_name,
-            'privacy': 'public',  # Use public for free tier
-            'max_participants': 2,
-            'autojoin': True,
-            'enable_chat': True,
-            'enable_recording': 'cloud',
-            'exp': int((datetime.now() + timedelta(minutes=35)).timestamp())  # Room expires in 35 minutes
+            'privacy': 'public'  # Use public for free tier
         }
+        
+        print(f"[DEBUG] Room data: {room_data}")
         
         response = requests.post(
             f'{DAILY_API_URL}/rooms',
@@ -254,9 +280,14 @@ def create_meeting_room(booking_id):
             json=room_data
         )
         
+        print(f"[DEBUG] Response status: {response.status_code}")
+        print(f"[DEBUG] Response text: {response.text}")
+        
         if response.status_code == 200:
             room_info = response.json()
             room_url = room_info.get('url')
+            
+            print(f"[DEBUG] Room created successfully: {room_url}")
             
             # Update the booking with room info
             booking = Booking.query.get(booking_id)
@@ -264,13 +295,18 @@ def create_meeting_room(booking_id):
                 booking.meeting_room_id = room_name
                 booking.meeting_url = room_url
                 db.session.commit()
+                print(f"[DEBUG] Booking updated with room info")
             
             return room_info, None
         else:
-            return None, f"Failed to create room: {response.text}"
+            error_msg = f"Failed to create room: {response.text}"
+            print(f"[DEBUG] {error_msg}")
+            return None, error_msg
             
     except Exception as e:
-        return None, f"Error creating room: {str(e)}"
+        error_msg = f"Error creating room: {str(e)}"
+        print(f"[DEBUG] {error_msg}")
+        return None, error_msg
 
 def get_meeting_token(room_name, user_id, is_owner=False):
     """Generate a meeting token for a user"""
@@ -280,7 +316,8 @@ def get_meeting_token(room_name, user_id, is_owner=False):
 
 # Configure Stripe
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')  # Use environment variable
-YOUR_DOMAIN = os.environ.get('YOUR_DOMAIN', 'https://f6b540a7cf43.ngrok-free.app')
+# For local development, use localhost. For production, use the actual domain
+YOUR_DOMAIN = os.environ.get('YOUR_DOMAIN', 'http://localhost:5001')
 
 # Production safeguards
 def is_production_environment():
@@ -545,17 +582,7 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('homepage'))
 
-@app.route('/profile/<username>')
-def profile(username):
-    """View user profile - public route"""
-    user = User.query.filter_by(username=username).first_or_404()
-    
-    # If user is logged in and viewing own profile, redirect to profile setup
-    if current_user.is_authenticated and current_user.username == username:
-        return redirect(url_for('profile_setup'))
-    
-    # Otherwise show the public profile view (for both logged in and anonymous users)
-    return render_template('profile_view.html', user=user)
+# Removed /profile/<username> route - use /expert/<username> instead
 
 @app.route('/edit-profile', methods=['GET', 'POST'])
 @login_required
@@ -632,43 +659,44 @@ def profile_preview(username):
         flash('You can only preview your own profile.', 'error')
         return redirect(url_for('profile_setup'))
     
-    # Show the public profile view (same as profile_view.html)
-    return render_template('profile_view.html', user=user)
+    # Show the expert profile view for preview
+    availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
+    return render_template('user_profile.html', expert=user, availability_rules=availability_rules)
 
-@app.route('/expert/<username>')
+@app.route('/user/<username>')
 @login_required
-def expert_profile(username):
-    """View expert profile for booking"""
-    expert = User.query.filter_by(username=username).first_or_404()
+def user_profile(username):
+    """View user profile for booking"""
+    user = User.query.filter_by(username=username).first_or_404()
     
-    # Get expert's availability for booking
-    availability_rules = AvailabilityRule.query.filter_by(user_id=expert.id).all()
+    # Get user's availability for booking
+    availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
     
-    return render_template('expert_profile.html', expert=expert, availability_rules=availability_rules)
+    return render_template('user_profile.html', expert=user, availability_rules=availability_rules)
 
-@app.route('/expert/<username>/book')
+@app.route('/user/<username>/book')
 @login_required
-def expert_booking_times(username):
-    """Select available booking times for an expert"""
-    expert = User.query.filter_by(username=username).first_or_404()
+def user_booking_times(username):
+    """Select available booking times for a user"""
+    user = User.query.filter_by(username=username).first_or_404()
     
-    # Get expert's availability rules
-    availability_rules = AvailabilityRule.query.filter_by(user_id=expert.id).all()
+    # Get user's availability rules
+    availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
     
-    # Get user's timezone for display
-    user_timezone = current_user.timezone or 'America/New_York'
-    expert_timezone = expert.timezone or 'America/New_York'
+    # Get current user's timezone for display
+    current_user_timezone = current_user.timezone or 'America/New_York'
+    user_timezone = user.timezone or 'America/New_York'
     
-    # Get available times for the next 7 days
+    # Get available times for the next 60 days
     available_times = []
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
     if availability_rules:
-        for i in range(7):  # Next 7 days
+        for i in range(60):  # Next 60 days
             check_date = today + timedelta(days=i)
             
             # Use the new timezone-aware function
-            slots = generate_available_slots_for_date(check_date, expert, user_timezone)
+            slots = generate_available_slots_for_date(check_date, user, current_user_timezone)
             for slot in slots:
                 # Only include future slots
                 if slot['start_time'].replace(tzinfo=None) > datetime.now():
@@ -677,15 +705,15 @@ def expert_booking_times(username):
                         'formatted_date': slot['date'].strftime('%B %d, %Y'),
                         'formatted_time': slot['formatted_time'],
                         'iso_datetime': slot['start_time'].replace(tzinfo=None).isoformat(),
-                        'expert_time': slot['expert_time']
+                        'user_time': slot['expert_time']
                     })
     
-    return render_template('expert_booking_times.html', 
-                         expert=expert, 
+    return render_template('user_booking_times.html', 
+                         expert=user, 
                          available_times=available_times,
                          has_availability=bool(availability_rules),
-                         user_timezone=user_timezone,
-                         expert_timezone=expert_timezone)
+                         current_user_timezone=current_user_timezone,
+                         user_timezone=user_timezone)
 
 
 @app.route('/expert/<username>/book-immediate')
@@ -697,7 +725,7 @@ def book_immediate_meeting(username):
     # Check if expert is available
     if not expert.is_available:
         flash('This expert is not currently available for immediate meetings.', 'error')
-        return redirect(url_for('expert_profile', username=username))
+        return redirect(url_for('user_profile', username=username))
     
     # Create immediate meeting time (starts in 5 minutes)
     from datetime import datetime, timedelta
@@ -845,10 +873,10 @@ def delete_account():
         flash(f'Error deleting account: {str(e)}. Please try again.', 'error')
         return redirect(url_for('account'))
 
-@app.route('/find-experts')
+@app.route('/search')
 @login_required
-def find_experts():
-    """Find experts page for signed-in users"""
+def search():
+    """Search users page for signed-in users"""
     # Get search query and category
     search_query = request.args.get('search', '').strip()
     category = request.args.get('category', '').strip().lower()
@@ -891,8 +919,8 @@ def find_experts():
                     # Return empty list if no favorites
                     experts = []
                     from datetime import datetime, timedelta
-                    return render_template('find_experts.html', 
-                                         experts=experts, 
+                    return render_template('search.html', 
+                                         users=experts, 
                                          now=datetime.now(), 
                                          timedelta=timedelta,
                                          current_user_favorites=[])
@@ -990,8 +1018,8 @@ def find_experts():
         current_user_favorites = [f.expert_id for f in favorites]
 
     
-    return render_template('find_experts.html', 
-                         experts=experts, 
+    return render_template('search.html', 
+                         users=experts, 
                          now=datetime.now(), 
                          timedelta=timedelta,
                          current_user_favorites=current_user_favorites)
@@ -1054,20 +1082,36 @@ def availability():
 @app.route('/create-checkout-session/<int:booking_id>', methods=['POST', 'GET'])
 def create_checkout_session(booking_id):
     """Create Stripe checkout session"""
+    print(f"DEBUG: create_checkout_session called with booking_id: {booking_id}")
+    print(f"DEBUG: Stripe API key configured: {bool(stripe.api_key)}")
+    print(f"DEBUG: YOUR_DOMAIN: {YOUR_DOMAIN}")
+    
     # Production safeguard
     if is_production_environment() and stripe.api_key.startswith('sk_test_'):
+        print("DEBUG: Production environment with test keys detected")
         flash('Payment system temporarily unavailable. Please try again later.', 'error')
         return redirect(url_for('homepage'))
     
     booking = Booking.query.get_or_404(booking_id)
+    print(f"DEBUG: Booking found - ID: {booking.id}, Amount: {booking.payment_amount}, Status: {booking.status}")
     
     try:
         # Get expert details for the checkout session
         expert = User.query.get(booking.expert_id)
         if not expert:
+            print("DEBUG: Expert not found for booking")
             flash('Expert not found', 'error')
             return redirect(url_for('homepage'))
         
+        print(f"DEBUG: Expert found - {expert.username}, Rate: {expert.hourly_rate}")
+        
+        # Validate payment amount
+        if not booking.payment_amount or booking.payment_amount <= 0:
+            print(f"DEBUG: Invalid payment amount: {booking.payment_amount}")
+            flash('Invalid payment amount', 'error')
+            return redirect(url_for('user_profile', username=expert.username))
+        
+        print(f"DEBUG: Creating Stripe checkout session...")
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
@@ -1083,20 +1127,31 @@ def create_checkout_session(booking_id):
             }],
             mode='payment',
             success_url=f'{YOUR_DOMAIN}/booking/success/{booking.id}',
-            cancel_url=f'{YOUR_DOMAIN}/booking/cancel/{booking.id}',
+            cancel_url=f'{YOUR_DOMAIN}/user/{expert.username}',
             metadata={
                 'booking_id': booking.id
             }
         )
         
+        print(f"DEBUG: Stripe checkout session created successfully: {checkout_session.id}")
+        print(f"DEBUG: Checkout URL: {checkout_session.url}")
+        
         booking.stripe_session_id = checkout_session.id
         db.session.commit()
         
+        print(f"DEBUG: Redirecting to Stripe checkout...")
         return redirect(checkout_session.url, code=303)
         
+    except stripe.error.StripeError as e:
+        print(f"DEBUG: Stripe error: {str(e)}")
+        flash(f'Payment system error: {str(e)}', 'error')
+        return redirect(url_for('user_profile', username=expert.username if expert else 'unknown'))
     except Exception as e:
+        print(f"DEBUG: General error in create_checkout_session: {str(e)}")
+        import traceback
+        traceback.print_exc()
         flash(f'Payment error: {str(e)}', 'error')
-        return redirect(url_for('profile', username=expert.username))
+        return redirect(url_for('user_profile', username=expert.username if expert else 'unknown'))
 
 @app.route('/booking/success/<int:booking_id>')
 def booking_success(booking_id):
@@ -1118,13 +1173,24 @@ def booking_success(booking_id):
 
 @app.route('/booking/cancel/<int:booking_id>')
 def booking_cancel(booking_id):
-    """Booking cancel page"""
+    """Handle booking cancellation from Stripe checkout"""
     booking = Booking.query.get_or_404(booking_id)
     
-    # Mark booking as cancelled
+    # If payment was never completed, just delete the booking and redirect to expert profile
+    if booking.payment_status in ['pending', 'cancelled']:
+        expert = User.query.get(booking.expert_id)
+        expert_username = expert.username if expert else 'unknown'
+        
+        # Delete the incomplete booking
+        db.session.delete(booking)
+        db.session.commit()
+        
+        # Redirect back to user profile
+        return redirect(url_for('user_profile', username=expert_username))
+    
+    # If payment was completed, show the cancel page (this shouldn't happen from Stripe cancel)
     booking.status = 'cancelled'
     booking.payment_status = 'cancelled'
-    
     db.session.commit()
     
     return render_template('cancel.html', booking=booking)
@@ -1137,7 +1203,7 @@ def export_calendar(username):
     # For now, just redirect to the user's profile
     # In the future, this could generate an actual iCal file
     flash('Calendar export feature coming soon!', 'info')
-    return redirect(url_for('profile', username=username))
+    return redirect(url_for('user_profile', username=username))
 
 @app.route('/bookings')
 @login_required
@@ -1149,26 +1215,30 @@ def bookings():
     
     now = datetime.now(EASTERN_TIMEZONE)
     
-    # Bookings where the user is the booker (client)
+    # Bookings where the user is the booker (client) - only show paid bookings
     upcoming_as_client = Booking.query.filter(
         (Booking.user_id == current_user.id) &
-        (func.datetime(Booking.start_time) >= now.replace(tzinfo=None))
+        (func.datetime(Booking.start_time) >= now.replace(tzinfo=None)) &
+        (Booking.payment_status == 'paid')
     ).order_by(Booking.start_time.asc()).all()
     
     past_as_client = Booking.query.filter(
         (Booking.user_id == current_user.id) &
-        (func.datetime(Booking.start_time) < now.replace(tzinfo=None))
+        (func.datetime(Booking.start_time) < now.replace(tzinfo=None)) &
+        (Booking.payment_status == 'paid')
     ).order_by(Booking.start_time.desc()).all()
     
-    # Bookings where the user is the expert (provider)
+    # Bookings where the user is the expert (provider) - only show paid bookings
     upcoming_as_expert = Booking.query.filter(
         (Booking.expert_id == current_user.id) &
-        (func.datetime(Booking.start_time) >= now.replace(tzinfo=None))
+        (func.datetime(Booking.start_time) >= now.replace(tzinfo=None)) &
+        (Booking.payment_status == 'paid')
     ).order_by(Booking.start_time.asc()).all()
     
     past_as_expert = Booking.query.filter(
         (Booking.expert_id == current_user.id) &
-        (func.datetime(Booking.start_time) < now.replace(tzinfo=None))
+        (func.datetime(Booking.start_time) < now.replace(tzinfo=None)) &
+        (Booking.payment_status == 'paid')
     ).order_by(Booking.start_time.desc()).all()
     
     # Debug prints
@@ -1274,11 +1344,18 @@ def decline_booking(booking_id):
 @login_required
 def cancel_booking_by_client(booking_id):
     """Cancel a booking by the client who made it"""
+    print(f"[DEBUG] Cancel booking by client called for booking {booking_id}")
     booking = Booking.query.get_or_404(booking_id)
+    
+    print(f"[DEBUG] Booking found: {booking.id}, Status: {booking.status}")
+    print(f"[DEBUG] Current user: {current_user.id}, Booking user: {booking.user_id}")
+    
     if booking.user_id != current_user.id:
+        print(f"[DEBUG] User not authorized to cancel booking")
         flash('You are not authorized to cancel this booking.', 'error')
         return redirect(url_for('bookings'))
     if booking.status not in ['pending', 'confirmed']:
+        print(f"[DEBUG] Booking cannot be cancelled - status: {booking.status}")
         flash('This booking cannot be cancelled.', 'error')
         return redirect(url_for('bookings'))
     
@@ -1286,8 +1363,12 @@ def cancel_booking_by_client(booking_id):
     now = datetime.now()
     time_until_booking = booking.start_time - now
     
+    print(f"[DEBUG] Time until booking: {time_until_booking}")
+    print(f"[DEBUG] 24 hour check: {time_until_booking < timedelta(hours=24)}")
+    
     # Check 24-hour cancellation policy
     if time_until_booking < timedelta(hours=24):
+        print(f"[DEBUG] Cancellation blocked - within 24 hours")
         flash('Bookings cannot be cancelled within 24 hours of the session.', 'error')
         return redirect(url_for('bookings'))
     
@@ -1338,11 +1419,14 @@ def cancel_booking_by_client(booking_id):
                 flash('❌ Booking cancelled but refund could not be processed.', 'warning')
         else:
             # No payment to refund
+            print(f"[DEBUG] No payment to refund, cancelling booking")
             booking.status = 'cancelled'
             booking.payment_status = 'cancelled'
             flash('❌ Booking cancelled successfully.', 'success')
         
+        print(f"[DEBUG] Committing cancellation to database")
         db.session.commit()
+        print(f"[DEBUG] Cancellation completed successfully")
         
     except Exception as e:
         db.session.rollback()
@@ -1350,6 +1434,192 @@ def cancel_booking_by_client(booking_id):
         return redirect(url_for('bookings'))
     
     return redirect(url_for('bookings'))
+
+@app.route('/api/booking/cancel-by-client/<int:booking_id>', methods=['POST'])
+@login_required
+def cancel_booking_by_client_ajax(booking_id):
+    """Cancel a booking by the client who made it - AJAX endpoint"""
+    print(f"[DEBUG] AJAX Cancel booking by client called for booking {booking_id}")
+    booking = Booking.query.get_or_404(booking_id)
+    
+    print(f"[DEBUG] Booking found: {booking.id}, Status: {booking.status}")
+    print(f"[DEBUG] Current user: {current_user.id}, Booking user: {booking.user_id}")
+    
+    if booking.user_id != current_user.id:
+        print(f"[DEBUG] User not authorized to cancel booking")
+        return jsonify({
+            'success': False,
+            'message': 'You are not authorized to cancel this booking.',
+            'type': 'error'
+        }), 403
+    
+    if booking.status not in ['pending', 'confirmed']:
+        print(f"[DEBUG] Booking cannot be cancelled - status: {booking.status}")
+        return jsonify({
+            'success': False,
+            'message': 'This booking cannot be cancelled.',
+            'type': 'error'
+        }), 400
+    
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    time_until_booking = booking.start_time - now
+    
+    print(f"[DEBUG] Time until booking: {time_until_booking}")
+    print(f"[DEBUG] 24 hour check: {time_until_booking < timedelta(hours=24)}")
+    
+    # Check 24-hour cancellation policy
+    if time_until_booking < timedelta(hours=24):
+        print(f"[DEBUG] Cancellation blocked - within 24 hours")
+        return jsonify({
+            'success': False,
+            'message': 'Bookings cannot be cancelled within 24 hours of the session.',
+            'type': 'error'
+        }), 400
+    
+    try:
+        # Process refund if payment was made
+        if booking.payment_status == 'paid' and booking.stripe_session_id:
+            session = stripe.checkout.Session.retrieve(booking.stripe_session_id)
+            if session.payment_intent:
+                refund_amount = int(booking.payment_amount * 100)
+                refund = stripe.Refund.create(
+                    payment_intent=session.payment_intent,
+                    amount=refund_amount,
+                    reason='requested_by_customer',
+                    metadata={
+                        'booking_id': booking.id,
+                        'refund_reason': 'cancelled_by_client_full',
+                        'cancelled_by': 'client'
+                    }
+                )
+                booking.status = 'cancelled'
+                booking.payment_status = 'refunded'
+                
+                # Update expert earnings if booking was confirmed
+                if booking.status == 'confirmed':
+                    expert = User.query.get(booking.expert_id)
+                    if expert and expert.pending_balance > 0:
+                        expert_portion = booking.payment_amount * 0.90
+                        expert.pending_balance = max(0, expert.pending_balance - expert_portion)
+                        expert.total_earnings = max(0, expert.total_earnings - expert_portion)
+                
+                print(f"[DEBUG] Committing cancellation to database")
+                db.session.commit()
+                print(f"[DEBUG] Cancellation completed successfully")
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'✅ Booking cancelled successfully. Refund of ${refund_amount/100:.2f} processed.',
+                    'type': 'success'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': '❌ Booking cancelled but refund could not be processed.',
+                    'type': 'warning'
+                })
+        else:
+            print(f"[DEBUG] No payment to refund, cancelling booking")
+            booking.status = 'cancelled'
+            booking.payment_status = 'cancelled'
+            print(f"[DEBUG] Committing cancellation to database")
+            db.session.commit()
+            print(f"[DEBUG] Cancellation completed successfully")
+            
+            return jsonify({
+                'success': True,
+                'message': '❌ Booking cancelled successfully.',
+                'type': 'success'
+            })
+            
+    except Exception as e:
+        db.session.rollback()
+        print(f"[DEBUG] Error processing cancellation: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'❌ Error processing cancellation: {str(e)}',
+            'type': 'error'
+        }), 500
+
+@app.route('/api/booking/cancel-by-expert/<int:booking_id>', methods=['POST'])
+@login_required
+def cancel_booking_by_expert_ajax(booking_id):
+    """Cancel a booking by the expert - AJAX endpoint"""
+    print(f"[DEBUG] AJAX Cancel booking by expert called for booking {booking_id}")
+    booking = Booking.query.get_or_404(booking_id)
+    
+    if booking.expert_id != current_user.id:
+        return jsonify({
+            'success': False,
+            'message': 'You are not authorized to cancel this booking.',
+            'type': 'error'
+        }), 403
+    
+    if booking.status != 'confirmed':
+        return jsonify({
+            'success': False,
+            'message': 'This booking cannot be cancelled.',
+            'type': 'error'
+        }), 400
+    
+    try:
+        # Process full refund if payment was made
+        if booking.payment_status == 'paid' and booking.stripe_session_id:
+            session = stripe.checkout.Session.retrieve(booking.stripe_session_id)
+            if session.payment_intent:
+                refund_amount = int(booking.payment_amount * 100)
+                refund = stripe.Refund.create(
+                    payment_intent=session.payment_intent,
+                    amount=refund_amount,
+                    reason='requested_by_customer',
+                    metadata={
+                        'booking_id': booking.id,
+                        'refund_reason': 'cancelled_by_expert_full',
+                        'cancelled_by': 'expert'
+                    }
+                )
+                booking.status = 'cancelled'
+                booking.payment_status = 'refunded'
+                
+                # Update expert earnings
+                expert = User.query.get(booking.expert_id)
+                if expert and expert.pending_balance > 0:
+                    expert_portion = booking.payment_amount * 0.90
+                    expert.pending_balance = max(0, expert.pending_balance - expert_portion)
+                    expert.total_earnings = max(0, expert.total_earnings - expert_portion)
+                
+                db.session.commit()
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'✅ Booking cancelled successfully. Full refund of ${refund_amount/100:.2f} processed for client.',
+                    'type': 'success'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': '❌ Booking cancelled but refund could not be processed.',
+                    'type': 'warning'
+                })
+        else:
+            booking.status = 'cancelled'
+            booking.payment_status = 'cancelled'
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': '❌ Booking cancelled successfully.',
+                'type': 'success'
+            })
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'❌ Error processing cancellation: {str(e)}',
+            'type': 'error'
+        }), 500
 
 @app.route('/booking/cancel-by-expert/<int:booking_id>')
 @login_required
@@ -2173,6 +2443,8 @@ def booking_confirmation():
     print(f"DEBUG: booking_confirmation called - Method: {request.method}")
     print(f"DEBUG: booking_confirmation - Args: {dict(request.args)}")
     print(f"DEBUG: booking_confirmation - Form: {dict(request.form)}")
+    print(f"DEBUG: Stripe API key configured: {bool(stripe.api_key)}")
+    print(f"DEBUG: YOUR_DOMAIN: {YOUR_DOMAIN}")
     """Booking confirmation page with payment"""
     print(f"DEBUG: Current user: {current_user.is_authenticated if current_user else 'No user'}")
     print(f"DEBUG: Request URL: {request.url}")
@@ -2203,12 +2475,9 @@ def booking_confirmation():
         
         # Calculate pricing
         duration = int(duration)
-        hourly_rate = expert.hourly_rate or 0
-        # For 30-minute sessions, session fee is always 50% of hourly rate
-        if duration == 30:
-            session_fee = hourly_rate * 0.5
-        else:
-            session_fee = (hourly_rate * duration) / 60  # fallback for other durations
+        session_price = expert.hourly_rate or 0  # This field now stores session price directly
+        # All sessions are 30 minutes, so session fee equals the session price
+        session_fee = session_price
         platform_fee = max(5.0, session_fee * 0.10)  # 10% platform fee, minimum $5
         total_amount = session_fee + platform_fee
         
@@ -2280,11 +2549,9 @@ def booking_confirmation():
         
         # Calculate pricing
         print("DEBUG: Calculating pricing")
-        hourly_rate = expert.hourly_rate or 0
-        if duration == 30:
-            session_fee = hourly_rate * 0.5
-        else:
-            session_fee = (hourly_rate * duration) / 60
+        session_price = expert.hourly_rate or 0  # This field now stores session price directly
+        # All sessions are 30 minutes, so session fee equals the session price
+        session_fee = session_price
         platform_fee = max(5.0, session_fee * 0.10)
         total_amount = session_fee + platform_fee
         
@@ -2309,7 +2576,8 @@ def booking_confirmation():
         print(f"DEBUG: Booking created with ID: {booking.id}")
         
         # Redirect to Stripe checkout
-        print("DEBUG: Redirecting to Stripe checkout")
+        print(f"DEBUG: Redirecting to Stripe checkout for booking ID: {booking.id}")
+        print(f"DEBUG: Redirect URL: {url_for('create_checkout_session', booking_id=booking.id)}")
         return redirect(url_for('create_checkout_session', booking_id=booking.id))
 
 @app.route('/api/availability/times', methods=['GET'])
@@ -2702,10 +2970,10 @@ def stripe_webhook():
     
     return 'OK', 200
 
-@app.route('/expert/payouts')
+@app.route('/earnings')
 @login_required
-def expert_payouts():
-    """Show expert's payout history"""
+def earnings():
+    """Show expert's earnings history"""
     payouts = Payout.query.filter_by(expert_id=current_user.id).order_by(Payout.created_at.desc()).all()
     
     # Calculate totals
@@ -2840,6 +3108,9 @@ def auth_google_callback():
         db.session.commit()
         is_new_user = True
         print(f"New Google user registered: {user.email}")
+        
+        # Set up default availability (9-5 weekdays only)
+        setup_default_availability(user)
     
     # Automatically connect Google Calendar if calendar scope is present
     print(f"DEBUG: Token scope: {token.get('scope', '')}")
@@ -2949,10 +3220,15 @@ def disconnect_google_calendar():
 @login_required
 def join_meeting(booking_id):
     """Join a video meeting"""
+    print(f"[DEBUG] Join meeting called for booking {booking_id}")
     booking = Booking.query.get_or_404(booking_id)
+    
+    print(f"[DEBUG] Booking found: {booking.id}, Status: {booking.status}")
+    print(f"[DEBUG] Current user: {current_user.id}, Booking user: {booking.user_id}, Expert: {booking.expert_id}")
     
     # Check if user is authorized to join this meeting
     if booking.user_id != current_user.id and booking.expert_id != current_user.id:
+        print(f"[DEBUG] User not authorized to join meeting")
         flash('You are not authorized to join this meeting.', 'error')
         return redirect(url_for('bookings'))
     
@@ -2965,19 +3241,27 @@ def join_meeting(booking_id):
         meeting_time = meeting_time.replace(tzinfo=EASTERN_TIMEZONE)
     time_diff = abs((meeting_time - now).total_seconds() / 60)
     
+    print(f"[DEBUG] Meeting time: {meeting_time}, Current time: {now}, Time diff: {time_diff} minutes")
+    
     # Allow joining up to 30 minutes before or after the scheduled time
     if time_diff > 30:
+        print(f"[DEBUG] Meeting not available - time difference too large")
         flash('Meeting is not available yet or has already ended.', 'warning')
         return redirect(url_for('bookings'))
     
     # Create meeting room if it doesn't exist
     if not booking.meeting_room_id or not booking.meeting_url:
+        print(f"[DEBUG] No meeting room exists, creating one...")
         room_info, error = create_meeting_room(booking_id)
         if error:
+            print(f"[DEBUG] Error creating meeting room: {error}")
             flash(f'Error setting up meeting: {error}', 'error')
             return redirect(url_for('bookings'))
         # Refresh booking to get updated room info
         db.session.refresh(booking)
+        print(f"[DEBUG] Meeting room created successfully")
+    else:
+        print(f"[DEBUG] Meeting room already exists: {booking.meeting_room_id}")
     
     # Determine the other participant
     if current_user.id == booking.user_id:
@@ -2986,6 +3270,9 @@ def join_meeting(booking_id):
     else:
         other_user = booking.user
         is_owner = True
+    
+    print(f"[DEBUG] Other user: {other_user.username}, Is owner: {is_owner}")
+    print(f"[DEBUG] Room URL: {booking.meeting_url}")
     
     # Use the Daily.co template for video calling
     return render_template('meeting_daily.html', 

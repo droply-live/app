@@ -13,7 +13,7 @@
           </a>
         </li>
         <li class="mb-2">
-          <a href="{{ url_for('find_experts') }}" class="sidebar-link-icon {% if request.endpoint == 'find_experts' %}active{% endif %}" title="Find Experts">
+          <a href="{{ url_for('search') }}" class="sidebar-link-icon {% if request.endpoint == 'search' %}active{% endif %}" title="Search">
             <i class="fas fa-search"></i>
           </a>
         </li>
@@ -28,7 +28,7 @@
           </a>
         </li>
         <li class="mb-2">
-          <a href="{{ url_for('expert_payouts') }}" class="sidebar-link-icon {% if request.endpoint == 'expert_payouts' %}active{% endif %}" title="Earnings">
+          <a href="{{ url_for('earnings') }}" class="sidebar-link-icon {% if request.endpoint == 'earnings' %}active{% endif %}" title="Earnings">
             <i class="fas fa-dollar-sign"></i>
           </a>
         </li>

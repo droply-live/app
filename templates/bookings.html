@@ -17,6 +17,18 @@
                         </h6>
   </div>
                     <div class="card-body">
+                        <!-- Flash Messages -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                <div class="flash-messages-container">
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} flash-message">
+                                            {{ message }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
                         <!-- Three Column Layout -->
                         <div class="bookings-columns-container">
                             <!-- Received Bookings Column -->
@@ -80,6 +92,18 @@
               {% endif %}
                                                 
                                                 <div class="booking-actions-compact">
+                <!-- DEBUG: Booking ID: {{ booking.id }}, Status: {{ booking.status }}, Can Join: {{ booking.can_join_meeting() }}, Is Ongoing: {{ booking.is_ongoing() }} -->
+                {% if booking.can_join_meeting() %}
+                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                                                       class="btn btn-primary btn-xs">
+                                                        <i class="fas fa-video"></i> Join
+                </a>
+                {% elif booking.is_ongoing() %}
+                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                                                       class="btn btn-primary btn-xs">
+                                                        <i class="fas fa-video"></i> Join
+                </a>
+                {% endif %}
                 <a href="{{ url_for('accept_booking', booking_id=booking.id) }}" 
                                                        class="btn btn-success btn-xs"
                    onclick="return confirm('Accept this booking request?')">
@@ -125,6 +149,7 @@
                 </div>
                                                 
                                                 <div class="booking-actions-compact">
+                <!-- DEBUG: Booking ID: {{ booking.id }}, Status: {{ booking.status }}, Can Join: {{ booking.can_join_meeting() }}, Is Ongoing: {{ booking.is_ongoing() }} -->
                 {% if booking.can_join_meeting() %}
                 <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
                                                        class="btn btn-success btn-xs">
@@ -145,11 +170,10 @@
                   {% endif %}
                 </span>
                 {% endif %}
-                <a href="{{ url_for('cancel_booking_by_expert', booking_id=booking.id) }}" 
-                                                       class="btn btn-outline-danger btn-xs"
-                   onclick="return confirm('Cancel this booking? Client will receive a full refund.')">
+                <button onclick="cancelBooking({{ booking.id }}, 'expert')" 
+                                                       class="btn btn-outline-danger btn-xs">
                                                         <i class="fas fa-times"></i> Cancel
-                </a>
+                </button>
               </div>
             </div>
             {% endfor %}
@@ -200,6 +224,7 @@
                 </div>
                                                 
                                                 <div class="booking-actions-compact">
+                <!-- DEBUG: Booking ID: {{ booking.id }}, Status: {{ booking.status }}, Can Join: {{ booking.can_join_meeting() }}, Is Ongoing: {{ booking.is_ongoing() }} -->
                 {% if booking.can_join_meeting() %}
                 <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
                                                        class="btn btn-success btn-xs">
@@ -220,11 +245,10 @@
                   {% endif %}
                 </span>
                 {% endif %}
-                <a href="{{ url_for('cancel_booking_by_client', booking_id=booking.id) }}" 
-                                                       class="btn btn-outline-danger btn-xs"
-                   onclick="return confirm('Cancel this booking? You will receive a full refund.')">
+                <button onclick="cancelBooking({{ booking.id }}, 'client')" 
+                                                       class="btn btn-outline-danger btn-xs">
                                                         <i class="fas fa-times"></i> Cancel
-                </a>
+                </button>
               </div>
             </div>
             {% endfor %}
@@ -237,9 +261,9 @@
                                         </div>
                                         <h6>No Bookings Yet</h6>
                                         <p>You haven't booked any sessions yet.</p>
-                                        <a href="{{ url_for('find_experts') }}" class="btn btn-primary btn-sm">
+                                        <a href="{{ url_for('search') }}" class="btn btn-primary btn-sm">
                                             <i class="fas fa-search me-1"></i>
-            Find Experts
+            Search Users
           </a>
         </div>
         {% endif %}
@@ -291,6 +315,62 @@ body {
     box-shadow: none;
     max-height: 80vh;
     overflow: hidden;
+}
+
+/* Flash Messages */
+.flash-messages-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 90%;
+    max-width: 500px;
+    pointer-events: none;
+}
+
+.flash-message {
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 1000;
+    animation: slideDown 0.3s ease-out;
+    pointer-events: auto;
+    text-align: center;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    color: #dc2626;
+    border-left: 4px solid #ef4444;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    color: #16a34a;
+    border-left: 4px solid #22c55e;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    color: #d97706;
+    border-left: 4px solid #f59e0b;
 }
 
 .bookings-card:hover {
@@ -841,6 +921,99 @@ document.addEventListener('DOMContentLoaded', function() {
             content.style.opacity = '1';
         }, 100);
     }
+    
+    // Auto-dismiss flash messages after 5 seconds
+    const flashMessages = document.querySelectorAll('.flash-message');
+    flashMessages.forEach(message => {
+        setTimeout(() => {
+            message.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            message.style.opacity = '0';
+            message.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                message.remove();
+            }, 500);
+        }, 5000);
+    });
 });
+
+// AJAX function to cancel bookings
+function cancelBooking(bookingId, userType) {
+    const url = userType === 'client' 
+        ? `/api/booking/cancel-by-client/${bookingId}`
+        : `/api/booking/cancel-by-expert/${bookingId}`;
+    
+    // Show loading state
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
+    button.disabled = true;
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Show flash message
+        showFlashMessage(data.message, data.type);
+        
+        // If successful, remove the booking from the page
+        if (data.success) {
+            const bookingElement = button.closest('.booking-item');
+            if (bookingElement) {
+                bookingElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                bookingElement.style.opacity = '0';
+                bookingElement.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    bookingElement.remove();
+                }, 300);
+            }
+        } else {
+            // Reset button if failed
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error cancelling booking:', error);
+        showFlashMessage('❌ Error cancelling booking. Please try again.', 'error');
+        // Reset button
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+// Function to show flash messages
+function showFlashMessage(message, type) {
+    // Remove existing flash messages
+    const existingContainer = document.querySelector('.flash-messages-container');
+    if (existingContainer) {
+        existingContainer.remove();
+    }
+    
+    // Create new flash message container
+    const container = document.createElement('div');
+    container.className = 'flash-messages-container';
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert alert-${type === 'error' ? 'danger' : type} flash-message`;
+    messageDiv.textContent = message;
+    
+    container.appendChild(messageDiv);
+    document.body.appendChild(container);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        messageDiv.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        messageDiv.style.opacity = '0';
+        messageDiv.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            container.remove();
+        }, 500);
+    }, 5000);
+}
 </script>
 {% endblock %} 
