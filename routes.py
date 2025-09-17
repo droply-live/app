@@ -42,6 +42,43 @@ def now_eastern():
 import time
 from app import oauth, google
 
+def setup_default_availability(user):
+    """Set up default 9-5 availability for weekdays only for new users"""
+    try:
+        # Detect user's current timezone
+        import tzlocal
+        try:
+            # Get the system's local timezone
+            local_timezone = tzlocal.get_localzone()
+            default_timezone = str(local_timezone)
+        except:
+            # Fallback to Eastern Time if detection fails
+            default_timezone = 'America/New_York'
+        
+        # Set user's default timezone
+        user.timezone = default_timezone
+        
+        # Create availability rules for weekdays (Monday=1 to Friday=5)
+        # Sunday=0, Monday=1, Tuesday=2, Wednesday=3, Thursday=4, Friday=5, Saturday=6
+        weekdays = [1, 2, 3, 4, 5]  # Monday to Friday
+        
+        for weekday in weekdays:
+            availability_rule = AvailabilityRule(
+                user_id=user.id,
+                weekday=weekday,
+                start=time(9, 0),  # 9:00 AM
+                end=time(17, 0),   # 5:00 PM
+                is_active=True
+            )
+            db.session.add(availability_rule)
+        
+        db.session.commit()
+        print(f"Set up default 9-5 availability for weekdays for user {user.username}")
+        
+    except Exception as e:
+        print(f"Error setting up default availability for user {user.username}: {e}")
+        db.session.rollback()
+
 def convert_to_local_time(dt, user_timezone='America/New_York'):
     """Convert timezone-naive datetime to user's local timezone"""
     if dt is None:
@@ -53,6 +90,106 @@ def convert_to_local_time(dt, user_timezone='America/New_York'):
     # Convert to EDT (UTC-4) for simplicity
     edt_offset = timezone(timedelta(hours=-4))
     return dt.astimezone(edt_offset)
+
+def convert_availability_to_user_timezone(availability_rules, expert_timezone, user_timezone):
+    """Convert expert's availability from their timezone to user's timezone"""
+    import pytz
+    from datetime import datetime, time
+    
+    if not availability_rules:
+        return []
+    
+    expert_tz = pytz.timezone(expert_timezone)
+    user_tz = pytz.timezone(user_timezone)
+    
+    converted_rules = []
+    
+    for rule in availability_rules:
+        # Create datetime objects in expert's timezone for today
+        today = datetime.now(expert_tz).date()
+        start_dt = expert_tz.localize(datetime.combine(today, rule.start))
+        end_dt = expert_tz.localize(datetime.combine(today, rule.end))
+        
+        # Convert to user's timezone
+        start_user = start_dt.astimezone(user_tz)
+        end_user = end_dt.astimezone(user_tz)
+        
+        # Create new rule with converted times
+        converted_rule = {
+            'weekday': rule.weekday,
+            'start': start_user.time(),
+            'end': end_user.time(),
+            'is_active': rule.is_active,
+            'original_start': rule.start,
+            'original_end': rule.end
+        }
+        converted_rules.append(converted_rule)
+    
+    return converted_rules
+
+def generate_available_slots_for_date(date, expert, user_timezone=None):
+    """Generate available time slots for a specific date, converting to user's timezone"""
+    import pytz
+    from datetime import datetime, time, timedelta
+    
+    # Get expert's timezone
+    expert_timezone = expert.timezone or 'America/New_York'
+    
+    # Use user's timezone if provided, otherwise use expert's timezone
+    display_timezone = user_timezone or expert_timezone
+    
+    # Get availability rules for this weekday
+    weekday = date.weekday()
+    rules = AvailabilityRule.query.filter_by(
+        user_id=expert.id, 
+        weekday=weekday,
+        is_active=True
+    ).all()
+    
+    if not rules:
+        return []
+    
+    available_slots = []
+    
+    for rule in rules:
+        # Create datetime objects in expert's timezone
+        expert_tz = pytz.timezone(expert_timezone)
+        display_tz = pytz.timezone(display_timezone)
+        
+        # Start and end times in expert's timezone
+        start_dt = expert_tz.localize(datetime.combine(date, rule.start))
+        end_dt = expert_tz.localize(datetime.combine(date, rule.end))
+        
+        # Convert to display timezone
+        start_display = start_dt.astimezone(display_tz)
+        end_display = end_dt.astimezone(display_tz)
+        
+        # Generate 30-minute slots
+        current_time = start_display
+        while current_time + timedelta(minutes=30) <= end_display:
+            # Check if this slot is already booked
+            # Convert back to expert's timezone for booking check
+            expert_time = current_time.astimezone(expert_tz)
+            
+            existing_booking = Booking.query.filter(
+                (Booking.expert_id == expert.id) &
+                (Booking.start_time == expert_time.replace(tzinfo=None)) &
+                (Booking.status.in_(['confirmed', 'pending']))
+            ).first()
+            
+            if not existing_booking:
+                slot = {
+                    'start_time': current_time,
+                    'end_time': current_time + timedelta(minutes=30),
+                    'expert_time': expert_time,
+                    'formatted_time': current_time.strftime('%I:%M %p'),
+                    'date': date
+                }
+                available_slots.append(slot)
+            
+            current_time += timedelta(minutes=30)
+    
+    return available_slots
 
 # Video calling imports and configuration
 import os
@@ -238,6 +375,9 @@ def register():
         
         db.session.add(user)
         db.session.commit()
+        
+        # Set up default availability (9-5 weekdays only)
+        setup_default_availability(user)
         
         # Handle referral tracking if referral code is provided
         referral_code = request.args.get('ref') or request.form.get('referral_code') or session.get('referral_code')
@@ -515,6 +655,10 @@ def expert_booking_times(username):
     # Get expert's availability rules
     availability_rules = AvailabilityRule.query.filter_by(user_id=expert.id).all()
     
+    # Get user's timezone for display
+    user_timezone = current_user.timezone or 'America/New_York'
+    expert_timezone = expert.timezone or 'America/New_York'
+    
     # Get available times for the next 7 days
     available_times = []
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -523,37 +667,25 @@ def expert_booking_times(username):
         for i in range(7):  # Next 7 days
             check_date = today + timedelta(days=i)
             
-            # Get availability for this date
-            for rule in availability_rules:
-                if rule.weekday == check_date.weekday():
-                    # Generate time slots for this day
-                    start_time = datetime.combine(check_date, rule.start)
-                    end_time = datetime.combine(check_date, rule.end)
-                    
-                    # Generate 30-minute slots
-                    current_time = start_time
-                    while current_time + timedelta(minutes=30) <= end_time:
-                        # Check if this slot is not already booked
-                        existing_booking = Booking.query.filter(
-                            (Booking.expert_id == expert.id) &
-                            (Booking.start_time == current_time) &
-                            (Booking.status.in_(['confirmed', 'pending']))
-                        ).first()
-                        
-                        if not existing_booking and current_time > datetime.now():
-                            available_times.append({
-                                'datetime': current_time,
-                                'formatted_date': current_time.strftime('%B %d, %Y'),
-                                'formatted_time': current_time.strftime('%I:%M %p'),
-                                'iso_datetime': current_time.isoformat()
-                            })
-                        
-                        current_time += timedelta(minutes=30)
+            # Use the new timezone-aware function
+            slots = generate_available_slots_for_date(check_date, expert, user_timezone)
+            for slot in slots:
+                # Only include future slots
+                if slot['start_time'].replace(tzinfo=None) > datetime.now():
+                    available_times.append({
+                        'datetime': slot['start_time'].replace(tzinfo=None),
+                        'formatted_date': slot['date'].strftime('%B %d, %Y'),
+                        'formatted_time': slot['formatted_time'],
+                        'iso_datetime': slot['start_time'].replace(tzinfo=None).isoformat(),
+                        'expert_time': slot['expert_time']
+                    })
     
     return render_template('expert_booking_times.html', 
                          expert=expert, 
                          available_times=available_times,
-                         has_availability=bool(availability_rules))
+                         has_availability=bool(availability_rules),
+                         user_timezone=user_timezone,
+                         expert_timezone=expert_timezone)
 
 
 @app.route('/expert/<username>/book-immediate')
@@ -598,6 +730,30 @@ def settings():
 def account():
     """Account management page"""
     return render_template('account.html')
+
+@app.route('/test-account')
+def test_account():
+    """Test account page without authentication"""
+    # Create a simple test template
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Test Account Page</title>
+        <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            .test-content { background: #f0f0f0; padding: 20px; border: 1px solid #ccc; }
+        </style>
+    </head>
+    <body>
+        <h1>Test Account Page</h1>
+        <div class="test-content">
+            <p>This is a test to see if the account page template renders correctly.</p>
+            <p>If you can see this, the basic template structure is working.</p>
+        </div>
+    </body>
+    </html>
+    '''
 
 @app.route('/referrals')
 @login_required
@@ -1342,8 +1498,17 @@ def api_profile_update():
         data = request.get_json()
         
         # Update basic profile fields (for account page auto-save)
-        if 'full_name' in data:
-            current_user.full_name = data['full_name']
+        if 'username' in data:
+            new_username = data['username'].strip()
+            if new_username != current_user.username:
+                # Check if username is already taken
+                existing_user = User.query.filter_by(username=new_username).first()
+                if existing_user:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Username is already taken'
+                    }), 400
+                current_user.username = new_username
         if 'bio' in data:
             current_user.bio = data['bio']
             
@@ -1401,6 +1566,110 @@ def api_profile_specialties():
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/profile/upload-picture', methods=['POST'])
+@login_required
+def upload_profile_picture():
+    """Upload and update user profile picture"""
+    try:
+        if 'profile_picture' not in request.files:
+            return jsonify({
+                'success': False,
+                'message': 'No file provided'
+            }), 400
+        
+        file = request.files['profile_picture']
+        
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'message': 'No file selected'
+            }), 400
+        
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            return jsonify({
+                'success': False,
+                'message': 'File must be an image'
+            }), 400
+        
+        # Generate unique filename
+        import os
+        import uuid
+        from werkzeug.utils import secure_filename
+        
+        # Get file extension
+        filename = secure_filename(file.filename)
+        file_ext = os.path.splitext(filename)[1]
+        
+        # Generate unique filename
+        unique_filename = f"profile_{current_user.id}_{uuid.uuid4().hex}{file_ext}"
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = os.path.join(app.root_path, 'static', 'uploads')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Save file
+        file_path = os.path.join(upload_dir, unique_filename)
+        file.save(file_path)
+        
+        # Update user profile picture
+        current_user.profile_picture = f"/static/uploads/{unique_filename}"
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Profile picture updated successfully',
+            'profile_picture_url': current_user.profile_picture
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Error uploading profile picture: {str(e)}'
+        }), 500
+
+@app.route('/api/username/check', methods=['POST'])
+@login_required
+def check_username_availability():
+    """Check if a username is available"""
+    try:
+        data = request.get_json()
+        username = data.get('username', '').strip()
+        
+        if not username:
+            return jsonify({
+                'available': False,
+                'message': 'Username is required'
+            }), 400
+        
+        # Validate username format
+        import re
+        if not re.match(r'^[a-zA-Z0-9_]{3,20}$', username):
+            return jsonify({
+                'available': False,
+                'message': 'Username must be 3-20 characters, letters, numbers, and underscores only'
+            }), 400
+        
+        # Check if username is already taken (excluding current user)
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user and existing_user.id != current_user.id:
+            return jsonify({
+                'available': False,
+                'message': 'Username is already taken'
+            })
+        
+        return jsonify({
+            'available': True,
+            'message': 'Username is available'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'available': False,
+            'message': f'Error checking username: {str(e)}'
+        }), 500
 
 @app.route('/api/profile/picture', methods=['POST', 'DELETE'])
 @login_required
@@ -1518,7 +1787,8 @@ def api_availability_rules():
                 'id': r.id,
                 'weekday': r.weekday,
                 'start': r.start.strftime('%H:%M'),
-                'end': r.end.strftime('%H:%M')
+                'end': r.end.strftime('%H:%M'),
+                'is_active': r.is_active
             } for r in rules
         ]
         print(f"Returning availability rules: {result}")
@@ -1526,16 +1796,27 @@ def api_availability_rules():
     else:
         data = request.get_json()
         rules = data.get('rules', [])
-        AvailabilityRule.query.filter_by(user_id=current_user.id).delete()
+        print(f"Saving availability rules for user {current_user.id}: {rules}")
+        
+        # Delete existing rules
+        deleted_count = AvailabilityRule.query.filter_by(user_id=current_user.id).delete()
+        print(f"Deleted {deleted_count} existing rules")
+        
+        # Add new rules
         for r in rules:
             if r.get('enabled'):
-                db.session.add(AvailabilityRule(
+                new_rule = AvailabilityRule(
                     user_id=current_user.id,
                     weekday=r['weekday'],
                     start=datetime.strptime(r['start'], '%H:%M').time(),
-                    end=datetime.strptime(r['end'], '%H:%M').time()
-                ))
+                    end=datetime.strptime(r['end'], '%H:%M').time(),
+                    is_active=True
+                )
+                db.session.add(new_rule)
+                print(f"Added rule: weekday={r['weekday']}, start={r['start']}, end={r['end']}")
+        
         db.session.commit()
+        print(f"Successfully saved {len([r for r in rules if r.get('enabled')])} rules")
         return jsonify({'success': True})
 
 @app.route('/api/availability/exceptions', methods=['GET', 'POST'])
@@ -1680,6 +1961,14 @@ def api_calendar_status():
         'connected': current_user.google_calendar_connected,
         'calendar_id': current_user.google_calendar_id,
         'needs_reauth': needs_reauth
+    })
+
+@app.route('/api/user/timezone', methods=['GET'])
+@login_required
+def api_user_timezone():
+    """Get user's timezone preference"""
+    return jsonify({
+        'timezone': current_user.timezone or 'America/New_York'
     })
 
 @app.route('/api/availability/monthly-data', methods=['GET'])
@@ -2503,14 +2792,21 @@ def update_bookings_status():
 
 @app.route('/auth/google')
 def auth_google():
-    # Force HTTPS for OAuth redirect URI
-    redirect_uri = url_for('auth_google_callback', _external=True).replace('http://', 'https://')
+    # Generate redirect URI based on current environment
+    redirect_uri = url_for('auth_google_callback', _external=True)
+    
+    # For local development, ensure we use HTTP
+    if app.config.get('PREFERRED_URL_SCHEME') == 'http':
+        redirect_uri = redirect_uri.replace('https://', 'http://')
+    
     print(f"DEBUG: Google OAuth redirect_uri = {redirect_uri}")
     print(f"DEBUG: GOOGLE_CLIENT_ID = {app.config.get('GOOGLE_CLIENT_ID', 'NOT_SET')}")
     print(f"DEBUG: GOOGLE_CLIENT_SECRET = {app.config.get('GOOGLE_CLIENT_SECRET', 'NOT_SET')[:10]}..." if app.config.get('GOOGLE_CLIENT_SECRET') != 'YOUR_GOOGLE_CLIENT_SECRET' else "Using placeholder secret")
     print(f"DEBUG: Request headers = {dict(request.headers)}")
     print(f"DEBUG: Request URL = {request.url}")
     print(f"DEBUG: Request host = {request.host}")
+    print(f"DEBUG: PREFERRED_URL_SCHEME = {app.config.get('PREFERRED_URL_SCHEME')}")
+    
     # Always include calendar scope for automatic calendar connection
     return google.authorize_redirect(redirect_uri, scope='openid email profile https://www.googleapis.com/auth/calendar.readonly')
 
@@ -2627,8 +2923,12 @@ def auth_google_callback():
 def auth_google_calendar():
     """Connect Google Calendar for availability sync"""
     # Use the existing Google OAuth but with calendar scope
-    # Force HTTPS for OAuth redirect URI
-    redirect_uri = url_for('auth_google_callback', _external=True, redirect_to='availability').replace('http://', 'https://')
+    # Generate redirect URI based on current environment
+    redirect_uri = url_for('auth_google_callback', _external=True, redirect_to='availability')
+    
+    # For local development, ensure we use HTTP
+    if app.config.get('PREFERRED_URL_SCHEME') == 'http':
+        redirect_uri = redirect_uri.replace('https://', 'http://')
     # Request calendar scope in addition to basic profile
     return google.authorize_redirect(redirect_uri, scope='openid email profile https://www.googleapis.com/auth/calendar.readonly')
 
