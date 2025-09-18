@@ -3218,6 +3218,10 @@ def debug_oauth():
     }
     return jsonify(debug_info)
 
+@app.route('/test-deployment')
+def test_deployment():
+    return "Deployment test successful - code changes are active!"
+
 @app.route('/admin/update-bookings-status')
 def update_bookings_status():
     """Update all bookings whose end_time is in the past and status is 'confirmed' to 'completed'."""
