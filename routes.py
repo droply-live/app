@@ -2334,9 +2334,19 @@ def update_bookings_status():
 
 @app.route('/auth/google')
 def auth_google():
-    redirect_uri = url_for('auth_google_callback', _external=True)
+    # Manually construct redirect URI to ensure HTTPS for production
+    if 'localhost' in request.host:
+        # Local development - use HTTP
+        redirect_uri = f"http://{request.host}/auth/google/callback"
+    elif 'droply.live' in request.host:
+        # Production - force HTTPS for droply.live
+        redirect_uri = "https://droply.live/auth/google/callback"
+    else:
+        # Fallback - force HTTPS
+        redirect_uri = f"https://{request.host}/auth/google/callback"
+    
     print(f"DEBUG: Google OAuth redirect_uri = {redirect_uri}")
-    return google.authorize_redirect(redirect_uri)
+    return google.authorize_redirect(redirect_uri, scope='openid email profile https://www.googleapis.com/auth/calendar.readonly')
 
 @app.route('/auth/google/callback')
 def auth_google_callback():
@@ -2435,8 +2445,17 @@ def auth_google_callback():
 @login_required
 def auth_google_calendar():
     """Connect Google Calendar for availability sync"""
-    # Use the existing Google OAuth but with calendar scope
-    redirect_uri = url_for('auth_google_callback', _external=True)
+    # Manually construct redirect URI to ensure HTTPS for production
+    if 'localhost' in request.host:
+        # Local development - use HTTP
+        redirect_uri = f"http://{request.host}/auth/google/callback?redirect_to=availability"
+    elif 'droply.live' in request.host:
+        # Production - force HTTPS for droply.live
+        redirect_uri = "https://droply.live/auth/google/callback?redirect_to=availability"
+    else:
+        # Fallback - force HTTPS
+        redirect_uri = f"https://{request.host}/auth/google/callback?redirect_to=availability"
+    
     # Request calendar scope in addition to basic profile
     return google.authorize_redirect(redirect_uri, scope='openid email profile https://www.googleapis.com/auth/calendar.readonly')
 
