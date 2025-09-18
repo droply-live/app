@@ -154,67 +154,75 @@ def convert_availability_to_user_timezone(availability_rules, expert_timezone, u
 
 def generate_available_slots_for_date(date, expert, user_timezone=None):
     """Generate available time slots for a specific date, converting to user's timezone"""
-    import pytz
-    from datetime import datetime, time, timedelta
-    
-    # Get expert's timezone
-    expert_timezone = expert.timezone or 'America/New_York'
-    
-    # Use user's timezone if provided, otherwise use expert's timezone
-    display_timezone = user_timezone or expert_timezone
-    
-    # Get availability rules for this weekday
-    weekday = date.weekday()
-    rules = AvailabilityRule.query.filter_by(
-        user_id=expert.id, 
-        weekday=weekday,
-        is_active=True
-    ).all()
-    
-    if not rules:
+    try:
+        import pytz
+        from datetime import datetime, time, timedelta
+        
+        # Get expert's timezone
+        expert_timezone = expert.timezone or 'America/New_York'
+        
+        # Use user's timezone if provided, otherwise use expert's timezone
+        display_timezone = user_timezone or expert_timezone
+        
+        # Get availability rules for this weekday
+        weekday = date.weekday()
+        rules = AvailabilityRule.query.filter_by(
+            user_id=expert.id, 
+            weekday=weekday,
+            is_active=True
+        ).all()
+        
+        if not rules:
+            return []
+        
+        available_slots = []
+        
+        for rule in rules:
+            try:
+                # Create datetime objects in expert's timezone
+                expert_tz = pytz.timezone(expert_timezone)
+                display_tz = pytz.timezone(display_timezone)
+                
+                # Start and end times in expert's timezone
+                start_dt = expert_tz.localize(datetime.combine(date, rule.start))
+                end_dt = expert_tz.localize(datetime.combine(date, rule.end))
+                
+                # Convert to display timezone
+                start_display = start_dt.astimezone(display_tz)
+                end_display = end_dt.astimezone(display_tz)
+                
+                # Generate 30-minute slots
+                current_time = start_display
+                while current_time + timedelta(minutes=30) <= end_display:
+                    # Check if this slot is already booked
+                    # Convert back to expert's timezone for booking check
+                    expert_time = current_time.astimezone(expert_tz)
+                    
+                    existing_booking = Booking.query.filter(
+                        (Booking.expert_id == expert.id) &
+                        (Booking.start_time == expert_time.replace(tzinfo=None)) &
+                        (Booking.status.in_(['confirmed', 'pending']))
+                    ).first()
+                    
+                    if not existing_booking:
+                        slot = {
+                            'start_time': current_time,
+                            'end_time': current_time + timedelta(minutes=30),
+                            'expert_time': expert_time,
+                            'formatted_time': current_time.strftime('%I:%M %p'),
+                            'date': date
+                        }
+                        available_slots.append(slot)
+                    
+                    current_time += timedelta(minutes=30)
+            except Exception as e:
+                print(f"Error processing rule for date {date}: {e}")
+                continue
+        
+        return available_slots
+    except Exception as e:
+        print(f"Error in generate_available_slots_for_date: {e}")
         return []
-    
-    available_slots = []
-    
-    for rule in rules:
-        # Create datetime objects in expert's timezone
-        expert_tz = pytz.timezone(expert_timezone)
-        display_tz = pytz.timezone(display_timezone)
-        
-        # Start and end times in expert's timezone
-        start_dt = expert_tz.localize(datetime.combine(date, rule.start))
-        end_dt = expert_tz.localize(datetime.combine(date, rule.end))
-        
-        # Convert to display timezone
-        start_display = start_dt.astimezone(display_tz)
-        end_display = end_dt.astimezone(display_tz)
-        
-        # Generate 30-minute slots
-        current_time = start_display
-        while current_time + timedelta(minutes=30) <= end_display:
-            # Check if this slot is already booked
-            # Convert back to expert's timezone for booking check
-            expert_time = current_time.astimezone(expert_tz)
-            
-            existing_booking = Booking.query.filter(
-                (Booking.expert_id == expert.id) &
-                (Booking.start_time == expert_time.replace(tzinfo=None)) &
-                (Booking.status.in_(['confirmed', 'pending']))
-            ).first()
-            
-            if not existing_booking:
-                slot = {
-                    'start_time': current_time,
-                    'end_time': current_time + timedelta(minutes=30),
-                    'expert_time': expert_time,
-                    'formatted_time': current_time.strftime('%I:%M %p'),
-                    'date': date
-                }
-                available_slots.append(slot)
-            
-            current_time += timedelta(minutes=30)
-    
-    return available_slots
 
 # Video calling imports and configuration
 import os
@@ -678,42 +686,51 @@ def user_profile(username):
 @login_required
 def user_booking_times(username):
     """Select available booking times for a user"""
-    user = User.query.filter_by(username=username).first_or_404()
-    
-    # Get user's availability rules
-    availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
-    
-    # Get current user's timezone for display
-    current_user_timezone = current_user.timezone or 'America/New_York'
-    user_timezone = user.timezone or 'America/New_York'
-    
-    # Get available times for the next 60 days
-    available_times = []
-    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    
-    if availability_rules:
-        for i in range(60):  # Next 60 days
-            check_date = today + timedelta(days=i)
-            
-            # Use the new timezone-aware function
-            slots = generate_available_slots_for_date(check_date, user, current_user_timezone)
-            for slot in slots:
-                # Only include future slots
-                if slot['start_time'].replace(tzinfo=None) > datetime.now():
-                    available_times.append({
-                        'datetime': slot['start_time'].replace(tzinfo=None),
-                        'formatted_date': slot['date'].strftime('%B %d, %Y'),
-                        'formatted_time': slot['formatted_time'],
-                        'iso_datetime': slot['start_time'].replace(tzinfo=None).isoformat(),
-                        'user_time': slot['expert_time']
-                    })
-    
-    return render_template('user_booking_times.html', 
-                         expert=user, 
-                         available_times=available_times,
-                         has_availability=bool(availability_rules),
-                         current_user_timezone=current_user_timezone,
-                         user_timezone=user_timezone)
+    try:
+        user = User.query.filter_by(username=username).first_or_404()
+        
+        # Get user's availability rules
+        availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
+        
+        # Get current user's timezone for display
+        current_user_timezone = current_user.timezone or 'America/New_York'
+        user_timezone = user.timezone or 'America/New_York'
+        
+        # Get available times for the next 60 days
+        available_times = []
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        if availability_rules:
+            for i in range(60):  # Next 60 days
+                check_date = today + timedelta(days=i)
+                
+                try:
+                    # Use the new timezone-aware function
+                    slots = generate_available_slots_for_date(check_date, user, current_user_timezone)
+                    for slot in slots:
+                        # Only include future slots
+                        if slot['start_time'].replace(tzinfo=None) > datetime.now():
+                            available_times.append({
+                                'datetime': slot['start_time'].replace(tzinfo=None),
+                                'formatted_date': slot['date'].strftime('%B %d, %Y'),
+                                'formatted_time': slot['formatted_time'],
+                                'iso_datetime': slot['start_time'].replace(tzinfo=None).isoformat(),
+                                'user_time': slot['expert_time']
+                            })
+                except Exception as e:
+                    print(f"Error generating slots for date {check_date}: {e}")
+                    continue
+        
+        return render_template('user_booking_times.html', 
+                             expert=user, 
+                             available_times=available_times,
+                             has_availability=bool(availability_rules),
+                             current_user_timezone=current_user_timezone,
+                             user_timezone=user_timezone)
+    except Exception as e:
+        print(f"Error in user_booking_times: {e}")
+        flash('An error occurred while loading booking times. Please try again.', 'error')
+        return redirect(url_for('user_profile', username=username))
 
 
 @app.route('/expert/<username>/book-immediate')
@@ -4120,3 +4137,15 @@ def process_referral_reward():
             'success': False,
             'error': str(e)
         }), 500
+
+
+# Privacy Policy and Terms of Service routes
+@app.route('/privacy-policy')
+def privacy_policy():
+    """Display the privacy policy page"""
+    return render_template('privacy_policy.html')
+
+@app.route('/terms-of-service')
+def terms_of_service():
+    """Display the terms of service page"""
+    return render_template('terms_of_service.html')
