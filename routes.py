@@ -253,8 +253,9 @@ def create_simple_meeting_room(booking_id):
 def create_meeting_room(booking_id):
     """Create a Daily.co meeting room for a booking"""
     try:
-        # Generate a unique room name
-        room_name = f"droply-{booking_id}"
+        # Generate a unique room name with timestamp to avoid conflicts
+        timestamp = int(datetime.now().timestamp())
+        room_name = f"droply-{booking_id}-{timestamp}"
         
         print(f"[DEBUG] Creating meeting room for booking {booking_id}")
         print(f"[DEBUG] Room name: {room_name}")
@@ -3218,6 +3219,28 @@ def debug_oauth():
     }
     return jsonify(debug_info)
 
+@app.route('/debug/oauth-redirect-uri')
+def debug_oauth_redirect_uri():
+    """Debug endpoint to check what redirect URI is being generated"""
+    # Test the same logic as the OAuth route
+    if 'localhost' in request.host:
+        redirect_uri = f"http://{request.host}/auth/google/callback"
+    else:
+        redirect_uri = f"https://{request.host}/auth/google/callback"
+    
+    debug_info = {
+        'redirect_uri': redirect_uri,
+        'preferred_url_scheme': app.config.get('PREFERRED_URL_SCHEME'),
+        'server_name': app.config.get('SERVER_NAME'),
+        'your_domain_env': os.environ.get('YOUR_DOMAIN'),
+        'flask_env': os.environ.get('FLASK_ENV'),
+        'request_host': request.host,
+        'request_url': request.url,
+        'request_headers': dict(request.headers)
+    }
+    
+    return jsonify(debug_info)
+
 @app.route('/admin/update-bookings-status')
 def update_bookings_status():
     """Update all bookings whose end_time is in the past and status is 'confirmed' to 'completed'."""
@@ -3235,12 +3258,16 @@ def update_bookings_status():
 
 @app.route('/auth/google')
 def auth_google():
-    # Generate redirect URI based on current environment
-    redirect_uri = url_for('auth_google_callback', _external=True)
-    
-    # For local development, ensure we use HTTP
-    if app.config.get('PREFERRED_URL_SCHEME') == 'http':
-        redirect_uri = redirect_uri.replace('https://', 'http://')
+    # Manually construct redirect URI to ensure HTTPS for production
+    if 'localhost' in request.host:
+        # Local development - use HTTP
+        redirect_uri = f"http://{request.host}/auth/google/callback"
+    elif 'droply.live' in request.host:
+        # Production - force HTTPS for droply.live
+        redirect_uri = "https://droply.live/auth/google/callback"
+    else:
+        # Fallback - force HTTPS
+        redirect_uri = f"https://{request.host}/auth/google/callback"
     
     print(f"DEBUG: Google OAuth redirect_uri = {redirect_uri}")
     print(f"DEBUG: GOOGLE_CLIENT_ID = {app.config.get('GOOGLE_CLIENT_ID', 'NOT_SET')}")
@@ -3369,12 +3396,16 @@ def auth_google_callback():
 def auth_google_calendar():
     """Connect Google Calendar for availability sync"""
     # Use the existing Google OAuth but with calendar scope
-    # Generate redirect URI based on current environment
-    redirect_uri = url_for('auth_google_callback', _external=True, redirect_to='availability')
-    
-    # For local development, ensure we use HTTP
-    if app.config.get('PREFERRED_URL_SCHEME') == 'http':
-        redirect_uri = redirect_uri.replace('https://', 'http://')
+    # Manually construct redirect URI to ensure HTTPS for production
+    if 'localhost' in request.host:
+        # Local development - use HTTP
+        redirect_uri = f"http://{request.host}/auth/google/callback?redirect_to=availability"
+    elif 'droply.live' in request.host:
+        # Production - force HTTPS for droply.live
+        redirect_uri = "https://droply.live/auth/google/callback?redirect_to=availability"
+    else:
+        # Fallback - force HTTPS
+        redirect_uri = f"https://{request.host}/auth/google/callback?redirect_to=availability"
     # Request calendar scope in addition to basic profile
     return google.authorize_redirect(redirect_uri, scope='openid email profile https://www.googleapis.com/auth/calendar.readonly')
 
