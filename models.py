@@ -238,7 +238,7 @@ class Booking(db.Model):
         return start_time <= now <= end_time
     
     def can_join_meeting(self):
-        """Check if user can join the meeting (within 5 minutes before start)"""
+        """Check if user can join the meeting (within 30 minutes before or after start)"""
         from datetime import datetime, timezone, timedelta
         now = datetime.now(EASTERN_TIMEZONE)
         
@@ -251,8 +251,10 @@ class Booking(db.Model):
             start_time = start_time.replace(tzinfo=EASTERN_TIMEZONE)
         if end_time.tzinfo is None:
             end_time = end_time.replace(tzinfo=EASTERN_TIMEZONE)
-            
-        return start_time - timedelta(minutes=5) <= now <= end_time
+        
+        # Allow joining up to 30 minutes before or after the scheduled time (matching route logic)
+        time_diff = abs((start_time - now).total_seconds() / 60)
+        return time_diff <= 30
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)

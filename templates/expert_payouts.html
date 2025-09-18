@@ -3,338 +3,881 @@
 {% block title %}Earnings - Droply{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <!-- Earnings Header -->
-  <div class="mb-4">
-    <h1 class="h2 mb-1">Earnings</h1>
-    <p class="text-muted mb-0">Track your revenue and manage your payouts</p>
-  </div>
-
-  <!-- Tabbed Interface -->
-  <div id="earnings-tabs" class="tabbed-interface">
-    <!-- Tab Navigation -->
-    <div class="tab-navigation">
-      <button class="tab-button active" data-tab="overview">
-        <i class="fas fa-chart-line d-none d-md-inline"></i>
-        <span>Overview</span>
-      </button>
-      <button class="tab-button" data-tab="withdraw">
-        <i class="fas fa-dollar-sign d-none d-md-inline"></i>
-        <span>Withdraw</span>
-        {% set available_balance = (payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) %}
-        {% if available_balance > 0 %}
-          <span class="tab-badge success">${{ "%.2f"|format(available_balance / 100) }}</span>
-        {% endif %}
-      </button>
-      <button class="tab-button" data-tab="settings">
-        <i class="fas fa-cog d-none d-md-inline"></i>
-        <span>Settings</span>
-      </button>
-    </div>
-    <div class="tab-indicator"></div>
-
-    <!-- Tab Content Container -->
-    <div class="tab-content-container">
-      <!-- Overview Tab -->
-      <div class="tab-content active" data-tab-content="overview">
-        <div class="tab-header">
-          <div>
-            <p class="tab-subtitle">Your earnings summary and recent activity</p>
-          </div>
-        </div>
-
-        <!-- Earnings Summary Cards -->
-        <div class="tab-section">
-          <h3 class="tab-section-title">
-            <i class="fas fa-chart-pie"></i>
-            Earnings Summary
-          </h3>
-          <div class="row">
-            <div class="col-md-4 mb-4">
-              <div class="card text-center">
-                <div class="card-body">
-                  <i class="fas fa-dollar-sign fa-2x text-success mb-3"></i>
-                  <h4>${{ "%.2f"|format((payouts|selectattr('status', 'equalto', 'paid')|sum(attribute='amount')) / 100) }}</h4>
-                  <p class="text-muted">Total Earned</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4 mb-4">
-              <div class="card text-center">
-                <div class="card-body">
-                  <i class="fas fa-clock fa-2x text-warning mb-3"></i>
-                  <h4>${{ "%.2f"|format((payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) / 100) }}</h4>
-                  <p class="text-muted">Available to Withdraw</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4 mb-4">
-              <div class="card text-center">
-                <div class="card-body">
-                  <i class="fas fa-calendar fa-2x text-primary mb-3"></i>
-                  <h4>{{ payouts|length }}</h4>
-                  <p class="text-muted">Total Sessions</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent Activity -->
-        <div class="tab-section">
-          <h3 class="tab-section-title">
-            <i class="fas fa-history"></i>
-            Recent Activity
-          </h3>
-          
-          {% if payouts %}
-            <div class="table-responsive">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Session</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for payout in payouts[:5] %}
-                  <tr>
-                    <td>{{ payout.created_at|format_datetime }}</td>
-                    <td>{{ payout.description or 'Session' }}</td>
-                    <td>${{ "%.2f"|format(payout.amount / 100) }}</td>
-                    <td>
-                      <span class="status-badge {{ payout.status }}">{{ payout.status|title }}</span>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% else %}
-            <div class="tab-empty-state">
-              <i class="fas fa-dollar-sign"></i>
-              <h3>No Earnings Yet</h3>
-              <p>Your earnings will appear here once you start completing sessions.</p>
-            </div>
-          {% endif %}
-        </div>
-      </div>
-
-      <!-- Withdraw Tab -->
-      <div class="tab-content" data-tab-content="withdraw">
-        <div class="tab-header">
-          <div>
-            <p class="tab-subtitle">Transfer your earnings to your connected payment method</p>
-          </div>
-        </div>
-
-        {% set available_balance = (payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) %}
-        
-        <div class="tab-section">
-          <h3 class="tab-section-title">
-            <i class="fas fa-wallet"></i>
-            Available Balance
-          </h3>
-          <div class="card">
-            <div class="card-body">
-              <div class="alert alert-info">
-                <h6><i class="fas fa-info-circle"></i> Ready to Withdraw</h6>
-                <h3 class="text-primary mb-0">${{ "%.2f"|format(available_balance / 100) }}</h3>
-                <small class="text-muted">Available for withdrawal</small>
-              </div>
-              
-              {% if available_balance > 0 %}
-                <form action="{{ url_for('request_payout') }}" method="POST">
-                  <div class="form-group">
-                    <label for="withdraw_amount">Withdrawal Amount</label>
-                    <div class="input-group">
-                      <span class="input-group-text">$</span>
-                      <input type="number" 
-                             class="form-control" 
-                             id="withdraw_amount" 
-                             name="amount" 
-                             value="{{ "%.2f"|format(available_balance / 100) }}"
-                             max="{{ "%.2f"|format(available_balance / 100) }}"
-                             min="10"
-                             step="0.01"
-                             required>
+<div class="container-fluid h-100 d-flex align-items-start justify-content-center" style="min-height: 100vh; overflow: hidden; padding-top: 2vh;">
+    <div class="container">
+        <!-- Earnings Content -->
+        <div class="row" id="earnings-content" style="opacity: 0; transition: opacity 0.3s ease;">
+            <!-- Main Earnings Card -->
+            <div class="col-12">
+                <div class="card earnings-card">
+                    <div class="card-header">
+                        <h6 class="mb-0 text-center">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Earnings Management
+                        </h6>
                     </div>
-                    <small class="text-muted">Minimum withdrawal: $10.00</small>
-                  </div>
-                  
-                  <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-dollar-sign"></i>
-                    Request Withdrawal
-                  </button>
-                </form>
-              {% else %}
-                <div class="text-center py-4">
-                  <i class="fas fa-wallet fa-3x text-muted mb-3"></i>
-                  <h5>No Funds Available</h5>
-                  <p class="text-muted">You need to complete sessions to earn money for withdrawal.</p>
-                </div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
+                    <div class="card-body">
+                        <!-- Three Column Layout -->
+                        <div class="earnings-columns-container">
+                            <!-- Overview Column -->
+                            <div class="earnings-column">
+                                <div class="column-header">
+                                    <h6 class="column-title text-center">
+                                        <i class="fas fa-chart-pie me-2"></i>
+                                        Overview
+                                    </h6>
+                                </div>
+                                <div class="column-content">
+                                    <!-- Earnings Summary -->
+                                    <div class="earnings-section-compact">
+                                        <h6 class="section-title-compact">
+                                            <i class="fas fa-dollar-sign me-2"></i>
+                                            Summary
+                                        </h6>
+                                        <div class="earnings-summary-compact">
+                                            <div class="summary-item">
+                                                <div class="summary-icon success">
+                                                    <i class="fas fa-dollar-sign"></i>
+                                                </div>
+                                                <div class="summary-details">
+                                                    <h6 class="summary-amount">${{ "%.2f"|format((payouts|selectattr('status', 'equalto', 'paid')|sum(attribute='amount')) / 100) }}</h6>
+                                                    <p class="summary-label">Total Earned</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="summary-item">
+                                                <div class="summary-icon warning">
+                                                    <i class="fas fa-clock"></i>
+                                                </div>
+                                                <div class="summary-details">
+                                                    <h6 class="summary-amount">${{ "%.2f"|format((payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) / 100) }}</h6>
+                                                    <p class="summary-label">Available</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="summary-item">
+                                                <div class="summary-icon primary">
+                                                    <i class="fas fa-calendar"></i>
+                                                </div>
+                                                <div class="summary-details">
+                                                    <h6 class="summary-amount">{{ payouts|length }}</h6>
+                                                    <p class="summary-label">Sessions</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Recent Activity -->
+                                    <div class="earnings-section-compact">
+                                        <h6 class="section-title-compact">
+                                            <i class="fas fa-history me-2"></i>
+                                            Recent Activity
+                                        </h6>
+                                        {% if payouts %}
+                                        <div class="activity-list-compact">
+                                            {% for payout in payouts[:3] %}
+                                            <div class="activity-item">
+                                                <div class="activity-icon {{ payout.status }}">
+                                                    <i class="fas fa-{% if payout.status == 'paid' %}check{% elif payout.status == 'pending' %}clock{% else %}exclamation{% endif %}"></i>
+                                                </div>
+                                                <div class="activity-details">
+                                                    <h6 class="activity-amount">${{ "%.2f"|format(payout.amount / 100) }}</h6>
+                                                    <p class="activity-date">{{ payout.created_at|format_datetime }}</p>
+                                                </div>
+                                                <div class="activity-status">
+                                                    <span class="status-badge-compact {{ payout.status }}">{{ payout.status|title }}</span>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        <div class="empty-state-compact">
+                                            <div class="empty-icon-compact">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </div>
+                                            <h6>No Earnings Yet</h6>
+                                            <p>Your earnings will appear here once you start completing sessions.</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
 
-        <div class="tab-section">
-          <h3 class="tab-section-title">
-            <i class="fas fa-info-circle"></i>
-            Withdrawal Information
-          </h3>
-          <div class="card">
-            <div class="card-body">
-              <ul class="list-unstyled">
-                <li><i class="fas fa-clock text-warning"></i> Processing: 2-5 business days</li>
-                <li><i class="fas fa-percentage text-info"></i> Fee: 2.9% + $0.30</li>
-                <li><i class="fas fa-dollar-sign text-success"></i> Minimum: $10.00</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
+                            <!-- Withdraw Column -->
+                            <div class="earnings-column">
+                                <div class="column-header">
+                                    <h6 class="column-title text-center">
+                                        <i class="fas fa-wallet me-2"></i>
+                                        Withdraw
+                                        {% set available_balance = (payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) %}
+                                        {% if available_balance > 0 %}
+                                        <span class="header-badge success">${{ "%.2f"|format(available_balance / 100) }}</span>
+                                        {% endif %}
+                                    </h6>
+                                </div>
+                                <div class="column-content">
+                                    {% set available_balance = (payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) %}
+                                    
+                                    {% if available_balance > 0 %}
+                                    <div class="earnings-section-compact">
+                                        <h6 class="section-title-compact">
+                                            <i class="fas fa-wallet me-2"></i>
+                                            Available Balance
+                                        </h6>
+                                        <div class="balance-display-compact">
+                                            <div class="balance-amount">${{ "%.2f"|format(available_balance / 100) }}</div>
+                                            <p class="balance-label">Ready to withdraw</p>
+                                        </div>
+                                        
+                                        <form action="{{ url_for('request_payout') }}" method="POST" class="withdraw-form-compact">
+                                            <div class="form-group-compact">
+                                                <label for="withdraw_amount">Withdrawal Amount</label>
+                                                <div class="input-group-compact">
+                                                    <span class="input-group-text-compact">$</span>
+                                                    <input type="number" 
+                                                           class="form-control-compact" 
+                                                           id="withdraw_amount" 
+                                                           name="amount" 
+                                                           value="{{ "%.2f"|format(available_balance / 100) }}"
+                                                           max="{{ "%.2f"|format(available_balance / 100) }}"
+                                                           min="10"
+                                                           step="0.01"
+                                                           required>
+                                                </div>
+                                                <small class="form-text-compact">Minimum: $10.00</small>
+                                            </div>
+                                            
+                                            <button type="submit" class="btn btn-primary btn-compact">
+                                                <i class="fas fa-dollar-sign"></i>
+                                                Request Withdrawal
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                                    <div class="earnings-section-compact">
+                                        <h6 class="section-title-compact">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Withdrawal Info
+                                        </h6>
+                                        <div class="info-list-compact">
+                                            <div class="info-item">
+                                                <i class="fas fa-clock text-warning"></i>
+                                                <span>Processing: 2-5 business days</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <i class="fas fa-percentage text-info"></i>
+                                                <span>Fee: 2.9% + $0.30</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <i class="fas fa-dollar-sign text-success"></i>
+                                                <span>Minimum: $10.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="empty-state-compact">
+                                        <div class="empty-icon-compact">
+                                            <i class="fas fa-wallet"></i>
+                                        </div>
+                                        <h6>No Funds Available</h6>
+                                        <p>Complete sessions to earn money for withdrawal.</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
 
-      <!-- Settings Tab -->
-      <div class="tab-content" data-tab-content="settings">
-        <div class="tab-header">
-          <div>
-            <p class="tab-subtitle">Configure your Stripe Connect account to receive payments</p>
-          </div>
+                            <!-- Settings Column -->
+                            <div class="earnings-column">
+                                <div class="column-header">
+                                    <h6 class="column-title text-center">
+                                        <i class="fas fa-cog me-2"></i>
+                                        Settings
+                                    </h6>
+                                </div>
+                                <div class="column-content">
+                                    {% if current_user.stripe_account_id %}
+                                        {% if current_user.stripe_account_status == 'active' %}
+                                        <div class="earnings-section-compact">
+                                            <h6 class="section-title-compact">
+                                                <i class="fas fa-check-circle me-2"></i>
+                                                Stripe Connected
+                                            </h6>
+                                            <div class="status-display-compact success">
+                                                <div class="status-icon">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                                <div class="status-details">
+                                                    <h6>Account Connected</h6>
+                                                    <p>Ready to receive payments</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-compact">
+                                                <i class="fas fa-external-link-alt"></i>
+                                                Open Stripe Dashboard
+                                            </a>
+                                        </div>
+                                        {% elif current_user.stripe_account_status == 'pending' %}
+                                        <div class="earnings-section-compact">
+                                            <h6 class="section-title-compact">
+                                                <i class="fas fa-clock me-2"></i>
+                                                Setup Pending
+                                            </h6>
+                                            <div class="status-display-compact warning">
+                                                <div class="status-icon">
+                                                    <i class="fas fa-clock"></i>
+                                                </div>
+                                                <div class="status-details">
+                                                    <h6>Setup In Progress</h6>
+                                                    <p>Complete your Stripe setup</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-compact">
+                                                <i class="fas fa-external-link-alt"></i>
+                                                Complete Setup
+                                            </a>
+                                        </div>
+                                        {% else %}
+                                        <div class="earnings-section-compact">
+                                            <h6 class="section-title-compact">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                Setup Required
+                                            </h6>
+                                            <div class="status-display-compact warning">
+                                                <div class="status-icon">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                </div>
+                                                <div class="status-details">
+                                                    <h6>Setup Required</h6>
+                                                    <p>Complete Stripe setup to receive payments</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-compact">
+                                                <i class="fas fa-link"></i>
+                                                Set Up Stripe
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                    {% else %}
+                                    <div class="earnings-section-compact">
+                                        <h6 class="section-title-compact">
+                                            <i class="fas fa-credit-card me-2"></i>
+                                            Connect Stripe
+                                        </h6>
+                                        <div class="status-display-compact info">
+                                            <div class="status-icon">
+                                                <i class="fas fa-credit-card"></i>
+                                            </div>
+                                            <div class="status-details">
+                                                <h6>Setup Required</h6>
+                                                <p>Connect Stripe to receive payments</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-compact">
+                                            <i class="fas fa-link"></i>
+                                            Connect Stripe
+                                        </a>
+                                        
+                                        <div class="security-note-compact">
+                                            <i class="fas fa-shield-alt"></i>
+                                            <span>Secure payment processing powered by Stripe</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        {% if current_user.stripe_account_id %}
-          {% if current_user.stripe_account_status == 'active' %}
-            <div class="tab-section">
-              <h3 class="tab-section-title">
-                <i class="fas fa-check-circle"></i>
-                Stripe Connected
-              </h3>
-              <div class="card">
-                <div class="card-body">
-                  <div class="alert alert-success">
-                    <h6><i class="fas fa-check-circle"></i> Account Connected</h6>
-                    <p class="mb-0">Your account is connected to Stripe and ready to receive payments.</p>
-                  </div>
-                  
-                  <div class="text-center py-4">
-                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-lg">
-                      <i class="fas fa-external-link-alt"></i>
-                      Open Stripe Dashboard
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          {% elif current_user.stripe_account_status == 'pending' %}
-            <div class="tab-section">
-              <h3 class="tab-section-title">
-                <i class="fas fa-clock"></i>
-                Stripe Setup Pending
-              </h3>
-              <div class="card">
-                <div class="card-body">
-                  <div class="alert alert-warning">
-                    <h6><i class="fas fa-clock"></i> Setup In Progress</h6>
-                    <p class="mb-0">You've started the Stripe setup process but haven't completed it yet.</p>
-                  </div>
-                  
-                  <div class="text-center py-4">
-                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-lg">
-                      <i class="fas fa-external-link-alt"></i>
-                      Complete Stripe Setup
-                    </a>
-                  </div>
-                </div>
-              </div>
-          {% else %}
-            <div class="tab-section">
-              <h3 class="tab-section-title">
-                <i class="fas fa-exclamation-triangle"></i>
-                Stripe Setup Required
-              </h3>
-              <div class="card">
-                <div class="card-body">
-                  <div class="alert alert-warning">
-                    <h6><i class="fas fa-exclamation-triangle"></i> Setup Required</h6>
-                    <p class="mb-0">You need to complete your Stripe account setup to receive payments.</p>
-                  </div>
-                  
-                  <div class="text-center py-4">
-                    <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-lg">
-                      <i class="fas fa-link"></i>
-                      Set Up Stripe Account
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          {% endif %}
-        {% else %}
-          <div class="tab-section">
-            <h3 class="tab-section-title">
-              <i class="fas fa-credit-card"></i>
-              Connect Stripe Account
-            </h3>
-            <div class="card">
-              <div class="card-body">
-                <div class="alert alert-info">
-                  <h6><i class="fas fa-info-circle"></i> Setup Required</h6>
-                  <p class="mb-0">Connect your Stripe account to start receiving payments for your sessions.</p>
-                </div>
-                
-                <div class="text-center py-4">
-                  <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
-                  <h5>Connect Your Payment Method</h5>
-                  <p class="text-muted">Set up Stripe Connect to start receiving payments for your sessions.</p>
-                  
-                  <a href="{{ url_for('expert_stripe_onboarding') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-link"></i>
-                    Connect Stripe Account
-                  </a>
-                  
-                  <div class="mt-3">
-                    <small class="text-muted">
-                      <i class="fas fa-shield-alt"></i>
-                      Secure payment processing powered by Stripe
-                    </small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        {% endif %}
-      </div>
     </div>
-  </div>
 </div>
 
-<!-- Include tabs CSS and JS -->
-<link rel="stylesheet" href="{{ url_for('static', filename='css/tabs.css') }}">
-<script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
+<style>
+/* Page Layout - Prevent Scrolling and Center Content */
+body {
+    overflow: hidden;
+    height: 100vh;
+}
+
+.container-fluid {
+    padding: 0;
+    margin: 0;
+}
+
+/* Earnings Card */
+.earnings-card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: none;
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.earnings-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    transform: none !important;
+}
+
+.earnings-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 12px 12px 0 0;
+    padding: 20px 24px;
+}
+
+.earnings-card .card-header h6 {
+    color: #495057;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.earnings-card .card-body {
+    padding: 24px;
+}
+
+/* Three Column Layout */
+.earnings-columns-container {
+    display: flex;
+    gap: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.earnings-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #e9ecef;
+    min-height: 500px;
+    position: relative;
+    width: 33.333%;
+}
+
+.earnings-column:last-child {
+    border-right: none;
+}
+
+.column-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    padding: 16px 20px;
+    margin: -24px 0 20px 0;
+    border-radius: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.column-title {
+    color: #495057;
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+}
+
+.header-badge {
+    background: #dc3545;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    margin-left: 8px;
+}
+
+.header-badge.success {
+    background: #28a745;
+}
+
+.header-badge.warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.column-content {
+    flex: 1;
+    padding: 0 20px 0 12px;
+    overflow-y: auto;
+    max-height: 60vh;
+    margin-right: -24px;
+    padding-right: 20px;
+}
+
+.earnings-column:last-child .column-content {
+    padding-right: 0;
+    margin-right: 0;
+}
+
+/* Compact Earnings Sections */
+.earnings-section-compact {
+    margin-bottom: 20px;
+    padding-right: 8px;
+}
+
+.section-title-compact {
+    color: #495057;
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Earnings Summary */
+.earnings-summary-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.summary-item:hover {
+    border-color: #adb5bd;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.summary-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.summary-icon.success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.summary-icon.warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+}
+
+.summary-icon.primary {
+    background: linear-gradient(135deg, #007bff 0%, #6f42c1 100%);
+}
+
+.summary-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.summary-amount {
+    font-weight: 600;
+    color: #495057;
+    margin: 0 0 2px 0;
+    font-size: 16px;
+}
+
+.summary-label {
+    color: #6c757d;
+    font-size: 12px;
+    margin: 0;
+}
+
+/* Activity List */
+.activity-list-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+    border-color: #adb5bd;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.activity-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.activity-icon.paid {
+    background: #28a745;
+}
+
+.activity-icon.pending {
+    background: #ffc107;
+}
+
+.activity-icon.failed {
+    background: #dc3545;
+}
+
+.activity-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-amount {
+    font-weight: 600;
+    color: #495057;
+    margin: 0 0 2px 0;
+    font-size: 14px;
+}
+
+.activity-date {
+    color: #6c757d;
+    font-size: 11px;
+    margin: 0;
+}
+
+.activity-status {
+    flex-shrink: 0;
+}
+
+.status-badge-compact {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+}
+
+.status-badge-compact.paid {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge-compact.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-badge-compact.failed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Balance Display */
+.balance-display-compact {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.balance-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: #007bff;
+    margin: 0 0 4px 0;
+}
+
+.balance-label {
+    color: #6c757d;
+    font-size: 12px;
+    margin: 0;
+}
+
+/* Withdraw Form */
+.withdraw-form-compact {
+    margin-bottom: 16px;
+}
+
+.form-group-compact {
+    margin-bottom: 12px;
+}
+
+.form-group-compact label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.input-group-compact {
+    display: flex;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #ced4da;
+}
+
+.input-group-text-compact {
+    background: #f8f9fa;
+    border: none;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.form-control-compact {
+    flex: 1;
+    border: none;
+    padding: 8px 12px;
+    font-size: 14px;
+    outline: none;
+}
+
+.form-control-compact:focus {
+    box-shadow: none;
+}
+
+.form-text-compact {
+    font-size: 10px;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+/* Info List */
+.info-list-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #495057;
+}
+
+.info-item i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Status Display */
+.status-display-compact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.status-display-compact.success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 1px solid #c3e6cb;
+}
+
+.status-display-compact.warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 1px solid #ffeaa7;
+}
+
+.status-display-compact.info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    border: 1px solid #bee5eb;
+}
+
+.status-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.status-display-compact.success .status-icon {
+    background: #28a745;
+}
+
+.status-display-compact.warning .status-icon {
+    background: #ffc107;
+}
+
+.status-display-compact.info .status-icon {
+    background: #17a2b8;
+}
+
+.status-details h6 {
+    font-weight: 600;
+    color: #495057;
+    margin: 0 0 2px 0;
+    font-size: 14px;
+}
+
+.status-details p {
+    color: #6c757d;
+    font-size: 12px;
+    margin: 0;
+}
+
+/* Security Note */
+.security-note-compact {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: #6c757d;
+    margin-top: 12px;
+    text-align: center;
+    justify-content: center;
+}
+
+/* Empty State */
+.empty-state-compact {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.empty-icon-compact {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 24px;
+    color: #adb5bd;
+}
+
+.empty-state-compact h6 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.empty-state-compact p {
+    margin-bottom: 16px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Buttons */
+.btn-compact {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    margin-bottom: 8px;
+    margin-right: 4px;
+}
+
+.btn-compact:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    color: white;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-compact:focus {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+    outline: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .earnings-columns-container {
+        flex-direction: column;
+    }
+    
+    .earnings-column {
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
+        min-height: auto;
+    }
+    
+    .earnings-column:last-child {
+        border-bottom: none;
+    }
+    
+    .column-content {
+        padding-right: 0;
+        max-height: none;
+    }
+    
+    .earnings-summary-compact {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 8px;
+    }
+    
+    .summary-item {
+        min-width: 200px;
+        flex-shrink: 0;
+    }
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize tabs
-  initializeTabs('earnings-tabs');
-  
-  // Handle withdrawal amount validation
-  const withdrawAmount = document.getElementById('withdraw_amount');
-  if (withdrawAmount) {
-    withdrawAmount.addEventListener('input', function() {
-      const maxAmount = parseFloat(this.getAttribute('max'));
-      const currentAmount = parseFloat(this.value);
-      
-      if (currentAmount > maxAmount) {
-        this.value = maxAmount.toFixed(2);
-      }
-    });
-  }
+    // Show content with smooth fade-in
+    const content = document.getElementById('earnings-content');
+    if (content) {
+        setTimeout(() => {
+            content.style.opacity = '1';
+        }, 100);
+    }
+    
+    // Handle withdrawal amount validation
+    const withdrawAmount = document.getElementById('withdraw_amount');
+    if (withdrawAmount) {
+        withdrawAmount.addEventListener('input', function() {
+            const maxAmount = parseFloat(this.getAttribute('max'));
+            const currentAmount = parseFloat(this.value);
+            
+            if (currentAmount > maxAmount) {
+                this.value = maxAmount.toFixed(2);
+            }
+        });
+    }
 });
-
-function updateStripeSettings() {
-  window.location.href = "{{ url_for('expert_stripe_onboarding') }}";
-}
 </script>
-{% endblock %} 
+{% endblock %}
