@@ -1,6 +1,10 @@
 # Use Python 3.11 slim
 FROM python:3.11-slim
 
+# Build argument to force rebuild
+ARG BUILD_DATE
+ENV BUILD_DATE=${BUILD_DATE}
+
 # Set working directory
 WORKDIR /app
 

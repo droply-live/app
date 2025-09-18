@@ -50,8 +50,8 @@
             <div class="stat-card card text-center">
                 <div class="card-body">
                     <i data-feather="dollar-sign" class="text-warning mb-2" style="width: 32px; height: 32px;"></i>
-                    <h4 class="fw-bold mb-1">${{ current_user.hourly_rate or 0 }}</h4>
-                    <small class="text-muted">Hourly Rate</small>
+                    <h4 class="fw-bold mb-1">${{ "%.0f"|format(current_user.hourly_rate or 0) }}</h4>
+                    <small class="text-muted">Session Price</small>
                 </div>
             </div>
         </div>
@@ -156,7 +156,7 @@
                         <i data-feather="search" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
                         <p class="text-muted mb-0">No sessions booked yet</p>
                         <small class="text-muted">
-                            <a href="{{ url_for('find_experts') }}">Browse experts</a> to book your first session!
+                            <a href="{{ url_for('search') }}">Browse users</a> to book your first session!
                         </small>
                     </div>
                     {% endif %}

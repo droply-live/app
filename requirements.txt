@@ -6,7 +6,7 @@ flask-login
 flask-wtf
 wtforms
 sqlalchemy
-stripe
+stripe>=12.0.0
 werkzeug
 python-dotenv
 authlib
@@ -17,4 +17,6 @@ google-api-python-client
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
-cryptography 
+cryptography
+tzlocal
+pytz 
