@@ -4116,3 +4116,15 @@ def process_referral_reward():
             'success': False,
             'error': str(e)
         }), 500
+
+
+# Privacy Policy and Terms of Service routes
+@app.route('/privacy-policy')
+def privacy_policy():
+    """Display the privacy policy page"""
+    return render_template('privacy_policy.html')
+
+@app.route('/terms-of-service')
+def terms_of_service():
+    """Display the terms of service page"""
+    return render_template('terms_of_service.html')
