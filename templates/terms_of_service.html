@@ -1,17 +1,42 @@
-{% extends "base_signed_in.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - Droply</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="container">
+            <a href="{{ url_for('homepage') }}" class="top-nav-brand">
+                droply
+            </a>
+            <div class="top-nav-links">
+                <a href="{{ url_for('homepage') }}" class="top-nav-link">Home</a>
+                <a href="{{ url_for('search') }}" class="top-nav-link">Search</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard') }}" class="top-nav-link">Dashboard</a>
+                    <a href="{{ url_for('logout') }}" class="top-nav-link">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="top-nav-link">Login</a>
+                    <a href="{{ url_for('register') }}" class="top-nav-link btn-primary">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
 
-{% block title %}Terms of Service - Droply{% endblock %}
-
-{% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h1 class="h3 mb-0">Terms of Service</h1>
-                    <p class="text-muted mb-0">Last updated: September 17, 2025</p>
-                </div>
-                <div class="card-body">
+    <div class="container mt-4" style="margin-top: 100px;">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h1 class="h3 mb-0">Terms of Service</h1>
+                        <p class="text-muted mb-0">Last updated: September 17, 2025</p>
+                    </div>
+                    <div class="card-body">
                     <div class="terms-content">
                         <h2>1. Acceptance of Terms</h2>
                         <p>By accessing and using Droply ("the Platform"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
@@ -199,4 +224,12 @@
     text-decoration: underline;
 }
 </style>
-{% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
+</body>
+</html>
