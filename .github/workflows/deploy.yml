@@ -50,6 +50,12 @@ jobs:
           export FLASK_DEBUG='0'
           # Zero-downtime deployment
           echo "🚀 Starting zero-downtime deployment..."
+          # Clean up any existing containers on port 5001
+          echo "🧹 Cleaning up existing containers on port 5001..."
+          docker ps -q --filter "publish=5001" | xargs -r docker stop || true
+          docker ps -aq --filter "publish=5001" | xargs -r docker rm || true
+          docker ps -aq --filter "name=droply-web-new" | xargs -r docker stop || true
+          docker ps -aq --filter "name=droply-web-new" | xargs -r docker rm || true
           # Build new image with timestamp tag
           NEW_IMAGE_TAG="droply-web:$(date +%s)"
           docker build --build-arg BUILD_DATE="$(date)" -t $NEW_IMAGE_TAG .
