@@ -1847,7 +1847,7 @@ def booking_confirmation():
             # Handle POST request - create booking and redirect to Stripe
             try:
                 print("DEBUG: Starting booking confirmation POST handling")
-            
+                
                 expert_username = request.args.get('expert')
                 datetime_str = request.args.get('datetime')
                 duration = int(request.args.get('duration', 30))
@@ -1876,63 +1876,63 @@ def booking_confirmation():
                 print(f"DEBUG: Booking confirmation POST - Start time: {start_time}")
                 print(f"DEBUG: Booking confirmation POST - End time: {end_time}")
                 
+                # Prevent double booking: check for any overlapping bookings
+                print("DEBUG: Checking for booking conflicts")
+                conflict = Booking.query.filter(
+                    (Booking.expert_id == expert.id) &
+                    (Booking.status == 'confirmed') &
+                    (
+                        ((start_time >= Booking.start_time) & (start_time < Booking.end_time)) |
+                        ((end_time > Booking.start_time) & (end_time <= Booking.end_time)) |
+                        ((start_time <= Booking.start_time) & (end_time >= Booking.end_time))
+                    )
+                ).first()
+                
+                if conflict:
+                    print("DEBUG: Booking conflict found")
+                    flash('This time slot has already been booked. Please choose another time.', 'error')
+                    return redirect(url_for('bookings'))
+                
+                print("DEBUG: No booking conflicts found")
+                
+                # Calculate pricing
+                print("DEBUG: Calculating pricing")
+                hourly_rate = expert.hourly_rate or 0
+                if duration == 30:
+                    session_fee = hourly_rate * 0.5
+                else:
+                    session_fee = (hourly_rate * duration) / 60
+                platform_fee = max(5.0, session_fee * 0.10)
+                total_amount = session_fee + platform_fee
+                
+                print(f"DEBUG: Pricing calculated - Session fee: {session_fee}, Platform fee: {platform_fee}, Total: {total_amount}")
+                
+                # Create booking with pending payment status
+                print("DEBUG: Creating booking")
+                booking = Booking(
+                    user_id=current_user.id,
+                    expert_id=expert.id,
+                    start_time=start_time,
+                    end_time=end_time,
+                    duration=duration,
+                    status='pending',
+                    payment_status='pending',
+                    payment_amount=total_amount
+                )
+                
+                db.session.add(booking)
+                db.session.commit()
+                
+                print(f"DEBUG: Booking created with ID: {booking.id}")
+                
+                # Redirect to Stripe checkout
+                print("DEBUG: Redirecting to Stripe checkout")
+                return redirect(url_for('create_checkout_session', booking_id=booking.id))
+                
             except Exception as e:
                 print(f"DEBUG: Exception in booking confirmation POST: {e}")
                 flash(f'Error processing booking: {str(e)}', 'error')
                 return redirect(url_for('homepage'))
-        
-            # Prevent double booking: check for any overlapping bookings
-            print("DEBUG: Checking for booking conflicts")
-            conflict = Booking.query.filter(
-                (Booking.expert_id == expert.id) &
-                (Booking.status == 'confirmed') &
-                (
-                    ((start_time >= Booking.start_time) & (start_time < Booking.end_time)) |
-                    ((end_time > Booking.start_time) & (end_time <= Booking.end_time)) |
-                    ((start_time <= Booking.start_time) & (end_time >= Booking.end_time))
-                )
-            ).first()
-            
-            if conflict:
-                print("DEBUG: Booking conflict found")
-                flash('This time slot has already been booked. Please choose another time.', 'error')
-                return redirect(url_for('bookings'))
-            
-            print("DEBUG: No booking conflicts found")
-            
-            # Calculate pricing
-            print("DEBUG: Calculating pricing")
-            hourly_rate = expert.hourly_rate or 0
-            if duration == 30:
-                session_fee = hourly_rate * 0.5
-            else:
-                session_fee = (hourly_rate * duration) / 60
-            platform_fee = max(5.0, session_fee * 0.10)
-            total_amount = session_fee + platform_fee
-            
-            print(f"DEBUG: Pricing calculated - Session fee: {session_fee}, Platform fee: {platform_fee}, Total: {total_amount}")
-            
-            # Create booking with pending payment status
-            print("DEBUG: Creating booking")
-            booking = Booking(
-                user_id=current_user.id,
-                expert_id=expert.id,
-                start_time=start_time,
-                end_time=end_time,
-                duration=duration,
-                status='pending',
-                payment_status='pending',
-                payment_amount=total_amount
-            )
-            
-            db.session.add(booking)
-            db.session.commit()
-            
-            print(f"DEBUG: Booking created with ID: {booking.id}")
-            
-            # Redirect to Stripe checkout
-            print("DEBUG: Redirecting to Stripe checkout")
-            return redirect(url_for('create_checkout_session', booking_id=booking.id))
     
     except Exception as e:
         print(f"DEBUG: Exception in booking_confirmation: {e}")
