@@ -99,7 +99,7 @@
             {% for user in users %}
             <div class="user-card">
               <div class="card-image">
-                <img src="{{ user.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
+                <img src="{{ user.profile_picture or url_for('static', filename='img/default-avatar.svg') }}" 
                      alt="{{ user.full_name }}" 
                      class="user-avatar">
                 {% if user.is_top_expert %}

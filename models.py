@@ -42,6 +42,7 @@ class User(UserMixin, db.Model):
     github_url = db.Column(db.String(200))
     instagram_url = db.Column(db.String(200))
     facebook_url = db.Column(db.String(200))
+    youtube_url = db.Column(db.String(200))
     snapchat_url = db.Column(db.String(200))
     website_url = db.Column(db.String(200))
 

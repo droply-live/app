@@ -40,7 +40,7 @@
                                             {% if current_user.profile_picture %}
                                                 <img src="{{ current_user.profile_picture }}" alt="Profile Picture" class="avatar-image">
                                             {% else %}
-                                                <i class="fas fa-user fa-3x"></i>
+                                                <img src="{{ url_for('static', filename='img/default-avatar.svg') }}" alt="Profile Picture" class="avatar-image">
                                             {% endif %}
                                             <div class="avatar-overlay">
                                                 <i class="fas fa-camera"></i>
@@ -71,6 +71,48 @@
                                     <button class="btn btn-primary" onclick="saveProfile()">
                                         <i class="fas fa-save"></i>
                                         Save Profile
+                                    </button>
+                                </div>
+                                
+                                <!-- Social Media Section -->
+                                <div class="form-section">
+                                    <h6><i class="fas fa-share-alt me-2"></i>Social Media Links</h6>
+                                    <div class="form-group">
+                                        <label for="linkedin">LinkedIn</label>
+                                        <input type="url" id="linkedin" class="form-control" value="{{ current_user.linkedin_url or '' }}" placeholder="https://linkedin.com/in/yourprofile">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="twitter">Twitter/X</label>
+                                        <input type="url" id="twitter" class="form-control" value="{{ current_user.twitter_url or '' }}" placeholder="https://twitter.com/yourhandle">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="github">GitHub</label>
+                                        <input type="url" id="github" class="form-control" value="{{ current_user.github_url or '' }}" placeholder="https://github.com/yourusername">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="instagram">Instagram</label>
+                                        <input type="url" id="instagram" class="form-control" value="{{ current_user.instagram_url or '' }}" placeholder="https://instagram.com/yourhandle">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="website">Website</label>
+                                        <input type="url" id="website" class="form-control" value="{{ current_user.website_url or '' }}" placeholder="https://yourwebsite.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="facebook">Facebook</label>
+                                        <input type="url" id="facebook" class="form-control" value="{{ current_user.facebook_url or '' }}" placeholder="https://facebook.com/yourprofile">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="youtube">YouTube</label>
+                                        <input type="url" id="youtube" class="form-control" value="{{ current_user.youtube_url or '' }}" placeholder="https://youtube.com/@yourchannel">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="snapchat">Snapchat</label>
+                                        <input type="url" id="snapchat" class="form-control" value="{{ current_user.snapchat_url or '' }}" placeholder="https://snapchat.com/add/yourusername">
+                                    </div>
+                                    
+                                    <button class="btn btn-primary" onclick="saveSocialMedia()">
+                                        <i class="fas fa-save"></i>
+                                        Save Social Media
                                     </button>
                                 </div>
                             </div>
@@ -978,7 +1020,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // Profile Picture Upload Handler
 function handleProfilePictureUpload(event) {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+        console.log('No file selected');
+        return;
+    }
+    
+    console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
     
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -1001,16 +1048,28 @@ function handleProfilePictureUpload(event) {
     const originalContent = avatar.innerHTML;
     avatar.innerHTML = '<i class="fas fa-spinner fa-spin fa-2x"></i>';
     
+    console.log('Starting upload...');
+    
     // Upload the file
     fetch('/api/profile/upload-picture', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log('Upload response:', data);
         if (data.success) {
-            // Update the avatar with the new image
-            avatar.innerHTML = `<img src="${data.profile_picture_url}" alt="Profile Picture" class="avatar-image">`;
+            // Update the avatar with the new image while preserving the overlay
+            avatar.innerHTML = `
+                <img src="${data.profile_picture_url}" alt="Profile Picture" class="avatar-image">
+                <div class="avatar-overlay">
+                    <i class="fas fa-camera"></i>
+                    <span>Change Photo</span>
+                </div>
+            `;
             // Show success message
             showNotification('Profile picture updated successfully!', 'success');
         } else {
@@ -2262,6 +2321,86 @@ window.testAutoSave = function() {
   
   console.log('Test completed. Check for save messages above.');
 };
+
+// Save Social Media Function
+function saveSocialMedia() {
+    const linkedin = document.getElementById('linkedin').value.trim();
+    const twitter = document.getElementById('twitter').value.trim();
+    const github = document.getElementById('github').value.trim();
+    const instagram = document.getElementById('instagram').value.trim();
+    const website = document.getElementById('website').value.trim();
+    const facebook = document.getElementById('facebook').value.trim();
+    const youtube = document.getElementById('youtube').value.trim();
+    const snapchat = document.getElementById('snapchat').value.trim();
+    
+    // Validate URLs if provided
+    const urlFields = [
+        { value: linkedin, name: 'LinkedIn' },
+        { value: twitter, name: 'Twitter' },
+        { value: github, name: 'GitHub' },
+        { value: instagram, name: 'Instagram' },
+        { value: website, name: 'Website' },
+        { value: facebook, name: 'Facebook' },
+        { value: youtube, name: 'YouTube' },
+        { value: snapchat, name: 'Snapchat' }
+    ];
+    
+    for (const field of urlFields) {
+        if (field.value && !isValidUrl(field.value)) {
+            showNotification(`Please enter a valid ${field.name} URL`, 'error');
+            return;
+        }
+    }
+    
+    // Show loading state
+    const saveBtn = document.querySelector('button[onclick="saveSocialMedia()"]');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    saveBtn.disabled = true;
+    
+    fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            linkedin: linkedin,
+            twitter: twitter,
+            github: github,
+            instagram: instagram,
+            website: website,
+            facebook: facebook,
+            youtube: youtube,
+            snapchat: snapchat
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Social media links saved successfully!', 'success');
+        } else {
+            showNotification('Failed to save social media links: ' + (data.error || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error saving social media:', error);
+        showNotification('Error saving social media links', 'error');
+    })
+    .finally(() => {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    });
+}
+
+// URL validation helper function
+function isValidUrl(string) {
+    try {
+        new URL(string);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
 
 </script>
 {% endblock %} 

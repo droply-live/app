@@ -145,6 +145,14 @@
                         <label for="facebook" class="form-label small mb-1">Facebook</label>
                         <input type="url" class="form-control form-control-sm" id="facebook" name="facebook" value="{{ current_user.facebook_url or '' }}" placeholder="https://facebook.com/yourprofile">
                       </div>
+                      <div class="mb-2">
+                        <label for="youtube" class="form-label small mb-1">YouTube</label>
+                        <input type="url" class="form-control form-control-sm" id="youtube" name="youtube" value="{{ current_user.youtube_url or '' }}" placeholder="https://youtube.com/@yourchannel">
+                      </div>
+                      <div class="mb-2">
+                        <label for="snapchat" class="form-label small mb-1">Snapchat</label>
+                        <input type="url" class="form-control form-control-sm" id="snapchat" name="snapchat" value="{{ current_user.snapchat_url or '' }}" placeholder="https://snapchat.com/add/yourusername">
+                      </div>
                     </div>
                   </div>
                 </div>

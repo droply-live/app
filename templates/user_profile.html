@@ -3,234 +3,420 @@
 {% block title %}{{ expert.full_name }} - Droply{% endblock %}
 
 {% block content %}
-<!-- Clean Profile Page -->
-<div class="profile-page">
-  <!-- Header -->
-  <div class="profile-header">
-    <div class="header-container">
-      <a href="{{ url_for('search') }}" class="back-btn">
-        <i class="fas fa-arrow-left"></i>
-        <span>Back</span>
-      </a>
-      <div class="header-actions">
-        <button class="action-btn share-btn" title="Share">
-          <i class="fas fa-share-alt"></i>
-        </button>
-        <button class="action-btn favorite-btn" title="Favorite">
-          <i class="far fa-heart"></i>
-        </button>
-      </div>
+<!-- Modern Creator Profile Page -->
+<div class="modern-profile-page">
+  <!-- Navigation -->
+  <div class="header-nav">
+    <a href="{{ url_for('search') }}" class="nav-back">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+    <div class="nav-actions">
+      <button class="action-btn share-btn" title="Share Profile">
+        <i class="fas fa-share-alt"></i>
+      </button>
+      <button class="action-btn favorite-btn" title="Save to Favorites">
+        <i class="far fa-heart"></i>
+      </button>
     </div>
   </div>
 
   <!-- Main Content -->
-  <div class="profile-main">
-    <!-- Left: Large Image Area -->
-    <div class="profile-left">
-      <div class="image-card">
-        <div class="large-image">
-          <img src="{{ expert.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
-               alt="{{ expert.full_name }}" 
-               class="main-avatar">
-          {% if expert.is_verified %}
-          <div class="verified-badge">
-            <i class="fas fa-check"></i>
-          </div>
-          {% endif %}
-        </div>
-        
-        <div class="profile-info">
-          <h1 class="name">{{ expert.full_name }}</h1>
-          {% if expert.profession %}
-          <p class="title">{{ expert.profession }}</p>
-          {% endif %}
-          {% if expert.location %}
-          <p class="location">
-            <i class="fas fa-map-marker-alt"></i>
-            {{ expert.location }}
-          </p>
-          {% endif %}
-          
-          {% if expert.rating_count and expert.rating_count > 0 %}
-          <div class="rating">
-            <div class="stars">
-              {% for i in range(expert.rating|int) %}
-              <i class="fas fa-star"></i>
-              {% endfor %}
-              {% for i in range(5 - expert.rating|int) %}
-              <i class="far fa-star"></i>
-              {% endfor %}
+  <div class="profile-content">
+    <div class="content-container">
+      <!-- Left Column: About & Social -->
+      <div class="content-left">
+        <!-- Profile Image Section -->
+        <div class="content-section">
+          <div class="profile-image-container">
+            <img src="{{ expert.profile_picture or url_for('static', filename='img/default-avatar.svg') }}" 
+                 alt="{{ expert.full_name }}" 
+                 class="profile-hero-image">
+            {% if expert.is_verified %}
+            <div class="verified-badge">
+              <i class="fas fa-check"></i>
             </div>
-            <span class="rating-text">{{ "%.1f"|format(expert.rating or 0) }} ({{ expert.rating_count }} reviews)</span>
+            {% endif %}
           </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <!-- Center: About Me & Social Media -->
-    <div class="profile-center">
-      <!-- About Me -->
-      {% if expert.bio %}
-      <div class="content-card">
-        <h2 class="card-title">About Me</h2>
-        <p class="bio">{{ expert.bio }}</p>
-      </div>
-      {% endif %}
-
-      <!-- Expertise Tags -->
-      {% if expert.expertise_1 or expert.expertise_2 or expert.expertise_3 %}
-      <div class="content-card">
-        <h2 class="card-title">Expertise</h2>
-        <div class="expertise-tags">
-          {% if expert.expertise_1 %}
-          <span class="tag">{{ expert.expertise_1 }}</span>
-          {% endif %}
-          {% if expert.expertise_2 %}
-          <span class="tag">{{ expert.expertise_2 }}</span>
-          {% endif %}
-          {% if expert.expertise_3 %}
-          <span class="tag">{{ expert.expertise_3 }}</span>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Social Media -->
-      <div class="content-card social-card">
-        <h2 class="card-title">Connect With Me</h2>
-        <div class="social-links">
-          {% if expert.linkedin_url %}
-          <a href="{{ expert.linkedin_url }}" target="_blank" class="social-link">
-            <i class="fab fa-linkedin"></i>
-            <span>LinkedIn</span>
-          </a>
-          {% endif %}
-          {% if expert.twitter_url %}
-          <a href="{{ expert.twitter_url }}" target="_blank" class="social-link">
-            <i class="fab fa-twitter"></i>
-            <span>Twitter</span>
-          </a>
-          {% endif %}
-          {% if expert.github_url %}
-          <a href="{{ expert.github_url }}" target="_blank" class="social-link">
-            <i class="fab fa-github"></i>
-            <span>GitHub</span>
-          </a>
-          {% endif %}
-          {% if expert.instagram_url %}
-          <a href="{{ expert.instagram_url }}" target="_blank" class="social-link">
-            <i class="fab fa-instagram"></i>
-            <span>Instagram</span>
-          </a>
-          {% endif %}
-          {% if expert.website_url %}
-          <a href="{{ expert.website_url }}" target="_blank" class="social-link">
-            <i class="fas fa-globe"></i>
-            <span>Website</span>
-          </a>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <!-- Right: Services & Booking -->
-    <div class="profile-right">
-      <!-- Services -->
-      <div class="content-card">
-        <h2 class="card-title">Services</h2>
-        <div class="service-item">
-          <div class="service-icon">
-            <i class="fas fa-video"></i>
-          </div>
-          <div class="service-info">
-            <h3 class="service-title">Video Consultation</h3>
-            <p class="service-desc">30-minute personalized video call</p>
+          
+          <div class="profile-name-section">
+            <h1 class="profile-hero-name">{{ expert.full_name }}</h1>
+            {% if expert.profession %}
+            <p class="profile-hero-title">{{ expert.profession }}</p>
+            {% endif %}
+            {% if expert.location %}
+            <p class="profile-hero-location">
+              <i class="fas fa-map-marker-alt"></i>
+              {{ expert.location }}
+            </p>
+            {% endif %}
+            
+            <!-- Social Media Icons -->
+            <div class="profile-social-icons">
+              <a href="{{ expert.linkedin_url or '#' }}" target="_blank" class="social-icon">
+                <i class="fab fa-linkedin"></i>
+              </a>
+              <a href="{{ expert.twitter_url or '#' }}" target="_blank" class="social-icon">
+                <i class="fab fa-twitter"></i>
+              </a>
+              <a href="{{ expert.github_url or '#' }}" target="_blank" class="social-icon">
+                <i class="fab fa-github"></i>
+              </a>
+              <a href="{{ expert.instagram_url or '#' }}" target="_blank" class="social-icon">
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a href="{{ expert.website_url or '#' }}" target="_blank" class="social-icon">
+                <i class="fas fa-globe"></i>
+              </a>
+              <a href="{{ expert.youtube_url or '#' }}" target="_blank" class="social-icon">
+                <i class="fab fa-youtube"></i>
+              </a>
+              <a href="{{ expert.facebook_url or '#' }}" target="_blank" class="social-icon">
+                <i class="fab fa-facebook"></i>
+              </a>
+              <a href="{{ expert.snapchat_url or '#' }}" target="_blank" class="social-icon">
+                <i class="fab fa-snapchat"></i>
+              </a>
+            </div>
           </div>
         </div>
         
-        {% if expert.charity_percentage and expert.charity_percentage > 0 %}
-        <div class="service-item charity">
-          <div class="service-icon">
-            <i class="fas fa-heart"></i>
+        <!-- Quick Summary Section -->
+        <div class="content-section">
+          <h2 class="section-title">Quick Summary</h2>
+          <div class="summary-content">
+            <p>Experienced professional with expertise in multiple domains. Passionate about helping others achieve their goals through personalized consultation and guidance.</p>
           </div>
-          <div class="service-info">
-            <h3 class="service-title">Charity Support</h3>
-            <p class="service-desc">{{ expert.charity_percentage }}% donated to {{ expert.charity_name or 'charity' }}</p>
+        </div>
+        
+        <!-- About Section -->
+        {% if expert.bio %}
+        <div class="content-section">
+          <h2 class="section-title">About Me</h2>
+          <div class="bio-content">
+            <p>{{ expert.bio }}</p>
           </div>
         </div>
         {% endif %}
+
+        <!-- Expertise Section -->
+        {% if expert.expertise_1 or expert.expertise_2 or expert.expertise_3 %}
+        <div class="content-section">
+          <h2 class="section-title">Expertise & Skills</h2>
+          <div class="expertise-grid">
+            {% if expert.expertise_1 %}
+            <div class="skill-card">
+              <i class="fas fa-star"></i>
+              <span>{{ expert.expertise_1 }}</span>
+            </div>
+            {% endif %}
+            {% if expert.expertise_2 %}
+            <div class="skill-card">
+              <i class="fas fa-star"></i>
+              <span>{{ expert.expertise_2 }}</span>
+            </div>
+            {% endif %}
+            {% if expert.expertise_3 %}
+            <div class="skill-card">
+              <i class="fas fa-star"></i>
+              <span>{{ expert.expertise_3 }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+
+        <!-- Portfolio/Gallery Section -->
+        <div class="content-section">
+          <h2 class="section-title">Portfolio</h2>
+          <div class="portfolio-grid">
+            <div class="portfolio-item">
+              <div class="portfolio-placeholder">
+                <i class="fas fa-image"></i>
+                <span>Coming Soon</span>
+              </div>
+            </div>
+            <div class="portfolio-item">
+              <div class="portfolio-placeholder">
+                <i class="fas fa-video"></i>
+                <span>Video Content</span>
+              </div>
+            </div>
+            <div class="portfolio-item">
+              <div class="portfolio-placeholder">
+                <i class="fas fa-file-alt"></i>
+                <span>Case Studies</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Booking -->
-      <div class="booking-card">
-        <h3 class="booking-title">Book Session</h3>
-        <div class="price">
-          <span class="currency">$</span>
-          <span class="amount">{{ expert.hourly_rate or 0 }}</span>
-          <span class="period">/session</span>
+      <!-- Right Column: Services & Booking -->
+      <div class="content-right">
+        <!-- Services Card -->
+        <div class="services-card">
+          <h2 class="card-title">Services & Pricing</h2>
+          
+          <div class="service-item">
+            <div class="service-header">
+              <div class="service-icon">
+                <i class="fas fa-video"></i>
+              </div>
+              <div class="service-info">
+                <h3 class="service-title">1-on-1 Consultation</h3>
+                <p class="service-desc">Personalized video call session</p>
+              </div>
+            </div>
+            <div class="service-price">
+              <span class="price-amount">${{ expert.hourly_rate or 0 }}</span>
+              <span class="price-unit">/session</span>
+            </div>
+          </div>
+
+          {% if expert.charity_percentage and expert.charity_percentage > 0 %}
+          <div class="service-item charity">
+            <div class="service-header">
+              <div class="service-icon">
+                <i class="fas fa-heart"></i>
+              </div>
+              <div class="service-info">
+                <h3 class="service-title">Charity Support</h3>
+                <p class="service-desc">{{ expert.charity_percentage }}% donated to charity</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Tip Jar -->
+          <div class="tip-jar">
+            <h3 class="tip-title">Support My Work</h3>
+            <p class="tip-desc">Buy me a coffee to support my content creation</p>
+            <div class="tip-amounts">
+              <button class="tip-btn">$5</button>
+              <button class="tip-btn">$10</button>
+              <button class="tip-btn">$25</button>
+              <button class="tip-btn custom">Custom</button>
+            </div>
+          </div>
         </div>
-        
-        <a href="{{ url_for('user_booking_times', username=expert.username) }}" 
-           class="book-btn">
-          <i class="fas fa-calendar-plus"></i>
-          Book Now
-        </a>
+
+        <!-- Booking Card -->
+        <div class="booking-card">
+          <div class="booking-header">
+            <h3 class="booking-title">Book a Session</h3>
+            <div class="availability-status">
+              <i class="fas fa-circle"></i>
+              <span>Available Now</span>
+            </div>
+          </div>
+          
+          
+          <a href="{{ url_for('user_booking_times', username=expert.username) }}" 
+             class="book-now-btn">
+            <i class="fas fa-calendar-plus"></i>
+            <span>Book Now - ${{ expert.hourly_rate or 0 }}</span>
+          </a>
+          
+          <div class="booking-footer">
+            <p class="booking-note">
+              <i class="fas fa-shield-alt"></i>
+              Secure payment • Cancel anytime
+            </p>
+          </div>
+        </div>
+
+        <!-- Testimonials -->
+        <div class="testimonials-card">
+          <h3 class="card-title">What People Say</h3>
+          <div class="testimonial-item">
+            <div class="testimonial-content">
+              <p>"Amazing session! Really helped me understand the concepts I was struggling with."</p>
+            </div>
+            <div class="testimonial-author">
+              <div class="author-avatar">JS</div>
+              <div class="author-info">
+                <span class="author-name">John Smith</span>
+                <div class="testimonial-rating">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <style>
-/* Clean Profile Page - NO SCROLLING */
-.profile-page {
-  height: 100vh;
-  background: #f8fafc;
+/* Modern Creator Profile Styles - Inspired by Stan.store */
+.modern-profile-page {
+  min-height: 100vh;
+  background: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 }
 
-/* Header */
-.profile-header {
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 1rem 0;
-  flex-shrink: 0;
-  height: 60px;
+/* Hide mobile enhancement overlays on profile page */
+.quick-action-overlay,
+.quick-action-buttons,
+.mobile-notification,
+.mobile-image-preview {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
-.header-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
+/* Additional rules to prevent any overlay from appearing */
+.modern-profile-page .quick-action-overlay,
+.modern-profile-page .quick-action-buttons,
+.modern-profile-page .mobile-notification,
+.modern-profile-page .mobile-image-preview {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Ensure Services & Pricing section displays inline, not as popup */
+.services-card {
+  position: static !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  max-width: none !important;
+  width: 100% !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 1 !important;
+}
+
+/* Ensure Booking Card displays inline, not as popup */
+.booking-card {
+  position: static !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  max-width: none !important;
+  width: 100% !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 1 !important;
+}
+
+/* Ensure booking features display inline */
+.booking-features {
+  position: static !important;
+  transform: none !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 1 !important;
+}
+
+/* Ensure feature items display inline */
+.feature-item {
+  position: static !important;
+  transform: none !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 1 !important;
+}
+
+/* Prevent any modal-like behavior */
+.services-card::before,
+.services-card::after,
+.booking-card::before,
+.booking-card::after,
+.booking-features::before,
+.booking-features::after,
+.feature-item::before,
+.feature-item::after {
+  display: none !important;
+}
+
+/* Aggressive override to prevent any popup/modal behavior */
+.modern-profile-page * {
+  position: static !important;
+  transform: none !important;
+}
+
+.modern-profile-page .services-card,
+.modern-profile-page .booking-card,
+.modern-profile-page .booking-features,
+.modern-profile-page .feature-item {
+  position: static !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  max-width: none !important;
+  width: 100% !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 1 !important;
+  box-shadow: none !important;
+  border: 1px solid #e5e5e5 !important;
+  background: #fafafa !important;
+}
+
+.modern-profile-page .feature-item {
+  display: flex !important;
+}
+
+/* Navigation */
+.header-nav {
+  background: linear-gradient(135deg, #1B4332 0%, #2D5A3D 100%);
+  color: white;
+  padding: 1rem 2rem;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  height: 100%;
+  align-items: center;
 }
 
-.back-btn {
+.nav-back {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #f8fafc;
-  color: #64748b;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   transition: all 0.2s ease;
-  font-weight: 500;
+  font-size: 1rem;
 }
 
-.back-btn:hover {
-  background: #e2e8f0;
-  color: #334155;
+.nav-back:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
   text-decoration: none;
 }
 
-.header-actions {
+.nav-actions {
   display: flex;
   gap: 0.5rem;
 }
@@ -239,79 +425,53 @@
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-size: 1rem;
 }
 
 .action-btn:hover {
-  background: #e2e8f0;
-  color: #334155;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .favorite-btn.favorited {
-  background: #fef2f2;
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.8);
+  color: white;
 }
 
-/* Main Content - FIXED HEIGHT */
-.profile-main {
-  flex: 1;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem 1.5rem;
-  display: grid;
-  grid-template-columns: 400px 1fr 260px;
-  gap: 1rem;
-  height: calc(100vh - 60px);
-  overflow: hidden;
-}
-
-/* Left: Large Image Area */
-.profile-left {
-  display: flex;
-  flex-direction: column;
-}
-
-.image-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.large-image {
+/* Profile Image Section */
+.profile-image-container {
   position: relative;
-  text-align: center;
   margin-bottom: 1rem;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
 }
 
-.main-avatar {
-  width: 200px;
+.profile-hero-image {
+  width: 100%;
+  max-width: 250px;
   height: 200px;
-  border-radius: 20px;
+  border-radius: 12px;
   object-fit: cover;
-  border: 3px solid #f1f5f9;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e5e5e5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.profile-hero-image:hover {
+  transform: scale(1.02);
 }
 
 .verified-badge {
   position: absolute;
-  bottom: 15px;
-  right: calc(50% - 100px + 15px);
+  bottom: 8px;
+  right: 8px;
   width: 28px;
   height: 28px;
   background: #10b981;
@@ -320,198 +480,347 @@
   align-items: center;
   justify-content: center;
   color: white;
-  border: 3px solid white;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-  font-size: 0.8rem;
-}
-
-.profile-info {
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.name {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 0.25rem 0;
-}
-
-.title {
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   font-size: 0.9rem;
-  color: #64748b;
-  margin: 0 0 0.25rem 0;
 }
 
-.location {
-  font-size: 0.8rem;
+.profile-name-section {
+  text-align: center;
+}
+
+.profile-hero-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+  color: #1e293b;
+}
+
+.profile-hero-title {
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 0 0 0.3rem 0;
   color: #64748b;
-  margin: 0 0 0.75rem 0;
+}
+
+.profile-hero-location {
+  font-size: 0.9rem;
+  margin: 0 0 1rem 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-}
-
-.rating {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.stars {
-  display: flex;
-  gap: 0.125rem;
-}
-
-.stars i {
-  font-size: 0.9rem;
-  color: #fbbf24;
-}
-
-.rating-text {
+  gap: 0.5rem;
   color: #64748b;
-  font-size: 0.75rem;
 }
 
-/* Center: About Me & Social Media */
-.profile-center {
+/* Social Media Icons */
+.profile-social-icons {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   gap: 0.75rem;
-  overflow: hidden;
-  height: 100%;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
 }
 
-.content-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem;
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  flex-shrink: 0;
-  max-height: 200px;
-  overflow-y: auto;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 1rem;
 }
 
-.card-title {
-  font-size: 1rem;
+.social-icon:hover {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  text-decoration: none;
+}
+
+.social-icon:hover i.fab.fa-linkedin {
+  color: white;
+}
+
+.social-icon:hover i.fab.fa-twitter {
+  color: white;
+}
+
+.social-icon:hover i.fab.fa-github {
+  color: white;
+}
+
+.social-icon:hover i.fab.fa-instagram {
+  color: white;
+}
+
+.social-icon:hover i.fas.fa-globe {
+  color: white;
+}
+
+.social-icon:hover i.fab.fa-youtube {
+  color: white;
+}
+
+.social-icon:hover i.fab.fa-facebook {
+  color: white;
+}
+
+.social-icon:hover i.fab.fa-snapchat {
+  color: white;
+}
+
+/* Summary Content */
+.summary-content {
+  line-height: 1.6;
+}
+
+.summary-content p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+
+/* Main Content */
+.profile-content {
+  padding: 2rem 0;
+  background: #ffffff;
+}
+
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+/* Content Sections */
+.content-section {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e5e5e5;
+}
+
+.section-title {
+  font-size: 1.25rem;
   font-weight: 600;
   color: #1e293b;
-  margin: 0 0 0.75rem 0;
-}
-
-.bio {
-  font-size: 0.85rem;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.expertise-tags {
+  margin: 0 0 1rem 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.tag {
-  background: #f0f9ff;
-  color: #0369a1;
-  padding: 0.2rem 0.6rem;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  font-weight: 500;
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
+}
+
+/* Bio Content */
+.bio-content p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #4b5563;
+  margin: 0;
+}
+
+/* Expertise Grid */
+.expertise-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.skill-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 12px;
   border: 1px solid #bae6fd;
+  transition: all 0.3s ease;
+}
+
+.skill-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+}
+
+.skill-card i {
+  color: #0ea5e9;
+  font-size: 1.1rem;
+}
+
+.skill-card span {
+  font-weight: 600;
+  color: #0369a1;
+}
+
+/* Social Grid */
+.social-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
 }
 
 .social-card {
-  flex: 1;
   display: flex;
   flex-direction: column;
-}
-
-.social-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex: 1;
-}
-
-.social-link {
-  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
   background: #f8fafc;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
   text-decoration: none;
-  transition: all 0.2s ease;
-  color: #64748b;
+  color: #4b5563;
+  transition: all 0.3s ease;
 }
 
-.social-link:hover {
-  background: #e2e8f0;
-  color: #334155;
+.social-card:hover {
+  background: #f1f5f9;
+  color: #1e293b;
   text-decoration: none;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
-.social-link i {
-  font-size: 1rem;
-  width: 18px;
-  text-align: center;
+.social-card i {
+  font-size: 1.5rem;
+  color: #667eea;
 }
 
-.social-link span {
-  font-weight: 500;
-  font-size: 0.85rem;
+.social-card span {
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
-/* Right: Services & Booking */
-.profile-right {
+/* Portfolio Grid */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.portfolio-item {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.portfolio-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  height: 100%;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  border: 2px dashed #d1d5db;
+  transition: all 0.3s ease;
 }
 
+.portfolio-placeholder:hover {
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  border-color: #9ca3af;
+}
+
+.portfolio-placeholder i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.portfolio-placeholder span {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Right Column Cards */
+.content-right {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.services-card,
+.booking-card,
+.testimonials-card {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 1.25rem;
+  border: 1px solid #e5e5e5;
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
+}
+
+/* Service Items */
 .service-item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: #f8fafc;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 0.5rem;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e5e5e5;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.service-item:hover {
+  background: #f9f9f9;
 }
 
 .service-item:last-child {
   margin-bottom: 0;
 }
 
-.service-item.charity {
-  background: #fef3c7;
-  border-color: #f59e0b;
+.service-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .service-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: #667eea;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.service-item.charity .service-icon {
-  background: #f59e0b;
+  font-size: 1.2rem;
 }
 
 .service-info {
@@ -519,138 +828,423 @@
 }
 
 .service-title {
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #1e293b;
-  margin: 0 0 0.125rem 0;
+  margin: 0 0 0.25rem 0;
 }
 
 .service-desc {
-  color: #64748b;
+  color: #6b7280;
   margin: 0;
-  font-size: 0.75rem;
-  line-height: 1.3;
+  font-size: 0.9rem;
 }
 
-.booking-card {
-  background: white;
-  border-radius: 12px;
+.service-price {
+  text-align: right;
+}
+
+.price-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+.price-unit {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-left: 0.25rem;
+}
+
+.service-item.charity {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #f59e0b;
+}
+
+.service-item.charity .service-icon {
+  background: #f59e0b;
+}
+
+/* Tip Jar */
+.tip-jar {
+  background: #f9f9f9;
+  border-radius: 6px;
   padding: 1rem;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
+  border: 1px solid #e5e5e5;
+  margin-top: 1rem;
+}
+
+.tip-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.tip-desc {
+  color: #666;
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+}
+
+.tip-amounts {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tip-btn {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  color: #333;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.tip-btn:hover {
+  background: #f5f5f5;
+  border-color: #d0d0d0;
+}
+
+.tip-btn.custom {
+  background: #059669;
+  color: white;
+  border-color: #059669;
+}
+
+.tip-btn.custom:hover {
+  background: #047857;
+}
+
+/* Booking Card */
+.booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
 .booking-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0 0 0.75rem 0;
-  text-align: center;
-}
-
-.price {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.25rem;
-  margin-bottom: 1rem;
-}
-
-.currency {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #0369a1;
-}
-
-.amount {
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #0369a1;
+  color: #1e293b;
+  margin: 0;
 }
 
-.period {
+.availability-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #059669;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.availability-status i {
+  color: #10b981;
   font-size: 0.8rem;
-  color: #64748b;
 }
 
-.book-btn {
+.booking-features {
+  margin-bottom: 2rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.feature-item i {
+  color: #667eea;
+  width: 20px;
+}
+
+.book-now-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.6rem 0.8rem;
-  background: #667eea;
+  padding: 0.75rem 1.5rem;
+  background: #059669;
   color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
+  border-radius: 6px;
+  font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  margin-bottom: 1rem;
 }
 
-.book-btn:hover {
-  background: #5a67d8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  text-decoration: none;
+.book-now-btn:hover {
+  background: #047857;
   color: white;
+  text-decoration: none;
 }
 
-/* Responsive */
+.booking-footer {
+  text-align: center;
+}
+
+.booking-note {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.booking-note i {
+  color: #10b981;
+}
+
+/* Testimonials */
+.testimonial-item {
+  background: #f9f9f9;
+  border-radius: 6px;
+  padding: 1rem;
+  border: 1px solid #e5e5e5;
+}
+
+.testimonial-content {
+  margin-bottom: 1rem;
+}
+
+.testimonial-content p {
+  color: #4b5563;
+  font-style: italic;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.author-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.author-info {
+  flex: 1;
+}
+
+.author-name {
+  font-weight: 600;
+  color: #1e293b;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.testimonial-rating {
+  display: flex;
+  gap: 0.125rem;
+}
+
+.testimonial-rating i {
+  color: #fbbf24;
+  font-size: 0.8rem;
+}
+
+/* Responsive Design */
 @media (max-width: 1024px) {
-  .profile-main {
+  .content-container {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
     gap: 1rem;
-    padding: 1rem;
-    height: auto;
   }
   
-  .profile-center {
-    height: auto;
-  }
-  
-  .image-card,
-  .booking-card {
-    max-width: 500px;
-    margin: 0 auto;
-  }
-  
-  .main-avatar {
-    width: 150px;
-    height: 150px;
+  .stats {
+    justify-content: center;
   }
 }
 
 @media (max-width: 768px) {
-  .header-container {
+  .hero-container {
     padding: 0 1rem;
   }
   
-  .profile-main {
-    padding: 0.75rem;
+  .content-container {
+    padding: 0 1rem;
   }
   
-  .main-avatar {
-    width: 120px;
-    height: 120px;
+  .profile-name {
+    font-size: 1.5rem;
   }
   
-  .name {
-    font-size: 1.25rem;
+  .profile-title {
+    font-size: 1rem;
   }
   
-  .amount {
+  .stats {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .expertise-grid,
+  .social-grid,
+  .portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tip-amounts {
+    justify-content: center;
+  }
+  
+  .booking-features {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-nav {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .nav-actions {
+    justify-content: center;
+  }
+  
+  .profile-name {
     font-size: 1.75rem;
+  }
+  
+  .content-section {
+    padding: 1.5rem;
+  }
+  
+  .services-card,
+  .booking-card,
+  .testimonials-card {
+    padding: 1.5rem;
   }
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Prevent mobile enhancement overlays from appearing
+  const preventMobileOverlays = () => {
+    // Remove any existing overlays
+    const overlays = document.querySelectorAll('.quick-action-overlay, .quick-action-buttons, .mobile-notification, .mobile-image-preview');
+    overlays.forEach(overlay => {
+      overlay.remove();
+    });
+    
+    // Override any functions that might create overlays
+    if (window.showQuickAction) {
+      window.showQuickAction = function() { return false; };
+    }
+    
+    // Ensure services card is not treated as a modal
+    const servicesCard = document.querySelector('.services-card');
+    if (servicesCard) {
+      servicesCard.style.position = 'static';
+      servicesCard.style.transform = 'none';
+      servicesCard.style.top = 'auto';
+      servicesCard.style.left = 'auto';
+      servicesCard.style.right = 'auto';
+      servicesCard.style.bottom = 'auto';
+      servicesCard.style.margin = '0';
+      servicesCard.style.maxWidth = 'none';
+      servicesCard.style.width = '100%';
+      servicesCard.style.display = 'block';
+      servicesCard.style.visibility = 'visible';
+      servicesCard.style.opacity = '1';
+      servicesCard.style.pointerEvents = 'auto';
+      servicesCard.style.zIndex = '1';
+    }
+    
+    // Ensure booking card is not treated as a modal
+    const bookingCard = document.querySelector('.booking-card');
+    if (bookingCard) {
+      bookingCard.style.position = 'static';
+      bookingCard.style.transform = 'none';
+      bookingCard.style.top = 'auto';
+      bookingCard.style.left = 'auto';
+      bookingCard.style.right = 'auto';
+      bookingCard.style.bottom = 'auto';
+      bookingCard.style.margin = '0';
+      bookingCard.style.maxWidth = 'none';
+      bookingCard.style.width = '100%';
+      bookingCard.style.display = 'block';
+      bookingCard.style.visibility = 'visible';
+      bookingCard.style.opacity = '1';
+      bookingCard.style.pointerEvents = 'auto';
+      bookingCard.style.zIndex = '1';
+    }
+    
+    // Ensure booking features display inline
+    const bookingFeatures = document.querySelector('.booking-features');
+    if (bookingFeatures) {
+      bookingFeatures.style.position = 'static';
+      bookingFeatures.style.transform = 'none';
+      bookingFeatures.style.display = 'block';
+      bookingFeatures.style.visibility = 'visible';
+      bookingFeatures.style.opacity = '1';
+      bookingFeatures.style.pointerEvents = 'auto';
+      bookingFeatures.style.zIndex = '1';
+    }
+    
+    // Ensure feature items display inline
+    const featureItems = document.querySelectorAll('.feature-item');
+    featureItems.forEach(item => {
+      item.style.position = 'static';
+      item.style.transform = 'none';
+      item.style.display = 'flex';
+      item.style.visibility = 'visible';
+      item.style.opacity = '1';
+      item.style.pointerEvents = 'auto';
+      item.style.zIndex = '1';
+    });
+  };
+  
+  // Run immediately and on any DOM changes
+  preventMobileOverlays();
+  
+  // Watch for any new elements being added
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.addedNodes.length > 0) {
+        preventMobileOverlays();
+      }
+    });
+  });
+  
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+  
   // Favorite button functionality
   const favoriteBtn = document.querySelector('.favorite-btn');
   if (favoriteBtn) {
@@ -689,16 +1283,51 @@ document.addEventListener('DOMContentLoaded', function() {
           const originalIcon = this.querySelector('i');
           const originalClass = originalIcon.className;
           originalIcon.className = 'fas fa-check';
-          this.style.background = '#f0fdf4';
-          this.style.color = '#10b981';
+          this.style.background = 'rgba(16, 185, 129, 0.8)';
+          this.style.color = 'white';
           
           setTimeout(() => {
             originalIcon.className = originalClass;
-            this.style.background = '#f8fafc';
-            this.style.color = '#64748b';
+            this.style.background = 'rgba(255, 255, 255, 0.1)';
+            this.style.color = 'white';
           }, 2000);
         });
       }
+    });
+  }
+
+
+  // Smooth scrolling for internal links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  });
+
+  // Add loading animation to booking button
+  const bookBtn = document.querySelector('.book-now-btn');
+  if (bookBtn) {
+    bookBtn.addEventListener('click', function() {
+      this.style.opacity = '0.7';
+      this.style.pointerEvents = 'none';
+      
+      // Add loading spinner
+      const originalContent = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Loading...</span>';
+      
+      // Reset after a short delay (in real implementation, this would be after the redirect)
+      setTimeout(() => {
+        this.style.opacity = '1';
+        this.style.pointerEvents = 'auto';
+        this.innerHTML = originalContent;
+      }, 1000);
     });
   }
 });

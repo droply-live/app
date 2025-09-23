@@ -617,6 +617,8 @@ def edit_profile():
             current_user.website_url = request.form.get('website', '')
             current_user.instagram_url = request.form.get('instagram', '')
             current_user.facebook_url = request.form.get('facebook', '')
+            current_user.youtube_url = request.form.get('youtube', '')
+            current_user.snapchat_url = request.form.get('snapchat', '')
             
             # Update availability
             current_user.is_available = 'is_available' in request.form
@@ -2005,6 +2007,8 @@ def api_profile_update():
             current_user.instagram_url = data['instagram']
         if 'facebook' in data:
             current_user.facebook_url = data['facebook']
+        if 'youtube' in data:
+            current_user.youtube_url = data['youtube']
         if 'snapchat' in data:
             current_user.snapchat_url = data['snapchat']
         if 'website' in data:
@@ -2034,15 +2038,21 @@ def api_profile_specialties():
 def upload_profile_picture():
     """Upload and update user profile picture"""
     try:
+        print(f"Upload request from user {current_user.id} ({current_user.username})")
+        print(f"Files in request: {list(request.files.keys())}")
+        
         if 'profile_picture' not in request.files:
+            print("No profile_picture in request files")
             return jsonify({
                 'success': False,
                 'message': 'No file provided'
             }), 400
         
         file = request.files['profile_picture']
+        print(f"File received: {file.filename}, Content type: {file.content_type}, Size: {file.content_length}")
         
         if file.filename == '':
+            print("Empty filename")
             return jsonify({
                 'success': False,
                 'message': 'No file selected'
@@ -2050,6 +2060,7 @@ def upload_profile_picture():
         
         # Validate file type
         if not file.content_type.startswith('image/'):
+            print(f"Invalid file type: {file.content_type}")
             return jsonify({
                 'success': False,
                 'message': 'File must be an image'
@@ -2066,18 +2077,23 @@ def upload_profile_picture():
         
         # Generate unique filename
         unique_filename = f"profile_{current_user.id}_{uuid.uuid4().hex}{file_ext}"
+        print(f"Generated filename: {unique_filename}")
         
         # Create uploads directory if it doesn't exist
         upload_dir = os.path.join(app.root_path, 'static', 'uploads')
         os.makedirs(upload_dir, exist_ok=True)
+        print(f"Upload directory: {upload_dir}")
         
         # Save file
         file_path = os.path.join(upload_dir, unique_filename)
         file.save(file_path)
+        print(f"File saved to: {file_path}")
         
         # Update user profile picture
-        current_user.profile_picture = f"/static/uploads/{unique_filename}"
+        profile_picture_url = f"/static/uploads/{unique_filename}"
+        current_user.profile_picture = profile_picture_url
         db.session.commit()
+        print(f"Updated user profile picture to: {profile_picture_url}")
         
         return jsonify({
             'success': True,
@@ -2086,6 +2102,7 @@ def upload_profile_picture():
         })
         
     except Exception as e:
+        print(f"Error in upload_profile_picture: {str(e)}")
         db.session.rollback()
         return jsonify({
             'success': False,
