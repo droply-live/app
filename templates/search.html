@@ -111,7 +111,7 @@
                         title="{{ 'Remove from favorites' if user.id in current_user_favorites else 'Add to favorites' }}">
                   <i class="fas fa-heart {{ 'favorited' if user.id in current_user_favorites }}"></i>
                 </button>
-                <a href="{{ url_for('user_profile', username=user.username) }}" 
+                <a href="{{ url_for('expert_profile', username=user.username) }}" 
                    class="see-times-btn">See Times</a>
               </div>
               
