@@ -91,6 +91,11 @@ def create_simple_meeting_room(booking_id):
 def create_meeting_room(booking_id):
     """Create a Daily.co meeting room for a booking"""
     try:
+        # Check if Daily.co API key is configured
+        if not DAILY_API_KEY or DAILY_API_KEY == 'your_daily_api_key_here':
+            print(f"[DEBUG] Daily.co API key not configured, using fallback")
+            return create_simple_meeting_room(booking_id)
+        
         # Generate a unique room name with timestamp to avoid conflicts
         timestamp = int(datetime.now().timestamp())
         room_name = f"droply-{booking_id}-{timestamp}"
@@ -1785,147 +1790,156 @@ def api_calendar_events():
 @app.route('/booking/confirm', methods=['GET', 'POST'])
 @login_required
 def booking_confirmation():
-    print(f"DEBUG: booking_confirmation called - Method: {request.method}")
-    print(f"DEBUG: booking_confirmation - Args: {dict(request.args)}")
-    print(f"DEBUG: booking_confirmation - Form: {dict(request.form)}")
     """Booking confirmation page with payment"""
-    print(f"DEBUG: Current user: {current_user.is_authenticated if current_user else 'No user'}")
-    print(f"DEBUG: Request URL: {request.url}")
-    print(f"DEBUG: Request method: {request.method}")
-    print(f"DEBUG: Request args: {dict(request.args)}")
-    if request.method == 'GET':
-        # Get booking details from query parameters
-        expert_username = request.args.get('expert')
-        datetime_str = request.args.get('datetime')
-        duration = request.args.get('duration', 30)
+    try:
+        print(f"DEBUG: booking_confirmation called - Method: {request.method}")
+        print(f"DEBUG: booking_confirmation - Args: {dict(request.args)}")
+        print(f"DEBUG: booking_confirmation - Form: {dict(request.form)}")
+        print(f"DEBUG: Current user: {current_user.is_authenticated if current_user else 'No user'}")
+        print(f"DEBUG: Request URL: {request.url}")
+        print(f"DEBUG: Request method: {request.method}")
+        print(f"DEBUG: Request args: {dict(request.args)}")
         
-        if not expert_username or not datetime_str:
-            flash('Missing booking information', 'error')
-            return redirect(url_for('homepage'))
-        
-        # Get expert details
-        expert = User.query.filter_by(username=expert_username).first()
-        if not expert:
-            flash('Expert not found', 'error')
-            return redirect(url_for('homepage'))
-        
-        # Parse datetime
-        try:
-            booking_datetime = datetime.fromisoformat(datetime_str)
-        except ValueError:
-            flash('Invalid date/time format', 'error')
-            return redirect(url_for('homepage'))
-        
-        # Calculate pricing
-        duration = int(duration)
-        hourly_rate = expert.hourly_rate or 0
-        # For 30-minute sessions, session fee is always 50% of hourly rate
-        if duration == 30:
-            session_fee = hourly_rate * 0.5
-        else:
-            session_fee = (hourly_rate * duration) / 60  # fallback for other durations
-        platform_fee = max(5.0, session_fee * 0.10)  # 10% platform fee, minimum $5
-        total_amount = session_fee + platform_fee
-        
-        return render_template('booking_confirmation.html',
-                             expert=expert,
-                             booking_date=booking_datetime.strftime('%B %d, %Y'),
-                             booking_time=booking_datetime.strftime('%I:%M %p'),
-                             duration=duration,
-                             session_fee=f"{session_fee:.2f}",
-                             platform_fee=f"{platform_fee:.2f}",
-                             total_amount=f"{total_amount:.2f}")
-    
-    else:
-        # Handle POST request - create booking and redirect to Stripe
-        try:
-            print("DEBUG: Starting booking confirmation POST handling")
-            
+        if request.method == 'GET':
+            # Get booking details from query parameters
             expert_username = request.args.get('expert')
             datetime_str = request.args.get('datetime')
-            duration = int(request.args.get('duration', 30))
-            
-            # Debug logging
-            print(f"DEBUG: Booking confirmation POST - Expert: {expert_username}")
-            print(f"DEBUG: Booking confirmation POST - Datetime: {datetime_str}")
-            print(f"DEBUG: Booking confirmation POST - Duration: {duration}")
-            
+            duration = request.args.get('duration', 30)
+        
             if not expert_username or not datetime_str:
-                print("DEBUG: Missing booking information")
                 flash('Missing booking information', 'error')
                 return redirect(url_for('homepage'))
             
+            # Get expert details
             expert = User.query.filter_by(username=expert_username).first()
             if not expert:
-                print("DEBUG: Expert not found")
                 flash('Expert not found', 'error')
                 return redirect(url_for('homepage'))
             
-            print(f"DEBUG: Expert found: {expert.username}")
+            # Parse datetime
+            try:
+                booking_datetime = datetime.fromisoformat(datetime_str)
+            except ValueError:
+                flash('Invalid date/time format', 'error')
+                return redirect(url_for('homepage'))
             
-            start_time = datetime.fromisoformat(datetime_str)
-            end_time = start_time + timedelta(minutes=duration)
+            # Calculate pricing
+            duration = int(duration)
+            hourly_rate = expert.hourly_rate or 0
+            # For 30-minute sessions, session fee is always 50% of hourly rate
+            if duration == 30:
+                session_fee = hourly_rate * 0.5
+            else:
+                session_fee = (hourly_rate * duration) / 60  # fallback for other durations
+            platform_fee = max(5.0, session_fee * 0.10)  # 10% platform fee, minimum $5
+            total_amount = session_fee + platform_fee
             
-            print(f"DEBUG: Booking confirmation POST - Start time: {start_time}")
-            print(f"DEBUG: Booking confirmation POST - End time: {end_time}")
-            
-        except Exception as e:
-            print(f"DEBUG: Exception in booking confirmation POST: {e}")
-            flash(f'Error processing booking: {str(e)}', 'error')
-            return redirect(url_for('homepage'))
-        
-        # Prevent double booking: check for any overlapping bookings
-        print("DEBUG: Checking for booking conflicts")
-        conflict = Booking.query.filter(
-            (Booking.expert_id == expert.id) &
-            (Booking.status == 'confirmed') &
-            (
-                ((start_time >= Booking.start_time) & (start_time < Booking.end_time)) |
-                ((end_time > Booking.start_time) & (end_time <= Booking.end_time)) |
-                ((start_time <= Booking.start_time) & (end_time >= Booking.end_time))
-            )
-        ).first()
-        
-        if conflict:
-            print("DEBUG: Booking conflict found")
-            flash('This time slot has already been booked. Please choose another time.', 'error')
-            return redirect(url_for('bookings'))
-        
-        print("DEBUG: No booking conflicts found")
-        
-        # Calculate pricing
-        print("DEBUG: Calculating pricing")
-        hourly_rate = expert.hourly_rate or 0
-        if duration == 30:
-            session_fee = hourly_rate * 0.5
+            return render_template('booking_confirmation.html',
+                                 expert=expert,
+                                 booking_date=booking_datetime.strftime('%B %d, %Y'),
+                                 booking_time=booking_datetime.strftime('%I:%M %p'),
+                                 duration=duration,
+                                 session_fee=f"{session_fee:.2f}",
+                                 platform_fee=f"{platform_fee:.2f}",
+                                 total_amount=f"{total_amount:.2f}")
+    
         else:
-            session_fee = (hourly_rate * duration) / 60
-        platform_fee = max(5.0, session_fee * 0.10)
-        total_amount = session_fee + platform_fee
-        
-        print(f"DEBUG: Pricing calculated - Session fee: {session_fee}, Platform fee: {platform_fee}, Total: {total_amount}")
-        
-        # Create booking with pending payment status
-        print("DEBUG: Creating booking")
-        booking = Booking(
-            user_id=current_user.id,
-            expert_id=expert.id,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            status='pending',
-            payment_status='pending',
-            payment_amount=total_amount
-        )
-        
-        db.session.add(booking)
-        db.session.commit()
-        
-        print(f"DEBUG: Booking created with ID: {booking.id}")
-        
-        # Redirect to Stripe checkout
-        print("DEBUG: Redirecting to Stripe checkout")
-        return redirect(url_for('create_checkout_session', booking_id=booking.id))
+            # Handle POST request - create booking and redirect to Stripe
+            try:
+                print("DEBUG: Starting booking confirmation POST handling")
+                
+                expert_username = request.args.get('expert')
+                datetime_str = request.args.get('datetime')
+                duration = int(request.args.get('duration', 30))
+                
+                # Debug logging
+                print(f"DEBUG: Booking confirmation POST - Expert: {expert_username}")
+                print(f"DEBUG: Booking confirmation POST - Datetime: {datetime_str}")
+                print(f"DEBUG: Booking confirmation POST - Duration: {duration}")
+                
+                if not expert_username or not datetime_str:
+                    print("DEBUG: Missing booking information")
+                    flash('Missing booking information', 'error')
+                    return redirect(url_for('homepage'))
+                
+                expert = User.query.filter_by(username=expert_username).first()
+                if not expert:
+                    print("DEBUG: Expert not found")
+                    flash('Expert not found', 'error')
+                    return redirect(url_for('homepage'))
+                
+                print(f"DEBUG: Expert found: {expert.username}")
+                
+                start_time = datetime.fromisoformat(datetime_str)
+                end_time = start_time + timedelta(minutes=duration)
+                
+                print(f"DEBUG: Booking confirmation POST - Start time: {start_time}")
+                print(f"DEBUG: Booking confirmation POST - End time: {end_time}")
+                
+                # Prevent double booking: check for any overlapping bookings
+                print("DEBUG: Checking for booking conflicts")
+                conflict = Booking.query.filter(
+                    (Booking.expert_id == expert.id) &
+                    (Booking.status == 'confirmed') &
+                    (
+                        ((start_time >= Booking.start_time) & (start_time < Booking.end_time)) |
+                        ((end_time > Booking.start_time) & (end_time <= Booking.end_time)) |
+                        ((start_time <= Booking.start_time) & (end_time >= Booking.end_time))
+                    )
+                ).first()
+                
+                if conflict:
+                    print("DEBUG: Booking conflict found")
+                    flash('This time slot has already been booked. Please choose another time.', 'error')
+                    return redirect(url_for('bookings'))
+                
+                print("DEBUG: No booking conflicts found")
+                
+                # Calculate pricing
+                print("DEBUG: Calculating pricing")
+                hourly_rate = expert.hourly_rate or 0
+                if duration == 30:
+                    session_fee = hourly_rate * 0.5
+                else:
+                    session_fee = (hourly_rate * duration) / 60
+                platform_fee = max(5.0, session_fee * 0.10)
+                total_amount = session_fee + platform_fee
+                
+                print(f"DEBUG: Pricing calculated - Session fee: {session_fee}, Platform fee: {platform_fee}, Total: {total_amount}")
+                
+                # Create booking with pending payment status
+                print("DEBUG: Creating booking")
+                booking = Booking(
+                    user_id=current_user.id,
+                    expert_id=expert.id,
+                    start_time=start_time,
+                    end_time=end_time,
+                    duration=duration,
+                    status='pending',
+                    payment_status='pending',
+                    payment_amount=total_amount
+                )
+                
+                db.session.add(booking)
+                db.session.commit()
+                
+                print(f"DEBUG: Booking created with ID: {booking.id}")
+                
+                # Redirect to Stripe checkout
+                print("DEBUG: Redirecting to Stripe checkout")
+                return redirect(url_for('create_checkout_session', booking_id=booking.id))
+                
+            except Exception as e:
+                print(f"DEBUG: Exception in booking confirmation POST: {e}")
+                flash(f'Error processing booking: {str(e)}', 'error')
+                return redirect(url_for('homepage'))
+    
+    except Exception as e:
+        print(f"DEBUG: Exception in booking_confirmation: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error processing booking: {str(e)}', 'error')
+        return redirect(url_for('homepage'))
 
 @app.route('/api/availability/times', methods=['GET'])
 def api_availability_times():
