@@ -1,236 +1,228 @@
 {% extends "base_signed_in.html" %}
 
-{% block title %}Account - Droply{% endblock %}
+{% block title %}Account Settings{% endblock %}
 
 {% block content %}
-<div class="container-fluid h-100 d-flex align-items-start justify-content-center" style="min-height: 100vh; overflow: hidden; padding-top: 2vh;">
-    <div class="container">
-        <!-- Account Content -->
-        <div class="row" id="account-content" style="opacity: 1; transition: opacity 0.3s ease;">
-            <noscript>
-                <style>
-                    #account-content { opacity: 1 !important; }
-                </style>
-            </noscript>
-            
-            
-            <!-- Main Account Card -->
-            <div class="col-12">
-                <div class="card account-card">
-                    
-                    <div class="card-header">
-                        <h6 class="mb-0 text-center">
-                            <i class="fas fa-user me-2"></i>
-                            Account Management
-                        </h6>
-                    </div>
-                    <div class="card-body">
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-12">
+            <div class="page-header">
+                <h1>Account Settings</h1>
+                <p class="text-muted">Manage your profile and preferences</p>
+            </div>
 
-                        <!-- Clean Two-Column Layout -->
-                        <div class="account-layout">
-                            <!-- Left Column: Profile Information -->
-                            <div class="profile-section">
-                                <div class="section-header">
-                                    <h5><i class="fas fa-user-circle me-2"></i>Profile Information</h5>
-                                </div>
-                                
-                                <div class="profile-card">
-                                    <div class="profile-avatar-container">
-                                        <div class="profile-avatar clickable-avatar" id="profile-avatar" onclick="document.getElementById('profile-picture-upload').click()">
-                                            {% if current_user.profile_picture %}
-                                                <img src="{{ current_user.profile_picture }}" alt="Profile Picture" class="avatar-image">
-                                            {% else %}
-                                                <img src="{{ url_for('static', filename='img/default-avatar.svg') }}" alt="Profile Picture" class="avatar-image">
-                                            {% endif %}
-                                            <div class="avatar-overlay">
-                                                <i class="fas fa-camera"></i>
-                                                <span>Change Photo</span>
-                                            </div>
-                                        </div>
-                                        <input type="file" id="profile-picture-upload" accept="image/*" style="display: none;" onchange="handleProfilePictureUpload(event)">
-                                    </div>
-                                    <div class="profile-details">
-                                        <h4>{{ current_user.username }}</h4>
-                                        <p class="text-muted">{{ current_user.email }}</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-section">
-                                    <h6><i class="fas fa-edit me-2"></i>Edit Profile</h6>
-                                    <div class="form-group">
-                                        <label for="username">Username</label>
-                                        <input type="text" id="username" class="form-control" value="{{ current_user.username }}" placeholder="Enter your username" oninput="checkUsernameAvailability()">
-                                        <div class="username-status" id="username-status"></div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="bio">Bio</label>
-                                        <textarea id="bio" class="form-control" rows="3" placeholder="Tell us about yourself">{{ current_user.bio or '' }}</textarea>
-                                    </div>
-                                    
-                                    <button class="btn btn-primary" onclick="saveProfile()">
-                                        <i class="fas fa-save"></i>
-                                        Save Profile
-                                    </button>
-                                </div>
-                                
-                                <!-- Social Media Section -->
-                                <div class="form-section">
-                                    <h6><i class="fas fa-share-alt me-2"></i>Social Media Links</h6>
-                                    <div class="form-group">
-                                        <label for="linkedin">LinkedIn</label>
-                                        <input type="url" id="linkedin" class="form-control" value="{{ current_user.linkedin_url or '' }}" placeholder="https://linkedin.com/in/yourprofile">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="twitter">Twitter/X</label>
-                                        <input type="url" id="twitter" class="form-control" value="{{ current_user.twitter_url or '' }}" placeholder="https://twitter.com/yourhandle">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="github">GitHub</label>
-                                        <input type="url" id="github" class="form-control" value="{{ current_user.github_url or '' }}" placeholder="https://github.com/yourusername">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="instagram">Instagram</label>
-                                        <input type="url" id="instagram" class="form-control" value="{{ current_user.instagram_url or '' }}" placeholder="https://instagram.com/yourhandle">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="website">Website</label>
-                                        <input type="url" id="website" class="form-control" value="{{ current_user.website_url or '' }}" placeholder="https://yourwebsite.com">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="facebook">Facebook</label>
-                                        <input type="url" id="facebook" class="form-control" value="{{ current_user.facebook_url or '' }}" placeholder="https://facebook.com/yourprofile">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="youtube">YouTube</label>
-                                        <input type="url" id="youtube" class="form-control" value="{{ current_user.youtube_url or '' }}" placeholder="https://youtube.com/@yourchannel">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="snapchat">Snapchat</label>
-                                        <input type="url" id="snapchat" class="form-control" value="{{ current_user.snapchat_url or '' }}" placeholder="https://snapchat.com/add/yourusername">
-                                    </div>
-                                    
-                                    <button class="btn btn-primary" onclick="saveSocialMedia()">
-                                        <i class="fas fa-save"></i>
-                                        Save Social Media
-                                    </button>
-                                </div>
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Profile Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-user me-2"></i>Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/profile/update" id="profileForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" 
+                                       value="{{ current_user.full_name or '' }}" placeholder="Enter your full name">
                             </div>
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       value="{{ current_user.username }}" placeholder="Enter your username" required>
+                                <div class="form-text">This will be your public username</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ current_user.email }}" readonly>
+                                <div class="form-text">Email cannot be changed</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       value="{{ current_user.phone or '' }}" placeholder="Enter your phone number">
+                            </div>
+                            <div class="col-12">
+                                <label for="bio" class="form-label">Bio</label>
+                                <textarea class="form-control" id="bio" name="bio" rows="3" 
+                                          placeholder="Tell us about yourself">{{ current_user.bio or '' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                
+            <!-- Professional Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-briefcase me-2"></i>Professional Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/profile/update" id="professionalForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="profession" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="profession" name="profession" 
+                                       value="{{ current_user.profession or '' }}" placeholder="e.g., Software Engineer">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="industry" class="form-label">Industry</label>
+                                <input type="text" class="form-control" id="industry" name="industry" 
+                                       value="{{ current_user.industry or '' }}" placeholder="e.g., Technology">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       value="{{ current_user.location or '' }}" placeholder="e.g., New York, NY">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="hourly_rate" class="form-label">Session Price ($)</label>
+                                <input type="number" class="form-control" id="hourly_rate" name="hourly_rate" 
+                                       value="{{ current_user.hourly_rate or '' }}" placeholder="0" min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Professional Info
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
                             
-                            <!-- Right Column: Settings & Security -->
-                            <div class="settings-section">
-                                <div class="section-header">
-                                    <h5><i class="fas fa-cog me-2"></i>Settings & Security</h5>
-                                </div>
+            <!-- Social Media Links -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-share-alt me-2"></i>Social Media Links</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/profile/update" id="socialForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="linkedin" class="form-label">LinkedIn</label>
+                                <input type="url" class="form-control" id="linkedin" name="linkedin" 
+                                       value="{{ current_user.linkedin_url or '' }}" placeholder="https://linkedin.com/in/yourprofile">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="twitter" class="form-label">Twitter</label>
+                                <input type="url" class="form-control" id="twitter" name="twitter" 
+                                       value="{{ current_user.twitter_url or '' }}" placeholder="https://twitter.com/yourhandle">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="github" class="form-label">GitHub</label>
+                                <input type="url" class="form-control" id="github" name="github" 
+                                       value="{{ current_user.github_url or '' }}" placeholder="https://github.com/yourusername">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="website" class="form-label">Website</label>
+                                <input type="url" class="form-control" id="website" name="website" 
+                                       value="{{ current_user.website_url or '' }}" placeholder="https://yourwebsite.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="instagram" class="form-label">Instagram</label>
+                                <input type="url" class="form-control" id="instagram" name="instagram" 
+                                       value="{{ current_user.instagram_url or '' }}" placeholder="https://instagram.com/yourhandle">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="youtube" class="form-label">YouTube</label>
+                                <input type="url" class="form-control" id="youtube" name="youtube" 
+                                       value="{{ current_user.youtube_url or '' }}" placeholder="https://youtube.com/c/yourchannel">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Social Links
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
                                 
-                                <!-- Pricing -->
-                                <div class="settings-card">
-                                    <h6><i class="fas fa-dollar-sign me-2"></i>Pricing</h6>
-                                    <div class="form-group">
-                                        <label for="sessionPrice">Session Price (USD)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number" id="sessionPrice" class="form-control" 
-                                                   value="{{ current_user.hourly_rate or 0 }}" 
-                                                   min="0" step="0.01" placeholder="0.00">
-                                        </div>
-                                        <small class="form-text text-muted">
-                                            This is your price for a 30-minute session. All sessions are 30 minutes by default.
-                                        </small>
-                                    </div>
-                                    
-                                    <div class="pricing-preview">
-                                        <h6>Session Details</h6>
-                                        <div class="pricing-item">
-                                            <span>Session duration:</span>
-                                            <span class="price">30 minutes</span>
-                                        </div>
-                                        <div class="pricing-item">
-                                            <span>Session price:</span>
-                                            <span class="price">${{ "%.2f"|format(current_user.hourly_rate or 0) }}</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <button class="btn btn-primary" onclick="savePricing()">
-                                        <i class="fas fa-save"></i>
-                                        Save Pricing
-                                    </button>
-                                </div>
-                                
-                                <!-- Preferences -->
-                                <div class="settings-card">
-                                    <h6><i class="fas fa-sliders-h me-2"></i>Preferences</h6>
-                                    <div class="form-group">
-                                        <label for="language">Language</label>
-                                        <select id="language" class="form-control">
-                                            <option value="en" {{ 'selected' if current_user.language == 'en' else '' }}>English</option>
-                                            <option value="es" {{ 'selected' if current_user.language == 'es' else '' }}>Spanish</option>
-                                            <option value="fr" {{ 'selected' if current_user.language == 'fr' else '' }}>French</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <button class="btn btn-primary" onclick="savePreferences()">
-                                        <i class="fas fa-save"></i>
-                                        Save Preferences
-                                    </button>
-                                </div>
-                                
-                                <!-- Security -->
-                                <div class="settings-card">
-                                    <h6><i class="fas fa-shield-alt me-2"></i>Security</h6>
-                                    {% if current_user.password_hash %}
-                                    <div class="security-form">
-                                        <div class="form-group">
-                                            <label>Current Password</label>
-                                            <input type="password" class="form-control" placeholder="Enter current password">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>New Password</label>
-                                            <input type="password" class="form-control" placeholder="Enter new password">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Confirm New Password</label>
-                                            <input type="password" class="form-control" placeholder="Confirm new password">
-                                        </div>
-                                        <button class="btn btn-primary">
-                                            <i class="fas fa-key"></i>
-                                            Update Password
-                                        </button>
-                                    </div>
-                                    {% else %}
-                                    <div class="status-display info">
-                                        <div class="status-icon">
-                                            <i class="fas fa-google"></i>
-                                        </div>
-                                        <div class="status-details">
-                                            <h6>Google Account</h6>
-                                            <p>Your account is secured through Google's authentication system</p>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                
-                                <!-- Danger Zone -->
-                                <div class="settings-card danger-zone">
-                                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Danger Zone</h6>
-                                    <div class="danger-warning">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                        <span>This action cannot be undone</span>
-                                    </div>
-                                    
-                                    <form id="deleteAccountForm" action="/delete-account" method="POST" onsubmit="return confirmDelete()">
-                                        <div class="form-group">
-                                            <label for="confirmation">Type your username "{{ current_user.username }}" to confirm</label>
-                                            <input type="text" id="confirmation" name="confirmation" class="form-control" placeholder="Type your username to confirm" oninput="toggleDeleteButton()">
-                                        </div>
-                                        
-                                        <button type="submit" id="deleteButton" class="btn btn-danger" disabled>
-                                            <i class="fas fa-trash"></i>
-                                            Delete Account
-                                        </button>
-                                    </form>
+
+            <!-- Settings & Availability -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-cog me-2"></i>Settings & Availability</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/profile/update" id="settingsForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="language" class="form-label">Language</label>
+                                <select class="form-control" id="language" name="language">
+                                    <option value="en" {{ 'selected' if current_user.language == 'en' else '' }}>English</option>
+                                    <option value="es" {{ 'selected' if current_user.language == 'es' else '' }}>Spanish</option>
+                                    <option value="fr" {{ 'selected' if current_user.language == 'fr' else '' }}>French</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="timezone" class="form-label">Timezone</label>
+                                <select class="form-control" id="timezone" name="timezone">
+                                    <option value="America/New_York" {{ 'selected' if current_user.timezone == 'America/New_York' else '' }}>Eastern Time</option>
+                                    <option value="America/Chicago" {{ 'selected' if current_user.timezone == 'America/Chicago' else '' }}>Central Time</option>
+                                    <option value="America/Denver" {{ 'selected' if current_user.timezone == 'America/Denver' else '' }}>Mountain Time</option>
+                                    <option value="America/Los_Angeles" {{ 'selected' if current_user.timezone == 'America/Los_Angeles' else '' }}>Pacific Time</option>
+                                    <option value="Europe/London" {{ 'selected' if current_user.timezone == 'Europe/London' else '' }}>London</option>
+                                    <option value="Europe/Paris" {{ 'selected' if current_user.timezone == 'Europe/Paris' else '' }}>Paris</option>
+                                    <option value="Asia/Tokyo" {{ 'selected' if current_user.timezone == 'Asia/Tokyo' else '' }}>Tokyo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="email_notifications" name="email_notifications" 
+                                           {{ 'checked' if current_user.email_notifications else '' }}>
+                                    <label for="email_notifications" class="form-check-label">Email Notifications</label>
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="is_available" name="is_available" 
+                                           {{ 'checked' if current_user.is_available else '' }}>
+                                    <label for="is_available" class="form-check-label">Available for bookings</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Account Deletion -->
+            <div class="card mb-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Danger Zone</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-1">Delete Account</h6>
+                            <p class="text-muted mb-0">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                <i class="fas fa-trash me-2"></i>Delete Account
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -239,2168 +231,162 @@
     </div>
 </div>
 
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteAccountModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Delete Account
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <strong>Warning!</strong> This action cannot be undone.
+                </div>
+                <p>Are you sure you want to delete your account? This will permanently remove:</p>
+                <ul>
+                    <li>Your profile and all personal information</li>
+                    <li>All your bookings and earnings</li>
+                    <li>Your availability settings</li>
+                    <li>All associated data</li>
+                </ul>
+                <p class="mb-0">Type <strong>DELETE</strong> to confirm:</p>
+                <input type="text" class="form-control mt-2" id="deleteConfirmation" placeholder="Type DELETE to confirm">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                    <i class="fas fa-trash me-2"></i>Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
-/* Page Layout - Work within base template structure */
-.account-page-body {
-    overflow: hidden !important;
-    height: 100vh !important;
+.page-header {
+    margin-bottom: 2rem;
 }
 
-/* Prevent any scrolling on the account page */
-html, body {
-    overflow: hidden !important;
-    height: 100vh !important;
+.card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
 }
 
-/* Override base template's main-content for account page */
-.main-content.account-page {
-    padding: 0 !important;
-    margin: 0 !important;
-    display: block !important;
-    flex-direction: unset !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    z-index: 1000 !important;
-}
-
-.content-wrapper.account-page {
-    padding: 0 !important;
-    margin: 0 !important;
-    height: 100vh !important;
-    width: 100vw !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-.container-fluid {
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    height: 100%;
-}
-
-/* Account Card */
-.account-card {
-    border: 1px solid #e9ecef;
-    border-radius: 12px;
-    box-shadow: none;
-    max-height: 80vh;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-.account-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-    transform: none !important;
-}
-
-.account-card .card-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+.card-header {
+    background-color: #f8f9fa;
     border-bottom: 1px solid #dee2e6;
-    border-radius: 12px 12px 0 0;
-    padding: 20px 24px;
+    padding: 1rem 1.5rem;
 }
 
-.account-card .card-header h6 {
-    color: #495057;
-    font-weight: 600;
-    font-size: 18px;
+.card-body {
+    padding: 1.5rem;
 }
 
-.account-card .card-body {
-    padding: 24px;
-}
-
-/* Clean Two-Column Layout */
-.account-layout {
-    display: flex;
-    gap: 30px;
-    height: 100%;
-    width: 100%;
-}
-
-.profile-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.settings-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.section-header {
-    margin-bottom: 15px;
-}
-
-.section-header h5 {
-    color: #495057;
-    font-weight: 600;
-    font-size: 18px;
-    margin: 0;
-    display: flex;
-    align-items: center;
-}
-
-.profile-card {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    border: 1px solid #e9ecef;
-}
-
-.profile-avatar-container {
-    position: relative;
-    display: inline-block;
-}
-
-.profile-avatar {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    overflow: hidden;
-    position: relative;
-    transition: all 0.3s ease;
-}
-
-.clickable-avatar {
-    cursor: pointer;
-}
-
-.clickable-avatar:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-}
-
-.avatar-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    font-size: 10px;
-    text-align: center;
-}
-
-.clickable-avatar:hover .avatar-overlay {
-    opacity: 1;
-}
-
-.clickable-avatar:hover .avatar-image {
-    filter: blur(1px);
-}
-
-.avatar-overlay i {
-    font-size: 16px;
-    margin-bottom: 2px;
-}
-
-.avatar-overlay span {
-    font-size: 8px;
+.form-label {
     font-weight: 500;
-    line-height: 1;
+    margin-bottom: 0.5rem;
 }
 
-.profile-details h4 {
-    margin: 0 0 5px 0;
-    color: #495057;
-    font-weight: 600;
-}
-
-.profile-details p {
-    margin: 0 0 10px 0;
-    color: #6c757d;
-}
-
-.form-section, .settings-card {
-    background: white;
-    border: 1px solid #e9ecef;
-    border-radius: 12px;
-    padding: 20px;
-}
-
-.form-section h6, .settings-card h6 {
-    color: #495057;
-    font-weight: 600;
-    margin: 0 0 15px 0;
-    display: flex;
-    align-items: center;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: #495057;
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: border-color 0.2s ease;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 15px 0;
-}
-
-.form-check-input {
-    width: 16px;
-    height: 16px;
-}
-
-.form-check-label {
-    font-size: 14px;
-    color: #495057;
-    margin: 0;
-}
-
-/* Username Availability Checking */
-.username-status {
-    margin-top: 8px;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.username-status.available {
-    color: #28a745;
-}
-
-.username-status.unavailable {
-    color: #dc3545;
-}
-
-.username-status.checking {
-    color: #ffc107;
-}
-
-/* Compact Account Sections */
-.account-section-compact {
-    margin-bottom: 20px;
-    padding-right: 8px;
-}
-
-.section-title-compact {
-    color: #495057;
-    font-weight: 600;
-    font-size: 14px;
-    margin: 0 0 12px 0;
-    display: flex;
-    align-items: center;
-}
-
-/* Forms */
-.profile-form-compact,
-.settings-form-compact,
-.security-form-compact,
-.support-form-compact {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.form-group-compact {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.form-group-compact label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #495057;
-    margin: 0;
-}
-
-.form-control-compact {
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    font-size: 14px;
-    background: white;
-    transition: all 0.2s ease;
-}
-
-.form-control-compact:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-control-compact:read-only {
-    background: #f8f9fa;
-    color: #6c757d;
-}
-
-.form-text-compact {
-    font-size: 10px;
-    color: #6c757d;
-    margin: 0;
-}
-
-.form-check-compact {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 8px 0;
-}
-
-.form-check-input-compact {
-    width: 16px;
-    height: 16px;
-    margin: 0;
-}
-
-.form-check-label-compact {
-    font-size: 12px;
-    color: #495057;
-    margin: 0;
-    cursor: pointer;
-}
-
-/* Status Display */
-.status-display {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 16px;
-}
-
-.status-display.success {
-    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-    border: 1px solid #c3e6cb;
-}
-
-.status-display.info {
-    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
-    border: 1px solid #bee5eb;
-}
-
-.status-display.warning {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-    border: 1px solid #ffeaa7;
-}
-
-.status-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-.status-display.success .status-icon {
-    background: #28a745;
-}
-
-.status-display.info .status-icon {
-    background: #17a2b8;
-}
-
-.status-display.warning .status-icon {
-    background: #ffc107;
-}
-
-.status-details h6 {
-    font-weight: 600;
-    color: #495057;
-    margin: 0 0 2px 0;
-    font-size: 14px;
-}
-
-.status-details p {
-    color: #6c757d;
-    font-size: 12px;
-    margin: 0;
-}
-
-/* Danger Zone */
-.danger-zone-compact {
-    background: #fff5f5;
-    border: 1px solid #fed7d7;
-    border-radius: 8px;
-    padding: 16px;
-}
-
-.danger-zone {
-    background: #fff5f5;
-    border: 1px solid #fed7d7;
-    border-radius: 8px;
-    padding: 20px;
-    margin-top: 20px;
-}
-
-.danger-warning {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #e53e3e;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-.danger-warning i {
-    font-size: 14px;
-}
-
-/* Buttons */
-.btn-compact {
-    width: 100%;
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    border-radius: 6px;
-    border: none;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-    margin-bottom: 8px;
-    margin-right: 4px;
-}
-
-.btn-compact:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-    color: white;
-    transform: none;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
-
-.btn-compact:focus {
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
-    outline: none;
-}
-
-.btn-compact:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.btn-outline-danger.btn-compact {
-    background: transparent;
-    color: #dc3545;
-    border: 1px solid #dc3545;
-}
-
-.btn-outline-danger.btn-compact:hover {
-    background: #dc3545;
-    color: white;
-}
-
-.btn-danger.btn-compact {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-}
-
-.btn-danger.btn-compact:hover {
-    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-}
-
-/* New Button Styles for Clean Layout */
 .btn {
-    padding: 10px 20px;
-    font-size: 14px;
-    border-radius: 6px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    border: 1px solid transparent;
-    cursor: pointer;
+    border-radius: 0.375rem;
 }
 
-.btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.btn:active {
-    transform: translateY(0);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-    color: white;
-}
-
-.btn-outline-primary {
-    border: 1px solid #667eea;
-    color: #667eea;
-    background: transparent;
-}
-
-.btn-outline-primary:hover {
-    background: #667eea;
-    color: white;
-}
-
-.btn-outline-danger {
-    border: 1px solid #dc3545;
-    color: #dc3545;
-    background: transparent;
-}
-
-.btn-outline-danger:hover {
-    background: #dc3545;
-    color: white;
-}
-
-.btn-danger {
-    background: #dc3545;
-    border: none;
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #c82333;
-    color: white;
-}
-
-.btn:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-/* Notification System */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 16px 20px;
-    z-index: 10000;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    border-left: 4px solid #17a2b8;
-    min-width: 300px;
-}
-
-.notification.show {
-    transform: translateX(0);
-}
-
-.notification-success {
-    border-left-color: #28a745;
-}
-
-.notification-error {
-    border-left-color: #dc3545;
-}
-
-.notification-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.notification-content i {
-    font-size: 18px;
-}
-
-.notification-success .notification-content i {
-    color: #28a745;
-}
-
-.notification-error .notification-content i {
-    color: #dc3545;
-}
-
-.notification-content span {
-    font-size: 14px;
-    color: #495057;
-    font-weight: 500;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .account-layout {
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .profile-section, .settings-section {
-        flex: none;
-    }
-    
-    .profile-card {
-        flex-direction: column;
-        text-align: center;
-        gap: 15px;
-    }
-    
-    .profile-avatar {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .profile-form-compact,
-    .settings-form-compact,
-    .security-form-compact,
-    .support-form-compact {
-        gap: 8px;
-    }
-}
-
-/* Pricing Preview Styles */
-.pricing-preview {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 15px 0;
-}
-
-.pricing-preview h6 {
-    color: #495057;
-    font-weight: 600;
-    margin: 0 0 10px 0;
-    font-size: 14px;
-}
-
-.pricing-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px 0;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.pricing-item:last-child {
-    border-bottom: none;
-}
-
-.pricing-item .price {
-    font-weight: 600;
-    color: #28a745;
-}
-
-.input-group-text {
-    background: #f8f9fa;
-    border-color: #ced4da;
-    color: #495057;
+.alert {
+    border-radius: 0.375rem;
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Account page DOMContentLoaded fired');
+    console.log('Account page loaded');
     
-    // Apply account page specific styling
-    document.body.classList.add('account-page-body');
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    
-    const mainContent = document.querySelector('.main-content');
-    const contentWrapper = document.querySelector('.content-wrapper');
-    
-    if (mainContent) {
-        mainContent.classList.add('account-page');
-        console.log('Applied account-page class to main-content');
-    }
-    
-    if (contentWrapper) {
-        contentWrapper.classList.add('account-page');
-        console.log('Applied account-page class to content-wrapper');
-    }
-    
-    // Add event listener for session price input to update pricing preview
-    const sessionPriceInput = document.getElementById('sessionPrice');
-    if (sessionPriceInput) {
-        sessionPriceInput.addEventListener('input', updatePricingPreview);
-    }
-    
-    console.log('Applied account-page-body class to body');
-    
-    // Show content with smooth fade-in
-    const content = document.getElementById('account-content');
-    console.log('Account content element:', content);
-    if (content) {
-        console.log('Setting opacity to 1');
-        setTimeout(() => {
-            content.style.opacity = '1';
-            console.log('Content opacity set to 1');
-        }, 100);
-    } else {
-        console.error('Account content element not found!');
-    }
-    
-    // Fallback: make content visible after 1 second regardless
-    setTimeout(() => {
-        const fallbackContent = document.getElementById('account-content');
-        if (fallbackContent && fallbackContent.style.opacity === '0') {
-            console.log('Fallback: forcing content to be visible');
-            fallbackContent.style.opacity = '1';
-        }
-    }, 1000);
-    
-    // Additional fallback: make content visible immediately if it's still hidden after 3 seconds
-    setTimeout(() => {
-        const fallbackContent = document.getElementById('account-content');
-        if (fallbackContent && fallbackContent.style.opacity === '0') {
-            console.log('Emergency fallback: forcing content to be visible');
-            fallbackContent.style.opacity = '1';
-            fallbackContent.style.transition = 'none';
-        }
-    }, 3000);
-});
-
-// Profile Picture Upload Handler
-function handleProfilePictureUpload(event) {
-    const file = event.target.files[0];
-    if (!file) {
-        console.log('No file selected');
-        return;
-    }
-    
-    console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
-    
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-        alert('Please select an image file.');
-        return;
-    }
-    
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-        alert('Image size must be less than 5MB.');
-        return;
-    }
-    
-    // Create FormData for upload
-    const formData = new FormData();
-    formData.append('profile_picture', file);
-    
-    // Show loading state
-    const avatar = document.getElementById('profile-avatar');
-    const originalContent = avatar.innerHTML;
-    avatar.innerHTML = '<i class="fas fa-spinner fa-spin fa-2x"></i>';
-    
-    console.log('Starting upload...');
-    
-    // Upload the file
-    fetch('/api/profile/upload-picture', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log('Upload response:', data);
-        if (data.success) {
-            // Update the avatar with the new image while preserving the overlay
-            avatar.innerHTML = `
-                <img src="${data.profile_picture_url}" alt="Profile Picture" class="avatar-image">
-                <div class="avatar-overlay">
-                    <i class="fas fa-camera"></i>
-                    <span>Change Photo</span>
-                </div>
-            `;
-            // Show success message
-            showNotification('Profile picture updated successfully!', 'success');
-        } else {
-            throw new Error(data.message || 'Failed to upload profile picture');
-        }
-    })
-    .catch(error => {
-        console.error('Error uploading profile picture:', error);
-        avatar.innerHTML = originalContent;
-        showNotification('Failed to upload profile picture: ' + error.message, 'error');
-    });
-}
-
-// Username Availability Checking
-let usernameCheckTimeout;
-const originalUsername = '{{ current_user.username }}';
-
-function checkUsernameAvailability() {
-    const username = document.getElementById('username').value.trim();
-    const statusDiv = document.getElementById('username-status');
-    
-    // Clear previous timeout
-    if (usernameCheckTimeout) {
-        clearTimeout(usernameCheckTimeout);
-    }
-    
-    // Reset status
-    statusDiv.textContent = '';
-    statusDiv.className = 'username-status';
-    
-    // Don't check if empty or same as original
-    if (!username || username === originalUsername) {
-        return;
-    }
-    
-    // Validate username format
-    if (!username || username.length < 3) {
-        statusDiv.textContent = 'Username must be at least 3 characters';
-        statusDiv.className = 'username-status unavailable';
-        return;
-    }
-    
-    if (username.length > 30) {
-        statusDiv.textContent = 'Username must be 30 characters or less';
-        statusDiv.className = 'username-status unavailable';
-        return;
-    }
-    
-    // Check for valid characters
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-        statusDiv.textContent = 'Username can only contain letters, numbers, and underscores';
-        statusDiv.className = 'username-status unavailable';
-        return;
-    }
-    
-    // Show checking status
-    statusDiv.textContent = 'Checking availability...';
-    statusDiv.className = 'username-status checking';
-    
-    // Debounce the API call
-    usernameCheckTimeout = setTimeout(() => {
-        fetch('/api/username/check', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username: username })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.available) {
-                statusDiv.textContent = '✓ Username is available';
-                statusDiv.className = 'username-status available';
-            } else {
-                statusDiv.textContent = '✗ ' + data.message;
-                statusDiv.className = 'username-status unavailable';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            statusDiv.textContent = 'Error checking username';
-            statusDiv.className = 'username-status unavailable';
-        });
-    }, 500);
-}
-
-// Save Profile Function
-function saveProfile() {
-    const username = document.getElementById('username').value.trim();
-    const bio = document.getElementById('bio').value.trim();
-    const statusDiv = document.getElementById('username-status');
-    
-    if (!username) {
-        showNotification('Username is required', 'error');
-        return;
-    }
-    
-    // Check if username is available (if changed)
-    if (username !== originalUsername) {
-        if (statusDiv.classList.contains('unavailable')) {
-            showNotification('Please choose an available username', 'error');
-            return;
-        }
-        if (statusDiv.classList.contains('checking')) {
-            showNotification('Please wait while we check username availability', 'error');
-            return;
-        }
-        if (!statusDiv.classList.contains('available')) {
-            showNotification('Please wait for username validation to complete', 'error');
-            return;
-        }
-    }
-    
-    const data = {
-        username: username,
-        bio: bio
-    };
-    
-    fetch('/api/profile/update', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Profile updated successfully!', 'success');
-            // Update the displayed username
-            document.querySelector('.profile-details h4').textContent = username;
-        } else {
-            throw new Error(data.message || 'Failed to update profile');
-        }
-    })
-    .catch(error => {
-        console.error('Error updating profile:', error);
-        showNotification('Failed to update profile: ' + error.message, 'error');
-    });
-}
-
-// Save Pricing Function
-function savePricing() {
-    const sessionPrice = parseFloat(document.getElementById('sessionPrice').value) || 0;
-    
-    const data = {
-        rate: sessionPrice
-    };
-    
-    fetch('/api/profile/update', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Pricing updated successfully!', 'success');
-            // Update the pricing preview
-            updatePricingPreview();
-        } else {
-            throw new Error(data.message || 'Failed to update pricing');
-        }
-    })
-    .catch(error => {
-        console.error('Error saving pricing:', error);
-        showNotification('Failed to update pricing: ' + error.message, 'error');
-    });
-}
-
-// Update pricing preview when session price changes
-function updatePricingPreview() {
-    const sessionPrice = parseFloat(document.getElementById('sessionPrice').value) || 0;
-    const pricingItems = document.querySelectorAll('.pricing-item .price');
-    
-    if (pricingItems.length >= 2) {
-        pricingItems[0].textContent = '30 minutes';
-        pricingItems[1].textContent = '$' + sessionPrice.toFixed(2);
-    }
-}
-
-// Save Preferences Function
-function savePreferences() {
-    const language = document.getElementById('language').value;
-    
-    const data = {
-        language: language
-    };
-    
-    fetch('/api/profile/update', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Preferences updated successfully!', 'success');
-        } else {
-            throw new Error(data.message || 'Failed to update preferences');
-        }
-    })
-    .catch(error => {
-        console.error('Error updating preferences:', error);
-        showNotification('Failed to update preferences: ' + error.message, 'error');
-    });
-}
-
-// Notification System
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    // Add to page
-    document.body.appendChild(notification);
-    
-    // Show notification
-    setTimeout(() => notification.classList.add('show'), 100);
-    
-    // Remove notification after 3 seconds
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-    
-    // Check calendar connection status
-    try {
-        checkCalendarStatus();
-    } catch (error) {
-        console.error('Error in checkCalendarStatus:', error);
-    }
-    
-    // Setup auto-save
-    try {
-        setupAutoSave();
-    } catch (error) {
-        console.error('Error in setupAutoSave:', error);
-    }
-    
-    // Setup availability management (if functions exist)
-    if (typeof setupAvailabilityManagement === 'function') {
-        try {
-            setupAvailabilityManagement();
-        } catch (error) {
-            console.error('Error in setupAvailabilityManagement:', error);
-        }
-    }
-    
-    // Setup weekly calendar (if functions exist)
-    if (typeof setupWeeklyCalendar === 'function') {
-        try {
-            setupWeeklyCalendar();
-        } catch (error) {
-            console.error('Error in setupWeeklyCalendar:', error);
-        }
-    }
-});
-
-function checkCalendarStatus() {
-    fetch('/api/availability/calendar-status')
-        .then(response => response.json())
-        .then(data => {
-            const connected = data.connected;
-            const notConnectedDiv = document.getElementById('calendar-not-connected');
-            const connectedDiv = document.getElementById('calendar-connected');
-            const connectBtn = document.getElementById('connect-calendar-btn');
-            const disconnectForm = document.getElementById('disconnect-calendar-form');
+    // Add form submission handlers
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submitted:', form.id);
             
-            if (connected) {
-                notConnectedDiv.style.display = 'none';
-                connectedDiv.style.display = 'flex';
-                connectBtn.style.display = 'none';
-                disconnectForm.style.display = 'block';
-            } else {
-                notConnectedDiv.style.display = 'flex';
-                connectedDiv.style.display = 'none';
-                connectBtn.style.display = 'block';
-                disconnectForm.style.display = 'none';
-            }
-        })
-        .catch(error => {
-            console.error('Error checking calendar status:', error);
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            submitBtn.disabled = true;
+            
+            // Submit form
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                }
+                throw new Error('Network response was not ok');
+            })
+            .then(html => {
+                // Reload the page to show updated data
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save changes. Please try again.');
+                
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
         });
-}
-
-// Auto-save functionality
-let saveTimeout;
-let hasUnsavedChanges = false;
-const SAVE_DELAY = 1000;
-
-function setupAutoSave() {
-    const profileFields = ['full_name', 'phone', 'bio'];
-    const settingsFields = ['language', 'timezone', 'emailNotifications'];
-    
-    // Profile fields auto-save
-    profileFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.addEventListener('input', function() {
-                if (saveTimeout) {
-                    clearTimeout(saveTimeout);
-                }
-                saveTimeout = setTimeout(saveProfileData, SAVE_DELAY);
-            });
-        }
     });
     
-    // Settings fields auto-save
-    settingsFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.addEventListener('change', function() {
-                if (saveTimeout) {
-                    clearTimeout(saveTimeout);
-                }
-                saveTimeout = setTimeout(saveSettingsData, SAVE_DELAY);
-            });
-        }
-    });
-}
-
-function saveProfileData() {
-    const fullName = document.getElementById('full_name').value;
-    const phone = document.getElementById('phone').value;
-    const bio = document.getElementById('bio').value;
+    // Delete account confirmation
+    const deleteConfirmation = document.getElementById('deleteConfirmation');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     
-    fetch('/api/profile/update', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            full_name: fullName,
-            phone: phone,
-            bio: bio
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSaveStatus();
-        } else {
-            console.error('Error saving profile:', data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error saving profile:', error);
-    });
-}
-
-function saveSettingsData() {
-    const language = document.getElementById('language').value;
-    const timezone = document.getElementById('timezone').value;
-    const emailNotifications = document.getElementById('emailNotifications').checked;
-    
-    fetch('/api/profile/update', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            language: language,
-            timezone: timezone,
-            email_notifications: emailNotifications
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSaveStatus();
-        } else {
-            console.error('Error saving settings:', data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error saving settings:', error);
-    });
-}
-
-function showSaveStatus() {
-    // Create a subtle save indicator
-    const statusDiv = document.createElement('div');
-    statusDiv.className = 'save-indicator';
-    statusDiv.innerHTML = '<i class="fas fa-check"></i> Saved';
-    statusDiv.style.position = 'fixed';
-    statusDiv.style.top = '20px';
-    statusDiv.style.right = '20px';
-    statusDiv.style.zIndex = '9999';
-    statusDiv.style.background = '#10b981';
-    statusDiv.style.color = 'white';
-    statusDiv.style.padding = '8px 12px';
-    statusDiv.style.borderRadius = '6px';
-    statusDiv.style.fontSize = '12px';
-    statusDiv.style.fontWeight = '500';
-    statusDiv.style.opacity = '0';
-    statusDiv.style.transition = 'opacity 0.3s ease';
-    
-    document.body.appendChild(statusDiv);
-    
-    // Fade in
-    setTimeout(() => {
-        statusDiv.style.opacity = '1';
-    }, 10);
-    
-    // Fade out and remove after 2 seconds
-    setTimeout(() => {
-        statusDiv.style.opacity = '0';
-        setTimeout(() => {
-            if (document.body.contains(statusDiv)) {
-                document.body.removeChild(statusDiv);
-            }
-        }, 300);
-    }, 2000);
-}
-
-// Delete account functionality
-function toggleDeleteButton() {
-    const confirmationInput = document.getElementById('confirmation');
-    const deleteButton = document.getElementById('deleteButton');
-    
-    if (confirmationInput && deleteButton) {
-        if (confirmationInput.value.trim() === '{{ current_user.username }}') {
-            deleteButton.disabled = false;
-        } else {
-            deleteButton.disabled = true;
-        }
-    }
-}
-
-function confirmDelete() {
-    const confirmationInput = document.getElementById('confirmation');
-    
-    if (!confirmationInput || confirmationInput.value.trim() !== '{{ current_user.username }}') {
-        alert('Please type your username exactly to confirm account deletion.');
-        return false;
-    }
-    
-    if (!confirm('Are you absolutely sure you want to permanently delete your account? This action cannot be undone.')) {
-        return false;
-    }
-    
-    return true;
-}
-
-
-// Availability Management
-function setupAvailabilityManagement() {
-  // Check calendar connection status
-  checkCalendarStatus();
-  
-  // Setup event listeners
-  setupAvailabilityEventListeners();
-  
-  // Load existing availability rules
-  loadAvailabilityRules();
-  
-  // Also check calendar status when the availability tab is shown
-  const availabilityTab = document.querySelector('[data-tab="availability"]');
-  if (availabilityTab) {
-    availabilityTab.addEventListener('click', function() {
-      // Small delay to ensure tab content is loaded
-      setTimeout(checkCalendarStatus, 100);
-    });
-  }
-}
-
-function checkCalendarStatus() {
-  console.log('Checking calendar status...');
-  fetch('/api/availability/calendar-status')
-    .then(response => {
-      console.log('Calendar status response:', response.status);
-      return response.json();
-    })
-    .then(data => {
-      console.log('Calendar status data:', data);
-      const connected = data.connected;
-      const notConnectedDiv = document.getElementById('calendar-not-connected');
-      const connectedDiv = document.getElementById('calendar-connected');
-      const connectBtn = document.getElementById('connect-calendar-btn');
-      const disconnectBtn = document.getElementById('disconnect-calendar-btn');
-      
-      if (connected) {
-        console.log('Calendar is connected, updating UI...');
-        notConnectedDiv.style.display = 'none';
-        connectedDiv.style.display = 'block';
-        connectBtn.style.display = 'none';
-        disconnectBtn.style.display = 'inline-block';
-      } else {
-        console.log('Calendar is not connected, updating UI...');
-        notConnectedDiv.style.display = 'block';
-        connectedDiv.style.display = 'none';
-        connectBtn.style.display = 'inline-block';
-        disconnectBtn.style.display = 'none';
-      }
-    })
-    .catch(error => {
-      console.error('Error checking calendar status:', error);
-    });
-}
-
-function setupAvailabilityEventListeners() {
-  // Auto-save functionality - no manual save button needed
-  
-  // Quick action buttons
-  const setWeekdaysBtn = document.getElementById('set-weekdays');
-  if (setWeekdaysBtn) {
-    setWeekdaysBtn.addEventListener('click', setWeekdays);
-  }
-  
-  const setWeekendsBtn = document.getElementById('set-weekends');
-  if (setWeekendsBtn) {
-    setWeekendsBtn.addEventListener('click', setWeekends);
-  }
-  
-  const clearAllBtn = document.getElementById('clear-all');
-  if (clearAllBtn) {
-    clearAllBtn.addEventListener('click', clearAllDays);
-  }
-  
-  // Day enabled checkboxes - auto-save on change
-  const dayCheckboxes = document.querySelectorAll('.day-enabled');
-  dayCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', () => {
-      updatePreview();
-      saveAvailability();
-    });
-  });
-  
-  // Time inputs - auto-save on change
-  const timeInputs = document.querySelectorAll('.time-start, .time-end');
-  timeInputs.forEach(input => {
-    input.addEventListener('change', () => {
-      updatePreview();
-      saveAvailability();
-    });
-  });
-}
-
-function loadAvailabilityRules() {
-  fetch('/api/availability/rules')
-    .then(response => response.json())
-    .then(rules => {
-      // Clear existing rules
-      const dayCheckboxes = document.querySelectorAll('.day-enabled');
-      dayCheckboxes.forEach(checkbox => {
-        checkbox.checked = false;
-      });
-      
-      // Apply loaded rules
-      rules.forEach(rule => {
-        const dayColumn = document.querySelector(`.day-column[data-day="${rule.weekday}"]`);
-        if (dayColumn) {
-          const checkbox = dayColumn.querySelector('.day-enabled');
-          const startInput = dayColumn.querySelector('.time-start');
-          const endInput = dayColumn.querySelector('.time-end');
-          
-          if (checkbox && startInput && endInput) {
-            checkbox.checked = true;
-            startInput.value = rule.start;
-            endInput.value = rule.end;
-            // Update label text
-            const label = checkbox.nextElementSibling;
-            if (label) {
-              label.textContent = 'Active';
-            }
-          }
-        }
-      });
-      
-      updatePreview();
-    })
-    .catch(error => {
-      console.error('Error loading availability rules:', error);
-    });
-}
-
-function saveAvailability() {
-  const rules = [];
-  
-  // Collect all enabled days
-  const dayColumns = document.querySelectorAll('.day-column');
-  dayColumns.forEach(column => {
-    const checkbox = column.querySelector('.day-enabled');
-    const startInput = column.querySelector('.time-start');
-    const endInput = column.querySelector('.time-end');
-    const day = column.getAttribute('data-day');
-    
-    if (checkbox && checkbox.checked && startInput && endInput) {
-      rules.push({
-        weekday: parseInt(day),
-        start: startInput.value,
-        end: endInput.value,
-        enabled: true
-      });
-    }
-  });
-  
-  // Save to server
-  fetch('/api/availability/rules', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ rules: rules })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      showAutoSaveStatus();
-    } else {
-      console.error('Error auto-saving availability:', data.error);
-      showAutoSaveError();
-    }
-  })
-  .catch(error => {
-    console.error('Error auto-saving availability:', error);
-    showAutoSaveError();
-  });
-}
-
-function syncCalendar() {
-  const syncStatus = document.getElementById('sync-status');
-  const syncBtn = document.getElementById('sync-calendar-events');
-  
-  syncStatus.style.display = 'block';
-  if (syncBtn) {
-    syncBtn.disabled = true;
-  }
-  
-  fetch('/api/availability/sync-calendar', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    }
-  })
-  .then(response => response.json())
-  .then(data => {
-    syncStatus.style.display = 'none';
-    if (syncBtn) {
-      syncBtn.disabled = false;
-    }
-    
-    if (data.success) {
-      alert(`Calendar synced successfully! ${data.message}`);
-    } else {
-      alert(`Failed to sync calendar: ${data.error}`);
-    }
-  })
-  .catch(error => {
-    syncStatus.style.display = 'none';
-    if (syncBtn) {
-      syncBtn.disabled = false;
-    }
-    console.error('Error syncing calendar:', error);
-    alert('Failed to sync calendar. Please try again.');
-  });
-}
-
-function setWeekdays() {
-  // Set Monday-Friday to 9:00-17:00
-  for (let day = 0; day < 5; day++) {
-    const dayRow = document.querySelector(`[data-day="${day}"]`);
-    if (dayRow) {
-      const checkbox = dayRow.querySelector('.day-enabled');
-      const startInput = dayRow.querySelector('.time-start');
-      const endInput = dayRow.querySelector('.time-end');
-      
-      if (checkbox && startInput && endInput) {
-        checkbox.checked = true;
-        startInput.value = '09:00';
-        endInput.value = '17:00';
-      }
-    }
-  }
-  updatePreview();
-}
-
-function setWeekends() {
-  // Set Saturday-Sunday to 10:00-15:00
-  for (let day = 5; day < 7; day++) {
-    const dayRow = document.querySelector(`[data-day="${day}"]`);
-    if (dayRow) {
-      const checkbox = dayRow.querySelector('.day-enabled');
-      const startInput = dayRow.querySelector('.time-start');
-      const endInput = dayRow.querySelector('.time-end');
-      
-      if (checkbox && startInput && endInput) {
-        checkbox.checked = true;
-        startInput.value = '10:00';
-        endInput.value = '15:00';
-      }
-    }
-  }
-  updatePreview();
-}
-
-function clearAllDays() {
-  const dayCheckboxes = document.querySelectorAll('.day-enabled');
-  dayCheckboxes.forEach(checkbox => {
-    checkbox.checked = false;
-  });
-  updatePreview();
-}
-
-function updatePreview() {
-  const previewContent = document.getElementById('availability-preview-content');
-  const enabledDays = [];
-  
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  
-  const dayRows = document.querySelectorAll('.schedule-row');
-  dayRows.forEach(row => {
-    const checkbox = row.querySelector('.day-enabled');
-    const startInput = row.querySelector('.time-start');
-    const endInput = row.querySelector('.time-end');
-    const day = parseInt(row.getAttribute('data-day'));
-    
-    if (checkbox && checkbox.checked && startInput && endInput) {
-      enabledDays.push({
-        day: dayNames[day],
-        start: startInput.value,
-        end: endInput.value
-      });
-    }
-  });
-  
-  if (enabledDays.length === 0) {
-    previewContent.innerHTML = '<p class="text-muted">No days selected</p>';
-  } else {
-    let html = '<ul class="list-unstyled">';
-    enabledDays.forEach(day => {
-      html += `<li><strong>${day.day}:</strong> ${day.start} - ${day.end}</li>`;
-    });
-    html += '</ul>';
-    previewContent.innerHTML = html;
-  }
-}
-
-function showAutoSaveStatus() {
-  // Create a subtle auto-save indicator
-  const statusDiv = document.createElement('div');
-  statusDiv.className = 'auto-save-indicator';
-  statusDiv.innerHTML = '<i class="fas fa-check"></i> Saved';
-  statusDiv.style.position = 'fixed';
-  statusDiv.style.top = '20px';
-  statusDiv.style.right = '20px';
-  statusDiv.style.zIndex = '9999';
-  statusDiv.style.background = '#10b981';
-  statusDiv.style.color = 'white';
-  statusDiv.style.padding = '8px 12px';
-  statusDiv.style.borderRadius = '6px';
-  statusDiv.style.fontSize = '12px';
-  statusDiv.style.fontWeight = '500';
-  statusDiv.style.opacity = '0';
-  statusDiv.style.transition = 'opacity 0.3s ease';
-  
-  document.body.appendChild(statusDiv);
-  
-  // Fade in
-  setTimeout(() => {
-    statusDiv.style.opacity = '1';
-  }, 10);
-  
-  // Fade out and remove after 2 seconds
-  setTimeout(() => {
-    statusDiv.style.opacity = '0';
-    setTimeout(() => {
-      if (document.body.contains(statusDiv)) {
-        document.body.removeChild(statusDiv);
-      }
-    }, 300);
-  }, 2000);
-}
-
-function showAutoSaveError() {
-  // Create a subtle error indicator
-  const statusDiv = document.createElement('div');
-  statusDiv.className = 'auto-save-error';
-  statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Save failed';
-  statusDiv.style.position = 'fixed';
-  statusDiv.style.top = '20px';
-  statusDiv.style.right = '20px';
-  statusDiv.style.zIndex = '9999';
-  statusDiv.style.background = '#ef4444';
-  statusDiv.style.color = 'white';
-  statusDiv.style.padding = '8px 12px';
-  statusDiv.style.borderRadius = '6px';
-  statusDiv.style.fontSize = '12px';
-  statusDiv.style.fontWeight = '500';
-  statusDiv.style.opacity = '0';
-  statusDiv.style.transition = 'opacity 0.3s ease';
-  
-  document.body.appendChild(statusDiv);
-  
-  // Fade in
-  setTimeout(() => {
-    statusDiv.style.opacity = '1';
-  }, 10);
-  
-  // Fade out and remove after 3 seconds
-  setTimeout(() => {
-    statusDiv.style.opacity = '0';
-    setTimeout(() => {
-      if (document.body.contains(statusDiv)) {
-        document.body.removeChild(statusDiv);
-      }
-    }, 300);
-  }, 3000);
-}
-
-// Auto-save functionality
-let saveTimeout;
-let settingsSaveTimeout;
-let hasUnsavedChanges = false;
-const SAVE_DELAY = 1000; // Save after 1 second of no typing
-
-function showSaveStatus() {
-  const saveStatus = document.getElementById('save-status');
-  
-  saveStatus.style.display = 'flex';
-  saveStatus.style.alignItems = 'center';
-  saveStatus.style.gap = '8px';
-  saveStatus.style.color = '#28a745';
-  
-  hasUnsavedChanges = false;
-  
-  // Hide after 2 seconds
-  setTimeout(() => {
-    saveStatus.style.display = 'none';
-  }, 2000);
-}
-
-function showSettingsSaveStatus() {
-  const saveStatus = document.getElementById('settings-save-status');
-  
-  saveStatus.style.display = 'flex';
-  saveStatus.style.alignItems = 'center';
-  saveStatus.style.gap = '8px';
-  saveStatus.style.color = '#28a745';
-  
-  // Hide after 2 seconds
-  setTimeout(() => {
-    saveStatus.style.display = 'none';
-  }, 2000);
-}
-
-function saveProfileData() {
-  const fullName = document.getElementById('full_name').value;
-  const bio = document.getElementById('bio').value;
-  
-  fetch('/api/profile/update', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      full_name: fullName,
-      bio: bio
-    })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      showSaveStatus();
-    } else {
-      console.error('Error saving profile:', data.error);
-    }
-  })
-  .catch(error => {
-    console.error('Error saving profile:', error);
-  });
-}
-
-function saveSettingsData() {
-  const language = document.getElementById('language').value;
-  const timezone = document.getElementById('timezone').value;
-  const emailNotifications = document.getElementById('emailNotifications').checked;
-  
-  fetch('/api/profile/update', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      language: language,
-      timezone: timezone,
-      email_notifications: emailNotifications
-    })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      showSettingsSaveStatus();
-    } else {
-      console.error('Error saving settings:', data.error);
-    }
-  })
-  .catch(error => {
-    console.error('Error saving settings:', error);
-  });
-}
-
-function setupAutoSave() {
-  // Profile fields auto-save
-  const profileFields = ['full_name', 'bio'];
-  
-  profileFields.forEach(fieldId => {
-    const field = document.getElementById(fieldId);
-    if (field) {
-      field.addEventListener('input', function() {
-        // Clear existing timeout
-        if (saveTimeout) {
-          clearTimeout(saveTimeout);
-        }
+    if (deleteConfirmation && confirmDeleteBtn) {
+        deleteConfirmation.addEventListener('input', function() {
+            confirmDeleteBtn.disabled = this.value !== 'DELETE';
+        });
         
-        // Set new timeout
-        saveTimeout = setTimeout(saveProfileData, SAVE_DELAY);
-      });
+        confirmDeleteBtn.addEventListener('click', function() {
+            if (deleteConfirmation.value === 'DELETE') {
+                if (confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
+                    // Show loading state
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+                    this.disabled = true;
+                    
+                    // Submit delete request
+                    fetch('/delete-account', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ confirm: true })
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.href = '/';
+                        } else {
+                            throw new Error('Failed to delete account');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to delete account. Please try again.');
+                        
+                        // Reset button
+                        this.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Account';
+                        this.disabled = false;
+                    });
+                }
+            }
+        });
     }
-  });
-  
-  // Settings fields auto-save
-  const settingsFields = ['language', 'timezone', 'emailNotifications'];
-  
-  settingsFields.forEach(fieldId => {
-    const field = document.getElementById(fieldId);
-    if (field) {
-      field.addEventListener('change', function() {
-        // Clear existing timeout
-        if (settingsSaveTimeout) {
-          clearTimeout(settingsSaveTimeout);
-        }
-        
-        // Set new timeout
-        settingsSaveTimeout = setTimeout(saveSettingsData, SAVE_DELAY);
-      });
-    }
-  });
-}
-
-// Weekly Calendar Management
-let currentWeekStart = new Date();
-// Set to start of current week (Sunday)
-const today = new Date();
-const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-currentWeekStart.setDate(today.getDate() - dayOfWeek);
-currentWeekStart.setHours(0, 0, 0, 0); // Reset time to start of day
-
-function setupWeeklyCalendar() {
-  // Initialize current week
-  updateWeekDisplay();
-  loadWeekEvents();
-  
-  // Initialize toggle labels
-  initializeToggleLabels();
-  
-  // Setup event listeners
-  setupWeeklyCalendarEventListeners();
-}
-
-function initializeToggleLabels() {
-  for (let day = 0; day < 7; day++) {
-    const checkbox = document.querySelector(`.day-column[data-day="${day}"] .day-enabled`);
-    if (checkbox) {
-      const label = checkbox.nextElementSibling;
-      if (label) {
-        label.textContent = checkbox.checked ? 'Active' : 'Inactive';
-      }
-    }
-  }
-}
-
-function setupWeeklyCalendarEventListeners() {
-  // Week navigation
-  const prevWeekBtn = document.getElementById('prev-week');
-  const nextWeekBtn = document.getElementById('next-week');
-  const syncEventsBtn = document.getElementById('sync-calendar-events');
-  
-  if (prevWeekBtn) {
-    prevWeekBtn.addEventListener('click', () => {
-      currentWeekStart.setDate(currentWeekStart.getDate() - 7);
-      updateWeekDisplay();
-      loadWeekEvents();
-    });
-  }
-  
-  if (nextWeekBtn) {
-    nextWeekBtn.addEventListener('click', () => {
-      currentWeekStart.setDate(currentWeekStart.getDate() + 7);
-      updateWeekDisplay();
-      loadWeekEvents();
-    });
-  }
-  
-  if (syncEventsBtn) {
-    syncEventsBtn.addEventListener('click', syncCalendarEvents);
-  }
-  
-  // Availability time inputs
-  for (let day = 0; day < 7; day++) {
-    const timeStart = document.querySelector(`.day-column[data-day="${day}"] .time-start`);
-    const timeEnd = document.querySelector(`.day-column[data-day="${day}"] .time-end`);
-    const dayEnabled = document.querySelector(`.day-column[data-day="${day}"] .day-enabled`);
-    
-    if (timeStart) {
-      timeStart.addEventListener('change', () => saveAvailability());
-    }
-    if (timeEnd) {
-      timeEnd.addEventListener('change', () => saveAvailability());
-    }
-    if (dayEnabled) {
-      dayEnabled.addEventListener('change', (e) => {
-        const label = e.target.nextElementSibling;
-        if (label) {
-          label.textContent = e.target.checked ? 'Active' : 'Inactive';
-        }
-        saveAvailability();
-      });
-    }
-  }
-}
-
-function updateWeekDisplay() {
-  const weekEnd = new Date(currentWeekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
-  
-  const weekDisplay = document.getElementById('current-week-display');
-  if (weekDisplay) {
-    const startStr = currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    // Only show year if it's different from current year
-    const currentYear = new Date().getFullYear();
-    const weekYear = currentWeekStart.getFullYear();
-    const yearSuffix = weekYear !== currentYear ? `, ${weekYear}` : '';
-    weekDisplay.textContent = `${startStr} - ${endStr}${yearSuffix}`;
-  }
-  
-  // Update date displays for each day
-  for (let day = 0; day < 7; day++) {
-    const date = new Date(currentWeekStart);
-    date.setDate(date.getDate() + day);
-    
-    const dateDisplay = document.getElementById(`date-${day}`);
-    if (dateDisplay) {
-      dateDisplay.textContent = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  }
-}
-
-function loadWeekEvents() {
-  // Check if calendar is connected
-  fetch('/api/availability/calendar-status')
-    .then(response => response.json())
-    .then(data => {
-      if (data.connected) {
-        fetchWeekEvents();
-      } else {
-        clearWeekEvents();
-      }
-    })
-    .catch(error => {
-      console.error('Error checking calendar status:', error);
-      clearWeekEvents();
-    });
-}
-
-function fetchWeekEvents() {
-  const weekEnd = new Date(currentWeekStart);
-  weekEnd.setDate(weekEnd.getDate() + 7);
-  
-  const params = new URLSearchParams({
-    start: currentWeekStart.toISOString(),
-    end: weekEnd.toISOString()
-  });
-  
-  fetch(`/api/availability/calendar-events?${params}`)
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        displayWeekEvents(data.events);
-      } else {
-        console.error('Error fetching events:', data.error);
-        clearWeekEvents();
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching calendar events:', error);
-      clearWeekEvents();
-    });
-}
-
-function displayWeekEvents(events) {
-  // Clear existing events
-  clearWeekEvents();
-  
-  // Group events by day
-  const eventsByDay = {};
-  for (let day = 0; day < 7; day++) {
-    eventsByDay[day] = [];
-  }
-  
-  // Sort events by day
-  events.forEach(event => {
-    const eventDate = new Date(event.start);
-    const dayOfWeek = eventDate.getDay();
-    eventsByDay[dayOfWeek].push(event);
-  });
-  
-  // Display events for each day
-  for (let day = 0; day < 7; day++) {
-    const eventsList = document.getElementById(`events-${day}`);
-    if (eventsList && eventsByDay[day].length > 0) {
-      eventsList.innerHTML = '';
-      eventsByDay[day].forEach(event => {
-        const eventElement = createEventElement(event);
-        eventsList.appendChild(eventElement);
-      });
-    }
-  }
-}
-
-function createEventElement(event) {
-  const eventDiv = document.createElement('div');
-  eventDiv.className = 'calendar-event';
-  
-  const startTime = new Date(event.start).toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit',
-    hour12: true 
-  });
-  
-  eventDiv.innerHTML = `
-    <span class="event-time">${startTime}</span>
-    <span class="event-title">${event.title}</span>
-  `;
-  
-  // Add event type styling
-  if (event.title.toLowerCase().includes('meeting')) {
-    eventDiv.classList.add('meeting');
-  } else if (event.title.toLowerCase().includes('busy')) {
-    eventDiv.classList.add('busy');
-  } else {
-    eventDiv.classList.add('personal');
-  }
-  
-  return eventDiv;
-}
-
-function clearWeekEvents() {
-  for (let day = 0; day < 7; day++) {
-    const eventsList = document.getElementById(`events-${day}`);
-    if (eventsList) {
-      eventsList.innerHTML = '<div class="no-events">No events</div>';
-    }
-  }
-}
-
-function syncCalendarEvents() {
-  const syncBtn = document.getElementById('sync-calendar-events');
-  if (syncBtn) {
-    syncBtn.disabled = true;
-    syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-  }
-  
-  fetch('/api/availability/sync-calendar', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    }
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      loadWeekEvents();
-      showNotification('Calendar events synced successfully!', 'success');
-    } else {
-      showNotification('Failed to sync calendar events: ' + data.error, 'error');
-    }
-  })
-  .catch(error => {
-    console.error('Error syncing calendar:', error);
-    showNotification('Error syncing calendar events', 'error');
-  })
-  .finally(() => {
-    if (syncBtn) {
-      syncBtn.disabled = false;
-      syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-    }
-  });
-}
-
-function showNotification(message, type) {
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
-  notification.style.position = 'fixed';
-  notification.style.top = '20px';
-  notification.style.right = '20px';
-  notification.style.zIndex = '9999';
-  notification.style.minWidth = '300px';
-  
-  notification.innerHTML = `
-    ${message}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Auto-remove after 5 seconds
-  setTimeout(() => {
-    if (notification.parentNode) {
-      notification.parentNode.removeChild(notification);
-    }
-  }, 5000);
-}
-
-// Removed duplicate DOMContentLoaded listener - functionality moved to main listener above
-
-// Test function - you can call this from browser console
-window.testAutoSave = function() {
-  console.log('Testing auto-save...');
-  const fullNameField = document.getElementById('full_name');
-  const bioField = document.getElementById('bio');
-  
-  console.log('Full name field:', fullNameField);
-  console.log('Bio field:', bioField);
-  
-  if (fullNameField) {
-    fullNameField.value = 'Test Name';
-    fullNameField.dispatchEvent(new Event('input'));
-  }
-  
-  if (bioField) {
-    bioField.value = 'Test Bio';
-    bioField.dispatchEvent(new Event('input'));
-  }
-  
-  console.log('Test completed. Check for save messages above.');
-};
-
-// Save Social Media Function
-function saveSocialMedia() {
-    const linkedin = document.getElementById('linkedin').value.trim();
-    const twitter = document.getElementById('twitter').value.trim();
-    const github = document.getElementById('github').value.trim();
-    const instagram = document.getElementById('instagram').value.trim();
-    const website = document.getElementById('website').value.trim();
-    const facebook = document.getElementById('facebook').value.trim();
-    const youtube = document.getElementById('youtube').value.trim();
-    const snapchat = document.getElementById('snapchat').value.trim();
-    
-    // Validate URLs if provided
-    const urlFields = [
-        { value: linkedin, name: 'LinkedIn' },
-        { value: twitter, name: 'Twitter' },
-        { value: github, name: 'GitHub' },
-        { value: instagram, name: 'Instagram' },
-        { value: website, name: 'Website' },
-        { value: facebook, name: 'Facebook' },
-        { value: youtube, name: 'YouTube' },
-        { value: snapchat, name: 'Snapchat' }
-    ];
-    
-    for (const field of urlFields) {
-        if (field.value && !isValidUrl(field.value)) {
-            showNotification(`Please enter a valid ${field.name} URL`, 'error');
-            return;
-        }
-    }
-    
-    // Show loading state
-    const saveBtn = document.querySelector('button[onclick="saveSocialMedia()"]');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    saveBtn.disabled = true;
-    
-    fetch('/api/profile/update', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            linkedin: linkedin,
-            twitter: twitter,
-            github: github,
-            instagram: instagram,
-            website: website,
-            facebook: facebook,
-            youtube: youtube,
-            snapchat: snapchat
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Social media links saved successfully!', 'success');
-        } else {
-            showNotification('Failed to save social media links: ' + (data.error || 'Unknown error'), 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error saving social media:', error);
-        showNotification('Error saving social media links', 'error');
-    })
-    .finally(() => {
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-    });
-}
-
-// URL validation helper function
-function isValidUrl(string) {
-    try {
-        new URL(string);
-        return true;
-    } catch (_) {
-        return false;
-    }
-}
-
+});
 </script>
 {% endblock %} 

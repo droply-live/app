@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
     full_name = db.Column(db.String(100))
+    phone = db.Column(db.String(20))
     bio = db.Column(db.Text)
     industry = db.Column(db.String(100))
     profession = db.Column(db.String(100))

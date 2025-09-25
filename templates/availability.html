@@ -921,21 +921,42 @@ function updateCalendarStatus(connected) {
 }
 
 function loadConnectedCalendars() {
-    // This would fetch from an API endpoint
-    const calendarList = document.querySelector('.calendar-list');
-    calendarList.innerHTML = `
-        <div class="calendar-item">
-            <span class="calendar-name">Primary Calendar</span>
-            <div class="calendar-actions">
-                <button class="btn btn-xs btn-outline-primary" title="Sync">
-                    <i class="fas fa-sync"></i>
-                </button>
-                <button class="btn btn-xs btn-outline-danger" title="Disconnect">
-                    <i class="fas fa-times"></i>
-            </button>
-        </div>
-      </div>
-    `;
+    // Fetch connected calendar info from API
+    fetch('/api/connected-calendar')
+        .then(response => response.json())
+        .then(data => {
+            const calendarList = document.querySelector('.calendar-list');
+            if (data.connected) {
+                calendarList.innerHTML = `
+                    <div class="calendar-item">
+                        <span class="calendar-name">${data.calendar_name}</span>
+                        <div class="calendar-actions">
+                            <button class="btn btn-xs btn-outline-primary" title="Sync">
+                                <i class="fas fa-sync"></i>
+                            </button>
+                            <button class="btn btn-xs btn-outline-danger" title="Disconnect">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                calendarList.innerHTML = `
+                    <div class="calendar-item text-muted">
+                        <span class="calendar-name">No calendar connected</span>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading connected calendars:', error);
+            const calendarList = document.querySelector('.calendar-list');
+            calendarList.innerHTML = `
+                <div class="calendar-item text-muted">
+                    <span class="calendar-name">Error loading calendar info</span>
+                </div>
+            `;
+        });
 }
 
 function toggleDay(day, isActive) {

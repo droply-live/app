@@ -104,6 +104,55 @@ def fix_all_users_default_availability():
         print(f"Error fixing default availability for all users: {e}")
         return 0
 
+@app.route('/fix-availability', methods=['POST'])
+@login_required
+def fix_user_availability():
+    """Fix availability for current user if they don't have any rules"""
+    try:
+        existing_rules = AvailabilityRule.query.filter_by(user_id=current_user.id).count()
+        if existing_rules == 0:
+            setup_default_availability(current_user)
+            return jsonify({'success': True, 'message': 'Default availability set to 9-5 weekdays'})
+        else:
+            return jsonify({'success': False, 'message': 'User already has availability rules'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/connected-calendar')
+@login_required
+def get_connected_calendar():
+    """Get information about the user's connected Google Calendar"""
+    try:
+        if not current_user.google_calendar_connected or not current_user.google_calendar_id:
+            return jsonify({'connected': False, 'message': 'No calendar connected'})
+        
+        # Get calendar name from Google Calendar API
+        from googleapiclient.discovery import build
+        from google.oauth2.credentials import Credentials
+        
+        # Create credentials object
+        credentials = Credentials(
+            token=current_user.google_calendar_token,
+            refresh_token=current_user.google_calendar_refresh_token,
+            token_uri='https://oauth2.googleapis.com/token',
+            client_id=app.config['GOOGLE_CLIENT_ID'],
+            client_secret=app.config['GOOGLE_CLIENT_SECRET']
+        )
+        
+        service = build('calendar', 'v3', credentials=credentials)
+        calendar = service.calendars().get(calendarId=current_user.google_calendar_id).execute()
+        
+        return jsonify({
+            'connected': True,
+            'calendar_id': current_user.google_calendar_id,
+            'calendar_name': calendar.get('summary', 'Unknown Calendar'),
+            'calendar_email': calendar.get('id', '')
+        })
+        
+    except Exception as e:
+        print(f"Error getting connected calendar info: {e}")
+        return jsonify({'connected': False, 'error': str(e)}), 500
+
 def convert_to_local_time(dt, user_timezone='America/New_York'):
     """Convert timezone-naive datetime to user's local timezone"""
     if dt is None:
@@ -570,7 +619,10 @@ def login():
             del session['_flashes']
     
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        # Try to find user by email first, then by username
+        user = User.query.filter_by(email=form.email_or_username.data).first()
+        if not user:
+            user = User.query.filter_by(username=form.email_or_username.data).first()
         
         if user and user.check_password(form.password.data):
             login_user(user)
@@ -578,7 +630,7 @@ def login():
             flash('Login successful!', 'success')
             return redirect(next_page) if next_page else redirect(url_for('dashboard'))
         else:
-            flash('Invalid email or password.', 'error')
+            flash('Invalid email/username or password.', 'error')
     
     return render_template('login.html', form=form)
 
@@ -777,6 +829,117 @@ def settings():
 def account():
     """Account management page"""
     return render_template('account.html')
+
+@app.route('/profile/update', methods=['POST'])
+@login_required
+def profile_update():
+    """Update user profile via form submission"""
+    try:
+        # Get form data
+        full_name = request.form.get('full_name', '').strip()
+        phone = request.form.get('phone', '').strip()
+        username = request.form.get('username', '').strip()
+        bio = request.form.get('bio', '').strip()
+        profession = request.form.get('profession', '').strip()
+        industry = request.form.get('industry', '').strip()
+        location = request.form.get('location', '').strip()
+        hourly_rate = request.form.get('hourly_rate', '').strip()
+        linkedin = request.form.get('linkedin', '').strip()
+        twitter = request.form.get('twitter', '').strip()
+        github = request.form.get('github', '').strip()
+        website = request.form.get('website', '').strip()
+        instagram = request.form.get('instagram', '').strip()
+        youtube = request.form.get('youtube', '').strip()
+        language = request.form.get('language', '').strip()
+        timezone = request.form.get('timezone', '').strip()
+        email_notifications = request.form.get('email_notifications') == 'on'
+        is_available = request.form.get('is_available') == 'on'
+        
+        # Update user profile
+        if full_name:
+            current_user.full_name = full_name
+        if phone:
+            current_user.phone = phone
+        if username and username != current_user.username:
+            # Check if username is available
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user:
+                flash('Username is already taken', 'error')
+                return redirect(url_for('account'))
+            current_user.username = username
+        if bio:
+            current_user.bio = bio
+        if profession:
+            current_user.profession = profession
+        if industry:
+            current_user.industry = industry
+        if location:
+            current_user.location = location
+        if hourly_rate:
+            try:
+                current_user.hourly_rate = float(hourly_rate)
+            except ValueError:
+                flash('Invalid hourly rate', 'error')
+                return redirect(url_for('account'))
+        if linkedin:
+            current_user.linkedin_url = linkedin
+        if twitter:
+            current_user.twitter_url = twitter
+        if github:
+            current_user.github_url = github
+        if website:
+            current_user.website_url = website
+        if instagram:
+            current_user.instagram_url = instagram
+        if youtube:
+            current_user.youtube_url = youtube
+        if language:
+            current_user.language = language
+        if timezone:
+            current_user.timezone = timezone
+        
+        current_user.email_notifications = email_notifications
+        current_user.is_available = is_available
+            
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash('Failed to update profile: ' + str(e), 'error')
+    
+    return redirect(url_for('account'))
+
+@app.route('/delete-account', methods=['POST'])
+@login_required
+def delete_account():
+    """Delete user account permanently"""
+    try:
+        user_id = current_user.id
+        user_email = current_user.email
+        
+        print(f"DEBUG: Starting deletion for user {user_id}")
+        
+        # Simple approach: just delete the user and let database handle cascading
+        # First clear any self-references
+        User.query.filter_by(referred_by=user_id).update({'referred_by': None})
+        db.session.commit()
+        
+        # Delete the user
+        db.session.delete(current_user)
+        db.session.commit()
+        
+        print(f"DEBUG: User {user_id} deleted successfully")
+        logout_user()
+        
+        return jsonify({'success': True, 'message': 'Account deleted successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"DEBUG: Error deleting account: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/test-account')
 def test_account():
@@ -983,89 +1146,7 @@ def watch():
     
     return render_template('watch.html', users=fake_users)
 
-@app.route('/delete-account', methods=['POST'])
-@login_required
-def delete_account():
-    """Delete user account"""
-    print("=" * 50)
-    print("DELETE ACCOUNT ROUTE CALLED")
-    print(f"Delete account request received from user: {current_user.email}")
-    print(f"Form data: {request.form}")
-    print(f"Request method: {request.method}")
-    print(f"Request headers: {dict(request.headers)}")
-    print("=" * 50)
-    
-    try:
-        # Get the confirmation text and reason
-        confirmation = request.form.get('confirmation', '').strip()
-        reason = request.form.get('reason', '').strip()
-        
-        print(f"Confirmation text received: '{confirmation}'")
-        print(f"Reason received: '{reason}'")
-        
-        if confirmation != current_user.username:
-            print(f"Confirmation text mismatch. Expected '{current_user.username}', got '{confirmation}'")
-            flash('Please type your username exactly to confirm account deletion.', 'error')
-            return redirect(url_for('account'))
-        
-        # Get current user
-        user = current_user
-        
-        # Log the deletion reason if provided
-        if reason:
-            print(f"Account deletion reason for {user.email}: {reason}")
-        
-        print(f"Starting account deletion for user: {user.email} (ID: {user.id})")
-        
-        # Delete associated data first (foreign key constraints)
-        # Delete favorites (both as user and as expert)
-        favorites_as_user_deleted = Favorite.query.filter_by(user_id=user.id).delete()
-        favorites_as_expert_deleted = Favorite.query.filter_by(expert_id=user.id).delete()
-        print(f"Deleted {favorites_as_user_deleted} favorites as user and {favorites_as_expert_deleted} favorites as expert")
-        
-        # Delete bookings (both as client and as expert)
-        bookings_deleted = Booking.query.filter_by(user_id=user.id).delete()
-        expert_bookings_deleted = Booking.query.filter_by(expert_id=user.id).delete()
-        print(f"Deleted {bookings_deleted} bookings as client and {expert_bookings_deleted} bookings as expert")
-        
-        # Delete availability rules and exceptions
-        rules_deleted = AvailabilityRule.query.filter_by(user_id=user.id).delete()
-        exceptions_deleted = AvailabilityException.query.filter_by(user_id=user.id).delete()
-        print(f"Deleted {rules_deleted} availability rules and {exceptions_deleted} availability exceptions")
-        
-        # Delete payouts
-        payouts_deleted = Payout.query.filter_by(expert_id=user.id).delete()
-        print(f"Deleted {payouts_deleted} payouts")
-        
-        # Clean up profile pictures and uploaded files
-        if user.profile_picture:
-            try:
-                import os
-                profile_pic_path = os.path.join('static', 'uploads', user.profile_picture.split('/')[-1])
-                if os.path.exists(profile_pic_path):
-                    os.remove(profile_pic_path)
-            except Exception as e:
-                print(f"Error deleting profile picture: {e}")
-        
-        # Delete the user
-        db.session.delete(user)
-        db.session.commit()
-        print(f"Successfully deleted user account: {user.email}")
-        
-        # Log out the user
-        logout_user()
-        
-        flash('Your account has been permanently deleted.', 'info')
-        return redirect(url_for('homepage'))
-        
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error deleting account: {str(e)}")
-        print(f"Exception type: {type(e)}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
-        flash(f'Error deleting account: {str(e)}. Please try again.', 'error')
-        return redirect(url_for('account'))
+# Duplicate route removed - using the first definition
 
 @app.route('/search')
 @login_required
@@ -1954,14 +2035,30 @@ def check_username():
     else:
         return jsonify({'available': True, 'message': 'Username is available'})
 
+@app.route('/api/profile/test', methods=['GET', 'POST'])
+@login_required
+def api_profile_test():
+    """Test endpoint to check authentication"""
+    return jsonify({
+        'success': True,
+        'message': 'Authentication working',
+        'user_id': current_user.id,
+        'username': current_user.username
+    })
+
 @app.route('/api/profile/update', methods=['POST'])
 @login_required
 def api_profile_update():
     """Update user profile via API"""
     try:
-        data = request.get_json()
         
-        # Update basic profile fields (for account page auto-save)
+        # Handle both JSON and form data
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+        
+        # Update basic profile fields
         if 'username' in data:
             new_username = data['username'].strip()
             if new_username != current_user.username:
@@ -1973,8 +2070,41 @@ def api_profile_update():
                         'message': 'Username is already taken'
                     }), 400
                 current_user.username = new_username
+        
         if 'bio' in data:
             current_user.bio = data['bio']
+            
+        # Update full name (handle multiple field names)
+        if 'full_name' in data:
+            current_user.full_name = data['full_name']
+        elif 'name' in data:
+            current_user.full_name = data['name']
+            
+        # Update profession/title
+        if 'profession' in data:
+            current_user.profession = data['profession']
+        elif 'title' in data:
+            current_user.profession = data['title']
+            
+        # Update industry/category
+        if 'industry' in data:
+            current_user.industry = data['industry']
+        elif 'category' in data:
+            current_user.industry = data['category']
+            
+        # Update hourly rate
+        if 'hourly_rate' in data:
+            current_user.hourly_rate = float(data['hourly_rate']) if data['hourly_rate'] else 0
+        elif 'rate' in data:
+            current_user.hourly_rate = float(data['rate']) if data['rate'] else 0
+            
+        # Update location
+        if 'location' in data:
+            current_user.location = data['location']
+            
+        # Update phone
+        if 'phone' in data:
+            current_user.phone = data['phone']
             
         # Update preference fields (for settings page auto-save)
         if 'language' in data:
@@ -1983,18 +2113,6 @@ def api_profile_update():
             current_user.timezone = data['timezone']
         if 'email_notifications' in data:
             current_user.email_notifications = data['email_notifications']
-            
-        # Legacy support for other profile fields
-        if 'name' in data:
-            current_user.full_name = data['name']
-        if 'title' in data:
-            current_user.profession = data['title']
-        if 'description' in data:
-            current_user.bio = data['description']
-        if 'rate' in data:
-            current_user.hourly_rate = float(data['rate']) if data['rate'] else 0
-        if 'category' in data:
-            current_user.industry = data['category']
             
         # Update social media URLs
         if 'linkedin' in data:
@@ -2013,12 +2131,27 @@ def api_profile_update():
             current_user.snapchat_url = data['snapchat']
         if 'website' in data:
             current_user.website_url = data['website']
+            
+        # Update availability
+        if 'is_available' in data:
+            current_user.is_available = data['is_available']
         
         db.session.commit()
-        return jsonify({'success': True})
+        
+        # Handle different response types
+        if request.is_json:
+            return jsonify({'success': True})
+        else:
+            # For form submissions, redirect back to account page with success message
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('account'))
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
+        if request.is_json:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        else:
+            flash('Failed to update profile: ' + str(e), 'error')
+            return redirect(url_for('account'))
 
 @app.route('/api/profile/specialties', methods=['POST'])
 @login_required
@@ -3353,18 +3486,29 @@ def auth_google_callback():
             calendar_list = service.calendarList().list().execute()
             print(f"DEBUG: Retrieved {len(calendar_list.get('items', []))} calendars")
             
-            # Find primary calendar
-            primary_calendar = None
+            # Find calendar that matches user's email address
+            user_email_calendar = None
+            user_email = user.email.lower()
+            
             for calendar in calendar_list.get('items', []):
-                if calendar.get('primary'):
-                    primary_calendar = calendar
+                calendar_id = calendar.get('id', '').lower()
+                # Check if calendar ID matches user's email
+                if user_email in calendar_id or calendar_id == user_email:
+                    user_email_calendar = calendar
                     break
             
-            if primary_calendar:
-                user.google_calendar_id = primary_calendar['id']
-                print(f"DEBUG: Set primary calendar ID: {primary_calendar['id']}")
+            # If no email-matching calendar found, fall back to primary calendar
+            if not user_email_calendar:
+                for calendar in calendar_list.get('items', []):
+                    if calendar.get('primary'):
+                        user_email_calendar = calendar
+                        break
+            
+            if user_email_calendar:
+                user.google_calendar_id = user_email_calendar['id']
+                print(f"DEBUG: Set calendar ID: {user_email_calendar['id']} (email: {user_email_calendar.get('summary', 'Unknown')})")
             else:
-                print("DEBUG: No primary calendar found, using first calendar")
+                print("DEBUG: No matching calendar found, using first calendar")
                 if calendar_list.get('items'):
                     user.google_calendar_id = calendar_list['items'][0]['id']
             
@@ -3402,16 +3546,16 @@ def auth_google_callback():
 @login_required
 def auth_google_calendar():
     """Connect Google Calendar for availability sync"""
-    # Manually construct redirect URI to ensure HTTPS for production
+    # Use the same redirect URI as regular OAuth to avoid redirect_uri_mismatch
     if 'localhost' in request.host:
         # Local development - use HTTP
-        redirect_uri = f"http://{request.host}/auth/google/callback?redirect_to=availability"
+        redirect_uri = f"http://{request.host}/auth/google/callback"
     elif 'droply.live' in request.host:
         # Production - force HTTPS for droply.live
-        redirect_uri = "https://droply.live/auth/google/callback?redirect_to=availability"
+        redirect_uri = "https://droply.live/auth/google/callback"
     else:
         # Fallback - force HTTPS
-        redirect_uri = f"https://{request.host}/auth/google/callback?redirect_to=availability"
+        redirect_uri = f"https://{request.host}/auth/google/callback"
     
     # Request calendar scope in addition to basic profile
     return google.authorize_redirect(redirect_uri, scope='openid email profile https://www.googleapis.com/auth/calendar.readonly')

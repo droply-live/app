@@ -13,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
             min-height: 100vh;
             overflow-y: auto;
         }
@@ -49,7 +49,7 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #00b894, #00a085);
             border-radius: 3px;
             transition: width 0.3s ease;
         }
@@ -124,7 +124,7 @@
 
         .form-control:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #00b894;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
@@ -156,23 +156,43 @@
 
         .expertise-section {
             margin-bottom: 25px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .expertise-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .expertise-section::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .expertise-section::-webkit-scrollbar-thumb {
+            background: #00b894;
+            border-radius: 3px;
         }
 
         .category-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .category-group h3 {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         .tag-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             gap: 8px;
+            margin-bottom: 10px;
         }
 
         .expertise-tag {
@@ -186,25 +206,30 @@
 
         .expertise-tag span {
             display: block;
-            padding: 8px 12px;
+            padding: 6px 10px;
             background: #f8f9fa;
             border: 2px solid #e0e0e0;
-            border-radius: 20px;
+            border-radius: 16px;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #333;
             transition: all 0.3s ease;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
         }
 
         .expertise-tag input:checked + span {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #00b894, #00a085);
             color: white;
-            border-color: #667eea;
+            border-color: #00b894;
             transform: scale(1.05);
         }
 
         .expertise-tag:hover span {
-            border-color: #667eea;
+            border-color: #00b894;
             background: #f0f2ff;
         }
 
@@ -259,14 +284,14 @@
         }
 
         .pricing-btn:hover {
-            border-color: #667eea;
+            border-color: #00b894;
             background: #f0f2ff;
         }
 
         .pricing-btn.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #00b894, #00a085);
             color: white;
-            border-color: #667eea;
+            border-color: #00b894;
         }
 
         .profile-summary {
@@ -312,7 +337,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #00b894, #00a085);
             color: white;
         }
 
@@ -323,12 +348,12 @@
 
         .btn-outline {
             background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+            color: #00b894;
+            border: 2px solid #00b894;
         }
 
         .btn-outline:hover {
-            background: #667eea;
+            background: #00b894;
             color: white;
         }
 
@@ -360,7 +385,11 @@
             }
             
             .tag-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            }
+            
+            .expertise-section {
+                max-height: 350px;
             }
             
             .step-actions {
@@ -392,7 +421,7 @@
                 <div class="form-section">
                     <div class="form-group">
                         <label>Username</label>
-                        <input type="text" id="username" class="form-control" placeholder="Enter your username" value="{{ current_user.username or '' }}" maxlength="30">
+                        <input type="text" id="username" class="form-control" placeholder="Enter your username" value="" maxlength="30">
                         <div class="form-text">Only letters, numbers, and underscores allowed. 3-30 characters.</div>
                         <div id="username-status" class="username-status"></div>
                     </div>
@@ -414,29 +443,29 @@
                 
                 <div class="form-section">
                     <div class="form-group">
-                        <label>What do you do?</label>
+                        <label>Title</label>
                         <input type="text" id="profession" class="form-control" placeholder="e.g., Software Engineer, Business Coach, Marketing Consultant" value="{{ current_user.profession or '' }}">
                     </div>
                     
                     <div class="form-group">
-                        <label>Tell us about your expertise</label>
+                        <label>Description</label>
                         <textarea id="bio" class="form-control" rows="4" placeholder="What can you help people with? Share your experience and what makes you unique...">{{ current_user.bio or '' }}</textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label>What industry are you in?</label>
+                        <label>Industry</label>
                         <select id="industry" class="form-control">
                             <option value="">Select your industry</option>
-                            <option value="technology" {{ 'selected' if current_user.industry == 'technology' else '' }}>Technology</option>
-                            <option value="business" {{ 'selected' if current_user.industry == 'business' else '' }}>Business</option>
-                            <option value="marketing" {{ 'selected' if current_user.industry == 'marketing' else '' }}>Marketing</option>
-                            <option value="finance" {{ 'selected' if current_user.industry == 'finance' else '' }}>Finance</option>
-                            <option value="healthcare" {{ 'selected' if current_user.industry == 'healthcare' else '' }}>Healthcare</option>
-                            <option value="education" {{ 'selected' if current_user.industry == 'education' else '' }}>Education</option>
-                            <option value="consulting" {{ 'selected' if current_user.industry == 'consulting' else '' }}>Consulting</option>
-                            <option value="creative" {{ 'selected' if current_user.industry == 'creative' else '' }}>Creative</option>
-                            <option value="fitness" {{ 'selected' if current_user.industry == 'fitness' else '' }}>Fitness & Wellness</option>
-                            <option value="other" {{ 'selected' if current_user.industry == 'other' else '' }}>Other</option>
+                            <option value="Technology" {{ 'selected' if current_user.industry == 'Technology' else '' }}>Technology</option>
+                            <option value="Business" {{ 'selected' if current_user.industry == 'Business' else '' }}>Business</option>
+                            <option value="Marketing" {{ 'selected' if current_user.industry == 'Marketing' else '' }}>Marketing</option>
+                            <option value="Finance" {{ 'selected' if current_user.industry == 'Finance' else '' }}>Finance</option>
+                            <option value="Healthcare" {{ 'selected' if current_user.industry == 'Healthcare' else '' }}>Healthcare</option>
+                            <option value="Education" {{ 'selected' if current_user.industry == 'Education' else '' }}>Education</option>
+                            <option value="Consulting" {{ 'selected' if current_user.industry == 'Consulting' else '' }}>Consulting</option>
+                            <option value="Creative" {{ 'selected' if current_user.industry == 'Creative' else '' }}>Creative</option>
+                            <option value="Fitness" {{ 'selected' if current_user.industry == 'Fitness' else '' }}>Fitness & Wellness</option>
+                            <option value="Other" {{ 'selected' if current_user.industry == 'Other' else '' }}>Other</option>
                         </select>
                     </div>
                 </div>
@@ -462,36 +491,36 @@
                             <h3>💻 Technology</h3>
                             <div class="tag-grid">
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="python" {{ 'checked' if 'python' in (current_user.get_specialty_tags() or []) else '' }}>
-                                    <span>Python</span>
+                                    <input type="checkbox" name="expertise" value="programming" {{ 'checked' if 'programming' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Programming</span>
                                 </label>
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="javascript" {{ 'checked' if 'javascript' in (current_user.get_specialty_tags() or []) else '' }}>
-                                    <span>JavaScript</span>
-                                </label>
-                                <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="react" {{ 'checked' if 'react' in (current_user.get_specialty_tags() or []) else '' }}>
-                                    <span>React</span>
-                                </label>
-                                <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="ai" {{ 'checked' if 'ai' in (current_user.get_specialty_tags() or []) else '' }}>
-                                    <span>AI/ML</span>
-                                </label>
-                                <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="webdev" {{ 'checked' if 'webdev' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <input type="checkbox" name="expertise" value="web-development" {{ 'checked' if 'web-development' in (current_user.get_specialty_tags() or []) else '' }}>
                                     <span>Web Development</span>
                                 </label>
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="mobile" {{ 'checked' if 'mobile' in (current_user.get_specialty_tags() or []) else '' }}>
-                                    <span>Mobile Development</span>
+                                    <input type="checkbox" name="expertise" value="mobile-apps" {{ 'checked' if 'mobile-apps' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Mobile Apps</span>
                                 </label>
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="data" {{ 'checked' if 'data' in (current_user.get_specialty_tags() or []) else '' }}>
-                                    <span>Data Science</span>
+                                    <input type="checkbox" name="expertise" value="ai-ml" {{ 'checked' if 'ai-ml' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>AI & Machine Learning</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="data-analysis" {{ 'checked' if 'data-analysis' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Data Analysis</span>
                                 </label>
                                 <label class="expertise-tag">
                                     <input type="checkbox" name="expertise" value="cybersecurity" {{ 'checked' if 'cybersecurity' in (current_user.get_specialty_tags() or []) else '' }}>
                                     <span>Cybersecurity</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="cloud-computing" {{ 'checked' if 'cloud-computing' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Cloud Computing</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="blockchain" {{ 'checked' if 'blockchain' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Blockchain</span>
                                 </label>
                             </div>
                         </div>
@@ -501,8 +530,8 @@
                             <h3>💼 Business</h3>
                             <div class="tag-grid">
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="strategy" {{ 'checked' if 'strategy' in (current_user.get_specialty_tags() or []) else '' }}>
-                                    <span>Strategy</span>
+                                    <input type="checkbox" name="expertise" value="business-strategy" {{ 'checked' if 'business-strategy' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Business Strategy</span>
                                 </label>
                                 <label class="expertise-tag">
                                     <input type="checkbox" name="expertise" value="startups" {{ 'checked' if 'startups' in (current_user.get_specialty_tags() or []) else '' }}>
@@ -513,10 +542,6 @@
                                     <span>Fundraising</span>
                                 </label>
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="operations" {{ 'checked' if 'operations' in (current_user.get_specialty_tags() or []) else '' }}>
-                                    <span>Operations</span>
-                                </label>
-                                <label class="expertise-tag">
                                     <input type="checkbox" name="expertise" value="leadership" {{ 'checked' if 'leadership' in (current_user.get_specialty_tags() or []) else '' }}>
                                     <span>Leadership</span>
                                 </label>
@@ -525,35 +550,113 @@
                                     <span>Finance</span>
                                 </label>
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="trading" {{ 'checked' if 'trading' in (current_user.get_specialty_tags() or []) else '' }}>
-                                    <span>Trading</span>
+                                    <input type="checkbox" name="expertise" value="sales" {{ 'checked' if 'sales' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Sales</span>
                                 </label>
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="money" {{ 'checked' if 'money' in (current_user.get_specialty_tags() or []) else '' }}>
-                                    <span>Money Management</span>
+                                    <input type="checkbox" name="expertise" value="consulting" {{ 'checked' if 'consulting' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Consulting</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="operations" {{ 'checked' if 'operations' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Operations</span>
                                 </label>
                             </div>
                         </div>
 
-                        <!-- Marketing & Health -->
+                        <!-- Marketing & Creative -->
                         <div class="category-group">
-                            <h3>📈 Marketing & Health</h3>
+                            <h3>📈 Marketing & Creative</h3>
                             <div class="tag-grid">
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="digital">
+                                    <input type="checkbox" name="expertise" value="digital-marketing" {{ 'checked' if 'digital-marketing' in (current_user.get_specialty_tags() or []) else '' }}>
                                     <span>Digital Marketing</span>
                                 </label>
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="social">
+                                    <input type="checkbox" name="expertise" value="social-media" {{ 'checked' if 'social-media' in (current_user.get_specialty_tags() or []) else '' }}>
                                     <span>Social Media</span>
                                 </label>
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="fitness">
+                                    <input type="checkbox" name="expertise" value="content-creation" {{ 'checked' if 'content-creation' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Content Creation</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="branding" {{ 'checked' if 'branding' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Branding</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="design" {{ 'checked' if 'design' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Design</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="writing" {{ 'checked' if 'writing' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Writing</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="video-production" {{ 'checked' if 'video-production' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Video Production</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="photography" {{ 'checked' if 'photography' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Photography</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Health & Wellness -->
+                        <div class="category-group">
+                            <h3>🏃 Health & Wellness</h3>
+                            <div class="tag-grid">
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="fitness" {{ 'checked' if 'fitness' in (current_user.get_specialty_tags() or []) else '' }}>
                                     <span>Fitness</span>
                                 </label>
                                 <label class="expertise-tag">
-                                    <input type="checkbox" name="expertise" value="coaching">
+                                    <input type="checkbox" name="expertise" value="nutrition" {{ 'checked' if 'nutrition' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Nutrition</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="life-coaching" {{ 'checked' if 'life-coaching' in (current_user.get_specialty_tags() or []) else '' }}>
                                     <span>Life Coaching</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="mental-health" {{ 'checked' if 'mental-health' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Mental Health</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="yoga" {{ 'checked' if 'yoga' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Yoga</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="meditation" {{ 'checked' if 'meditation' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Meditation</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Education & Skills -->
+                        <div class="category-group">
+                            <h3>🎓 Education & Skills</h3>
+                            <div class="tag-grid">
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="teaching" {{ 'checked' if 'teaching' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Teaching</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="tutoring" {{ 'checked' if 'tutoring' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Tutoring</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="languages" {{ 'checked' if 'languages' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Languages</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="music" {{ 'checked' if 'music' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Music</span>
+                                </label>
+                                <label class="expertise-tag">
+                                    <input type="checkbox" name="expertise" value="art" {{ 'checked' if 'art' in (current_user.get_specialty_tags() or []) else '' }}>
+                                    <span>Art</span>
                                 </label>
                             </div>
                         </div>
@@ -585,15 +688,6 @@
                 </div>
                 
                 <div class="form-section">
-                    <div class="form-group">
-                        <label>Session Price (USD)</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" id="sessionPrice" class="form-control" placeholder="0" min="0" value="{{ current_user.hourly_rate or '' }}">
-                        </div>
-                        <small class="form-text">Set to 0 if you offer free sessions. All sessions are 30 minutes.</small>
-                    </div>
-                    
                     <div class="pricing-options">
                         <h3>Quick Pricing Options</h3>
                         <div class="pricing-buttons">
@@ -601,8 +695,16 @@
                             <button type="button" class="pricing-btn" data-rate="25">$25/session</button>
                             <button type="button" class="pricing-btn" data-rate="50">$50/session</button>
                             <button type="button" class="pricing-btn" data-rate="100">$100/session</button>
-                            <button type="button" class="pricing-btn" data-rate="200">$200/session</button>
                         </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 30px;">
+                        <label>Custom Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" id="sessionPrice" class="form-control" placeholder="0" min="0" value="{{ current_user.hourly_rate or '' }}">
+                        </div>
+                        <small class="form-text">Set to 0 if you offer free sessions. All sessions are 30 minutes.</small>
                     </div>
                 </div>
                 
@@ -792,14 +894,23 @@
             const value = input.value.trim();
             
             if (value) {
-                const tagGrid = document.querySelector('.tag-grid');
+                // Create a new category group for custom expertise
+                const customCategory = document.querySelector('.custom-expertise');
+                let customTagGrid = customCategory.querySelector('.custom-tag-grid');
+                
+                if (!customTagGrid) {
+                    customTagGrid = document.createElement('div');
+                    customTagGrid.className = 'tag-grid custom-tag-grid';
+                    customCategory.appendChild(customTagGrid);
+                }
+                
                 const newTag = document.createElement('label');
                 newTag.className = 'expertise-tag';
                 newTag.innerHTML = `
                     <input type="checkbox" name="expertise" value="${value.toLowerCase().replace(/\s+/g, '_')}" checked>
                     <span>${value}</span>
                 `;
-                tagGrid.appendChild(newTag);
+                customTagGrid.appendChild(newTag);
                 input.value = '';
             }
         }
