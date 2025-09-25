@@ -167,22 +167,22 @@ def convert_to_local_time(dt, user_timezone='America/New_York'):
 
 def convert_availability_to_user_timezone(availability_rules, expert_timezone, user_timezone):
     """Convert expert's availability from their timezone to user's timezone"""
-    import pytz
+    from zoneinfo import ZoneInfo
     from datetime import datetime, time
     
     if not availability_rules:
         return []
     
-    expert_tz = pytz.timezone(expert_timezone)
-    user_tz = pytz.timezone(user_timezone)
+    expert_tz = ZoneInfo(expert_timezone)
+    user_tz = ZoneInfo(user_timezone)
     
     converted_rules = []
     
     for rule in availability_rules:
         # Create datetime objects in expert's timezone for today
         today = datetime.now(expert_tz).date()
-        start_dt = expert_tz.localize(datetime.combine(today, rule.start))
-        end_dt = expert_tz.localize(datetime.combine(today, rule.end))
+        start_dt = datetime.combine(today, rule.start).replace(tzinfo=expert_tz)
+        end_dt = datetime.combine(today, rule.end).replace(tzinfo=expert_tz)
         
         # Convert to user's timezone
         start_user = start_dt.astimezone(user_tz)
@@ -204,7 +204,7 @@ def convert_availability_to_user_timezone(availability_rules, expert_timezone, u
 def generate_available_slots_for_date(date, expert, user_timezone=None):
     """Generate available time slots for a specific date, converting to user's timezone"""
     try:
-        import pytz
+        from zoneinfo import ZoneInfo
         from datetime import datetime, time, timedelta
         
         # Get expert's timezone
@@ -229,12 +229,12 @@ def generate_available_slots_for_date(date, expert, user_timezone=None):
         for rule in rules:
             try:
                 # Create datetime objects in expert's timezone
-                expert_tz = pytz.timezone(expert_timezone)
-                display_tz = pytz.timezone(display_timezone)
+                expert_tz = ZoneInfo(expert_timezone)
+                display_tz = ZoneInfo(display_timezone)
                 
                 # Start and end times in expert's timezone
-                start_dt = expert_tz.localize(datetime.combine(date, rule.start))
-                end_dt = expert_tz.localize(datetime.combine(date, rule.end))
+                start_dt = datetime.combine(date, rule.start).replace(tzinfo=expert_tz)
+                end_dt = datetime.combine(date, rule.end).replace(tzinfo=expert_tz)
                 
                 # Convert to display timezone
                 start_display = start_dt.astimezone(display_tz)
