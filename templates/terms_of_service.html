@@ -16,7 +16,7 @@
             </a>
             <div class="top-nav-links">
                 <a href="{{ url_for('homepage') }}" class="top-nav-link">Home</a>
-                <a href="{{ url_for('find_experts') }}" class="top-nav-link">Search</a>
+                <a href="{{ url_for('search') }}" class="top-nav-link">Search</a>
                 {% if current_user.is_authenticated %}
                     <a href="{{ url_for('dashboard') }}" class="top-nav-link">Dashboard</a>
                     <a href="{{ url_for('logout') }}" class="top-nav-link">Logout</a>
