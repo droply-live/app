@@ -310,8 +310,15 @@ def create_simple_meeting_room(booking_id):
 def create_meeting_room(booking_id):
     """Create a Daily.co meeting room for a booking"""
     try:
-        # Generate a unique room name
-        room_name = f"droply-{booking_id}"
+        # Check if Daily.co API key is configured
+        if not DAILY_API_KEY or DAILY_API_KEY == 'your_daily_api_key_here':
+            print(f"[DEBUG] Daily.co API key not configured, using fallback")
+            return create_simple_meeting_room(booking_id)
+        
+        # Generate a unique room name with timestamp to avoid conflicts
+        from datetime import datetime
+        timestamp = int(datetime.now().timestamp())
+        room_name = f"droply-{booking_id}-{timestamp}"
         
         print(f"[DEBUG] Creating meeting room for booking {booking_id}")
         print(f"[DEBUG] Room name: {room_name}")
@@ -355,6 +362,24 @@ def create_meeting_room(booking_id):
                 print(f"[DEBUG] Booking updated with room info")
             
             return room_info, None
+        elif response.status_code == 400 and "already exists" in response.text:
+            # Room already exists, try to get the existing room info
+            print(f"[DEBUG] Room already exists, retrieving existing room info")
+            get_response = requests.get(
+                f'{DAILY_API_URL}/rooms/{room_name}',
+                headers=headers
+            )
+            if get_response.status_code == 200:
+                room_info = get_response.json()
+                room_url = room_info.get('url')
+                booking = Booking.query.get(booking_id)
+                if booking:
+                    booking.meeting_room_id = room_name
+                    booking.meeting_url = room_url
+                    db.session.commit()
+                return room_info, None
+            else:
+                return None, f"Error retrieving existing room: {get_response.text}"
         else:
             error_msg = f"Failed to create room: {response.text}"
             print(f"[DEBUG] {error_msg}")

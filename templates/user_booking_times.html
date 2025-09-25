@@ -12,7 +12,7 @@
       <span class="breadcrumb-separator">/</span>
       <a href="{{ url_for('search') }}" class="breadcrumb-link">User Marketplace</a>
       <span class="breadcrumb-separator">/</span>
-      <a href="{{ url_for('expert_profile', username=expert.username) }}" class="breadcrumb-link">{{ expert.full_name }}</a>
+      <a href="{{ url_for('user_profile', username=expert.username) }}" class="breadcrumb-link">{{ expert.full_name }}</a>
       <span class="breadcrumb-separator">/</span>
       <span class="breadcrumb-current">Book Session</span>
     </div>
@@ -102,7 +102,7 @@
               </div>
               <h3>No availability set</h3>
               <p>This expert hasn't set up their availability yet. They need to configure their calendar before you can book a session.</p>
-              <a href="{{ url_for('expert_profile', username=expert.username) }}" class="btn-secondary">
+              <a href="{{ url_for('user_profile', username=expert.username) }}" class="btn-secondary">
                 Back to Profile
               </a>
             </div>
