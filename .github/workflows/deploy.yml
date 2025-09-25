@@ -75,7 +75,7 @@ jobs:
           if curl -f http://localhost:5001 > /dev/null 2>&1; then
             echo "✅ New container is healthy, switching traffic..."
             # Stop old containers
-            docker compose down
+            docker-compose down             
             # Start new container on port 5000
             docker stop $NEW_CONTAINER_NAME
             docker rm $NEW_CONTAINER_NAME
