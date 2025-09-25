@@ -22,6 +22,8 @@ dependencies = [
     "google-auth>=2.0.0",
     "google-auth-oauthlib>=1.0.0",
     "google-auth-httplib2>=0.2.0",
+    "pytz",
+    "tzlocal",
     # "numpy>=1.24.0",
     # "faiss-cpu>=1.7.4",
     # "sentence-transformers>=2.2.0",
