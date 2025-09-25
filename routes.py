@@ -12,7 +12,7 @@ import json
 # import numpy as np  # Temporarily disabled
 import os
 import stripe
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, time
 
 # Configure timezone to Eastern Time
 EASTERN_TIMEZONE = timezone(timedelta(hours=-4))  # EDT (UTC-4)
@@ -745,6 +745,14 @@ def user_booking_times(username):
         
         # Get user's availability rules
         availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
+        
+        # If user has no availability rules, set up default 9-5 weekdays
+        if not availability_rules:
+            print(f"User {user.username} has no availability rules, setting up default 9-5 weekdays")
+            setup_default_availability(user)
+            db.session.commit()
+            # Refresh availability rules
+            availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
         
         # Get current user's timezone for display
         current_user_timezone = current_user.timezone or 'America/New_York'
