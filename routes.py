@@ -116,6 +116,25 @@ def fix_user_availability():
         else:
             return jsonify({'success': False, 'message': 'User already has availability rules'})
     except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/setup-availability/<username>', methods=['POST'])
+@login_required
+def setup_availability_for_user(username):
+    """Set up default availability for a specific user"""
+    try:
+        user = User.query.filter_by(username=username).first_or_404()
+        
+        # Check if user already has availability rules
+        existing_rules = AvailabilityRule.query.filter_by(user_id=user.id).count()
+        if existing_rules > 0:
+            return jsonify({'success': True, 'message': f'User {username} already has {existing_rules} availability rules'})
+        
+        # Set up default availability
+        setup_default_availability(user)
+        
+        return jsonify({'success': True, 'message': f'Default availability set up successfully for {username}'})
+    except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/connected-calendar')
@@ -2947,6 +2966,71 @@ def booking_confirmation():
         print(f"DEBUG: Redirect URL: {url_for('create_checkout_session', booking_id=booking.id)}")
         return redirect(url_for('create_checkout_session', booking_id=booking.id))
 
+@app.route('/debug/calendar/<username>')
+@login_required
+def debug_calendar(username):
+    """Debug calendar booking issues for a specific user"""
+    try:
+        user = User.query.filter_by(username=username).first_or_404()
+        
+        # Check basic user info
+        user_info = {
+            'username': user.username,
+            'full_name': user.full_name,
+            'is_available': user.is_available,
+            'timezone': user.timezone,
+            'has_availability_rules': False,
+            'availability_rules': [],
+            'available_times_count': 0,
+            'sample_available_times': []
+        }
+        
+        # Check availability rules
+        availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
+        user_info['has_availability_rules'] = len(availability_rules) > 0
+        user_info['availability_rules'] = [
+            {
+                'weekday': rule.weekday,
+                'start': rule.start.strftime('%H:%M'),
+                'end': rule.end.strftime('%H:%M'),
+                'is_active': rule.is_active
+            } for rule in availability_rules
+        ]
+        
+        # Test slot generation for today and tomorrow
+        from datetime import datetime, timedelta
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        tomorrow = today + timedelta(days=1)
+        
+        # Get current user's timezone
+        current_user_timezone = current_user.timezone or 'America/New_York'
+        
+        # Test slot generation
+        test_dates = [today, tomorrow]
+        all_available_times = []
+        
+        for test_date in test_dates:
+            try:
+                slots = generate_available_slots_for_date(test_date, user, current_user_timezone)
+                for slot in slots:
+                    if slot['start_time'].replace(tzinfo=None) > datetime.now():
+                        all_available_times.append({
+                            'date': test_date.strftime('%Y-%m-%d'),
+                            'datetime': slot['start_time'].replace(tzinfo=None),
+                            'formatted_time': slot['formatted_time'],
+                            'iso_datetime': slot['start_time'].replace(tzinfo=None).isoformat()
+                        })
+            except Exception as e:
+                print(f"Error generating slots for {test_date}: {e}")
+        
+        user_info['available_times_count'] = len(all_available_times)
+        user_info['sample_available_times'] = all_available_times[:10]  # First 10 times
+        
+        return jsonify(user_info)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/availability/times', methods=['GET'])
 def api_availability_times():
     """Get available times for a user, with default 9-5 availability if no rules set"""
@@ -3656,6 +3740,13 @@ def join_meeting(booking_id):
     print(f"[DEBUG] Other user: {other_user.username}, Is owner: {is_owner}")
     print(f"[DEBUG] Room URL: {booking.meeting_url}")
     
+    # Check if Daily.co is working, fallback to simple WebRTC if not
+    if not DAILY_API_KEY or DAILY_API_KEY == 'your_daily_api_key_here':
+        print(f"[DEBUG] Daily.co not configured, using simple WebRTC")
+        return render_template('meeting_simple.html', 
+                             booking=booking, 
+                             other_user=other_user)
+    
     # Use the Daily.co template for video calling
     return render_template('meeting_daily.html', 
                          booking=booking, 
@@ -3781,12 +3872,38 @@ def simple_test_meeting(booking_id):
         # Always use simple template
         return render_template('meeting_simple.html', 
                              booking=booking, 
-                             token="simple-token", 
-                             room_name=booking.meeting_room_id,
+                             token="simple-token",
                              other_user=other_user)
                              
     except Exception as e:
         print(f"Error in simple_test_meeting: {e}")
+        return f"Error: {str(e)}", 500
+
+@app.route('/force-simple-meeting/<int:booking_id>')
+@login_required
+def force_simple_meeting(booking_id):
+    """Force use of simple WebRTC meeting with controls"""
+    try:
+        booking = Booking.query.get_or_404(booking_id)
+        
+        # Check if user is authorized to join this meeting
+        if booking.user_id != current_user.id and booking.expert_id != current_user.id:
+            flash('You are not authorized to join this meeting.', 'error')
+            return redirect(url_for('bookings'))
+        
+        # Determine the other participant
+        if current_user.id == booking.user_id:
+            other_user = booking.expert
+        else:
+            other_user = booking.user
+        
+        # Force use simple template with controls
+        return render_template('meeting_simple.html', 
+                             booking=booking, 
+                             other_user=other_user)
+                             
+    except Exception as e:
+        print(f"Error in force_simple_meeting: {e}")
         return f"Error: {str(e)}", 500
 
 @app.route('/daily-test/<int:booking_id>')
