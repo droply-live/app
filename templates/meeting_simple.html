@@ -117,6 +117,8 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    background: #000;
+    border-radius: 8px;
 }
 
 .video-overlay {
@@ -295,25 +297,41 @@ async function initializeCall() {
         });
         
         console.log('Got local stream:', localStream);
-        document.getElementById('localVideo').srcObject = localStream;
-        document.getElementById('video-status').textContent = 'Connected';
+        
+        // Show local video
+        const localVideo = document.getElementById('localVideo');
+        if (localVideo) {
+            localVideo.srcObject = localStream;
+            localVideo.play();
+            console.log('Local video set and playing');
+        }
+        
+        // Show a placeholder for remote video
+        const remoteVideo = document.getElementById('remoteVideo');
+        if (remoteVideo) {
+            remoteVideo.style.background = '#f0f0f0';
+            remoteVideo.style.display = 'flex';
+            remoteVideo.style.alignItems = 'center';
+            remoteVideo.style.justifyContent = 'center';
+            remoteVideo.innerHTML = '<div style="text-align: center; color: #666;"><i class="fas fa-user" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br>Waiting for participant...</div>';
+        }
+        
+        document.getElementById('video-status').textContent = 'Local Video Active';
         updateConnectionStatus('connected');
         
-        // For now, just show local video without peer connection
-        // This ensures the controls are always visible
-        console.log('Video call initialized successfully');
+        console.log('Video call initialized successfully - local video only');
         
-        // Initialize peer connection (optional for now)
-        try {
-            peerConnection = new RTCPeerConnection(configuration);
-            
-            // Add local stream
-            localStream.getTracks().forEach(track => {
-                peerConnection.addTrack(track, localStream);
-            });
-        } catch (error) {
-            console.log('Peer connection not available:', error);
+    } catch (error) {
+        console.error('Error getting user media:', error);
+        document.getElementById('video-status').textContent = 'Camera/Mic Error';
+        updateConnectionStatus('error');
+        
+        // Show error in remote video area
+        const remoteVideo = document.getElementById('remoteVideo');
+        if (remoteVideo) {
+            remoteVideo.innerHTML = '<div style="text-align: center; color: #dc3545;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br>Camera/Microphone access denied<br><small>Please allow camera and microphone permissions</small></div>';
         }
+    }
         
         // Handle remote stream
         peerConnection.ontrack = (event) => {
@@ -448,6 +466,21 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('controls-status').textContent = 'Visible';
     } else {
         document.getElementById('controls-status').textContent = 'Not Found';
+    }
+    
+    // Check video elements
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    console.log('Local video element:', !!localVideo);
+    console.log('Remote video element:', !!remoteVideo);
+    
+    if (localVideo) {
+        localVideo.style.border = '2px solid #007bff';
+        console.log('Local video element found and styled');
+    }
+    if (remoteVideo) {
+        remoteVideo.style.border = '2px solid #28a745';
+        console.log('Remote video element found and styled');
     }
     
     // Try to initialize video
