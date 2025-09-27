@@ -3747,13 +3747,19 @@ def join_meeting(booking_id):
                              booking=booking, 
                              other_user=other_user)
     
-    # Use the Daily.co template for video calling
-    return render_template('meeting_daily.html', 
+    # For now, always use simple WebRTC to ensure controls are visible
+    print(f"[DEBUG] Using simple WebRTC for guaranteed control visibility")
+    return render_template('meeting_simple.html', 
                          booking=booking, 
-                         room_name=booking.meeting_room_id,
-                         room_url=booking.meeting_url,
-                         other_user=other_user,
-                         is_owner=is_owner)
+                         other_user=other_user)
+    
+    # Use the Daily.co template for video calling (commented out for now)
+    # return render_template('meeting_daily.html', 
+    #                      booking=booking, 
+    #                      room_name=booking.meeting_room_id,
+    #                      room_url=booking.meeting_url,
+    #                      other_user=other_user,
+    #                      is_owner=is_owner)
 
 @app.route('/meeting/<int:booking_id>/start')
 @login_required
