@@ -105,6 +105,33 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   feather.replace();
+  
+  // Debug: Check if form exists
+  const form = document.querySelector('form');
+  const payButton = document.getElementById('pay-now-btn');
+  
+  console.log('Form found:', !!form);
+  console.log('Pay button found:', !!payButton);
+  
+  if (payButton) {
+    payButton.addEventListener('click', function(e) {
+      console.log('Pay button clicked!');
+      console.log('Form action:', form ? form.action : 'No form');
+      console.log('Form method:', form ? form.method : 'No form');
+      
+      // Add loading state
+      payButton.disabled = true;
+      payButton.innerHTML = '<i data-feather="loader" class="me-2"></i>Processing...';
+      feather.replace();
+    });
+  }
+  
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      console.log('Form submitting...');
+      console.log('Form data:', new FormData(form));
+    });
+  }
 });
 </script>
 {% endblock %} 

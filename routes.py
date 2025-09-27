@@ -1404,6 +1404,9 @@ def create_checkout_session(booking_id):
     print(f"DEBUG: create_checkout_session called with booking_id: {booking_id}")
     print(f"DEBUG: Stripe API key configured: {bool(stripe.api_key)}")
     print(f"DEBUG: YOUR_DOMAIN: {YOUR_DOMAIN}")
+    print(f"DEBUG: Request method: {request.method}")
+    print(f"DEBUG: Request args: {dict(request.args)}")
+    print(f"DEBUG: Request form: {dict(request.form)}")
     
     # Production safeguard
     if is_production_environment() and stripe.api_key.startswith('sk_test_'):
@@ -3911,6 +3914,41 @@ def force_simple_meeting(booking_id):
     except Exception as e:
         print(f"Error in force_simple_meeting: {e}")
         return f"Error: {str(e)}", 500
+
+@app.route('/test-booking/<username>')
+@login_required
+def test_booking(username):
+    """Create a test booking without payment for testing"""
+    try:
+        expert = User.query.filter_by(username=username).first_or_404()
+        
+        # Create a test booking for immediate use
+        from datetime import datetime, timedelta
+        now = datetime.now()
+        start_time = now + timedelta(minutes=1)  # 1 minute from now
+        end_time = start_time + timedelta(minutes=30)
+        
+        booking = Booking(
+            user_id=current_user.id,
+            expert_id=expert.id,
+            start_time=start_time,
+            end_time=end_time,
+            duration=30,
+            status='confirmed',  # Skip payment for testing
+            payment_status='paid',
+            payment_amount=5.00
+        )
+        
+        db.session.add(booking)
+        db.session.commit()
+        
+        flash('Test booking created successfully!', 'success')
+        return redirect(url_for('join_meeting', booking_id=booking.id))
+        
+    except Exception as e:
+        print(f"Error creating test booking: {e}")
+        flash(f'Error creating test booking: {str(e)}', 'error')
+        return redirect(url_for('user_profile', username=username))
 
 @app.route('/daily-test/<int:booking_id>')
 def daily_test(booking_id):
