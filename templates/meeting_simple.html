@@ -250,7 +250,7 @@
     </div>
 
     <!-- Meeting Footer -->
-    <div class="meeting-footer">
+    <div class="meeting-footer" id="meeting-footer">
         <button class="control-btn secondary" onclick="toggleMute()" id="muteBtn">
             <i data-feather="mic"></i>
         </button>
@@ -260,6 +260,12 @@
         <button class="control-btn danger" onclick="leaveMeeting()">
             <i data-feather="phone-off"></i>
         </button>
+    </div>
+    
+    <!-- Debug info -->
+    <div style="position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; font-size: 12px; z-index: 9999;">
+        <div>Controls Status: <span id="controls-status">Loading...</span></div>
+        <div>Video Status: <span id="video-status">Loading...</span></div>
     </div>
 </div>
 
@@ -280,22 +286,34 @@ const configuration = {
 
 async function initializeCall() {
     try {
+        console.log('Initializing video call...');
+        
         // Get user media
         localStream = await navigator.mediaDevices.getUserMedia({
             video: true,
             audio: true
         });
         
+        console.log('Got local stream:', localStream);
         document.getElementById('localVideo').srcObject = localStream;
-        updateConnectionStatus('connecting');
+        document.getElementById('video-status').textContent = 'Connected';
+        updateConnectionStatus('connected');
         
-        // Initialize peer connection
-        peerConnection = new RTCPeerConnection(configuration);
+        // For now, just show local video without peer connection
+        // This ensures the controls are always visible
+        console.log('Video call initialized successfully');
         
-        // Add local stream
-        localStream.getTracks().forEach(track => {
-            peerConnection.addTrack(track, localStream);
-        });
+        // Initialize peer connection (optional for now)
+        try {
+            peerConnection = new RTCPeerConnection(configuration);
+            
+            // Add local stream
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+        } catch (error) {
+            console.log('Peer connection not available:', error);
+        }
         
         // Handle remote stream
         peerConnection.ontrack = (event) => {
@@ -419,7 +437,20 @@ function showError(message) {
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, initializing call...');
     feather.replace();
+    
+    // Always show controls
+    const footer = document.querySelector('.meeting-footer');
+    if (footer) {
+        footer.style.display = 'flex';
+        console.log('Controls should be visible');
+        document.getElementById('controls-status').textContent = 'Visible';
+    } else {
+        document.getElementById('controls-status').textContent = 'Not Found';
+    }
+    
+    // Try to initialize video
     initializeCall();
 });
 
