@@ -543,6 +543,7 @@ body {
     display: flex;
     flex-direction: column;
     background: #f5f5f5;
+    padding-bottom: 100px; /* Account for fixed control bar */
 }
 
 /* Top Header */
@@ -666,14 +667,18 @@ body {
 .control-bar {
     background: white;
     padding: 1rem 1.5rem;
-    display: flex;
+    display: flex !important;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid #e5e5e5;
+    border-top: 2px solid #007bff;
     gap: 1rem;
-    position: relative;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+    min-height: 80px;
 }
 
 .control-left,
@@ -736,36 +741,47 @@ body {
 
 /* Control Buttons */
 .control-btn {
-    background: #f8f9fa;
-    border: 1px solid #e5e5e5;
+    background: #ffffff;
+    border: 2px solid #007bff;
     border-radius: 50%;
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #333;
-    font-size: 1.1rem;
+    color: #007bff;
+    font-size: 1.2rem;
     position: relative;
     z-index: 1001;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 .control-btn:hover {
-    background: #e9ecef;
-    transform: translateY(-1px);
+    background: #007bff;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
 }
 
 .control-btn.disabled {
     background: #f8f9fa;
     color: #adb5bd;
     border-color: #e5e5e5;
+    box-shadow: none;
 }
 
 .control-btn.disabled:hover {
     background: #f8f9fa;
+    color: #adb5bd;
     transform: none;
+    box-shadow: none;
 }
 
 /* End Call Button */

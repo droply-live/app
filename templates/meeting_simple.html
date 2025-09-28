@@ -4,6 +4,8 @@
 
 {% block head %}
 {{ super() }}
+<!-- Feather Icons -->
+<script src="https://unpkg.com/feather-icons"></script>
 <style>
 .meeting-container {
     height: 100vh;
@@ -155,7 +157,7 @@
     backdrop-filter: blur(10px);
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     padding: 1rem 2rem;
-    display: flex;
+    display: flex !important;
     justify-content: center;
     align-items: center;
     gap: 1rem;
@@ -165,6 +167,7 @@
     right: 0;
     z-index: 1000;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    min-height: 80px;
 }
 
 .control-btn {
@@ -313,84 +316,94 @@ const configuration = {
 
 async function initializeCall() {
     try {
-        console.log('Initializing video call...');
+        console.log('=== INITIALIZING VIDEO CALL ===');
+        
+        // Check if getUserMedia is supported
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('getUserMedia not supported');
+        }
+        
+        console.log('Requesting camera and microphone access...');
         
         // Get user media
         localStream = await navigator.mediaDevices.getUserMedia({
-            video: true,
+            video: { width: 640, height: 480 },
             audio: true
         });
         
-        console.log('Got local stream:', localStream);
+        console.log('✓ Got local stream:', localStream);
+        console.log('✓ Video tracks:', localStream.getVideoTracks().length);
+        console.log('✓ Audio tracks:', localStream.getAudioTracks().length);
         
         // Show local video
         const localVideo = document.getElementById('localVideo');
         if (localVideo) {
             localVideo.srcObject = localStream;
-            localVideo.play();
-            console.log('Local video set and playing');
+            localVideo.muted = true; // Mute to prevent echo
+            localVideo.playsInline = true;
+            
+            localVideo.onloadedmetadata = () => {
+                console.log('✓ Local video metadata loaded');
+                localVideo.play().catch(e => console.log('Play error:', e));
+            };
+            
+            localVideo.onplay = () => {
+                console.log('✓ Local video is playing');
+            };
+            
+            console.log('✓ Local video element configured');
         }
         
-        // Show a placeholder for remote video
+        // Show placeholder for remote video
         const remoteVideo = document.getElementById('remoteVideo');
         if (remoteVideo) {
-            remoteVideo.style.background = '#f0f0f0';
-            remoteVideo.style.display = 'flex';
-            remoteVideo.style.alignItems = 'center';
-            remoteVideo.style.justifyContent = 'center';
-            remoteVideo.innerHTML = '<div style="text-align: center; color: #666;"><i class="fas fa-user" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br>Waiting for participant...</div>';
+            // Don't modify the video element, show placeholder instead
+            const placeholder = document.getElementById('remote-placeholder');
+            if (placeholder) {
+                placeholder.style.display = 'block';
+            }
+            console.log('✓ Remote video placeholder shown');
         }
         
         document.getElementById('video-status').textContent = 'Local Video Active';
         updateConnectionStatus('connected');
         
-        console.log('Video call initialized successfully - local video only');
+        console.log('✓ Video call initialized successfully');
         
     } catch (error) {
-        console.error('Error getting user media:', error);
+        console.error('✗ Error initializing video call:', error);
         document.getElementById('video-status').textContent = 'Camera/Mic Error';
         updateConnectionStatus('error');
         
-        // Show error in remote video area
+        // Show detailed error message
+        let errorMsg = 'Camera/Microphone access denied';
+        if (error.name === 'NotAllowedError') {
+            errorMsg = 'Please allow camera and microphone permissions';
+        } else if (error.name === 'NotFoundError') {
+            errorMsg = 'No camera or microphone found';
+        } else if (error.name === 'NotSupportedError') {
+            errorMsg = 'Camera/microphone not supported';
+        }
+        
         const remoteVideo = document.getElementById('remoteVideo');
         if (remoteVideo) {
-            remoteVideo.innerHTML = '<div style="text-align: center; color: #dc3545;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br>Camera/Microphone access denied<br><small>Please allow camera and microphone permissions</small></div>';
+            remoteVideo.innerHTML = `<div style="text-align: center; color: #dc3545; padding: 2rem;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h4>Camera/Microphone Error</h4>
+                <p>${errorMsg}</p>
+                <small>Check browser permissions and try refreshing the page</small>
+            </div>`;
         }
-    }
         
-        // Handle remote stream
-        peerConnection.ontrack = (event) => {
-            remoteStream = event.streams[0];
-            document.getElementById('remoteVideo').srcObject = remoteStream;
-            updateConnectionStatus('connected');
-        };
-        
-        // Handle connection state changes
-        peerConnection.onconnectionstatechange = () => {
-            console.log('Connection state:', peerConnection.connectionState);
-            if (peerConnection.connectionState === 'connected') {
-                updateConnectionStatus('connected');
-            } else if (peerConnection.connectionState === 'disconnected') {
-                updateConnectionStatus('disconnected');
-            }
-        };
-        
-        // Create and send offer
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        
-        // In a real implementation, you would send this offer to the other participant
-        // For now, we'll just log it
-        console.log('Offer created:', offer);
-        
-        // Simulate receiving an answer (in real implementation, this would come from the other participant)
-        setTimeout(() => {
-            simulateAnswer();
-        }, 2000);
-        
-    } catch (error) {
-        console.error('Error initializing call:', error);
-        showError('Failed to access camera/microphone. Please check permissions.');
+        // Also show in local video area
+        const localVideo = document.getElementById('localVideo');
+        if (localVideo) {
+            localVideo.innerHTML = `<div style="text-align: center; color: #dc3545; padding: 2rem;">
+                <i class="fas fa-video-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h4>No Camera Access</h4>
+                <p>Please allow camera permissions to start the call</p>
+            </div>`;
+        }
     }
 }
 
@@ -406,7 +419,9 @@ function simulateAnswer() {
         <strong>Demo Mode:</strong> This is a simulation. In a real call, you would be connected to {{ other_user.full_name or other_user.username }}. 
         Your microphone and camera are working - try the controls below!
     `;
-    feather.replace();
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
 }
 
 function updateConnectionStatus(status) {
@@ -421,7 +436,9 @@ function updateConnectionStatus(status) {
         statusEl.innerHTML = '<i data-feather="wifi-off" class="me-1"></i>Disconnected';
     }
     
-    feather.replace();
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
 }
 
 function toggleMute() {
@@ -439,7 +456,9 @@ function toggleMute() {
             muteBtn.innerHTML = '<i data-feather="mic"></i>';
             muteBtn.classList.remove('muted');
         }
+        if (typeof feather !== 'undefined') {
         feather.replace();
+    }
     }
 }
 
@@ -458,7 +477,9 @@ function toggleVideo() {
             videoBtn.innerHTML = '<i data-feather="video"></i>';
             videoBtn.classList.remove('video-off');
         }
+        if (typeof feather !== 'undefined') {
         feather.replace();
+    }
     }
 }
 
@@ -480,36 +501,58 @@ function showError(message) {
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== VIDEO CALL DEBUG ===');
     console.log('Page loaded, initializing call...');
-    feather.replace();
     
-    // Always show controls
+    // Always show controls first
     const footer = document.querySelector('.meeting-footer');
     if (footer) {
         footer.style.display = 'flex';
-        console.log('Controls should be visible');
+        console.log('✓ Controls should be visible');
         document.getElementById('controls-status').textContent = 'Visible';
     } else {
+        console.error('✗ Controls not found!');
         document.getElementById('controls-status').textContent = 'Not Found';
     }
     
     // Check video elements
     const localVideo = document.getElementById('localVideo');
     const remoteVideo = document.getElementById('remoteVideo');
-    console.log('Local video element:', !!localVideo);
-    console.log('Remote video element:', !!remoteVideo);
+    const videoGrid = document.getElementById('video-grid');
+    
+    console.log('✓ Local video element:', !!localVideo);
+    console.log('✓ Remote video element:', !!remoteVideo);
+    console.log('✓ Video grid element:', !!videoGrid);
+    
+    if (videoGrid) {
+        console.log('✓ Video grid is visible');
+    } else {
+        console.error('✗ Video grid not found!');
+    }
     
     if (localVideo) {
-        localVideo.style.border = '2px solid #007bff';
-        console.log('Local video element found and styled');
+        localVideo.style.border = '3px solid #007bff';
+        console.log('✓ Local video styled with blue border');
     }
     if (remoteVideo) {
-        remoteVideo.style.border = '2px solid #28a745';
-        console.log('Remote video element found and styled');
+        remoteVideo.style.border = '3px solid #28a745';
+        console.log('✓ Remote video styled with green border');
     }
     
-    // Try to initialize video
-    initializeCall();
+    // Replace feather icons if available
+    if (typeof feather !== 'undefined') {
+        if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+    } else {
+        console.log('Feather icons not loaded, using fallback icons');
+    }
+    
+    // Try to initialize video with better error handling
+    setTimeout(() => {
+        console.log('Starting video initialization...');
+        initializeCall();
+    }, 1000);
 });
 
 // Clean up on page unload
