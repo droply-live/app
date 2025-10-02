@@ -2,6 +2,9 @@
 
 {% block title %}Video Call - {{ booking.title }}{% endblock %}
 
+<!-- Ensure FontAwesome is loaded -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 {% block content %}
 <div class="video-call-wrapper">
     <!-- Top Header -->
@@ -40,7 +43,7 @@
     </div>
 
     <!-- Bottom Control Bar -->
-    <div class="control-bar" id="main-control-bar">
+    <div class="control-bar" id="main-control-bar" style="display: flex !important;">
         <div class="control-left">
             <button class="control-btn video-btn" onclick="toggleVideo()" id="video-btn">
                 <i class="fas fa-video"></i>
@@ -158,21 +161,123 @@ function checkControlBarVisibility() {
     const mainControlBar = document.getElementById('main-control-bar');
     const floatingControlBar = document.getElementById('floating-control-bar');
     
+    console.log('Checking control bar visibility...');
+    console.log('Main control bar:', mainControlBar);
+    console.log('Floating control bar:', floatingControlBar);
+    
     if (mainControlBar) {
+        // Force main control bar to be visible in windowed mode
+        mainControlBar.style.display = 'flex';
+        mainControlBar.style.position = 'fixed';
+        mainControlBar.style.bottom = '0';
+        mainControlBar.style.left = '0';
+        mainControlBar.style.right = '0';
+        mainControlBar.style.width = '100%';
+        mainControlBar.style.zIndex = '1000';
+        mainControlBar.style.visibility = 'visible';
+        mainControlBar.style.opacity = '1';
+        
         const rect = mainControlBar.getBoundingClientRect();
         const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
         
-        if (!isVisible) {
-            floatingControlBar.style.display = 'flex';
+        console.log('Main control bar rect:', rect);
+        console.log('Is main control bar visible:', isVisible);
+        
+        // In windowed mode, always show main control bar, hide floating
+        if (window.innerHeight < 600) { // Small viewport
+            console.log('Small viewport detected, showing floating control bar');
+            if (floatingControlBar) {
+                floatingControlBar.style.display = 'flex';
+            }
         } else {
-            floatingControlBar.style.display = 'none';
+            console.log('Normal viewport, using main control bar');
+            if (floatingControlBar) {
+                floatingControlBar.style.display = 'none';
+            }
         }
+    } else {
+        console.error('Main control bar not found!');
     }
+}
+
+// Debug function to check button visibility
+function debugButtonVisibility() {
+    console.log('=== BUTTON VISIBILITY DEBUG ===');
+    
+    // Check main control bar
+    const mainControlBar = document.getElementById('main-control-bar');
+    console.log('Main control bar found:', !!mainControlBar);
+    if (mainControlBar) {
+        const rect = mainControlBar.getBoundingClientRect();
+        console.log('Main control bar rect:', rect);
+        console.log('Main control bar computed style:', window.getComputedStyle(mainControlBar).display);
+    }
+    
+    // Check individual buttons
+    const buttons = document.querySelectorAll('.control-btn');
+    console.log('Number of control buttons found:', buttons.length);
+    
+    buttons.forEach((btn, index) => {
+        const rect = btn.getBoundingClientRect();
+        const style = window.getComputedStyle(btn);
+        console.log(`Button ${index}:`, {
+            element: btn,
+            rect: rect,
+            display: style.display,
+            visibility: style.visibility,
+            opacity: style.opacity,
+            width: rect.width,
+            height: rect.height
+        });
+    });
+    
+    // Check FontAwesome icons
+    const icons = document.querySelectorAll('.control-btn i');
+    console.log('Number of icons found:', icons.length);
+    icons.forEach((icon, index) => {
+        const style = window.getComputedStyle(icon);
+        console.log(`Icon ${index}:`, {
+            element: icon,
+            className: icon.className,
+            display: style.display,
+            visibility: style.visibility,
+            opacity: style.opacity,
+            fontFamily: style.fontFamily
+        });
+    });
+    
+    console.log('=== END DEBUG ===');
 }
 
 // Initialize the call
 async function initializeCall() {
     try {
+        // Ensure control bars are visible
+        console.log('Ensuring control bars are visible...');
+        const mainControlBar = document.getElementById('main-control-bar');
+        const floatingControlBar = document.getElementById('floating-control-bar');
+        
+        if (mainControlBar) {
+            mainControlBar.style.display = 'flex';
+            mainControlBar.style.position = 'fixed';
+            mainControlBar.style.bottom = '0';
+            mainControlBar.style.left = '0';
+            mainControlBar.style.right = '0';
+            mainControlBar.style.width = '100%';
+            mainControlBar.style.zIndex = '1000';
+            mainControlBar.style.visibility = 'visible';
+            mainControlBar.style.opacity = '1';
+            console.log('Main control bar set to visible with fixed positioning');
+        }
+        
+        if (floatingControlBar) {
+            floatingControlBar.style.display = 'none';
+            console.log('Floating control bar set to hidden');
+        }
+        
+        // Debug button visibility
+        setTimeout(debugButtonVisibility, 1000);
+        
         // Check if room URL is available
         const roomUrl = '{{ room_url }}';
         if (!roomUrl || roomUrl === 'None' || roomUrl === '') {
@@ -504,6 +609,7 @@ function endCall() {
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - Initializing meeting interface...');
     initializeCall();
     
     // Check control bar visibility on scroll and resize
@@ -512,6 +618,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check every 2 seconds as fallback
     setInterval(checkControlBarVisibility, 2000);
+    
+    // Additional debug after everything loads
+    setTimeout(() => {
+        console.log('Running final button visibility check...');
+        debugButtonVisibility();
+    }, 2000);
+});
+
+// Also run debug on window load
+window.addEventListener('load', function() {
+    console.log('Window loaded - Running button visibility debug...');
+    setTimeout(debugButtonVisibility, 500);
 });
 
 // Handle page unload
@@ -610,6 +728,7 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 0; /* Allow flex shrinking */
+    padding-bottom: 120px !important; /* Make room for control bar */
 }
 
 .video-container {
@@ -666,26 +785,31 @@ body {
 /* Control Bar */
 .control-bar {
     background: white;
-    padding: 1rem 1.5rem;
+    padding: 1.25rem 1.5rem;
     display: flex !important;
     justify-content: space-between;
     align-items: center;
     border-top: 2px solid #007bff;
-    gap: 1rem;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
+    gap: 1.25rem;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 1000 !important;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
-    min-height: 80px;
+    min-height: 100px;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+    margin: 0 !important;
 }
 
 .control-left,
 .control-right {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
 }
 
 .control-center {
@@ -744,18 +868,22 @@ body {
     background: #ffffff;
     border: 2px solid #007bff;
     border-radius: 50%;
-    width: 56px;
-    height: 56px;
-    display: flex;
+    width: 64px;
+    height: 64px;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
     color: #007bff;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     position: relative;
     z-index: 1001;
     box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    min-width: 64px;
+    min-height: 64px;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .control-btn:hover {
@@ -763,6 +891,11 @@ body {
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.control-btn:focus {
+    outline: 3px solid rgba(0, 123, 255, 0.3);
+    outline-offset: 2px;
 }
 
 .control-btn:active {
@@ -787,8 +920,15 @@ body {
 /* End Call Button */
 .end-call-btn {
     background: #ef4444;
-    border: none;
+    border: 2px solid #ef4444;
     color: white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.end-call-btn:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 /* Floating Control Bar */
@@ -801,12 +941,18 @@ body {
     backdrop-filter: blur(10px);
     border: 1px solid #e5e5e5;
     border-radius: 25px;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.25rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     z-index: 9999;
+}
+
+.floating-control-bar .control-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 1.2rem;
 }
 
 .end-call-btn:hover {
@@ -948,6 +1094,15 @@ body {
         padding: 0.75rem 1rem;
         flex-direction: column;
         gap: 0.75rem;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        z-index: 1000 !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     .control-left,
@@ -964,9 +1119,14 @@ body {
     }
     
     .control-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 1rem;
+        width: 56px;
+        height: 56px;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-size: 1.2rem;
+        min-width: 56px;
+        min-height: 56px;
     }
     
     .extend-btn {
@@ -1003,9 +1163,11 @@ body {
     }
     
     .control-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 0.9rem;
+        width: 52px;
+        height: 52px;
+        font-size: 1.1rem;
+        min-width: 52px;
+        min-height: 52px;
     }
     
     .time-progress {
@@ -1034,12 +1196,106 @@ body {
     }
     
     .control-bar {
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1rem;
         flex-direction: row;
+        min-height: 80px;
     }
     
     .control-center {
         order: 0;
+    }
+    
+    .control-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem;
+        min-width: 48px;
+        min-height: 48px;
+    }
+}
+
+/* Extra small screens - ensure minimum touch target size */
+@media (max-width: 360px) {
+    .control-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem;
+        min-width: 48px;
+        min-height: 48px;
+    }
+    
+    .control-bar {
+        padding: 0.75rem 0.5rem;
+        gap: 0.75rem;
+    }
+    
+    .control-left,
+    .control-right {
+        gap: 0.75rem;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .control-btn {
+        min-width: 56px;
+        min-height: 56px;
+    }
+    
+    .control-btn:hover {
+        transform: none;
+    }
+    
+    .control-btn:active {
+        transform: scale(0.95);
+        background: #007bff;
+        color: white;
+    }
+    
+    .end-call-btn:active {
+        background: #dc2626;
+        transform: scale(0.95);
+    }
+}
+
+/* Force control bar visibility for all viewport sizes */
+.video-call-wrapper {
+    position: relative;
+    min-height: 100vh;
+    padding-bottom: 120px !important; /* Ensure space for control bar */
+}
+
+/* Ensure control bar is always visible in windowed mode */
+.video-call-wrapper .control-bar {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 1000 !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+    margin: 0 !important;
+}
+
+/* Additional viewport-specific fixes */
+@media (max-width: 1024px) {
+    .control-bar {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        z-index: 1000 !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .video-container-wrapper {
+        padding-bottom: 120px !important;
     }
 }
 </style>
