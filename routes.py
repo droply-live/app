@@ -844,7 +844,8 @@ def book_immediate_meeting(username):
     
     # Create immediate meeting time (starts in 5 minutes)
     from datetime import datetime, timedelta
-    now = datetime.now()
+    # Use Eastern Time for immediate bookings
+    now = datetime.now(EASTERN_TIMEZONE)
     meeting_start = now + timedelta(minutes=5)  # Start in 5 minutes
     meeting_end = meeting_start + timedelta(minutes=30)  # 30 minute session
     
@@ -1434,6 +1435,10 @@ def create_checkout_session(booking_id):
             return redirect(url_for('user_profile', username=expert.username))
         
         print(f"DEBUG: Creating Stripe checkout session...")
+        print(f"DEBUG: YOUR_DOMAIN: {YOUR_DOMAIN}")
+        print(f"DEBUG: Success URL: {YOUR_DOMAIN}/booking/success/{booking.id}")
+        print(f"DEBUG: Cancel URL: {YOUR_DOMAIN}/user/{expert.username}")
+        
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
