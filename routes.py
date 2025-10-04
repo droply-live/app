@@ -834,7 +834,12 @@ def user_booking_times(username):
 @app.route('/expert/<username>/book-immediate')
 @login_required
 def book_immediate_meeting(username):
-    """Book an immediate meeting with an expert"""
+    """Book an immediate meeting with an expert - Development only"""
+    # Only allow in development environment
+    if is_production_environment():
+        flash('Immediate booking is not available in production.', 'error')
+        return redirect(url_for('user_profile', username=username))
+    
     expert = User.query.filter_by(username=username).first_or_404()
     
     # Check if expert is available
@@ -862,6 +867,28 @@ def book_immediate_meeting(username):
                           expert=expert.username, 
                           datetime=datetime_str, 
                           duration=30))
+
+@app.route('/dev/test-video-call')
+@login_required
+def test_video_call():
+    """Development-only route to test video call UI without booking"""
+    # Only allow in development environment
+    if is_production_environment():
+        flash('This feature is only available in development.', 'error')
+        return redirect(url_for('homepage'))
+    
+    # Create a fake booking for testing
+    fake_booking = {
+        'id': 'test-123',
+        'expert_name': 'Test Expert',
+        'start_time': datetime.now(EASTERN_TIMEZONE),
+        'duration': 30,
+        'meeting_url': 'https://test.daily.co/test-room'  # This will be replaced with actual room
+    }
+    
+    return render_template('meeting_daily.html', 
+                          booking=fake_booking, 
+                          is_test_mode=True)
 
 @app.route('/settings')
 @login_required

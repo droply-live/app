@@ -71,8 +71,8 @@
           <h3 class="selected-date" id="selectedDate">Select a date to see available times</h3>
           
           {% if has_availability %}
-            <!-- Book Now Button for Immediate Meeting -->
-            {% if expert.is_available %}
+            <!-- Book Now Button for Immediate Meeting - Only show in development -->
+            {% if expert.is_available and (config.get('FLASK_ENV') == 'development' or config.get('ENVIRONMENT') == 'development') %}
             <div class="book-now-section">
               <a href="{{ url_for('book_immediate_meeting', username=expert.username) }}" 
                  class="book-now-btn">
@@ -80,7 +80,7 @@
                   <i class="fas fa-bolt"></i>
                 </div>
                 <div class="book-now-content">
-                  <div class="book-now-title">Book Now</div>
+                  <div class="book-now-title">Book Now (Dev Only)</div>
                   <div class="book-now-subtitle">Start meeting in 5 minutes • Payment required</div>
                 </div>
               </a>
