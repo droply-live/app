@@ -110,24 +110,15 @@
         .sidebar-logo {
             display: flex !important;
             align-items: center !important;
-            gap: 0.75rem !important;
-            color: #fff !important;
             text-decoration: none !important;
-            font-size: 1.5rem !important;
+            color: #10b981 !important;
             font-weight: 700 !important;
+            font-size: 1.5rem !important;
+            letter-spacing: -0.5px !important;
         }
 
-        .sidebar-logo-icon {
-            width: 32px !important;
-            height: 32px !important;
-            background: #10b981 !important;
-            border-radius: 8px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            font-size: 18px !important;
-            color: white !important;
-            font-weight: bold !important;
+        .logo-text {
+            color: #10b981 !important;
         }
 
         /* Sidebar Navigation */
@@ -600,6 +591,16 @@
             display: none !important;
         }
 
+        .mobile-nav-logo {
+            display: flex !important;
+            align-items: center !important;
+            text-decoration: none !important;
+            color: #10b981 !important;
+            font-weight: 900 !important;
+            font-size: 1.5rem !important;
+            letter-spacing: -1px !important;
+        }
+
         .mobile-menu-btn {
             background: transparent !important;
             border: none !important;
@@ -660,6 +661,13 @@
                 z-index: 1000 !important;
                 align-items: center !important;
                 justify-content: space-between !important;
+            }
+
+            .mobile-nav-logo {
+                position: absolute !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                color: #10b981 !important;
             }
 
             .sidebar {
@@ -893,6 +901,9 @@
             <button class="mobile-menu-btn" id="mobileMenuBtn">
                 <i class="fas fa-bars"></i>
             </button>
+            <a href="{{ url_for('homepage') }}" class="mobile-nav-logo" style="display: flex; align-items: center; text-decoration: none;">
+                <span style="font-size: 1.5rem; font-weight: 900; color: #10b981 !important; letter-spacing: -1px;">droply</span>
+            </a>
             <div class="mobile-nav-right">
                 {% if current_user.is_authenticated %}
                     <a href="{{ url_for('dashboard') }}" class="mobile-signin-btn">Dashboard</a>
@@ -911,8 +922,7 @@
             <!-- Sidebar Header -->
             <div class="sidebar-header">
                 <a href="{{ url_for('homepage') }}" class="sidebar-logo">
-                    <div class="sidebar-logo-icon">D</div>
-                    Droply
+                    <span class="logo-text">droply</span>
                 </a>
                 <button class="sidebar-close-btn" id="sidebarCloseBtn">
                     <i class="fas fa-times"></i>
