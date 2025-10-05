@@ -1,9 +1,9 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, make_response, get_flashed_messages, session
 from flask_login import login_user, logout_user, login_required, current_user
-from sqlalchemy import or_, case, func
+from sqlalchemy import or_, and_, case, func
 from app import app
 from extensions import db
-from models import User, AvailabilityRule, AvailabilityException, Booking, Payout, Favorite, Referral, ReferralReward
+from models import User, AvailabilityRule, AvailabilityException, Booking, Payout, Favorite, UserInteraction, Content, ContentPurchase
 from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm, TimeSlotForm, BookingForm
 # Removed unused imports: utils and keyword_mappings
 import json
@@ -184,24 +184,24 @@ def convert_to_local_time(dt, user_timezone='America/New_York'):
     edt_offset = timezone(timedelta(hours=-4))
     return dt.astimezone(edt_offset)
 
-def convert_availability_to_user_timezone(availability_rules, expert_timezone, user_timezone):
-    """Convert expert's availability from their timezone to user's timezone"""
+def convert_availability_to_user_timezone(availability_rules, provider_timezone, user_timezone):
+    """Convert provider's availability from their timezone to user's timezone"""
     from zoneinfo import ZoneInfo
     from datetime import datetime, time
     
     if not availability_rules:
         return []
     
-    expert_tz = ZoneInfo(expert_timezone)
+    provider_tz = ZoneInfo(provider_timezone)
     user_tz = ZoneInfo(user_timezone)
     
     converted_rules = []
     
     for rule in availability_rules:
-        # Create datetime objects in expert's timezone for today
-        today = datetime.now(expert_tz).date()
-        start_dt = datetime.combine(today, rule.start).replace(tzinfo=expert_tz)
-        end_dt = datetime.combine(today, rule.end).replace(tzinfo=expert_tz)
+        # Create datetime objects in provider's timezone for today
+        today = datetime.now(provider_tz).date()
+        start_dt = datetime.combine(today, rule.start).replace(tzinfo=provider_tz)
+        end_dt = datetime.combine(today, rule.end).replace(tzinfo=provider_tz)
         
         # Convert to user's timezone
         start_user = start_dt.astimezone(user_tz)
@@ -220,22 +220,22 @@ def convert_availability_to_user_timezone(availability_rules, expert_timezone, u
     
     return converted_rules
 
-def generate_available_slots_for_date(date, expert, user_timezone=None):
+def generate_available_slots_for_date(date, provider, user_timezone=None):
     """Generate available time slots for a specific date, converting to user's timezone"""
     try:
         from zoneinfo import ZoneInfo
         from datetime import datetime, time, timedelta
         
-        # Get expert's timezone
-        expert_timezone = expert.timezone or 'America/New_York'
+        # Get provider's timezone
+        provider_timezone = provider.timezone or 'America/New_York'
         
-        # Use user's timezone if provided, otherwise use expert's timezone
-        display_timezone = user_timezone or expert_timezone
+        # Use user's timezone if provided, otherwise use provider's timezone
+        display_timezone = user_timezone or provider_timezone
         
         # Get availability rules for this weekday
         weekday = date.weekday()
         rules = AvailabilityRule.query.filter_by(
-            user_id=expert.id, 
+            user_id=provider.id, 
             weekday=weekday,
             is_active=True
         ).all()
@@ -247,13 +247,13 @@ def generate_available_slots_for_date(date, expert, user_timezone=None):
         
         for rule in rules:
             try:
-                # Create datetime objects in expert's timezone
-                expert_tz = ZoneInfo(expert_timezone)
+                # Create datetime objects in provider's timezone
+                provider_tz = ZoneInfo(provider_timezone)
                 display_tz = ZoneInfo(display_timezone)
                 
-                # Start and end times in expert's timezone
-                start_dt = datetime.combine(date, rule.start).replace(tzinfo=expert_tz)
-                end_dt = datetime.combine(date, rule.end).replace(tzinfo=expert_tz)
+                # Start and end times in provider's timezone
+                start_dt = datetime.combine(date, rule.start).replace(tzinfo=provider_tz)
+                end_dt = datetime.combine(date, rule.end).replace(tzinfo=provider_tz)
                 
                 # Convert to display timezone
                 start_display = start_dt.astimezone(display_tz)
@@ -263,12 +263,12 @@ def generate_available_slots_for_date(date, expert, user_timezone=None):
                 current_time = start_display
                 while current_time + timedelta(minutes=30) <= end_display:
                     # Check if this slot is already booked
-                    # Convert back to expert's timezone for booking check
-                    expert_time = current_time.astimezone(expert_tz)
+                    # Convert back to provider's timezone for booking check
+                    provider_time = current_time.astimezone(provider_tz)
                     
                     existing_booking = Booking.query.filter(
-                        (Booking.expert_id == expert.id) &
-                        (Booking.start_time == expert_time.replace(tzinfo=None)) &
+                        (Booking.provider_id == provider.id) &
+                        (Booking.start_time == provider_time.replace(tzinfo=None)) &
                         (Booking.status.in_(['confirmed', 'pending']))
                     ).first()
                     
@@ -276,7 +276,7 @@ def generate_available_slots_for_date(date, expert, user_timezone=None):
                         slot = {
                             'start_time': current_time,
                             'end_time': current_time + timedelta(minutes=30),
-                            'expert_time': expert_time,
+                            'provider_time': provider_time,
                             'formatted_time': current_time.strftime('%I:%M %p'),
                             'date': date
                         }
@@ -457,17 +457,62 @@ model = None  # Temporarily disabled
 
 @app.route('/')
 def homepage():
-    # Handle referral code from URL parameter
-    referral_code = request.args.get('ref')
-    if referral_code:
-        # Store referral code in session for use during registration
-        session['referral_code'] = referral_code
-        print(f"Referral code stored in session: {referral_code}")
+    # Get search query and filters
+    search_query = request.args.get('search', '').strip()
+    category = request.args.get('category', '').strip().lower()
     
-    # Redirect authenticated users to dashboard
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    return render_template('homepage.html')
+    # Base query for available users
+    query = User.query.filter(
+        User.is_available == True, 
+        User.full_name.isnot(None)
+    )
+    
+    # Apply search filter if provided
+    if search_query:
+        search_terms = search_query.lower().split()
+        search_conditions = []
+        for term in search_terms:
+            search_conditions.append(
+                or_(
+                    User.full_name.ilike(f'%{term}%'),
+                    User.profession.ilike(f'%{term}%'),
+                    User.bio.ilike(f'%{term}%')
+                )
+            )
+        if search_conditions:
+            query = query.filter(and_(*search_conditions))
+    
+    # Apply category filter if provided
+    elif category:
+        # Map category names to search terms
+        category_mapping = {
+            'technology': ['technology', 'development', 'programming', 'coding', 'software', 'web', 'app', 'tech', 'developer', 'engineer', 'computer', 'it'],
+            'business': ['business', 'consulting', 'strategy', 'management', 'entrepreneur', 'startup', 'finance', 'marketing', 'sales'],
+            'creative': ['creative', 'design', 'ui', 'ux', 'graphic', 'visual', 'art', 'branding', 'illustration', 'style', 'beauty', 'fashion', 'photography'],
+            'health': ['health', 'fitness', 'wellness', 'nutrition', 'medical', 'therapy', 'coaching', 'mental health', 'wellness'],
+            'education': ['education', 'teaching', 'tutoring', 'training', 'learning', 'academic', 'course', 'mentor', 'astrology', 'spiritual'],
+            'finance': ['finance', 'accounting', 'investment', 'financial', 'tax', 'budget', 'money', 'wealth'],
+            'marketing': ['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand', 'growth', 'content'],
+            'writing': ['writing', 'content', 'copywriting', 'blogging', 'journalism', 'editing', 'proofreading', 'author']
+        }
+        
+        if category in category_mapping:
+            category_terms = category_mapping[category]
+            category_conditions = []
+            for term in category_terms:
+                category_conditions.append(
+                    or_(
+                        User.profession.ilike(f'%{term}%'),
+                        User.bio.ilike(f'%{term}%')
+                    )
+                )
+            if category_conditions:
+                query = query.filter(or_(*category_conditions))
+    
+    # Get results
+    experts = query.limit(20).all()
+    
+    return render_template('homepage.html', users=experts)
 
 
 
@@ -508,43 +553,11 @@ def register():
         )
         user.set_password(form.password.data)
         
-        # Generate referral code for the new user
-        user.generate_referral_code()
-        
         db.session.add(user)
         db.session.commit()
         
         # Set up default availability (9-5 weekdays only)
         setup_default_availability(user)
-        
-        # Handle referral tracking if referral code is provided
-        referral_code = request.args.get('ref') or request.form.get('referral_code') or session.get('referral_code')
-        if referral_code:
-            try:
-                # Find the referrer by referral code
-                referrer = User.query.filter_by(referral_code=referral_code).first()
-                if referrer and referrer.id != user.id:  # Can't refer yourself
-                    # Create the referral record
-                    referral = Referral(
-                        referrer_id=referrer.id,
-                        referred_user_id=user.id,
-                        referral_code=referral_code,
-                        status='pending'
-                    )
-                    
-                    # Update the referred user's referred_by field
-                    user.referred_by = referrer.id
-                    
-                    db.session.add(referral)
-                    db.session.commit()
-                    
-                    print(f"Referral tracked: {referrer.username} referred {user.username}")
-                    
-                    # Clear referral code from session after successful tracking
-                    session.pop('referral_code', None)
-            except Exception as e:
-                print(f"Error tracking referral: {e}")
-                # Don't fail registration if referral tracking fails
         
         # Log in user but redirect to onboarding
         login_user(user)
@@ -599,10 +612,10 @@ def onboarding():
                     current_user.industry = data.get('industry', '')
                     current_user.is_available = True  # Set as available by default
                     
-                    # Handle expertise tags
-                    expertise = data.get('expertise', [])
-                    if expertise:
-                        current_user.specialty_tags = json.dumps(expertise)
+                    # Handle skills tags
+                    skills = data.get('skills', [])
+                    if skills:
+                        current_user.specialty_tags = json.dumps(skills)
                     else:
                         current_user.specialty_tags = json.dumps([])
                     
@@ -649,7 +662,7 @@ def onboarding():
     print("Rendering onboarding template")
     print(f"User profile data: profession={current_user.profession}, bio={current_user.bio}, industry={current_user.industry}")
     form = OnboardingForm()
-    return render_template('onboarding.html', form=form, expertise_mapping=EXPERTISE_MAPPING)
+    return render_template('onboarding.html', form=form, expertise_mapping=SKILLS_MAPPING)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -701,10 +714,10 @@ def edit_profile():
             current_user.hourly_rate = float(request.form.get('hourly_rate', 0) or 0)
             current_user.industry = request.form.get('industry', '')
             current_user.location = request.form.get('location', '')
-            current_user.expertise = request.form.get('expertise', '')  # Legacy field
-            current_user.expertise_1 = request.form.get('expertise_1', '')
-            current_user.expertise_2 = request.form.get('expertise_2', '')
-            current_user.expertise_3 = request.form.get('expertise_3', '')
+            current_user.skills = request.form.get('skills', '')  # Legacy field
+            current_user.skills_1 = request.form.get('skills_1', '')
+            current_user.skills_2 = request.form.get('skills_2', '')
+            current_user.skills_3 = request.form.get('skills_3', '')
             
             # Update social media links
             current_user.linkedin_url = request.form.get('linkedin', '')
@@ -767,7 +780,7 @@ def profile_preview(username):
     
     # Show the expert profile view for preview
     availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
-    return render_template('user_profile.html', expert=user, availability_rules=availability_rules)
+    return render_template('user_profile.html', user=user, availability_rules=availability_rules)
 
 @app.route('/user/<username>')
 @login_required
@@ -778,7 +791,7 @@ def user_profile(username):
     # Get user's availability for booking
     availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
     
-    return render_template('user_profile.html', expert=user, availability_rules=availability_rules)
+    return render_template('user_profile.html', user=user, availability_rules=availability_rules)
 
 @app.route('/user/<username>/book')
 @login_required
@@ -820,7 +833,7 @@ def user_booking_times(username):
                     continue
         
         return render_template('user_booking_times.html', 
-                             expert=user, 
+                             user=user, 
                              available_times=available_times,
                              has_availability=bool(availability_rules),
                              current_user_timezone=current_user_timezone,
@@ -858,9 +871,21 @@ def book_immediate_meeting(username):
     
     # Redirect to the normal booking confirmation flow
     return redirect(url_for('booking_confirmation', 
-                          expert=expert.username, 
+                          user=expert.username, 
                           datetime=datetime_str, 
                           duration=30))
+
+@app.route('/profile')
+@login_required
+def profile():
+    """User profile management page - now redirects to profile editor"""
+    return redirect(url_for('profile_editor'))
+
+@app.route('/profile/<username>')
+def public_profile(username):
+    """Public profile page for viewing someone's store"""
+    expert = User.query.filter_by(username=username).first_or_404()
+    return render_template('public_profile.html', user=expert)
 
 @app.route('/settings')
 @login_required
@@ -871,8 +896,14 @@ def settings():
 @app.route('/account')
 @login_required
 def account():
-    """Account management page"""
-    return render_template('account.html')
+    """Account management page - redirect to settings"""
+    return redirect(url_for('settings'))
+
+@app.route('/profile/editor')
+@login_required
+def profile_editor():
+    """Enhanced profile editor with customization options"""
+    return render_template('profile_editor.html')
 
 @app.route('/profile/update', methods=['POST'])
 @login_required
@@ -952,7 +983,55 @@ def profile_update():
         db.session.rollback()
         flash('Failed to update profile: ' + str(e), 'error')
     
-    return redirect(url_for('account'))
+    return redirect(url_for('settings'))
+
+@app.route('/profile/add-content', methods=['POST'])
+@login_required
+def add_content():
+    """Add content to user's profile store"""
+    try:
+        content_type = request.form.get('type')
+        title = request.form.get('contentTitle', '').strip()
+        description = request.form.get('contentDescription', '').strip()
+        price = float(request.form.get('contentPrice', 0))
+        allow_preview = request.form.get('contentPreview') == 'on'
+        
+        # Validate required fields
+        if not title:
+            return jsonify({'success': False, 'error': 'Title is required'}), 400
+        if not content_type:
+            return jsonify({'success': False, 'error': 'Content type is required'}), 400
+            
+        # Handle file upload
+        if 'contentFile' not in request.files:
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
+            
+        file = request.files['contentFile']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        # Create content record
+        content = Content(
+            user_id=current_user.id,
+            title=title,
+            description=description,
+            content_type=content_type,
+            price=price,
+            preview_available=allow_preview,
+            status='draft'  # Start as draft
+        )
+        
+        # For now, just save the content without file handling
+        # File handling will be implemented in the next iteration
+        db.session.add(content)
+        db.session.commit()
+        
+        flash(f'{content_type.title()} content "{title}" added successfully!', 'success')
+        return jsonify({'success': True, 'message': 'Content added successfully', 'content_id': content.id})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/delete-account', methods=['POST'])
 @login_required
@@ -1009,193 +1088,119 @@ def test_account():
     </html>
     '''
 
-@app.route('/referrals')
-@login_required
-def referrals():
-    """Referrals page"""
-    return render_template('referrals.html')
 
 @app.route('/watch')
 @login_required
 def watch():
-    """Display the Watch feed with user profiles"""
-    # Generate fake user data for the feed
-    fake_users = [
+    """Display the Watch feed with video content"""
+    # Generate video data for the feed
+    video_feed = [
         {
             'id': 1,
-            'name': 'Sarah Chen',
-            'title': 'UX Designer',
-            'company': 'Google',
-            'bio': 'Creating beautiful digital experiences ✨',
-            'image': 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.9,
-            'reviews': 127,
-            'price': 75
+            'title': 'Dashboard Demo',
+            'description': 'Learn how to navigate the Droply dashboard and maximize your productivity',
+            'video_url': '/static/videos/dashboard-demo.mp4',
+            'thumbnail': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=600&fit=crop',
+            'duration': '2:30',
+            'views': 1250,
+            'likes': 89,
+            'author': 'Droply Team',
+            'author_avatar': 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
         },
         {
             'id': 2,
-            'name': 'Marcus Johnson',
-            'title': 'Marketing Strategist',
-            'company': 'Meta',
-            'bio': 'Helping brands grow through data-driven marketing 📈',
-            'image': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.8,
-            'reviews': 89,
-            'price': 95
+            'title': 'Expert Tips: Building Your Profile',
+            'description': 'Professional advice on creating an attractive expert profile that gets bookings',
+            'video_url': 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+            'thumbnail': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
+            'duration': '3:45',
+            'views': 2100,
+            'likes': 156,
+            'author': 'Sarah Chen',
+            'author_avatar': 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face'
         },
         {
             'id': 3,
-            'name': 'Emily Rodriguez',
-            'title': 'Product Manager',
-            'company': 'Apple',
-            'bio': 'Building products that matter 🚀',
-            'image': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.9,
-            'reviews': 156,
-            'price': 120
+            'title': 'Marketing Strategies That Work',
+            'description': 'Discover proven marketing techniques from industry experts',
+            'video_url': 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4',
+            'thumbnail': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=600&fit=crop',
+            'duration': '4:20',
+            'views': 3200,
+            'likes': 234,
+            'author': 'Marcus Johnson',
+            'author_avatar': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face'
         },
         {
             'id': 4,
-            'name': 'David Kim',
-            'title': 'Software Engineer',
-            'company': 'Netflix',
-            'bio': 'Full-stack developer passionate about clean code 💻',
-            'image': 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.7,
-            'reviews': 203,
-            'price': 85
+            'title': 'Product Management Insights',
+            'description': 'Essential skills for successful product management in tech companies',
+            'video_url': 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_5mb.mp4',
+            'thumbnail': 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop',
+            'duration': '5:15',
+            'views': 1800,
+            'likes': 178,
+            'author': 'Emily Rodriguez',
+            'author_avatar': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face'
         },
         {
             'id': 5,
-            'name': 'Lisa Thompson',
-            'title': 'Data Scientist',
-            'company': 'Tesla',
-            'bio': 'Turning data into insights that drive decisions 📊',
-            'image': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.8,
-            'reviews': 91,
-            'price': 110
+            'title': 'Coding Best Practices',
+            'description': 'Clean code principles and development workflows that scale',
+            'video_url': 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_10mb.mp4',
+            'thumbnail': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop',
+            'duration': '6:30',
+            'views': 4500,
+            'likes': 312,
+            'author': 'David Kim',
+            'author_avatar': 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
         },
         {
             'id': 6,
-            'name': 'Alex Morgan',
-            'title': 'Content Creator',
-            'company': 'YouTube',
-            'bio': 'Storytelling through video and social media 🎬',
-            'image': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.6,
-            'reviews': 78,
-            'price': 65
+            'title': 'Data Science Fundamentals',
+            'description': 'Introduction to data analysis and machine learning concepts',
+            'video_url': 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_30mb.mp4',
+            'thumbnail': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop',
+            'duration': '7:45',
+            'views': 2800,
+            'likes': 198,
+            'author': 'Lisa Thompson',
+            'author_avatar': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face'
         },
         {
             'id': 7,
-            'name': 'Zoe Williams',
-            'title': 'Brand Strategist',
-            'company': 'Nike',
-            'bio': 'Building brands that inspire and connect 🌟',
-            'image': 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.9,
-            'reviews': 134,
-            'price': 100
+            'title': 'Content Creation Masterclass',
+            'description': 'Tips for creating engaging video content and building your audience',
+            'video_url': 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+            'thumbnail': 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=600&fit=crop',
+            'duration': '8:20',
+            'views': 3600,
+            'likes': 267,
+            'author': 'Alex Morgan',
+            'author_avatar': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face'
         },
         {
             'id': 8,
-            'name': 'Ryan Patel',
-            'title': 'Sales Director',
-            'company': 'Salesforce',
-            'bio': 'Helping teams close more deals and build relationships 🤝',
-            'image': 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.7,
-            'reviews': 167,
-            'price': 90
-        },
-        {
-            'id': 9,
-            'name': 'Maya Singh',
-            'title': 'Financial Advisor',
-            'company': 'Goldman Sachs',
-            'bio': 'Making finance accessible and understandable 💰',
-            'image': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.8,
-            'reviews': 112,
-            'price': 125
-        },
-        {
-            'id': 10,
-            'name': 'James Wilson',
-            'title': 'Startup Founder',
-            'company': 'TechCrunch',
-            'bio': 'Building the future, one startup at a time 🚀',
-            'image': 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.9,
-            'reviews': 89,
-            'price': 150
-        },
-        {
-            'id': 11,
-            'name': 'Nina Chen',
-            'title': 'Graphic Designer',
-            'company': 'Adobe',
-            'bio': 'Creating visual stories that captivate and inspire 🎨',
-            'image': 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.7,
-            'reviews': 145,
-            'price': 70
-        },
-        {
-            'id': 12,
-            'name': 'Carlos Mendez',
-            'title': 'Operations Manager',
-            'company': 'Amazon',
-            'bio': 'Optimizing processes for maximum efficiency ⚡',
-            'image': 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.6,
-            'reviews': 98,
-            'price': 80
-        },
-        {
-            'id': 13,
-            'name': 'Aisha Okafor',
-            'title': 'HR Specialist',
-            'company': 'Microsoft',
-            'bio': 'Building inclusive teams and company culture 🤗',
-            'image': 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.8,
-            'reviews': 76,
-            'price': 85
-        },
-        {
-            'id': 14,
-            'name': 'Tom Anderson',
-            'title': 'Business Analyst',
-            'company': 'Deloitte',
-            'bio': 'Transforming data into strategic insights 📈',
-            'image': 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.7,
-            'reviews': 123,
-            'price': 95
-        },
-        {
-            'id': 15,
-            'name': 'Priya Sharma',
-            'title': 'Research Scientist',
-            'company': 'MIT',
-            'bio': 'Pushing the boundaries of AI and machine learning 🤖',
-            'image': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face',
-            'rating': 4.9,
-            'reviews': 67,
-            'price': 140
+            'title': 'Brand Strategy Workshop',
+            'description': 'Building memorable brands that connect with your target audience',
+            'video_url': 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4',
+            'thumbnail': 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop',
+            'duration': '9:15',
+            'views': 1900,
+            'likes': 145,
+            'author': 'Zoe Williams',
+            'author_avatar': 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop&crop=face'
         }
     ]
     
-    return render_template('watch.html', users=fake_users)
+    return render_template('watch.html', videos=video_feed)
 
 # Duplicate route removed - using the first definition
 
-@app.route('/search')
-@login_required
-def search():
-    """Search users page for signed-in users"""
+# @app.route('/search')  # REMOVED - now using discover page
+# @login_required
+# def search():
+    # """Search users page for signed-in users"""  # REMOVED
     # Get search query and category
     search_query = request.args.get('search', '').strip()
     category = request.args.get('category', '').strip().lower()
@@ -1224,13 +1229,13 @@ def search():
         
         if category in category_mapping:
             if category == 'top':
-                # Special case for top experts - filter by is_top_expert flag
-                query = query.filter(User.is_top_expert == True)
+                # Special case for featured users - filter by is_featured_user flag
+                query = query.filter(User.is_featured_user == True)
             elif category == 'favorites':
                 # Special case for favorites - filter by user's favorites
                 from models import Favorite
                 favorites = Favorite.query.filter_by(user_id=current_user.id).all()
-                expert_ids = [f.expert_id for f in favorites]
+                expert_ids = [f.favorited_user_id for f in favorites]
                 
                 if expert_ids:
                     query = query.filter(User.id.in_(expert_ids))
@@ -1249,7 +1254,7 @@ def search():
                 for term in search_terms:
                     category_conditions.append(
                         or_(
-                            User.expertise.ilike(f'%{term}%'),
+                            User.skills.ilike(f'%{term}%'),
                             User.profession.ilike(f'%{term}%'),
                             User.industry.ilike(f'%{term}%'),
                             User.bio.ilike(f'%{term}%'),
@@ -1273,7 +1278,7 @@ def search():
                     or_(
                         User.username.ilike(keyword_term),
                         User.full_name.ilike(keyword_term),
-                        User.expertise.ilike(keyword_term),
+                        User.skills.ilike(keyword_term),
                         User.profession.ilike(keyword_term),
                         User.industry.ilike(keyword_term),
                         User.bio.ilike(keyword_term),
@@ -1293,7 +1298,7 @@ def search():
         score = 0
         
         # Top experts get highest priority
-        if expert.is_top_expert:
+        if expert.is_featured_user:
             score += 1000
         
         # If there's a search query, add relevance score
@@ -1303,7 +1308,7 @@ def search():
             # Check exact matches first
             if search_lower in (expert.full_name or '').lower():
                 score += 10
-            if search_lower in (expert.expertise or '').lower():
+            if search_lower in (expert.skills or '').lower():
                 score += 8
             if search_lower in (expert.profession or '').lower():
                 score += 6
@@ -1315,7 +1320,7 @@ def search():
                 if len(keyword) > 2:
                     if keyword in (expert.full_name or '').lower():
                         score += 3
-                    if keyword in (expert.expertise or '').lower():
+                    if keyword in (expert.skills or '').lower():
                         score += 2
                     if keyword in (expert.profession or '').lower():
                         score += 2
@@ -1334,33 +1339,460 @@ def search():
     if current_user.is_authenticated:
         from models import Favorite
         favorites = Favorite.query.filter_by(user_id=current_user.id).all()
-        current_user_favorites = [f.expert_id for f in favorites]
+        current_user_favorites = [f.favorited_user_id for f in favorites]
 
     
-    return render_template('search.html', 
-                         users=experts, 
+    # Redirect to discover page instead
+    return redirect(url_for('discover'))
+
+
+@app.route('/discover')
+def discover():
+    """AI-powered discover page with matching engine and Drop-in sessions"""
+    # Get search query and filters
+    search_query = request.args.get('search', '').strip()
+    category = request.args.get('category', '').strip().lower()
+    session_type = request.args.get('type', 'all')  # 'all', 'dropin', 'booked'
+    view_type = request.args.get('view', '')  # 'recent', 'favorites', 'browse_all'
+    
+    # Base query for available users
+    query = User.query.filter(
+        User.is_available == True, 
+        User.full_name.isnot(None)
+    )
+    
+    # Exclude current user from results if authenticated
+    if current_user.is_authenticated:
+        query = query.filter(User.id != current_user.id)
+    
+    # Handle special view types first (require authentication)
+    if not current_user.is_authenticated and view_type in ['recent', 'favorites']:
+        # Redirect to login for authenticated features
+        return redirect(url_for('login', next=request.url))
+    
+    if view_type == 'recent' and current_user.is_authenticated:
+        # Get recently viewed users
+        recent_interactions = UserInteraction.query.filter_by(
+            user_id=current_user.id, 
+            interaction_type='view'
+        ).order_by(UserInteraction.created_at.desc()).limit(20).all()
+        
+        if recent_interactions:
+            recent_user_ids = [interaction.target_user_id for interaction in recent_interactions]
+            query = query.filter(User.id.in_(recent_user_ids))
+        else:
+            # No recent views, return empty results
+            experts = []
+            return render_template('discover.html', 
+                                 users=experts,
+                                 now=datetime.now(), 
+                                 timedelta=timedelta,
+                                 current_user_favorites=[],
+                                 view_type=view_type)
+    
+    elif view_type == 'favorites' and current_user.is_authenticated:
+        # Get user's favorites
+        favorites = Favorite.query.filter_by(user_id=current_user.id).all()
+        expert_ids = [f.favorited_user_id for f in favorites]
+        
+        if expert_ids:
+            query = query.filter(User.id.in_(expert_ids))
+        else:
+            # No favorites, return empty results
+            experts = []
+            return render_template('discover.html', 
+                                 users=experts,
+                                 now=datetime.now(), 
+                                 timedelta=timedelta,
+                                 current_user_favorites=[],
+                                 view_type=view_type)
+    
+    elif view_type == 'browse_all':
+        # Browse all users without any filters - just get all available users
+        pass  # Use the base query as is
+    
+    # Apply category filter if provided
+    elif category:
+        # Map category names to search terms
+        category_mapping = {
+            'top': [],  # Special case for top experts
+            'favorites': [],  # Special case for favorites
+            'technology': ['technology', 'development', 'programming', 'coding', 'software', 'web', 'app', 'tech', 'developer', 'engineer', 'computer', 'it'],
+            'business': ['business', 'consulting', 'strategy', 'management', 'entrepreneur', 'startup', 'finance', 'marketing', 'sales'],
+            'creative': ['creative', 'design', 'ui', 'ux', 'graphic', 'visual', 'art', 'branding', 'illustration', 'style', 'beauty', 'fashion', 'photography'],
+            'health': ['health', 'fitness', 'wellness', 'nutrition', 'medical', 'therapy', 'coaching', 'mental health', 'wellness'],
+            'education': ['education', 'teaching', 'tutoring', 'training', 'learning', 'academic', 'course', 'mentor', 'astrology', 'spiritual'],
+            'finance': ['finance', 'accounting', 'investment', 'financial', 'tax', 'budget', 'money', 'wealth'],
+            'marketing': ['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand', 'growth', 'content'],
+            'writing': ['writing', 'content', 'copywriting', 'blogging', 'journalism', 'editing', 'proofreading', 'author']
+        }
+        
+        if category in category_mapping:
+            if category == 'top':
+                query = query.filter(User.is_featured_user == True)
+            elif category == 'favorites':
+                from models import Favorite
+                favorites = Favorite.query.filter_by(user_id=current_user.id).all()
+                expert_ids = [f.favorited_user_id for f in favorites]
+                
+                if expert_ids:
+                    query = query.filter(User.id.in_(expert_ids))
+                else:
+                    experts = []
+                    return render_template('discover.html', 
+                                         users=experts,
+                                         now=datetime.now(), 
+                                         timedelta=timedelta,
+                                         current_user_favorites=[],
+                                         active_dropin_sessions=[])
+            else:
+                # Apply keyword matching for other categories
+                search_terms = category_mapping[category]
+                if search_terms:
+                    from sqlalchemy import or_
+                    conditions = []
+                    for term in search_terms:
+                        conditions.append(User.skills.ilike(f'%{term}%'))
+                        conditions.append(User.profession.ilike(f'%{term}%'))
+                        conditions.append(User.bio.ilike(f'%{term}%'))
+                    query = query.filter(or_(*conditions))
+    
+    # Apply text search if provided
+    if search_query:
+        from sqlalchemy import or_
+        search_conditions = [
+            User.full_name.ilike(f'%{search_query}%'),
+            User.skills.ilike(f'%{search_query}%'),
+            User.profession.ilike(f'%{search_query}%'),
+            User.bio.ilike(f'%{search_query}%')
+        ]
+        query = query.filter(or_(*search_conditions))
+    
+    # Get all experts and apply AI-powered matching
+    experts = query.all()
+    
+    # AI-powered matching algorithm
+    def ai_match_score(expert):
+        score = 0
+        
+        # Top experts get highest priority
+        if expert.is_featured_user:
+            score += 1000
+        
+        # If there's a search query, apply AI matching
+        if search_query:
+            search_lower = search_query.lower()
+            
+            # Exact matches get highest scores
+            if search_lower in (expert.full_name or '').lower():
+                score += 50
+            if search_lower in (expert.skills or '').lower():
+                score += 40
+            if search_lower in (expert.profession or '').lower():
+                score += 30
+            if search_lower in (expert.bio or '').lower():
+                score += 20
+            
+            # Keyword matching with weights
+            for keyword in search_query.lower().split():
+                if len(keyword) > 2:
+                    if keyword in (expert.full_name or '').lower():
+                        score += 15
+                    if keyword in (expert.skills or '').lower():
+                        score += 12
+                    if keyword in (expert.profession or '').lower():
+                        score += 10
+                    if keyword in (expert.bio or '').lower():
+                        score += 8
+        
+        # Boost score based on user activity and ratings
+        # (This would be enhanced with actual review data)
+        if expert.hourly_rate and expert.hourly_rate > 0:
+            score += 5  # Active experts get slight boost
+        
+        return score
+    
+    # Sort experts by AI matching score
+    experts = sorted(experts, key=ai_match_score, reverse=True)
+    
+    # Handle favorites for authenticated users only
+    current_user_favorites = []
+    if current_user.is_authenticated:
+        from models import Favorite
+        favorites = Favorite.query.filter_by(user_id=current_user.id).all()
+        current_user_favorites = [f.favorited_user_id for f in favorites]
+    
+    return render_template('discover.html', 
+                         users=experts,
                          now=datetime.now(), 
                          timedelta=timedelta,
-                         current_user_favorites=current_user_favorites)
+                         current_user_favorites=current_user_favorites,
+                         view_type=view_type)
 
+
+# Drop-in functionality removed
+
+@app.route('/track_interaction', methods=['POST'])
+@login_required
+def track_interaction():
+    """Track user interactions (views, clicks, etc.)"""
+    data = request.get_json()
+    target_user_id = data.get('target_user_id')
+    interaction_type = data.get('interaction_type', 'view')
+    
+    if not target_user_id:
+        return jsonify({'error': 'Missing target_user_id'}), 400
+    
+    # Check if interaction already exists for this user-target pair in the last hour
+    from datetime import datetime, timedelta
+    one_hour_ago = datetime.now(EASTERN_TIMEZONE) - timedelta(hours=1)
+    
+    existing_interaction = UserInteraction.query.filter_by(
+        user_id=current_user.id,
+        target_user_id=target_user_id,
+        interaction_type=interaction_type
+    ).filter(UserInteraction.created_at > one_hour_ago).first()
+    
+    if not existing_interaction:
+        # Create new interaction
+        interaction = UserInteraction(
+            user_id=current_user.id,
+            target_user_id=target_user_id,
+            interaction_type=interaction_type
+        )
+        db.session.add(interaction)
+        db.session.commit()
+    
+    return jsonify({'success': True})
 
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    """User dashboard"""
-    # Get upcoming bookings as provider
-    provider_bookings = Booking.query.filter_by(expert_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
+    """User dashboard with comprehensive statistics and status information"""
+    from datetime import datetime, timedelta
     
-    # Get upcoming bookings as client
-    client_bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).limit(10).all()
+    # Get current time in Eastern Time
+    now = datetime.now(EASTERN_TIMEZONE)
+    today = now.date()
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
     
-    # Get recent time slots - TimeSlot model not available in current version
-    time_slots = []
+    # === BOOKING STATISTICS ===
+    # Upcoming bookings as provider (next 30 days)
+    provider_bookings = Booking.query.filter_by(user_id=current_user.id).filter(
+        Booking.start_time >= now
+    ).order_by(Booking.start_time.asc()).limit(10).all()
+    
+    # Upcoming bookings as client (next 30 days)
+    client_bookings = Booking.query.filter_by(user_id=current_user.id).filter(
+        Booking.start_time >= now
+    ).order_by(Booking.start_time.asc()).limit(10).all()
+    
+    # All-time statistics
+    total_provider_bookings = Booking.query.filter_by(user_id=current_user.id).count()
+    total_client_bookings = Booking.query.filter_by(user_id=current_user.id).count()
+    
+    # Recent activity (last 7 days)
+    recent_bookings = Booking.query.filter(
+        or_(
+            Booking.provider_id == current_user.id,
+            Booking.user_id == current_user.id
+        ),
+        Booking.created_at >= week_ago
+    ).count()
+    
+    # This week's bookings
+    this_week_bookings = Booking.query.filter(
+        or_(
+            Booking.provider_id == current_user.id,
+            Booking.user_id == current_user.id
+        ),
+        Booking.start_time >= week_ago,
+        Booking.start_time <= now + timedelta(days=7)
+    ).count()
+    
+    # === EARNINGS & PAYMENT STATISTICS ===
+    # Confirmed bookings for earnings calculation
+    confirmed_provider_bookings = Booking.query.filter_by(
+        user_id=current_user.id, 
+        status='confirmed'
+    ).all()
+    
+    # Completed bookings (for actual earnings)
+    completed_bookings = Booking.query.filter_by(
+        user_id=current_user.id,
+        status='completed'
+    ).all()
+    
+    # Calculate earnings
+    total_earnings = sum(booking.payment_amount or 0 for booking in confirmed_provider_bookings)
+    completed_earnings = sum(booking.payment_amount or 0 for booking in completed_bookings)
+    
+    # This week's earnings
+    this_week_earnings = sum(
+        booking.payment_amount or 0 for booking in Booking.query.filter_by(
+            user_id=current_user.id
+        ).filter(
+            Booking.start_time >= week_ago,
+            Booking.start_time <= now + timedelta(days=7)
+        ).all()
+    )
+    
+    # === PROFILE & SETUP STATUS ===
+    # Calculate profile completion percentage
+    profile_fields = [
+        current_user.full_name,
+        current_user.profession,
+        current_user.bio,
+        current_user.hourly_rate,
+        current_user.profile_picture,
+        current_user.skills_1,
+        current_user.location
+    ]
+    completed_fields = sum(1 for field in profile_fields if field)
+    profile_completion = int((completed_fields / len(profile_fields)) * 100)
+    
+    # Availability setup
+    availability_count = AvailabilityRule.query.filter_by(user_id=current_user.id).count()
+    has_availability = availability_count > 0
+    
+    # Google Calendar integration status
+    google_calendar_connected = current_user.google_calendar_connected
+    
+    # Stripe Connect status (for experts)
+    stripe_setup_complete = bool(current_user.stripe_account_id)
+    stripe_account_status = current_user.stripe_account_status or 'not_setup'
+    
+    # === RATING & REVIEWS ===
+    user_rating = current_user.rating or 0
+    rating_count = current_user.rating_count or 0
+    
+    # === CONTENT STATISTICS ===
+    # User's content
+    user_content = Content.query.filter_by(user_id=current_user.id).all()
+    content_count = len(user_content)
+    published_content = len([c for c in user_content if c.status == 'published'])
+    total_content_earnings = sum(c.earnings or 0 for c in user_content)
+    total_content_views = sum(c.views or 0 for c in user_content)
+    
+    # === DROP-IN SESSIONS ===
+    # Active drop-in sessions (if DropinSession model exists)
+    try:
+        from models import DropinSession
+        active_dropin_sessions = DropinSession.query.filter_by(
+            host_id=current_user.id,
+            is_active=True
+        ).filter(DropinSession.ended_at.is_(None)).all()
+    except ImportError:
+        active_dropin_sessions = []
+    
+    # === QUICK STATUS INDICATORS ===
+    # Today's bookings
+    today_bookings = Booking.query.filter(
+        or_(
+            Booking.provider_id == current_user.id,
+            Booking.user_id == current_user.id
+        )
+    ).filter(
+        func.date(Booking.start_time) == today
+    ).count()
+    
+    # Next booking
+    next_booking = Booking.query.filter(
+        or_(
+            Booking.provider_id == current_user.id,
+            Booking.user_id == current_user.id
+        )
+    ).filter(Booking.start_time >= now).order_by(Booking.start_time.asc()).first()
+    
+    # === PENDING ACTIONS ===
+    pending_actions = []
+    
+    # Profile completion
+    if profile_completion < 100:
+        pending_actions.append({
+            'type': 'profile',
+            'message': f'Complete your profile ({profile_completion}%)',
+            'url': url_for('profile'),
+            'priority': 'high' if profile_completion < 50 else 'medium'
+        })
+    
+    # Availability setup
+    if not has_availability:
+        pending_actions.append({
+            'type': 'availability',
+            'message': 'Set your availability',
+            'url': url_for('availability'),
+            'priority': 'high'
+        })
+    
+    # Stripe setup for experts
+    if current_user.hourly_rate > 0 and not stripe_setup_complete:
+        pending_actions.append({
+            'type': 'stripe',
+            'message': 'Set up payments to receive earnings',
+            'url': url_for('expert_stripe_onboarding'),
+            'priority': 'high'
+        })
+    
+    # Google Calendar
+    if not google_calendar_connected:
+        pending_actions.append({
+            'type': 'calendar',
+            'message': 'Connect Google Calendar',
+            'url': url_for('availability'),
+            'priority': 'medium'
+        })
+    
+    # === SUMMARY STATS ===
+    upcoming_count = len(provider_bookings) + len(client_bookings)
+    total_sessions = total_provider_bookings + total_client_bookings
     
     return render_template('dashboard.html', 
+                         # Bookings
                          provider_bookings=provider_bookings,
-                         client_bookings=client_bookings)
+                         client_bookings=client_bookings,
+                         total_provider_bookings=total_provider_bookings,
+                         total_client_bookings=total_client_bookings,
+                         total_sessions=total_sessions,
+                         recent_bookings=recent_bookings,
+                         this_week_bookings=this_week_bookings,
+                         upcoming_count=upcoming_count,
+                         today_bookings=today_bookings,
+                         next_booking=next_booking,
+                         
+                         # Earnings
+                         total_earnings=total_earnings,
+                         completed_earnings=completed_earnings,
+                         this_week_earnings=this_week_earnings,
+                         
+                         # Profile & Setup
+                         profile_completion=profile_completion,
+                         availability_count=availability_count,
+                         has_availability=has_availability,
+                         google_calendar_connected=google_calendar_connected,
+                         stripe_setup_complete=stripe_setup_complete,
+                         stripe_account_status=stripe_account_status,
+                         
+                         # Ratings
+                         user_rating=user_rating,
+                         rating_count=rating_count,
+                         
+                         # Content
+                         content_count=content_count,
+                         published_content=published_content,
+                         total_content_earnings=total_content_earnings,
+                         total_content_views=total_content_views,
+                         
+                         # Drop-in sessions
+                         active_dropin_sessions=active_dropin_sessions,
+                         
+                         # Actions
+                         pending_actions=pending_actions,
+                         
+                         # Current time for display
+                         now=now)
 
 @app.route('/debug-user')
 @login_required
@@ -1419,7 +1851,7 @@ def create_checkout_session(booking_id):
     
     try:
         # Get expert details for the checkout session
-        expert = User.query.get(booking.expert_id)
+        expert = User.query.get(booking.provider_id)
         if not expert:
             print("DEBUG: Expert not found for booking")
             flash('Expert not found', 'error')
@@ -1483,12 +1915,6 @@ def booking_success(booking_id):
     # Do NOT auto-confirm; leave as 'pending' for expert to accept/decline
     db.session.commit()
     
-    # Process referral reward if applicable
-    try:
-        process_referral_reward_for_booking(booking_id)
-    except Exception as e:
-        print(f"Error processing referral reward: {e}")
-        # Don't fail the booking success if referral processing fails
     
     flash('🎉 Payment successful! Your booking request has been sent to the expert for approval.', 'success')
     return redirect(url_for('bookings'))
@@ -1500,7 +1926,7 @@ def booking_cancel(booking_id):
     
     # If payment was never completed, just delete the booking and redirect to expert profile
     if booking.payment_status in ['pending', 'cancelled']:
-        expert = User.query.get(booking.expert_id)
+        expert = User.query.get(booking.provider_id)
         expert_username = expert.username if expert else 'unknown'
         
         # Delete the incomplete booking
@@ -1552,13 +1978,13 @@ def bookings():
     
     # Bookings where the user is the expert (provider) - only show paid bookings
     upcoming_as_expert = Booking.query.filter(
-        (Booking.expert_id == current_user.id) &
+        (Booking.provider_id == current_user.id) &
         (func.datetime(Booking.start_time) >= now.replace(tzinfo=None)) &
         (Booking.payment_status == 'paid')
     ).order_by(Booking.start_time.asc()).all()
     
     past_as_expert = Booking.query.filter(
-        (Booking.expert_id == current_user.id) &
+        (Booking.provider_id == current_user.id) &
         (func.datetime(Booking.start_time) < now.replace(tzinfo=None)) &
         (Booking.payment_status == 'paid')
     ).order_by(Booking.start_time.desc()).all()
@@ -1596,7 +2022,7 @@ def bookings():
 def accept_booking(booking_id):
     """Accept a booking request"""
     booking = Booking.query.get_or_404(booking_id)
-    if booking.expert_id != current_user.id:
+    if booking.provider_id != current_user.id:
         flash('You are not authorized to accept this booking.', 'error')
         return redirect(url_for('bookings'))
     if booking.status != 'pending':
@@ -1612,7 +2038,7 @@ def accept_booking(booking_id):
 def decline_booking(booking_id):
     """Decline a booking request"""
     booking = Booking.query.get_or_404(booking_id)
-    if booking.expert_id != current_user.id:
+    if booking.provider_id != current_user.id:
         flash('You are not authorized to decline this booking.', 'error')
         return redirect(url_for('bookings'))
     if booking.status != 'pending':
@@ -1729,7 +2155,7 @@ def cancel_booking_by_client(booking_id):
                 
                 # Handle expert clawback if they were already paid
                 if booking.status == 'confirmed':
-                    expert = User.query.get(booking.expert_id)
+                    expert = User.query.get(booking.provider_id)
                     if expert and expert.pending_balance > 0:
                         # Calculate expert's portion that needs to be clawed back
                         expert_portion = booking.payment_amount * 0.90  # After platform fee
@@ -1820,7 +2246,7 @@ def cancel_booking_by_client_ajax(booking_id):
                 
                 # Update expert earnings if booking was confirmed
                 if booking.status == 'confirmed':
-                    expert = User.query.get(booking.expert_id)
+                    expert = User.query.get(booking.provider_id)
                     if expert and expert.pending_balance > 0:
                         expert_portion = booking.payment_amount * 0.90
                         expert.pending_balance = max(0, expert.pending_balance - expert_portion)
@@ -1864,14 +2290,14 @@ def cancel_booking_by_client_ajax(booking_id):
             'type': 'error'
         }), 500
 
-@app.route('/api/booking/cancel-by-expert/<int:booking_id>', methods=['POST'])
+@app.route('/api/booking/cancel-by-provider/<int:booking_id>', methods=['POST'])
 @login_required
-def cancel_booking_by_expert_ajax(booking_id):
+def cancel_booking_by_provider_ajax(booking_id):
     """Cancel a booking by the expert - AJAX endpoint"""
     print(f"[DEBUG] AJAX Cancel booking by expert called for booking {booking_id}")
     booking = Booking.query.get_or_404(booking_id)
     
-    if booking.expert_id != current_user.id:
+    if booking.provider_id != current_user.id:
         return jsonify({
             'success': False,
             'message': 'You are not authorized to cancel this booking.',
@@ -1905,7 +2331,7 @@ def cancel_booking_by_expert_ajax(booking_id):
                 booking.payment_status = 'refunded'
                 
                 # Update expert earnings
-                expert = User.query.get(booking.expert_id)
+                expert = User.query.get(booking.provider_id)
                 if expert and expert.pending_balance > 0:
                     expert_portion = booking.payment_amount * 0.90
                     expert.pending_balance = max(0, expert.pending_balance - expert_portion)
@@ -1943,12 +2369,12 @@ def cancel_booking_by_expert_ajax(booking_id):
             'type': 'error'
         }), 500
 
-@app.route('/booking/cancel-by-expert/<int:booking_id>')
+@app.route('/booking/cancel-by-provider/<int:booking_id>')
 @login_required
-def cancel_booking_by_expert(booking_id):
+def cancel_booking_by_provider(booking_id):
     """Cancel a booking by the expert (gives full refund to client)"""
     booking = Booking.query.get_or_404(booking_id)
-    if booking.expert_id != current_user.id:
+    if booking.provider_id != current_user.id:
         flash('You are not authorized to cancel this booking.', 'error')
         return redirect(url_for('bookings'))
     if booking.status != 'confirmed':
@@ -1981,7 +2407,7 @@ def cancel_booking_by_expert(booking_id):
                 booking.payment_status = 'refunded'
                 
                 # Handle expert clawback since they were already paid
-                expert = User.query.get(booking.expert_id)
+                expert = User.query.get(booking.provider_id)
                 if expert and expert.pending_balance > 0:
                     # Calculate expert's portion that needs to be clawed back
                     expert_portion = booking.payment_amount * 0.90  # After platform fee
@@ -2017,8 +2443,8 @@ def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
 
-# Expertise tag mapping
-EXPERTISE_MAPPING = {
+# Skills tag mapping
+SKILLS_MAPPING = {
     'python': 'Python',
     'javascript': 'JavaScript',
     'react': 'React',
@@ -2061,9 +2487,9 @@ EXPERTISE_MAPPING = {
     'translation': 'Translation'
 }
 
-def get_expertise_display_name(tag):
-    """Get the display name for an expertise tag"""
-    return EXPERTISE_MAPPING.get(tag, tag.title())
+def get_skills_display_name(tag):
+    """Get the display name for a skills tag"""
+    return SKILLS_MAPPING.get(tag, tag.title())
 
 @app.route('/api/check-username', methods=['POST'])
 def check_username():
@@ -2182,6 +2608,39 @@ def api_profile_update():
         # Update availability
         if 'is_available' in data:
             current_user.is_available = data['is_available']
+            
+        # Update customization fields
+        if 'primaryColor' in data:
+            current_user.primary_color = data['primaryColor']
+        if 'secondaryColor' in data:
+            current_user.secondary_color = data['secondaryColor']
+        if 'backgroundColor' in data:
+            current_user.background_color = data['backgroundColor']
+        if 'fontFamily' in data:
+            current_user.font_family = data['fontFamily']
+        if 'fontSize' in data:
+            current_user.font_size = int(data['fontSize'])
+        if 'profileLayout' in data:
+            current_user.profile_layout = data['profileLayout']
+        if 'skillsTags' in data:
+            current_user.specialty_tags = data['skillsTags']
+            
+        # Handle image uploads
+        if 'profile_image' in request.files:
+            file = request.files['profile_image']
+            if file and file.filename:
+                filename = f"profile_{current_user.id}_{int(time.time())}.{file.filename.split('.')[-1]}"
+                filepath = os.path.join('static', 'uploads', filename)
+                file.save(filepath)
+                current_user.profile_picture = f"/static/uploads/{filename}"
+                
+        if 'background_image' in request.files:
+            file = request.files['background_image']
+            if file and file.filename:
+                filename = f"background_{current_user.id}_{int(time.time())}.{file.filename.split('.')[-1]}"
+                filepath = os.path.join('static', 'uploads', filename)
+                file.save(filepath)
+                current_user.background_image_url = f"/static/uploads/{filename}"
         
         db.session.commit()
         
@@ -2377,22 +2836,22 @@ def api_favorites_toggle():
     """Toggle favorite status for an expert"""
     try:
         data = request.get_json()
-        expert_id = data.get('expert_id')
-        expert_username = data.get('expert_username')
+        user_id = data.get('user_id')
+        user_username = data.get('user_username')
         
-        if not expert_id or not expert_username:
-            return jsonify({'success': False, 'error': 'Missing expert information'})
+        if not user_id or not user_username:
+            return jsonify({'success': False, 'error': 'Missing user information'})
         
-        # Verify the expert exists
-        expert = User.query.filter_by(id=expert_id, username=expert_username, is_available=True).first()
-        if not expert:
-            return jsonify({'success': False, 'error': 'Expert not found'})
+        # Verify the user exists
+        user = User.query.filter_by(id=user_id, username=user_username, is_available=True).first()
+        if not user:
+            return jsonify({'success': False, 'error': 'User not found'})
         
         # Check if already favorited
         from models import Favorite
         existing_favorite = Favorite.query.filter_by(
             user_id=current_user.id, 
-            expert_id=expert_id
+            favorited_user_id=user_id
         ).first()
         
         if existing_favorite:
@@ -2402,7 +2861,7 @@ def api_favorites_toggle():
             return jsonify({'success': True, 'action': 'removed'})
         else:
             # Add to favorites
-            new_favorite = Favorite(user_id=current_user.id, expert_id=expert_id)
+            new_favorite = Favorite(user_id=current_user.id, favorited_user_id=user_id)
             db.session.add(new_favorite)
             db.session.commit()
             return jsonify({'success': True, 'action': 'added'})
@@ -2871,7 +3330,7 @@ def booking_confirmation():
         total_amount = session_fee + platform_fee
         
         return render_template('booking_confirmation.html',
-                             expert=expert,
+                             user=expert,
                              booking_date=booking_datetime.strftime('%B %d, %Y'),
                              booking_time=booking_datetime.strftime('%I:%M %p'),
                              duration=duration,
@@ -2920,7 +3379,7 @@ def booking_confirmation():
         # Prevent double booking: check for any overlapping bookings
         print("DEBUG: Checking for booking conflicts")
         conflict = Booking.query.filter(
-            (Booking.expert_id == expert.id) &
+            (Booking.provider_id == expert.id) &
             (Booking.status == 'confirmed') &
             (
                 ((start_time >= Booking.start_time) & (start_time < Booking.end_time)) |
@@ -2950,7 +3409,7 @@ def booking_confirmation():
         print("DEBUG: Creating booking")
         booking = Booking(
             user_id=current_user.id,
-            expert_id=expert.id,
+            provider_id=expert.id,
             start_time=start_time,
             end_time=end_time,
             duration=duration,
@@ -3052,7 +3511,7 @@ def api_availability_times():
     # Get existing bookings for this user (as expert) to exclude booked times
     now = datetime.now()
     existing_bookings = Booking.query.filter(
-        (Booking.expert_id == user.id) &
+        (Booking.provider_id == user.id) &
         (Booking.start_time >= now) &
         (Booking.status == 'confirmed')
     ).all()
@@ -3122,14 +3581,14 @@ def api_availability_times():
 # STRIPE CONNECT ROUTES FOR EXPERT PAYOUTS
 # ============================================================================
 
-@app.route('/expert/onboard-stripe', methods=['GET', 'POST'])
+@app.route('/payment/setup', methods=['GET', 'POST'])
 @login_required
-def expert_stripe_onboarding():
-    """Onboard expert to Stripe Connect for payouts"""
+def payment_setup():
+    """Set up payment processing for user payouts"""
     # Production safeguard
     if is_production_environment() and stripe.api_key.startswith('sk_test_'):
         flash('Payout setup temporarily unavailable. Please try again later.', 'error')
-        return redirect(url_for('expert_dashboard'))
+        return redirect(url_for('payment_dashboard'))
     
     # If user already has a Stripe account, redirect to Stripe dashboard
     if current_user.stripe_account_id:
@@ -3151,16 +3610,16 @@ def expert_stripe_onboarding():
             # Create login link for existing account
             login_link = stripe.Account.create_login_link(
                 current_user.stripe_account_id,
-                redirect_url=f'{YOUR_DOMAIN}/expert/dashboard'
+                redirect_url=f'{YOUR_DOMAIN}/payment/dashboard'
             )
             return redirect(login_link.url)
             
         except stripe.error.StripeError as e:
             flash(f'Error accessing Stripe account: {str(e)}', 'error')
-            return redirect(url_for('expert_dashboard'))
+            return redirect(url_for('payment_dashboard'))
     
     if request.method == 'GET':
-        return render_template('expert_stripe_onboarding.html')
+        return render_template('payment_setup.html')
     
     try:
         # Debug: Print the URL being constructed
@@ -3194,8 +3653,8 @@ def expert_stripe_onboarding():
         # Create account link for onboarding
         account_link = stripe.AccountLink.create(
             account=account.id,
-            refresh_url=f'{YOUR_DOMAIN}/expert/onboard-stripe',
-            return_url=f'{YOUR_DOMAIN}/expert/dashboard',
+            refresh_url=f'{YOUR_DOMAIN}/payment/setup',
+            return_url=f'{YOUR_DOMAIN}/payment/dashboard',
             type='account_onboarding',
         )
         
@@ -3203,12 +3662,12 @@ def expert_stripe_onboarding():
         
     except Exception as e:
         flash(f'Error creating Stripe account: {str(e)}', 'error')
-        return redirect(url_for('expert_stripe_onboarding'))
+        return redirect(url_for('payment_setup'))
 
-@app.route('/expert/dashboard')
+@app.route('/payment/dashboard')
 @login_required
-def expert_dashboard():
-    """Expert dashboard with earnings and payout info"""
+def payment_dashboard():
+    """Payment dashboard with earnings and payout info"""
     if current_user.stripe_account_id:
         try:
             account = stripe.Account.retrieve(current_user.stripe_account_id)
@@ -3231,7 +3690,7 @@ def expert_dashboard():
 
             # Total earnings: all completed and paid bookings (historical)
             completed_bookings = Booking.query.filter(
-                (Booking.expert_id == current_user.id) &
+                (Booking.provider_id == current_user.id) &
                 (Booking.status == 'completed') &
                 (Booking.payment_status == 'paid')
             ).all()
@@ -3240,7 +3699,7 @@ def expert_dashboard():
 
             # Pending balance: all confirmed or completed and paid bookings, not yet paid out
             pending_bookings = Booking.query.filter(
-                (Booking.expert_id == current_user.id) &
+                (Booking.provider_id == current_user.id) &
                 (Booking.status.in_(['confirmed', 'completed'])) &
                 (Booking.payment_status == 'paid')
             ).all()
@@ -3259,18 +3718,18 @@ def expert_dashboard():
     from datetime import datetime
     now = datetime.now()
     potential_earnings_bookings = Booking.query.filter(
-        (Booking.expert_id == current_user.id) &
+        (Booking.provider_id == current_user.id) &
         (Booking.status == 'confirmed') &
         (Booking.start_time > now)
     ).all()
     potential_earnings = sum(booking.payment_amount for booking in potential_earnings_bookings)
 
     recent_bookings = Booking.query.filter(
-        (Booking.expert_id == current_user.id) &
+        (Booking.provider_id == current_user.id) &
         (Booking.status.in_(['pending', 'confirmed']))
     ).order_by(Booking.start_time.desc()).limit(5).all()
-    recent_payouts = Payout.query.filter_by(expert_id=current_user.id).order_by(Payout.created_at.desc()).limit(5).all()
-    return render_template('expert_dashboard.html', 
+    recent_payouts = Payout.query.filter_by(user_id=current_user.id).order_by(Payout.created_at.desc()).limit(5).all()
+    return render_template('payment_dashboard.html', 
                          recent_bookings=recent_bookings,
                          recent_payouts=recent_payouts,
                          potential_earnings=potential_earnings)
@@ -3282,19 +3741,19 @@ def request_payout():
     # Production safeguard
     if is_production_environment() and stripe.api_key.startswith('sk_test_'):
         flash('Payout system temporarily unavailable. Please try again later.', 'error')
-        return redirect(url_for('expert_dashboard'))
+        return redirect(url_for('payment_dashboard'))
     
     if not current_user.stripe_account_id:
         flash('You need to complete Stripe onboarding first', 'error')
-        return redirect(url_for('expert_dashboard'))
+        return redirect(url_for('payment_dashboard'))
     
     if not current_user.payout_enabled:
         flash('Payouts are not enabled for your account', 'error')
-        return redirect(url_for('expert_dashboard'))
+        return redirect(url_for('payment_dashboard'))
     
     if current_user.pending_balance <= 0:
         flash('No pending balance to payout', 'error')
-        return redirect(url_for('expert_dashboard'))
+        return redirect(url_for('payment_dashboard'))
     
     try:
         # Create payout in Stripe
@@ -3306,7 +3765,7 @@ def request_payout():
         
         # Create payout record in database
         payout_record = Payout(
-            expert_id=current_user.id,
+            user_id=current_user.id,
             amount=current_user.pending_balance * 100,  # Store in cents
             stripe_payout_id=payout.id,
             status='pending'
@@ -3326,13 +3785,59 @@ def request_payout():
     
     return redirect(url_for('expert_dashboard'))
 
+@app.route('/expert/stripe-onboarding', methods=['GET', 'POST'])
+@login_required
+def expert_stripe_onboarding():
+    """Handle Stripe onboarding for experts"""
+    if request.method == 'POST':
+        try:
+            # Create Stripe Connect account for the expert
+            account = stripe.Account.create(
+                type='express',
+                country='US',  # You might want to make this configurable
+                email=current_user.email,
+                capabilities={
+                    'card_payments': {'requested': True},
+                    'transfers': {'requested': True},
+                },
+                business_type='individual',
+                individual={
+                    'email': current_user.email,
+                    'first_name': current_user.full_name.split(' ')[0] if current_user.full_name else '',
+                    'last_name': ' '.join(current_user.full_name.split(' ')[1:]) if current_user.full_name and len(current_user.full_name.split(' ')) > 1 else '',
+                },
+            )
+            
+            # Save the account ID to the user
+            current_user.stripe_account_id = account.id
+            current_user.stripe_account_status = 'pending'
+            db.session.commit()
+            
+            # Create account link for onboarding
+            account_link = stripe.AccountLink.create(
+                account=account.id,
+                refresh_url=f"{YOUR_DOMAIN}/expert/stripe-onboarding",
+                return_url=f"{YOUR_DOMAIN}/expert/complete-verification",
+                type='account_onboarding',
+            )
+            
+            return redirect(account_link.url)
+            
+        except Exception as e:
+            print(f"Error creating Stripe account: {e}")
+            flash('Error setting up payment processing. Please try again.', 'error')
+            return redirect(url_for('expert_stripe_onboarding'))
+    
+    # GET request - show the onboarding page
+    return render_template('expert_stripe_onboarding.html')
+
 @app.route('/expert/complete-verification')
 @login_required
 def complete_verification():
     """Redirect to Stripe dashboard for the expert's account"""
     if not current_user.stripe_account_id:
         flash('No Stripe account found. Please complete payout setup first.', 'error')
-        return redirect(url_for('expert_dashboard'))
+        return redirect(url_for('payment_dashboard'))
     
     try:
         # Get the account to check its status
@@ -3342,7 +3847,7 @@ def complete_verification():
         try:
             login_link = stripe.Account.create_login_link(
                 current_user.stripe_account_id,
-                redirect_url=f"{YOUR_DOMAIN}/expert/dashboard"
+                redirect_url=f"{YOUR_DOMAIN}/payment/dashboard"
             )
             return redirect(login_link.url)
         except stripe.error.StripeError as e:
@@ -3389,7 +3894,7 @@ def stripe_webhook():
                 db.session.commit()
                 
                 # Update expert's earnings
-                expert = User.query.get(booking.expert_id)
+                expert = User.query.get(booking.provider_id)
                 if expert:
                     expert.total_earnings += booking.payment_amount
                     expert.pending_balance += booking.payment_amount * 0.90  # After platform fee
@@ -3427,8 +3932,8 @@ def stripe_webhook():
 @app.route('/earnings')
 @login_required
 def earnings():
-    """Show expert's earnings history"""
-    payouts = Payout.query.filter_by(expert_id=current_user.id).order_by(Payout.created_at.desc()).all()
+    """Show expert's earnings history with enhanced analytics"""
+    payouts = Payout.query.filter_by(user_id=current_user.id).order_by(Payout.created_at.desc()).all()
     
     # Calculate totals
     total_earned = 0
@@ -3443,17 +3948,65 @@ def earnings():
         elif payout.status == 'failed':
             failed_total += payout.amount
     
-    return render_template('expert_payouts.html', 
+    # Calculate analytics for charts
+    # Note: datetime and timedelta already imported at top
+    
+    # Get earnings data for the last 7 days
+    seven_days_ago = datetime.now() - timedelta(days=7)
+    recent_payouts = [p for p in payouts if p.created_at >= seven_days_ago and p.status == 'paid']
+    
+    # Create daily earnings data for chart
+    daily_earnings = {}
+    for i in range(7):
+        date = (datetime.now() - timedelta(days=i)).date()
+        daily_earnings[date.strftime('%a')] = 0
+    
+    for payout in recent_payouts:
+        day_name = payout.created_at.strftime('%a')
+        if day_name in daily_earnings:
+            daily_earnings[day_name] += payout.amount / 100  # Convert to dollars
+    
+    # Calculate monthly earnings
+    current_month = datetime.now().month
+    current_year = datetime.now().year
+    monthly_earnings = sum(
+        p.amount / 100 for p in payouts 
+        if p.created_at.month == current_month 
+        and p.created_at.year == current_year 
+        and p.status == 'paid'
+    )
+    
+    # Calculate weekly earnings
+    week_start = datetime.now() - timedelta(days=datetime.now().weekday())
+    weekly_earnings = sum(
+        p.amount / 100 for p in payouts 
+        if p.created_at >= week_start and p.status == 'paid'
+    )
+    
+    # Calculate average session value
+    completed_sessions = len([p for p in payouts if p.status == 'paid'])
+    avg_session_value = (total_earned / 100) / completed_sessions if completed_sessions > 0 else 0
+    
+    # Prepare chart data
+    chart_labels = list(daily_earnings.keys())
+    chart_data = list(daily_earnings.values())
+    
+    return render_template('earnings.html', 
                          payouts=payouts,
                          total_earned=total_earned,
                          pending_total=pending_total,
-                         failed_total=failed_total)
+                         failed_total=failed_total,
+                         monthly_earnings=monthly_earnings,
+                         weekly_earnings=weekly_earnings,
+                         avg_session_value=avg_session_value,
+                         chart_labels=chart_labels,
+                         chart_data=chart_data)
 
 @app.route('/expert/payout-details')
 @login_required
 def expert_payout_details():
     # On the way to your bank: payouts with status 'pending'
-    pending_payouts = Payout.query.filter_by(expert_id=current_user.id, status='pending').all()
+    pending_payouts = Payout.query.filter_by(user_id=current_user.id, status='pending').all()
     on_the_way = sum(payout.amount for payout in pending_payouts) / 100  # convert cents to dollars
     # Upcoming payouts: (for now, same as on_the_way unless you have scheduled payouts)
     upcoming_payouts = on_the_way
@@ -3693,10 +4246,10 @@ def join_meeting(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     
     print(f"[DEBUG] Booking found: {booking.id}, Status: {booking.status}")
-    print(f"[DEBUG] Current user: {current_user.id}, Booking user: {booking.user_id}, Expert: {booking.expert_id}")
+    print(f"[DEBUG] Current user: {current_user.id}, Booking user: {booking.user_id}, Expert: {booking.provider_id}")
     
     # Check if user is authorized to join this meeting
-    if booking.user_id != current_user.id and booking.expert_id != current_user.id:
+    if booking.user_id != current_user.id and booking.provider_id != current_user.id:
         print(f"[DEBUG] User not authorized to join meeting")
         flash('You are not authorized to join this meeting.', 'error')
         return redirect(url_for('bookings'))
@@ -3770,7 +4323,7 @@ def start_meeting(booking_id):
     """Mark meeting as started"""
     booking = Booking.query.get_or_404(booking_id)
     
-    if booking.expert_id != current_user.id:
+    if booking.provider_id != current_user.id:
         flash('Only the expert can start the meeting.', 'error')
         return redirect(url_for('bookings'))
     
@@ -3789,7 +4342,7 @@ def end_meeting(booking_id):
     """Mark meeting as ended"""
     booking = Booking.query.get_or_404(booking_id)
     
-    if booking.expert_id != current_user.id:
+    if booking.provider_id != current_user.id:
         flash('Only the expert can end the meeting.', 'error')
         return redirect(url_for('bookings'))
     
@@ -3809,7 +4362,7 @@ def meeting_status(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     
     # Check if user is authorized to view this meeting
-    if booking.user_id != current_user.id and booking.expert_id != current_user.id:
+    if booking.user_id != current_user.id and booking.provider_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
     
     # Determine if user can join the meeting
@@ -3896,7 +4449,7 @@ def force_simple_meeting(booking_id):
         booking = Booking.query.get_or_404(booking_id)
         
         # Check if user is authorized to join this meeting
-        if booking.user_id != current_user.id and booking.expert_id != current_user.id:
+        if booking.user_id != current_user.id and booking.provider_id != current_user.id:
             flash('You are not authorized to join this meeting.', 'error')
             return redirect(url_for('bookings'))
         
@@ -3930,7 +4483,7 @@ def test_booking(username):
         
         booking = Booking(
             user_id=current_user.id,
-            expert_id=expert.id,
+            provider_id=expert.id,
             start_time=start_time,
             end_time=end_time,
             duration=30,
@@ -4068,12 +4621,12 @@ def debug_bookings():
     
     # Get all bookings for current user as expert
     all_bookings = Booking.query.filter(
-        Booking.expert_id == current_user.id
+        Booking.provider_id == current_user.id
     ).order_by(Booking.start_time.desc()).all()
     
     # Test the upcoming query
     upcoming_as_expert = Booking.query.filter(
-        (Booking.expert_id == current_user.id) &
+        (Booking.provider_id == current_user.id) &
         (func.datetime(Booking.start_time) >= now.replace(tzinfo=None))
     ).order_by(Booking.start_time.asc()).all()
     
@@ -4112,7 +4665,7 @@ def test_bookings():
     
     # Simple query without timezone complexity
     all_bookings = Booking.query.filter(
-        Booking.expert_id == current_user.id
+        Booking.provider_id == current_user.id
     ).all()
     
     # Manual filtering in Python
@@ -4156,334 +4709,7 @@ def debug_auth():
     
     return jsonify(debug_info)
 
-# Referral Helper Functions
 
-def process_referral_reward_for_booking(booking_id):
-    """Process referral reward for a booking - helper function"""
-    booking = Booking.query.get(booking_id)
-    if not booking:
-        return False
-    
-    # Check if the user was referred
-    if not booking.user.referred_by:
-        return False
-    
-    # Get the referrer
-    referrer = User.query.get(booking.user.referred_by)
-    if not referrer:
-        return False
-    
-    # Check if this is the user's first paid booking
-    previous_paid_bookings = Booking.query.filter_by(
-        user_id=booking.user.id,
-        payment_status='paid'
-    ).filter(Booking.id != booking_id).count()
-    
-    if previous_paid_bookings > 0:
-        return False  # Not the first booking
-    
-    # Check if reward already exists
-    existing_reward = ReferralReward.query.filter_by(
-        referrer_id=referrer.id,
-        referred_user_id=booking.user.id,
-        booking_id=booking_id
-    ).first()
-    
-    if existing_reward:
-        return False  # Reward already processed
-    
-    # Create the reward
-    reward_amount = 10.0  # $10 per successful referral
-    reward = ReferralReward(
-        referrer_id=referrer.id,
-        referred_user_id=booking.user.id,
-        booking_id=booking_id,
-        reward_amount=reward_amount,
-        reward_type='booking',
-        status='pending'
-    )
-    
-    # Update referral status
-    referral = Referral.query.filter_by(
-        referrer_id=referrer.id,
-        referred_user_id=booking.user.id
-    ).first()
-    
-    if referral:
-        referral.status = 'completed'
-    
-    # Update referrer's stats
-    referrer.referral_count += 1
-    referrer.total_referral_earnings += reward_amount
-    
-    db.session.add(reward)
-    db.session.commit()
-    
-    print(f"Referral reward processed: ${reward_amount} for referrer {referrer.username}")
-    return True
-
-# Referral API Endpoints
-
-@app.route('/api/referrals/generate-code', methods=['POST'])
-@login_required
-def generate_referral_code():
-    """Generate a new referral code for the current user"""
-    try:
-        # Generate new referral code
-        new_code = current_user.generate_referral_code()
-        db.session.commit()
-        
-        # Get the full referral link
-        referral_link = current_user.get_referral_link()
-        
-        return jsonify({
-            'success': True,
-            'referral_code': new_code,
-            'referral_link': referral_link
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@app.route('/api/referrals/history', methods=['GET'])
-@login_required
-def get_referral_history():
-    """Get referral history for the current user"""
-    try:
-        # Get all referrals made by this user
-        referrals = Referral.query.filter_by(referrer_id=current_user.id).order_by(Referral.created_at.desc()).all()
-        
-        referral_data = []
-        for referral in referrals:
-            # Get reward information if available
-            reward = ReferralReward.query.filter_by(
-                referrer_id=current_user.id,
-                referred_user_id=referral.referred_user_id
-            ).first()
-            
-            referral_data.append({
-                'id': referral.id,
-                'referred_user_name': referral.referred_user.full_name or referral.referred_user.username,
-                'created_at': referral.created_at.isoformat(),
-                'status': referral.status,
-                'reward_amount': reward.reward_amount if reward else None
-            })
-        
-        return jsonify({
-            'success': True,
-            'referrals': referral_data
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@app.route('/api/referrals/stats', methods=['GET'])
-@login_required
-def get_referral_stats():
-    """Get referral statistics for the current user"""
-    try:
-        # Get total referrals
-        total_referrals = Referral.query.filter_by(referrer_id=current_user.id).count()
-        
-        # Get completed referrals (users who made bookings)
-        completed_referrals = Referral.query.filter_by(
-            referrer_id=current_user.id,
-            status='completed'
-        ).count()
-        
-        # Get total earnings
-        total_earnings = current_user.total_referral_earnings or 0
-        
-        # Get pending earnings
-        pending_rewards = ReferralReward.query.filter_by(
-            referrer_id=current_user.id,
-            status='pending'
-        ).all()
-        pending_earnings = sum(reward.reward_amount for reward in pending_rewards)
-        
-        return jsonify({
-            'success': True,
-            'stats': {
-                'total_referrals': total_referrals,
-                'completed_referrals': completed_referrals,
-                'total_earnings': total_earnings,
-                'pending_earnings': pending_earnings
-            }
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@app.route('/api/referrals/track', methods=['POST'])
-def track_referral():
-    """Track a referral when someone signs up with a referral code"""
-    try:
-        data = request.get_json()
-        referral_code = data.get('referral_code')
-        user_id = data.get('user_id')
-        
-        if not referral_code or not user_id:
-            return jsonify({
-                'success': False,
-                'error': 'Missing referral_code or user_id'
-            }), 400
-        
-        # Find the referrer by referral code
-        referrer = User.query.filter_by(referral_code=referral_code).first()
-        if not referrer:
-            return jsonify({
-                'success': False,
-                'error': 'Invalid referral code'
-            }), 400
-        
-        # Get the referred user
-        referred_user = User.query.get(user_id)
-        if not referred_user:
-            return jsonify({
-                'success': False,
-                'error': 'User not found'
-            }), 400
-        
-        # Check if this user was already referred
-        existing_referral = Referral.query.filter_by(
-            referrer_id=referrer.id,
-            referred_user_id=referred_user.id
-        ).first()
-        
-        if existing_referral:
-            return jsonify({
-                'success': False,
-                'error': 'User already referred'
-            }), 400
-        
-        # Create the referral record
-        referral = Referral(
-            referrer_id=referrer.id,
-            referred_user_id=referred_user.id,
-            referral_code=referral_code,
-            status='pending'
-        )
-        
-        # Update the referred user's referred_by field
-        referred_user.referred_by = referrer.id
-        
-        db.session.add(referral)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'referral_id': referral.id
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@app.route('/api/referrals/process-reward', methods=['POST'])
-def process_referral_reward():
-    """Process a referral reward when a referred user makes their first booking"""
-    try:
-        data = request.get_json()
-        booking_id = data.get('booking_id')
-        
-        if not booking_id:
-            return jsonify({
-                'success': False,
-                'error': 'Missing booking_id'
-            }), 400
-        
-        # Get the booking
-        booking = Booking.query.get(booking_id)
-        if not booking:
-            return jsonify({
-                'success': False,
-                'error': 'Booking not found'
-            }), 400
-        
-        # Check if the user was referred
-        if not booking.user.referred_by:
-            return jsonify({
-                'success': False,
-                'error': 'User was not referred'
-            }), 400
-        
-        # Get the referrer
-        referrer = User.query.get(booking.user.referred_by)
-        if not referrer:
-            return jsonify({
-                'success': False,
-                'error': 'Referrer not found'
-            }), 400
-        
-        # Check if this is the user's first booking
-        previous_bookings = Booking.query.filter_by(
-            user_id=booking.user.id,
-            payment_status='paid'
-        ).filter(Booking.id != booking_id).count()
-        
-        if previous_bookings > 0:
-            return jsonify({
-                'success': False,
-                'error': 'Not the user\'s first booking'
-            }), 400
-        
-        # Check if reward already exists
-        existing_reward = ReferralReward.query.filter_by(
-            referrer_id=referrer.id,
-            referred_user_id=booking.user.id,
-            booking_id=booking_id
-        ).first()
-        
-        if existing_reward:
-            return jsonify({
-                'success': False,
-                'error': 'Reward already processed'
-            }), 400
-        
-        # Create the reward
-        reward_amount = 10.0  # $10 per successful referral
-        reward = ReferralReward(
-            referrer_id=referrer.id,
-            referred_user_id=booking.user.id,
-            booking_id=booking_id,
-            reward_amount=reward_amount,
-            reward_type='booking',
-            status='pending'
-        )
-        
-        # Update referral status
-        referral = Referral.query.filter_by(
-            referrer_id=referrer.id,
-            referred_user_id=booking.user.id
-        ).first()
-        
-        if referral:
-            referral.status = 'completed'
-        
-        # Update referrer's stats
-        referrer.referral_count += 1
-        referrer.total_referral_earnings += reward_amount
-        
-        db.session.add(reward)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'reward_id': reward.id,
-            'reward_amount': reward_amount
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
 
 
 # Privacy Policy and Terms of Service routes

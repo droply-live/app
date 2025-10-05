@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
     'collapsePic': ['profile_pic'],
     'collapseBasic': ['name', 'profession'],
     'collapseBio': ['bio'],
-    'collapseExpertise': ['expertise'],
+    'collapseExpertise': ['skills'],
     'collapseLocation': ['location'],
     'collapseSocial': ['social_links'],
     'collapseIndustry': ['industry'],
@@ -172,8 +172,8 @@ document.addEventListener('DOMContentLoaded', function() {
         case 'bio':
           elements = preview.querySelectorAll('p[style*="font-size: 0.92rem; color: #666; line-height: 1.4"]');
           break;
-        case 'expertise':
-          // Only target the expertise tags, not the location or connect sections
+        case 'skills':
+          // Only target the skills tags, not the location or connect sections
           elements = preview.querySelectorAll('.preview-tag');
           break;
         case 'location':
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
           elements = preview.querySelectorAll('img[alt="Profile picture"]');
           break;
         case 'social_links':
-          // Target only the social links section, not expertise or location
+          // Target only the social links section, not skills or location
           const connectSection = preview.querySelector('div[style*="margin-bottom: 0; min-height: 20px;"]');
           if (connectSection) {
             elements = [connectSection];
@@ -208,11 +208,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function renderPreview() {
-    // Build tags from three expertise fields
-    const expertise1 = val('expertise_1');
-    const expertise2 = val('expertise_2');
-    const expertise3 = val('expertise_3');
-    const tags = [expertise1, expertise2, expertise3].filter(Boolean);
+    // Build tags from three skills fields
+    const skills1 = val('skills_1');
+    const skills2 = val('skills_2');
+    const skills3 = val('skills_3');
+    const tags = [skills1, skills2, skills3].filter(Boolean);
     // Social links
     const socials = [
       {id: 'linkedin', icon: 'linkedin', color: '#0077b5'},
@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div style="margin-bottom: 0.6rem; min-height: 28px;">
           <h4 style="font-size: 0.93rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.2rem;">Expertise</h4>
-          ${tags.length ? tags.map(tag => `<span class="preview-tag">${tag}</span>`).join('') : '<span style="color: #bbb; font-size: 0.9rem;">No expertise listed.</span>'}
+          ${tags.length ? tags.map(tag => `<span class="preview-tag">${tag}</span>`).join('') : '<span style="color: #bbb; font-size: 0.9rem;">No skills listed.</span>'}
         </div>
         <div style="margin-bottom: 0.6rem; min-height: 20px;">
           <h4 style="font-size: 0.93rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.1rem;">Location</h4>
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Listen to all relevant inputs
   [
-    'full_name', 'profession', 'industry', 'hourly_rate', 'location', 'expertise_1', 'expertise_2', 'expertise_3',
+    'full_name', 'profession', 'industry', 'hourly_rate', 'location', 'skills_1', 'skills_2', 'skills_3',
     'bio', 'linkedin', 'twitter', 'github', 'website', 'instagram', 'facebook'
   ].forEach(id => {
     const el = document.getElementById(id);

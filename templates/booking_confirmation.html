@@ -14,13 +14,13 @@
 
         <!-- Expert Info -->
         <div class="d-flex align-items-center mb-4 p-3" style="background: #f8f9fa; border-radius: 12px;">
-          <img src="{{ expert.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
-               alt="{{ expert.full_name }}" 
+          <img src="{{ user.profile_picture or url_for('static', filename='img/default-avatar.png') }}" 
+               alt="{{ user.full_name }}" 
                class="rounded-circle me-3" 
                style="width: 60px; height: 60px; object-fit: cover;">
           <div>
-            <h5 class="mb-1">{{ expert.full_name or expert.username }}</h5>
-            <p class="text-muted mb-0">{{ expert.profession|title if expert.profession else 'Professional' }}</p>
+            <h5 class="mb-1">{{ user.full_name or user.username }}</h5>
+            <p class="text-muted mb-0">{{ user.profession|title if user.profession else 'Professional' }}</p>
           </div>
         </div>
 
@@ -74,7 +74,7 @@
         </div>
 
         <!-- Payment Form -->
-        <form method="POST" action="{{ url_for('booking_confirmation', expert=request.args.get('expert'), datetime=request.args.get('datetime'), duration=request.args.get('duration')) }}">
+        <form method="POST" action="{{ url_for('booking_confirmation', user=request.args.get('user'), datetime=request.args.get('datetime'), duration=request.args.get('duration')) }}">
           <div class="text-center">
             <button type="submit" class="btn btn-primary btn-lg px-5" id="pay-now-btn" style="border-radius: 12px;">
               <i data-feather="credit-card" class="me-2"></i>

@@ -1,775 +1,745 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch - Droply</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "base_signed_in.html" %}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #000;
-            color: white;
-            overflow: hidden;
-            height: 100vh;
-        }
+{% block title %}Watch - Droply{% endblock %}
 
-        .watch-container {
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-            background: #000;
-        }
+{% block body_class %}watch-page{% endblock %}
 
-        .watch-feed {
-            height: 100vh;
-            overflow-y: auto;
-            scroll-snap-type: y mandatory;
-            scroll-behavior: smooth;
-        }
+{% block content %}
+<style>
+  /* Watch Page Specific Styles */
+  .watch-page .main-content {
+    margin-left: 280px !important;
+    width: calc(100vw - 280px) !important;
+    height: 100vh !important;
+    padding: 0 !important;
+    background: #000 !important;
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
+  }
 
-        .watch-item {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            scroll-snap-align: start;
-            position: relative;
-            padding: 20px;
-        }
+  .watch-page .sidebar {
+    z-index: 1001 !important;
+  }
 
-        .watch-item:nth-child(1) {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
+  .watch-container {
+    height: 100vh;
+    width: 100%;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+  }
 
-        .watch-item:nth-child(2) {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
+  .watch-feed {
+    height: 100vh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
 
-        .watch-item:nth-child(3) {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
+  .watch-item {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    scroll-snap-align: start;
+    position: relative;
+    background: #000;
+  }
 
-        .watch-item:nth-child(4) {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
 
-        .watch-item:nth-child(5) {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
+  .video-player {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* This ensures the video is not cropped or compressed */
+    background: #000;
+  }
 
-        .watch-item:nth-child(6) {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        }
+  /* For landscape videos, they should cover most of the area */
+  .video-player.landscape {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
 
-        .watch-item:nth-child(7) {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-        }
+  /* For portrait videos (phone), center them with black bars on sides */
+  .video-player.portrait {
+    object-fit: contain;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: 100%;
+  }
 
-        .watch-item:nth-child(8) {
-            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-        }
+  /* TikTok/Reels Style Layout */
+  .video-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    padding: 0;
+    z-index: 10;
+    pointer-events: none;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
 
-        .user-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #333;
-        }
+  .video-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px;
+    height: 100%;
+    pointer-events: auto;
+  }
 
-        .user-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin: 0 auto 20px;
-            border: 4px solid #fff;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
+  .video-info {
+    flex: 1;
+    max-width: calc(100% - 100px);
+    margin-right: 20px;
+  }
 
-        .user-name {
-            font-size: 28px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 8px;
-        }
+  .author-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
 
-        .user-title {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
+  .author-info:hover {
+    transform: scale(1.02);
+  }
 
-        .user-company {
-            font-size: 16px;
-            color: #888;
-            margin-bottom: 15px;
-        }
+  .author-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
 
-        .user-bio {
-            font-size: 16px;
-            color: #555;
-            line-height: 1.5;
-            margin-bottom: 20px;
-            font-style: italic;
-        }
+  .author-details {
+    flex: 1;
+  }
 
-        .user-stats {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 25px;
-            padding: 15px 0;
-            border-top: 1px solid #eee;
-            border-bottom: 1px solid #eee;
-        }
+  .author-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
 
-        .stat {
-            text-align: center;
-        }
+  .author-title {
+    font-size: 14px;
+    color: #ccc;
+    margin-bottom: 8px;
+  }
 
-        .stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: #333;
-            display: block;
-        }
+  .follow-btn {
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
 
-        .stat-label {
-            font-size: 12px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+  .follow-btn:hover {
+    background: #ff3742;
+    transform: scale(1.05);
+  }
 
-        .book-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+  .follow-btn.following {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
 
-        .book-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
+  .video-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
 
-        .scroll-indicator {
-            position: fixed;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+  .video-description {
+    font-size: 14px;
+    color: #ddd;
+    margin-bottom: 12px;
+    line-height: 1.4;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
 
-        .scroll-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+  .video-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
 
-        .scroll-dot.active {
-            background: white;
-            transform: scale(1.2);
-        }
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #ccc;
+    font-size: 13px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
 
-        .floating-actions {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 1000;
-        }
+  .stat i {
+    font-size: 14px;
+  }
 
-        .action-button {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
+  /* Right Side Action Buttons (TikTok Style) */
+  .video-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    z-index: 10;
+  }
 
-        .action-button:hover {
-            transform: scale(1.1);
-            background: white;
-        }
+  .action-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    position: relative;
+  }
 
-        .action-button i {
-            font-size: 20px;
-            color: #333;
-        }
+  .action-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+  }
 
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 80px;
-            height: 100vh;
-            background: white;
-            z-index: 1001;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px 0;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-        }
+  .action-button i {
+    font-size: 24px;
+    color: white;
+    margin-bottom: 2px;
+  }
 
-        .sidebar-logo {
-            font-size: 12px;
-            font-weight: 900;
-            color: #059669;
-            margin-bottom: 30px;
-            letter-spacing: -0.5px;
-        }
+  .action-button .action-label {
+    font-size: 10px;
+    color: white;
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
 
-        .sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+  .action-button.liked {
+    background: #ff4757;
+    border-color: #ff4757;
+  }
 
-        .sidebar-link {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: #666;
-            transition: all 0.3s ease;
-        }
+  .action-button.liked i {
+    color: white;
+  }
 
-        .sidebar-link:hover,
-        .sidebar-link.active {
-            background: #059669;
-            color: white;
-        }
+  /* Primary Action Button (Book Now) */
+  .action-button.primary {
+    background: #10b981;
+    border-color: #10b981;
+    width: 70px;
+    height: 70px;
+  }
 
-        .sidebar-link i {
-            font-size: 18px;
-        }
+  .action-button.primary:hover {
+    background: #059669;
+    border-color: #059669;
+  }
 
-        /* Hide scrollbar */
-        .watch-feed::-webkit-scrollbar {
-            display: none;
-        }
+  .action-button.primary i {
+    font-size: 28px;
+  }
 
-        .watch-feed {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+  .action-button.primary .action-label {
+    font-size: 11px;
+    font-weight: 700;
+  }
 
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .user-card {
-                margin: 0 20px;
-                padding: 30px;
-            }
 
-            .user-avatar {
-                width: 100px;
-                height: 100px;
-            }
+  /* Hide scrollbar */
+  .watch-feed::-webkit-scrollbar {
+    display: none;
+  }
 
-            .user-name {
-                font-size: 24px;
-            }
+  .watch-feed {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 
-            .sidebar {
-                width: 60px;
-            }
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .video-content {
+      padding: 15px;
+    }
 
-            .sidebar-link {
-                width: 35px;
-                height: 35px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-logo">droply</div>
-        <nav class="sidebar-nav">
-            <a href="/dashboard" class="sidebar-link" title="Dashboard">
-                <i class="fas fa-home"></i>
-            </a>
-            <a href="/search" class="sidebar-link" title="Search">
-                <i class="fas fa-search"></i>
-            </a>
-            <a href="/watch" class="sidebar-link active" title="Watch">
-                <i class="fas fa-play-circle"></i>
-            </a>
-            <a href="/bookings" class="sidebar-link" title="My Bookings">
-                <i class="fas fa-calendar"></i>
-            </a>
-            <a href="/availability" class="sidebar-link" title="Availability">
-                <i class="fas fa-calendar-check"></i>
-            </a>
-            <a href="/earnings" class="sidebar-link" title="Earnings">
-                <i class="fas fa-dollar-sign"></i>
-            </a>
-            <a href="/referrals" class="sidebar-link" title="Referrals">
-                <i class="fas fa-share-alt"></i>
-            </a>
-            <a href="/account" class="sidebar-link" title="Account">
-                <i class="fas fa-user"></i>
-            </a>
-        </nav>
+    .video-info {
+      max-width: calc(100% - 80px);
+      margin-right: 15px;
+    }
+
+    .author-avatar {
+      width: 45px;
+      height: 45px;
+    }
+
+    .author-name {
+      font-size: 16px;
+    }
+
+    .video-title {
+      font-size: 15px;
+    }
+
+    .video-description {
+      font-size: 13px;
+    }
+
+    .action-button {
+      width: 50px;
+      height: 50px;
+    }
+
+    .action-button.primary {
+      width: 60px;
+      height: 60px;
+    }
+
+    .action-button i {
+      font-size: 20px;
+    }
+
+    .action-button.primary i {
+      font-size: 24px;
+    }
+
+    .action-button .action-label {
+      font-size: 9px;
+    }
+
+  }
+
+  /* Video loading state */
+  .video-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+  }
+
+  .video-loading i {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Ensure proper video aspect ratio handling */
+  .video-player {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  /* Mobile responsive - full width when sidebar is hidden */
+  @media (max-width: 768px) {
+    .watch-page .main-content {
+      margin-left: 0 !important;
+      width: 100vw !important;
+      left: 0 !important;
+      right: auto !important;
+    }
+
+    .watch-container {
+      width: 100vw;
+    }
+
+    .watch-item {
+      width: 100vw;
+    }
+
+    .video-player.landscape {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+    }
+
+    .video-player.portrait {
+      width: auto;
+      height: 100vh;
+      max-width: 100vw;
+      object-fit: contain;
+    }
+  }
+
+  /* Desktop - account for sidebar width */
+  @media (min-width: 769px) {
+    .video-player.landscape {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-player.portrait {
+      width: auto;
+      height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+    }
+  }
+</style>
+
+<!-- Watch Container -->
+<div class="watch-container">
+  <div class="watch-feed" id="watchFeed">
+    {% for video in videos %}
+    <div class="watch-item" data-video-id="{{ video.id }}">
+      <div class="video-container">
+        <video class="video-player" preload="metadata" poster="{{ video.thumbnail }}" muted>
+          <source src="{{ video.video_url }}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        
+        <div class="video-overlay">
+          <div class="video-content">
+            <!-- Left side - Video info and author -->
+            <div class="video-info">
+              <div class="author-info" onclick="viewProfile('{{ video.author }}')">
+                <img src="{{ video.author_avatar }}" alt="{{ video.author }}" class="author-avatar">
+                <div class="author-details">
+                  <div class="author-name">{{ video.author }}</div>
+                  <div class="author-title">Expert</div>
+                  <button class="follow-btn" onclick="toggleFollow('{{ video.author }}', event)">Follow</button>
+                </div>
+              </div>
+              
+              <h2 class="video-title">{{ video.title }}</h2>
+              <p class="video-description">{{ video.description }}</p>
+              
+              <div class="video-stats">
+                <div class="stat">
+                  <i class="fas fa-eye"></i>
+                  <span>{{ video.views }}</span>
+                </div>
+                <div class="stat">
+                  <i class="fas fa-clock"></i>
+                  <span>{{ video.duration }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Right side - Action buttons -->
+            <div class="video-actions">
+              <button class="action-button primary" onclick="bookExpert('{{ video.author }}')" title="Book Now">
+                <i class="fas fa-calendar-plus"></i>
+                <span class="action-label">Book</span>
+              </button>
+              <button class="action-button" onclick="toggleLike({{ video.id }})" title="Like">
+                <i class="fas fa-heart"></i>
+                <span class="action-label">Like</span>
+              </button>
+              <button class="action-button" onclick="shareVideo({{ video.id }})" title="Share">
+                <i class="fas fa-share"></i>
+                <span class="action-label">Share</span>
+              </button>
+              <button class="action-button" onclick="messageExpert('{{ video.author }}')" title="Message">
+                <i class="fas fa-comment"></i>
+                <span class="action-label">Message</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+    {% endfor %}
+  </div>
 
-    <!-- Watch Container -->
-    <div class="watch-container">
-        <div class="watch-feed" id="watchFeed">
-            <!-- User 1 -->
-            <div class="watch-item" data-user-id="1">
-                <div class="user-card">
-                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face" alt="Sarah Chen" class="user-avatar">
-                    <h2 class="user-name">Sarah Chen</h2>
-                    <p class="user-title">UX Designer</p>
-                    <p class="user-company">Google</p>
-                    <p class="user-bio">Creating beautiful digital experiences ✨</p>
-                    
-                    <div class="user-stats">
-                        <div class="stat">
-                            <span class="stat-value">4.9</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">127</span>
-                            <span class="stat-label">Reviews</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">$75</span>
-                            <span class="stat-label">Per Hour</span>
-                        </div>
-                    </div>
-                    
-                    <button class="book-button" onclick="bookUser(1)">
-                        Book Session
-                    </button>
-                </div>
-            </div>
+</div>
 
-            <!-- User 2 -->
-            <div class="watch-item" data-user-id="2">
-                <div class="user-card">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face" alt="Marcus Johnson" class="user-avatar">
-                    <h2 class="user-name">Marcus Johnson</h2>
-                    <p class="user-title">Marketing Strategist</p>
-                    <p class="user-company">Meta</p>
-                    <p class="user-bio">Helping brands grow through data-driven marketing 📈</p>
-                    
-                    <div class="user-stats">
-                        <div class="stat">
-                            <span class="stat-value">4.8</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">89</span>
-                            <span class="stat-label">Reviews</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">$95</span>
-                            <span class="stat-label">Per Hour</span>
-                        </div>
-                    </div>
-                    
-                    <button class="book-button" onclick="bookUser(2)">
-                        Book Session
-                    </button>
-                </div>
-            </div>
+<script>
+  let currentIndex = 0;
+  let autoScrollInterval;
+  const totalVideos = {{ videos|length }};
+  let currentVideo = null;
 
-            <!-- User 3 -->
-            <div class="watch-item" data-user-id="3">
-                <div class="user-card">
-                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face" alt="Emily Rodriguez" class="user-avatar">
-                    <h2 class="user-name">Emily Rodriguez</h2>
-                    <p class="user-title">Product Manager</p>
-                    <p class="user-company">Apple</p>
-                    <p class="user-bio">Building products that matter 🚀</p>
-                    
-                    <div class="user-stats">
-                        <div class="stat">
-                            <span class="stat-value">4.9</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">156</span>
-                            <span class="stat-label">Reviews</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">$120</span>
-                            <span class="stat-label">Per Hour</span>
-                        </div>
-                    </div>
-                    
-                    <button class="book-button" onclick="bookUser(3)">
-                        Book Session
-                    </button>
-                </div>
-            </div>
+  // Initialize
+  updateScrollIndicator();
+  startAutoScroll();
+  setupVideoPlayers();
 
-            <!-- User 4 -->
-            <div class="watch-item" data-user-id="4">
-                <div class="user-card">
-                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face" alt="David Kim" class="user-avatar">
-                    <h2 class="user-name">David Kim</h2>
-                    <p class="user-title">Software Engineer</p>
-                    <p class="user-company">Netflix</p>
-                    <p class="user-bio">Full-stack developer passionate about clean code 💻</p>
-                    
-                    <div class="user-stats">
-                        <div class="stat">
-                            <span class="stat-value">4.7</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">203</span>
-                            <span class="stat-label">Reviews</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">$85</span>
-                            <span class="stat-label">Per Hour</span>
-                        </div>
-                    </div>
-                    
-                    <button class="book-button" onclick="bookUser(4)">
-                        Book Session
-                    </button>
-                </div>
-            </div>
+  // Setup video players with proper aspect ratio detection
+  function setupVideoPlayers() {
+    const videos = document.querySelectorAll('.video-player');
+    videos.forEach((video, index) => {
+      video.addEventListener('loadedmetadata', () => {
+        console.log(`Video ${index + 1} loaded`);
+        detectVideoOrientation(video);
+      });
+      
+      video.addEventListener('error', (e) => {
+        console.error(`Video ${index + 1} failed to load:`, e);
+      });
+    });
+  }
 
-            <!-- User 5 -->
-            <div class="watch-item" data-user-id="5">
-                <div class="user-card">
-                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face" alt="Lisa Thompson" class="user-avatar">
-                    <h2 class="user-name">Lisa Thompson</h2>
-                    <p class="user-title">Data Scientist</p>
-                    <p class="user-company">Tesla</p>
-                    <p class="user-bio">Turning data into insights that drive decisions 📊</p>
-                    
-                    <div class="user-stats">
-                        <div class="stat">
-                            <span class="stat-value">4.8</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">91</span>
-                            <span class="stat-label">Reviews</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">$110</span>
-                            <span class="stat-label">Per Hour</span>
-                        </div>
-                    </div>
-                    
-                    <button class="book-button" onclick="bookUser(5)">
-                        Book Session
-                    </button>
-                </div>
-            </div>
+  // Detect if video is landscape or portrait and apply appropriate styling
+  function detectVideoOrientation(video) {
+    const aspectRatio = video.videoWidth / video.videoHeight;
+    
+    // Remove existing orientation classes
+    video.classList.remove('landscape', 'portrait');
+    
+    if (aspectRatio > 1) {
+      // Landscape video
+      video.classList.add('landscape');
+    } else {
+      // Portrait video
+      video.classList.add('portrait');
+    }
+  }
 
-            <!-- User 6 -->
-            <div class="watch-item" data-user-id="6">
-                <div class="user-card">
-                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face" alt="Alex Morgan" class="user-avatar">
-                    <h2 class="user-name">Alex Morgan</h2>
-                    <p class="user-title">Content Creator</p>
-                    <p class="user-company">YouTube</p>
-                    <p class="user-bio">Storytelling through video and social media 🎬</p>
-                    
-                    <div class="user-stats">
-                        <div class="stat">
-                            <span class="stat-value">4.6</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">78</span>
-                            <span class="stat-label">Reviews</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">$65</span>
-                            <span class="stat-label">Per Hour</span>
-                        </div>
-                    </div>
-                    
-                    <button class="book-button" onclick="bookUser(6)">
-                        Book Session
-                    </button>
-                </div>
-            </div>
+  // Auto scroll functionality
+  function startAutoScroll() {
+    if (autoScrollInterval) clearInterval(autoScrollInterval);
+    autoScrollInterval = setInterval(() => {
+      const nextIndex = currentIndex < totalVideos - 1 ? currentIndex + 1 : 0;
+      scrollToVideo(nextIndex);
+    }, 8000); // Auto scroll every 8 seconds
+  }
 
-            <!-- User 7 -->
-            <div class="watch-item" data-user-id="7">
-                <div class="user-card">
-                    <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face" alt="Zoe Williams" class="user-avatar">
-                    <h2 class="user-name">Zoe Williams</h2>
-                    <p class="user-title">Brand Strategist</p>
-                    <p class="user-company">Nike</p>
-                    <p class="user-bio">Building brands that inspire and connect 🌟</p>
-                    
-                    <div class="user-stats">
-                        <div class="stat">
-                            <span class="stat-value">4.9</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">134</span>
-                            <span class="stat-label">Reviews</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">$100</span>
-                            <span class="stat-label">Per Hour</span>
-                        </div>
-                    </div>
-                    
-                    <button class="book-button" onclick="bookUser(7)">
-                        Book Session
-                    </button>
-                </div>
-            </div>
 
-            <!-- User 8 -->
-            <div class="watch-item" data-user-id="8">
-                <div class="user-card">
-                    <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face" alt="Ryan Patel" class="user-avatar">
-                    <h2 class="user-name">Ryan Patel</h2>
-                    <p class="user-title">Sales Director</p>
-                    <p class="user-company">Salesforce</p>
-                    <p class="user-bio">Helping teams close more deals and build relationships 🤝</p>
-                    
-                    <div class="user-stats">
-                        <div class="stat">
-                            <span class="stat-value">4.7</span>
-                            <span class="stat-label">Rating</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">167</span>
-                            <span class="stat-label">Reviews</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-value">$90</span>
-                            <span class="stat-label">Per Hour</span>
-                        </div>
-                    </div>
-                    
-                    <button class="book-button" onclick="bookUser(8)">
-                        Book Session
-                    </button>
-                </div>
-            </div>
-        </div>
+  // Scroll functions
+  function scrollToVideo(index) {
+    currentIndex = index;
+    const item = document.querySelector(`[data-video-id="${index + 1}"]`);
+    if (item) {
+      item.scrollIntoView({ behavior: 'smooth' });
+      updateScrollIndicator();
+      playCurrentVideo();
+    }
+  }
 
-        <!-- Scroll indicator dots -->
-        <div class="scroll-indicator" id="scrollIndicator">
-            <div class="scroll-dot active" data-user-id="1" onclick="scrollToUser(0)"></div>
-            <div class="scroll-dot" data-user-id="2" onclick="scrollToUser(1)"></div>
-            <div class="scroll-dot" data-user-id="3" onclick="scrollToUser(2)"></div>
-            <div class="scroll-dot" data-user-id="4" onclick="scrollToUser(3)"></div>
-            <div class="scroll-dot" data-user-id="5" onclick="scrollToUser(4)"></div>
-            <div class="scroll-dot" data-user-id="6" onclick="scrollToUser(5)"></div>
-            <div class="scroll-dot" data-user-id="7" onclick="scrollToUser(6)"></div>
-            <div class="scroll-dot" data-user-id="8" onclick="scrollToUser(7)"></div>
-        </div>
 
-        <!-- Floating action buttons -->
-        <div class="floating-actions">
-            <button class="action-button" onclick="scrollUp()" title="Previous">
-                <i class="fas fa-chevron-up"></i>
-            </button>
-            <button class="action-button" onclick="scrollDown()" title="Next">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-            <button class="action-button" onclick="togglePause()" title="Pause/Play">
-                <i class="fas fa-pause" id="pauseIcon"></i>
-            </button>
-        </div>
-    </div>
+  function updateScrollIndicator() {
+    const dots = document.querySelectorAll('.scroll-dot');
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === currentIndex);
+    });
+  }
 
-    <script>
-        let currentIndex = 0;
-        let isPaused = false;
-        let autoScrollInterval;
-        const totalUsers = 8;
+  // Video control functions
+  function playCurrentVideo() {
+    // Pause all videos
+    const allVideos = document.querySelectorAll('.video-player');
+    allVideos.forEach(video => {
+      video.pause();
+    });
+    
+    // Play current video
+    const currentVideoElement = document.querySelector(`[data-video-id="${currentIndex + 1}"] .video-player`);
+    if (currentVideoElement) {
+      currentVideo = currentVideoElement;
+      currentVideo.play().catch(e => {
+        console.log('Autoplay prevented:', e);
+      });
+    }
+  }
 
-        // Initialize
-        updateScrollIndicator();
-        startAutoScroll();
+  function pauseCurrentVideo() {
+    if (currentVideo) {
+      currentVideo.pause();
+    }
+  }
 
-        // Auto scroll functionality
-        function startAutoScroll() {
-            if (autoScrollInterval) clearInterval(autoScrollInterval);
-            autoScrollInterval = setInterval(() => {
-                if (!isPaused) {
-                    scrollDown();
-                }
-            }, 5000); // Auto scroll every 5 seconds
-        }
+  // Handle scroll events
+  const feed = document.getElementById('watchFeed');
+  feed.addEventListener('scroll', () => {
+    const scrollTop = feed.scrollTop;
+    const itemHeight = window.innerHeight;
+    const newIndex = Math.round(scrollTop / itemHeight);
+    
+    if (newIndex !== currentIndex && newIndex >= 0 && newIndex < totalVideos) {
+      currentIndex = newIndex;
+      updateScrollIndicator();
+      playCurrentVideo();
+    }
+  });
 
-        function togglePause() {
-            isPaused = !isPaused;
-            const icon = document.getElementById('pauseIcon');
-            icon.className = isPaused ? 'fas fa-play' : 'fas fa-pause';
-            
-            if (!isPaused) {
-                startAutoScroll();
-            } else {
-                clearInterval(autoScrollInterval);
-            }
-        }
 
-        // Scroll functions
-        function scrollToUser(index) {
-            currentIndex = index;
-            const item = document.querySelector(`[data-user-id="${index + 1}"]`);
-            if (item) {
-                item.scrollIntoView({ behavior: 'smooth' });
-                updateScrollIndicator();
-            }
-        }
+  // Touch/swipe support for mobile
+  let startY = 0;
+  let endY = 0;
 
-        function scrollUp() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                scrollToUser(currentIndex);
-            }
-        }
+  feed.addEventListener('touchstart', (e) => {
+    startY = e.touches[0].clientY;
+  });
 
-        function scrollDown() {
-            if (currentIndex < totalUsers - 1) {
-                currentIndex++;
-                scrollToUser(currentIndex);
-            } else {
-                // Loop back to start
-                currentIndex = 0;
-                scrollToUser(currentIndex);
-            }
-        }
+  feed.addEventListener('touchend', (e) => {
+    endY = e.changedTouches[0].clientY;
+    const diff = startY - endY;
+    
+    if (Math.abs(diff) > 50) { // Minimum swipe distance
+      if (diff > 0) {
+        // Scroll down - let the natural scroll behavior handle this
+        const currentScroll = feed.scrollTop;
+        const itemHeight = window.innerHeight;
+        const nextIndex = Math.min(currentIndex + 1, totalVideos - 1);
+        feed.scrollTo({ top: nextIndex * itemHeight, behavior: 'smooth' });
+      } else {
+        // Scroll up - let the natural scroll behavior handle this
+        const currentScroll = feed.scrollTop;
+        const itemHeight = window.innerHeight;
+        const prevIndex = Math.max(currentIndex - 1, 0);
+        feed.scrollTo({ top: prevIndex * itemHeight, behavior: 'smooth' });
+      }
+    }
+  });
 
-        function updateScrollIndicator() {
-            const dots = document.querySelectorAll('.scroll-dot');
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('active', index === currentIndex);
-            });
-        }
+  // Enhanced Video Interaction Functions
+  function toggleLike(videoId) {
+    const button = document.querySelector(`[data-video-id="${videoId}"] .action-button`);
+    button.classList.toggle('liked');
+    
+    // Add animation effect
+    if (button.classList.contains('liked')) {
+      button.style.transform = 'scale(1.2)';
+      setTimeout(() => {
+        button.style.transform = 'scale(1)';
+      }, 200);
+    }
+    
+    // Here you would typically send a request to the server
+    console.log(`Liked video ${videoId}`);
+  }
 
-        // Handle scroll events
-        const feed = document.getElementById('watchFeed');
-        feed.addEventListener('scroll', () => {
-            const scrollTop = feed.scrollTop;
-            const itemHeight = window.innerHeight;
-            const newIndex = Math.round(scrollTop / itemHeight);
-            
-            if (newIndex !== currentIndex && newIndex >= 0 && newIndex < totalUsers) {
-                currentIndex = newIndex;
-                updateScrollIndicator();
-            }
-        });
+  function shareVideo(videoId) {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Check out this video on Droply',
+        url: window.location.href
+      });
+    } else {
+      // Fallback to copying URL
+      navigator.clipboard.writeText(window.location.href);
+      showNotification('Link copied to clipboard!');
+    }
+  }
 
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            switch(e.key) {
-                case 'ArrowUp':
-                    e.preventDefault();
-                    scrollUp();
-                    break;
-                case 'ArrowDown':
-                    e.preventDefault();
-                    scrollDown();
-                    break;
-                case ' ':
-                    e.preventDefault();
-                    togglePause();
-                    break;
-            }
-        });
+  function bookExpert(authorName) {
+    // Redirect to booking page with author name
+    window.location.href = `/search?expert=${encodeURIComponent(authorName)}`;
+  }
 
-        // Touch/swipe support for mobile
-        let startY = 0;
-        let endY = 0;
+  function messageExpert(authorName) {
+    // Redirect to messaging with the expert
+    window.location.href = `/messages?expert=${encodeURIComponent(authorName)}`;
+  }
 
-        feed.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
-        });
+  function viewProfile(authorName) {
+    // Redirect to expert's profile page
+    window.location.href = `/profile/${encodeURIComponent(authorName)}`;
+  }
 
-        feed.addEventListener('touchend', (e) => {
-            endY = e.changedTouches[0].clientY;
-            const diff = startY - endY;
-            
-            if (Math.abs(diff) > 50) { // Minimum swipe distance
-                if (diff > 0) {
-                    scrollDown();
-                } else {
-                    scrollUp();
-                }
-            }
-        });
+  function toggleFollow(authorName, event) {
+    event.stopPropagation(); // Prevent profile click
+    const button = event.target;
+    const isFollowing = button.classList.contains('following');
+    
+    if (isFollowing) {
+      button.classList.remove('following');
+      button.textContent = 'Follow';
+      showNotification(`Unfollowed ${authorName}`);
+    } else {
+      button.classList.add('following');
+      button.textContent = 'Following';
+      showNotification(`Following ${authorName}`);
+    }
+    
+    // Here you would typically send a request to the server
+    console.log(`${isFollowing ? 'Unfollowed' : 'Following'} ${authorName}`);
+  }
 
-        // Book user function
-        function bookUser(userId) {
-            // Redirect to booking page with user ID
-            window.location.href = `/search?expert_id=${userId}`;
-        }
+  function showNotification(message) {
+    // Create a temporary notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      z-index: 10000;
+      font-size: 14px;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
 
-        // Pause auto-scroll when user is interacting
-        feed.addEventListener('mouseenter', () => {
-            clearInterval(autoScrollInterval);
-        });
+  // Pause auto-scroll when user is interacting
+  feed.addEventListener('mouseenter', () => {
+    clearInterval(autoScrollInterval);
+  });
 
-        feed.addEventListener('mouseleave', () => {
-            if (!isPaused) {
-                startAutoScroll();
-            }
-        });
+  feed.addEventListener('mouseleave', () => {
+    startAutoScroll();
+  });
 
-        // Handle visibility change (pause when tab is not active)
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                clearInterval(autoScrollInterval);
-            } else if (!isPaused) {
-                startAutoScroll();
-            }
-        });
-    </script>
+  // Handle visibility change (pause when tab is not active)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(autoScrollInterval);
+      pauseCurrentVideo();
+    } else {
+      startAutoScroll();
+      playCurrentVideo();
+    }
+  });
 
-    {% include 'footer.html' %}
-</body>
-</html>
-
+  // Initialize first video
+  setTimeout(() => {
+    playCurrentVideo();
+  }, 500);
+</script>
+{% endblock %}

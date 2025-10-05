@@ -2,572 +2,1266 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Droply - Monetize Your Expertise</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Droply - Find What People Have to Offer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Global overflow prevention */
+        /* Whop.com Inspired Design - Discover Page Style */
         * {
             box-sizing: border-box;
         }
         
         html, body {
-            overflow-x: hidden;
-            width: 100%;
-            max-width: 100vw;
-        }
-        
-        /* Top Navigation Bar - Always Visible */
-        .top-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(229, 229, 229, 0.3);
-            z-index: 1001;
-            padding: 0.5rem 0;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            background: #000 !important;
+            color: #fff !important;
+            overflow-x: hidden !important;
+            height: 100vh !important;
         }
 
-        .top-nav .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
+        /* Light mode styles */
+        body.light-mode {
+            background: #fff !important;
+            color: #000 !important;
         }
 
-        .top-nav-brand {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #059669;
-            text-decoration: none;
-            letter-spacing: -1px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        body.light-mode .sidebar {
+            background: #f8f9fa !important;
+            border-right: 1px solid #e9ecef !important;
         }
 
-        .top-nav-brand-icon {
-            width: 32px;
-            height: 32px;
-            background: #059669;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: white;
-            font-weight: bold;
+        body.light-mode .sidebar-header {
+            border-bottom: 1px solid #e9ecef !important;
         }
 
-        .top-nav-links {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
+        body.light-mode .nav-item {
+            color: #495057 !important;
         }
 
-        .top-nav-link {
-            color: #666;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
+        body.light-mode .nav-item:hover {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
         }
 
-        .top-nav-link:hover {
-            color: #059669;
-            background: rgba(5, 150, 105, 0.1);
+        body.light-mode .category-item {
+            color: #495057 !important;
         }
 
-        .top-nav-link.btn-primary {
-            background: #059669;
-            color: white;
-            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+        body.light-mode .category-item:hover {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
         }
 
-        .top-nav-link.btn-primary:hover {
-            background: #047857;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+        body.light-mode .main-content {
+            background: #fff !important;
         }
 
-        /* Adjust hero section to account for top nav */
-        .hero-section {
-            margin-top: 80px;
+        body.light-mode .search-area {
+            background: #fff !important;
         }
 
-        /* Mobile Navigation (only for mobile) */
-        .mobile-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(229, 229, 229, 0.3);
-            transition: all 0.3s ease;
-            display: none; /* Hidden by default */
-            min-height: 60px; /* Ensure minimum height */
-            /* Debug: Make it more visible */
-            background-color: #ffffff !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-            width: 100%;
-            max-width: 100vw;
-            overflow-x: hidden;
+        body.light-mode .page-title {
+            color: #000 !important;
         }
 
-        .nav-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            /* Debug: Make sure it's visible */
-            background-color: #f0f0f0 !important;
-            min-height: 50px !important;
-            width: 100%;
-            box-sizing: border-box;
+        body.light-mode .search-input-wrapper {
+            background: #f8f9fa !important;
+            border: 1px solid #dee2e6 !important;
         }
 
-        .nav-brand {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #059669;
-            text-decoration: none;
-            letter-spacing: -1px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        body.light-mode .search-input {
+            color: #000 !important;
         }
 
-        .nav-brand-icon {
-            width: 32px;
-            height: 32px;
-            background: #059669;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: white;
-            font-weight: bold;
+        body.light-mode .search-input::placeholder {
+            color: #6c757d !important;
         }
 
-        /* Mobile Login Button */
-        .mobile-login-btn {
-            background: #059669;
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+        /* Main Layout */
+        .app-container {
+            display: flex !important;
+            height: 100vh !important;
+            background: #000 !important;
         }
 
-        .mobile-login-btn:hover {
-            background: #047857;
-            color: white;
-            text-decoration: none;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+        /* Left Sidebar */
+        .sidebar {
+            width: 280px !important;
+            background: #1a1a1a !important;
+            border-right: 1px solid #333 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100vh !important;
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+        }
+
+        /* Sidebar Header */
+        .sidebar-header {
+            padding: 1.5rem 1rem !important;
+            border-bottom: 1px solid #333 !important;
+        }
+
+        .sidebar-logo {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            color: #fff !important;
+            text-decoration: none !important;
+            font-size: 1.5rem !important;
+            font-weight: 700 !important;
+        }
+
+        .sidebar-logo-icon {
+            width: 32px !important;
+            height: 32px !important;
+            background: #10b981 !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 18px !important;
+            color: white !important;
+            font-weight: bold !important;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar-nav {
+            padding: 1rem 0 !important;
+            flex: 1 !important;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem !important;
+        }
+
+        .nav-section-title {
+            padding: 0 1rem 0.5rem 1rem !important;
+            font-size: 0.75rem !important;
+            font-weight: 600 !important;
+            color: #999 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        .nav-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.75rem 1rem !important;
+            color: #ccc !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            border-left: 3px solid transparent !important;
+        }
+
+        .nav-item:hover {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+            border-left-color: #10b981 !important;
+        }
+
+        .nav-item.active {
+            background: rgba(16, 185, 129, 0.15) !important;
+            color: #10b981 !important;
+            border-left-color: #10b981 !important;
+            font-weight: 600 !important;
+        }
+
+        .nav-item i {
+            margin-right: 0.75rem !important;
+            width: 20px !important;
+            text-align: center !important;
+            font-size: 1.1rem !important;
+        }
+
+        /* Categories in Sidebar */
+        .categories-nav {
+            padding: 1rem 0 !important;
+        }
+
+        .category-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.75rem 1rem !important;
+            color: #ccc !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            border-left: 3px solid transparent !important;
+        }
+
+        .category-item:hover {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+            border-left-color: #10b981 !important;
+        }
+
+        .category-item.active {
+            background: rgba(16, 185, 129, 0.15) !important;
+            color: #10b981 !important;
+            border-left-color: #10b981 !important;
+            font-weight: 600 !important;
+        }
+
+        .category-item i {
+            margin-right: 0.75rem !important;
+            width: 20px !important;
+            text-align: center !important;
+            font-size: 1.1rem !important;
+        }
+
+        /* Sidebar Close Button */
+        .sidebar-close-btn {
+            display: none !important;
+            background: transparent !important;
+            border: none !important;
+            color: #ccc !important;
+            padding: 0.5rem !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            font-size: 1.2rem !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .sidebar-close-btn:hover {
+            background: #333 !important;
+            color: #fff !important;
         }
 
 
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 1rem !important;
+            border-top: 1px solid #333 !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+        }
+
+        /* Menu Dropdown Styles */
+        .menu-dropdown {
+            position: relative !important;
+            display: block !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .menu-dropdown-btn {
+            width: 100% !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            color: #ccc !important;
+            padding: 0.75rem 1rem !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            font-size: 0.9rem !important;
+        }
+
+        .menu-dropdown-btn:hover {
+            background: #444 !important;
+            color: #fff !important;
+        }
+
+        .menu-dropdown-content {
+            display: none !important;
+            position: absolute !important;
+            bottom: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            background-color: #1a1a1a !important;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2) !important;
+            z-index: 1002 !important;
+            border: 1px solid #333 !important;
+            border-radius: 8px !important;
+            padding: 0.5rem 0 !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .menu-dropdown-content.show {
+            display: block !important;
+        }
+
+        .menu-dropdown-item {
+            color: #ccc !important;
+            padding: 0.75rem 1rem !important;
+            text-decoration: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            transition: all 0.2s ease !important;
+            font-size: 0.9rem !important;
+        }
+
+        .menu-dropdown-item:hover {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+        }
+
+        .menu-dropdown-item i {
+            width: 16px !important;
+            text-align: center !important;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            padding: 0.75rem 1rem !important;
+            color: #ccc !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+        }
+
+        .theme-toggle:hover {
+            background-color: #444 !important;
+            color: #fff !important;
+        }
+
+        .theme-toggle-switch {
+            position: relative !important;
+            width: 40px !important;
+            height: 20px !important;
+            background: #333 !important;
+            border-radius: 20px !important;
+            transition: background 0.3s ease !important;
+        }
+
+        .theme-toggle-switch.active {
+            background: #10b981 !important;
+        }
+
+        .theme-toggle-slider {
+            position: absolute !important;
+            top: 2px !important;
+            left: 2px !important;
+            width: 16px !important;
+            height: 16px !important;
+            background: white !important;
+            border-radius: 50% !important;
+            transition: transform 0.3s ease !important;
+        }
+
+        .theme-toggle-switch.active .theme-toggle-slider {
+            transform: translateX(20px) !important;
+        }
+
+        /* Main Content Area - Identical to Discover Page */
+        .main-content {
+            flex: 1 !important;
+            margin-left: 280px !important;
+            background: #1f1f1f !important;
+            min-height: 100vh !important;
+        }
+
+        /* Search Area - Identical to Discover Page */
+        .search-area {
+            background: #1f1f1f !important;
+            padding: 2rem 1rem !important;
+            min-height: 100vh !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+        }
+
+        .search-wrapper {
+            max-width: 600px !important;
+            margin: 0 auto !important;
+            text-align: center !important;
+            width: 100% !important;
+        }
+
+        .page-title {
+            font-size: 2rem !important;
+            font-weight: 600 !important;
+            color: white !important;
+            margin-bottom: 1.5rem !important;
+            margin-top: 0 !important;
+        }
+
+        /* Search Input - Identical to Discover Page */
+        .search-input-wrapper {
+            display: flex !important;
+            align-items: center !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+            padding: 0.5rem !important;
+            margin-bottom: 1rem !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .search-input-wrapper:focus-within {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1) !important;
+        }
+
+        .search-input {
+            flex: 1 !important;
+            border: none !important;
+            outline: none !important;
+            background: transparent !important;
+            font-size: 1rem !important;
+            padding: 0.5rem !important;
+            color: white !important;
+        }
+
+        .search-input::placeholder {
+            color: #999 !important;
+        }
+
+        .search-button {
+            background: #10b981 !important;
+            border: none !important;
+            color: white !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            font-size: 0.9rem !important;
+        }
+
+        .search-button:hover {
+            background: #047857 !important;
+        }
+
+        /* Results Area - Identical to Discover Page */
+        .results-area {
+            background: #1f1f1f !important;
+            padding: 2rem 1rem !important;
+        }
+
+        .results-header {
+            margin-bottom: 2rem !important;
+            text-align: center !important;
+        }
+
+        .results-title {
+            font-size: 1.5rem !important;
+            font-weight: 600 !important;
+            color: white !important;
+            margin: 0 0 0.5rem 0 !important;
+        }
+
+        .results-count {
+            font-size: 1rem !important;
+            color: #ccc !important;
+            margin: 0 !important;
+        }
+
+        /* No Results Section */
+        .no-results {
+            text-align: center !important;
+            padding: 3rem 1rem !important;
+            max-width: 500px !important;
+            margin: 0 auto !important;
+        }
+
+        .no-results-icon {
+            font-size: 3rem !important;
+            color: #666 !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .no-results-title {
+            font-size: 1.25rem !important;
+            font-weight: 600 !important;
+            color: white !important;
+            margin: 0 0 0.5rem 0 !important;
+        }
+
+        .no-results-text {
+            font-size: 1rem !important;
+            color: #ccc !important;
+            margin: 0 0 2rem 0 !important;
+            line-height: 1.5 !important;
+        }
+
+        .no-results-actions {
+            display: flex !important;
+            gap: 1rem !important;
+            justify-content: center !important;
+            flex-wrap: wrap !important;
+        }
+
+        .experts-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+            gap: 1.5rem !important;
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+        }
+
+        .expert-card {
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            border-radius: 12px !important;
+            padding: 1.5rem !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+        }
+
+        .expert-card:hover {
+            border-color: #10b981 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .expert-avatar {
+            width: 60px !important;
+            height: 60px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            border: 2px solid #e5e7eb !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .expert-info {
+            margin-bottom: 1rem !important;
+            width: 100% !important;
+        }
+
+        .expert-name {
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            color: white !important;
+            margin: 0 0 0.5rem 0 !important;
+        }
+
+        .expert-title {
+            font-size: 0.9rem !important;
+            color: #ccc !important;
+            margin: 0 0 0.5rem 0 !important;
+        }
+
+        .expert-rate {
+            font-size: 0.9rem !important;
+            color: #10b981 !important;
+            font-weight: 600 !important;
+        }
+
+        .expert-actions {
+            display: flex !important;
+            gap: 0.5rem !important;
+            width: 100% !important;
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem !important;
+            border-radius: 6px !important;
+            font-size: 0.8rem !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            text-decoration: none !important;
+            border: none !important;
+            font-weight: 500 !important;
+        }
+
+        .action-btn.primary {
+            background: #10b981 !important;
+            color: white !important;
+        }
+
+        .action-btn.primary:hover {
+            background: #047857 !important;
+            color: white !important;
+            text-decoration: none !important;
+        }
+
+        .action-btn.secondary {
+            background: #555 !important;
+            color: #ccc !important;
+            border: 1px solid #777 !important;
+        }
+
+        .action-btn.secondary:hover {
+            background: #666 !important;
+            color: white !important;
+        }
+
+        /* Mobile Top Navigation Bar - Hidden on Desktop */
+        .mobile-top-nav {
+            display: none !important;
+        }
+
+        .mobile-menu-btn {
+            background: transparent !important;
+            border: none !important;
+            color: #fff !important;
+            padding: 0.5rem !important;
+            cursor: pointer !important;
+            font-size: 1.2rem !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 6px !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .mobile-menu-btn:hover {
+            background: #333 !important;
+        }
 
 
+        .mobile-nav-right {
+            display: flex !important;
+            align-items: center !important;
+        }
 
+        .mobile-signin-btn {
+            background: #10b981 !important;
+            color: white !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 6px !important;
+            text-decoration: none !important;
+            font-weight: 500 !important;
+            font-size: 0.9rem !important;
+            transition: all 0.2s ease !important;
+            min-height: 36px !important;
+            display: flex !important;
+            align-items: center !important;
+        }
 
+        .mobile-signin-btn:hover {
+            background: #047857 !important;
+            color: white !important;
+            text-decoration: none !important;
+        }
 
-        /* Responsive Design */
-        @media (max-width: 767px) {
-            /* Mobile: Show mobile nav */
-            .mobile-nav {
-                display: block !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-                width: 100vw !important;
-                max-width: 100vw !important;
-                overflow-x: hidden !important;
-            }
-            
-            .top-nav {
-                display: none !important;
-            }
-            
-            /* Ensure mobile nav is visible */
-            .nav-header {
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .mobile-top-nav {
                 display: flex !important;
-                visibility: visible !important;
-                width: 100% !important;
-                max-width: 100% !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                background: #1a1a1a !important;
+                border-bottom: 1px solid #333 !important;
                 padding: 1rem !important;
-                box-sizing: border-box !important;
+                z-index: 1000 !important;
+                align-items: center !important;
+                justify-content: space-between !important;
             }
-            
-            /* Prevent horizontal scroll */
-            body {
-                overflow-x: hidden !important;
-                width: 100% !important;
-                max-width: 100vw !important;
+
+            .sidebar {
+                transform: translateX(-100%) !important;
+                transition: transform 0.3s ease !important;
+                width: 280px !important;
+                top: 0 !important;
+                height: 100vh !important;
             }
-            
-            /* Fix hero sections to prevent overflow */
-            .hero-section {
-                width: 100% !important;
-                max-width: 100vw !important;
-                overflow-x: hidden !important;
-                padding: 4rem 1rem !important;
+
+            .sidebar.open {
+                transform: translateX(0) !important;
             }
-            
-            .hero-content {
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 1rem !important;
-                overflow-x: hidden !important;
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+                margin-top: 80px !important; /* Account for top nav */
             }
-            
-            .hero-images-features {
-                width: 100% !important;
-                max-width: 100% !important;
-                overflow-x: hidden !important;
+
+            .search-area {
+                padding: 2rem 1rem !important;
+                min-height: calc(100vh - 80px) !important;
             }
-            
-            /* Fix all containers */
-            .container {
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 1rem !important;
-                overflow-x: hidden !important;
+
+            .page-title {
+                font-size: 1.5rem !important;
+                margin-bottom: 1rem !important;
             }
-            
-            /* Fix any animated elements */
-            .hero-animation,
-            .hero-stepper-layout,
-            .image-animated-bg-large {
+
+            .search-input-wrapper {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+                padding: 0.75rem !important;
+            }
+
+            .search-input {
+                font-size: 16px !important; /* Prevents zoom on iOS */
+                padding: 0.75rem !important;
+            }
+
+            .search-button {
                 width: 100% !important;
-                max-width: 100% !important;
-                overflow-x: hidden !important;
+                padding: 0.75rem !important;
+                font-size: 1rem !important;
+            }
+
+            /* Results Area Mobile */
+            .results-area {
+                padding: 1rem !important;
+            }
+
+            .results-title {
+                font-size: 1.25rem !important;
+            }
+
+            .results-count {
+                font-size: 0.9rem !important;
+            }
+
+            .experts-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            .expert-card {
+                padding: 1rem !important;
+            }
+
+            .expert-actions {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+
+            .action-btn {
+                width: 100% !important;
+                padding: 0.75rem !important;
+                font-size: 0.9rem !important;
+            }
+
+            /* No Results Mobile */
+            .no-results {
+                padding: 2rem 1rem !important;
+            }
+
+            .no-results-actions {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+            }
+
+            .no-results-actions .action-btn {
+                width: 100% !important;
+            }
+
+            /* Sidebar Mobile Improvements */
+            .sidebar-header {
+                padding: 1rem !important;
+            }
+
+            .sidebar-logo {
+                font-size: 1.25rem !important;
+            }
+
+            .nav-item, .category-item {
+                padding: 1rem !important;
+                font-size: 0.95rem !important;
+            }
+
+            .sidebar-close-btn {
+                display: block !important;
+            }
+
+            .sidebar-header {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+            }
+
+            .sidebar-footer {
+                padding: 1rem !important;
+            }
+
+            .menu-dropdown-btn, .theme-toggle {
+                padding: 1rem !important;
+                font-size: 0.9rem !important;
             }
         }
 
-        @media (min-width: 768px) {
-            /* Desktop: Show top nav, hide mobile nav */
-            .mobile-nav {
-                display: none !important;
+        /* Small Mobile (320px - 480px) */
+        @media (max-width: 480px) {
+            .search-area {
+                padding: 0.75rem !important;
             }
-            
-            .top-nav {
-                display: block;
+
+            .page-title {
+                font-size: 1.25rem !important;
+            }
+
+            .search-input-wrapper {
+                padding: 0.5rem !important;
+            }
+
+            .search-input {
+                padding: 0.5rem !important;
+                font-size: 16px !important;
+            }
+
+            .search-button {
+                padding: 0.5rem !important;
+            }
+
+            .results-area {
+                padding: 0.75rem !important;
+            }
+
+            .expert-card {
+                padding: 0.75rem !important;
+            }
+
+            .expert-avatar {
+                width: 50px !important;
+                height: 50px !important;
+            }
+
+            .expert-name {
+                font-size: 1rem !important;
+            }
+
+            .expert-title {
+                font-size: 0.85rem !important;
+            }
+
+            .expert-rate {
+                font-size: 0.85rem !important;
+            }
+
+            .mobile-menu-btn {
+                top: 0.75rem !important;
+                left: 0.75rem !important;
+                padding: 0.5rem !important;
+                min-width: 40px !important;
+                min-height: 40px !important;
             }
         }
 
-        /* Large screens */
-        @media (min-width: 1024px) {
-            .nav-header {
-                padding: 1rem 3rem;
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-item, .category-item, .action-btn {
+                min-height: 44px !important;
+                display: flex !important;
+                align-items: center !important;
             }
+
+            .search-button {
+                min-height: 44px !important;
+            }
+
+            .menu-dropdown-btn, .theme-toggle {
+                min-height: 44px !important;
+            }
+        }
+
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .expert-avatar {
+                image-rendering: -webkit-optimize-contrast !important;
+                image-rendering: crisp-edges !important;
+            }
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            z-index: 999 !important;
+        }
+
+        .sidebar-overlay.open {
+            display: block !important;
         }
     </style>
 </head>
-<body>
-    <!-- Top Navigation Bar (Desktop) -->
-    <nav class="top-nav">
-        <div class="container">
-            <a href="{{ url_for('homepage') }}" class="top-nav-brand">
-                droply
-            </a>
-            <div class="top-nav-links">
-                <a href="{{ url_for('homepage') }}" class="top-nav-link">Home</a>
-                <a href="{{ url_for('search') }}" class="top-nav-link">Search</a>
+<body class="homepage">
+        <!-- Mobile Top Navigation Bar -->
+        <div class="mobile-top-nav">
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-nav-right">
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('dashboard') }}" class="top-nav-link">Dashboard</a>
-                    <a href="{{ url_for('logout') }}" class="top-nav-link">Logout</a>
+                    <a href="{{ url_for('dashboard') }}" class="mobile-signin-btn">Dashboard</a>
                 {% else %}
-                    <a href="{{ url_for('login') }}" class="top-nav-link">Login</a>
-                    <a href="{{ url_for('register') }}" class="top-nav-link btn-primary">Register</a>
+                    <a href="{{ url_for('login') }}" class="mobile-signin-btn">Sign in</a>
                 {% endif %}
             </div>
         </div>
-    </nav>
 
-    <!-- Mobile Navigation (only visible on mobile) -->
-    <nav class="mobile-nav">
-        <div class="nav-header">
-            <a href="{{ url_for('homepage') }}" class="nav-brand">
-                <div class="nav-brand-icon">D</div>
-                droply
-            </a>
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('dashboard') }}" class="mobile-login-btn">Dashboard</a>
-            {% else %}
-                <a href="{{ url_for('login') }}" class="mobile-login-btn">Login</a>
-            {% endif %}
-        </div>
-    </nav>
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+    <div class="app-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <!-- Sidebar Header -->
+            <div class="sidebar-header">
+                <a href="{{ url_for('homepage') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">D</div>
+                    Droply
+                </a>
+                <button class="sidebar-close-btn" id="sidebarCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
-
-    <!-- Modern Navigation Bar (Desktop only) -->
-    <div class="d-none d-md-block">
-        <nav class="navbar" id="navbar">
-            <div class="container">
-                <div class="d-flex justify-content-between align-items-center">
-                    <a href="{{ url_for('homepage') }}" class="navbar-brand">
-                        <div class="navbar-brand-icon">D</div>
-                        Droply
+            <!-- Sidebar Navigation -->
+            <div class="sidebar-nav">
+                <!-- Main Navigation -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="{{ url_for('homepage') }}" class="nav-item active">
+                        <i class="fas fa-compass"></i>
+                        Discover
                     </a>
-                    <div class="navbar-nav">
-                        {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
-                            <a href="{{ url_for('search') }}" class="nav-link">Search</a>
-                            <a href="{{ url_for('profile_view', username=current_user.username) }}" class="nav-link">Profile</a>
-                            <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
-                        {% else %}
-                            <a href="{{ url_for('homepage') }}" class="nav-link {% if request.endpoint == 'homepage' %}active{% endif %}">Home</a>
-                            <a href="{{ url_for('search') }}" class="nav-link {% if request.endpoint == 'search' %}active{% endif %}">Search</a>
-                            <a href="{{ url_for('login') }}" class="nav-link btn btn-primary">START EARNING</a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="nav-item">
+                            <i class="fas fa-chart-line"></i>
+                            Start Earning
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="nav-item">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-item">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Login
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Categories -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Categories</div>
+                    <a href="{{ url_for('homepage') }}?category=technology" class="category-item {% if request.args.get('category') == 'technology' %}active{% endif %}">
+                        <i class="fas fa-laptop-code"></i>
+                        Technology & Development
+                    </a>
+                    <a href="{{ url_for('homepage') }}?category=business" class="category-item {% if request.args.get('category') == 'business' %}active{% endif %}">
+                        <i class="fas fa-briefcase"></i>
+                        Business & Consulting
+                    </a>
+                    <a href="{{ url_for('homepage') }}?category=creative" class="category-item {% if request.args.get('category') == 'creative' %}active{% endif %}">
+                        <i class="fas fa-palette"></i>
+                        Creative & Design
+                    </a>
+                    <a href="{{ url_for('homepage') }}?category=health" class="category-item {% if request.args.get('category') == 'health' %}active{% endif %}">
+                        <i class="fas fa-heart"></i>
+                        Health & Wellness
+                    </a>
+                    <a href="{{ url_for('homepage') }}?category=education" class="category-item {% if request.args.get('category') == 'education' %}active{% endif %}">
+                        <i class="fas fa-graduation-cap"></i>
+                        Education & Training
+                    </a>
+                    <a href="{{ url_for('homepage') }}?category=finance" class="category-item {% if request.args.get('category') == 'finance' %}active{% endif %}">
+                        <i class="fas fa-dollar-sign"></i>
+                        Finance & Investment
+                    </a>
+                    <a href="{{ url_for('homepage') }}?category=marketing" class="category-item {% if request.args.get('category') == 'marketing' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                        Marketing & Growth
+                    </a>
+                    <a href="{{ url_for('homepage') }}?category=writing" class="category-item {% if request.args.get('category') == 'writing' %}active{% endif %}">
+                        <i class="fas fa-pen"></i>
+                        Writing & Content
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer">
+                <!-- Menu Button with Dropdown -->
+                <div class="menu-dropdown">
+                    <button class="menu-dropdown-btn" id="menuDropdownBtn">
+                        <i class="fas fa-bars"></i>
+                        Menu
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="menu-dropdown-content" id="menuDropdownContent">
+                        <a href="#" class="menu-dropdown-item">
+                            <i class="fas fa-language"></i>
+                            Language
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                        <a href="#" class="menu-dropdown-item">
+                            <i class="fas fa-link"></i>
+                            Links
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                        <a href="#" class="menu-dropdown-item">
+                            <i class="fas fa-question-circle"></i>
+                            Need help?
+                        </a>
+                        <a href="#" class="menu-dropdown-item">
+                            <i class="fas fa-comment"></i>
+                            Submit feedback
+                        </a>
+                        <a href="#" class="menu-dropdown-item">
+                            <i class="fas fa-handshake"></i>
+                            Become a partner
+                        </a>
+                        <a href="#" class="menu-dropdown-item">
+                            <i class="fas fa-file-contract"></i>
+                            Terms
+                        </a>
+                        <a href="#" class="menu-dropdown-item">
+                            <i class="fas fa-shield-alt"></i>
+                            Privacy
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Theme Toggle -->
+                <div class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-sun"></i>
+                    <div class="theme-toggle-switch" id="themeToggleSwitch">
+                        <div class="theme-toggle-slider"></div>
+                    </div>
+                    <i class="fas fa-moon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area - Homepage with Results -->
+        <main class="main-content">
+            <div class="search-area">
+                <div class="search-wrapper">
+                    <h1 class="page-title">Discover People</h1>
+                    
+                    <form method="GET" action="{{ url_for('homepage') }}" class="search-form">
+                        <div class="search-input-wrapper">
+                            <input 
+                                type="text" 
+                                name="search" 
+                                placeholder="Search for experts..." 
+                                class="search-input"
+                                value="{{ request.args.get('search', '') }}"
+                                required
+                            >
+                            <button type="submit" class="search-button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Section - Always show when searching or filtering -->
+            {% if request.args.get('search') or request.args.get('category') %}
+            <div class="results-area">
+                <div class="results-header">
+                    <h2 class="results-title">
+                        {% if request.args.get('search') %}
+                            Search results for "{{ request.args.get('search') }}"
+                        {% elif request.args.get('category') %}
+                            {% set category_names = {
+                                'technology': 'Technology & Development',
+                                'business': 'Business & Consulting', 
+                                'creative': 'Creative & Design',
+                                'health': 'Health & Wellness',
+                                'education': 'Education & Training',
+                                'finance': 'Finance & Investment',
+                                'marketing': 'Marketing & Growth',
+                                'writing': 'Writing & Content'
+                            } %}
+                            {{ category_names.get(request.args.get('category'), request.args.get('category').title()) }} Experts
                         {% endif %}
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </div>
-
-    <!-- Hero Section 1 - Feature Reveal (8 images) -->
-    <section class="hero-section hero-section-1">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <h1><span style="color: #059669;">Monetize</span> Your Expertise</h1>
-                    <p>Turn your professional skills into a revenue stream. Create your Droply profile in minutes and start earning from your expertise. No complex setup, just pure monetization.</p>
-                    <div class="hero-buttons">
-                        <a href="{{ url_for('register') }}" class="btn btn-outline">Create Your Profile</a>
-                    </div>
-                </div>
-                <div class="hero-animation">
-                    <div class="hero-images-features">
-                        <img src="{{ url_for('static', filename='img/section1/main-animation1.png') }}" alt="Main Feature" class="main-feature">
-                        <img src="{{ url_for('static', filename='img/section1/feature1.png') }}" alt="Feature 1" class="feature-item pos1">
-                        <img src="{{ url_for('static', filename='img/section1/feature2.png') }}" alt="Feature 2" class="feature-item pos2">
-                        <img src="{{ url_for('static', filename='img/section1/feature3.png') }}" alt="Feature 3" class="feature-item pos3">
-                        <img src="{{ url_for('static', filename='img/section1/feature4.png') }}" alt="Feature 4" class="feature-item pos4">
-                        <img src="{{ url_for('static', filename='img/section1/feature5.png') }}" alt="Feature 5" class="feature-item pos5">
-                        <img src="{{ url_for('static', filename='img/section1/feature6.png') }}" alt="Feature 6" class="feature-item pos6">
-                        <img src="{{ url_for('static', filename='img/section1/feature7.png') }}" alt="Feature 7" class="feature-item pos7">
-                        <img src="{{ url_for('static', filename='img/section1/feature8.png') }}" alt="Feature 8" class="feature-item pos8">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Divider: Section 1 to Section 2 (white to white) -->
-    <div class="section-divider">
-      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
-        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#fff"/>
-      </svg>
-    </div>
-
-    <!-- Hero Section 2 - Centered, White Background, Large Animated Box -->
-    <section class="hero-section hero-section-white-bg">
-        <div class="hero-stepper-layout">
-            <div class="hero-stepper-side">
-                <ul class="stepper-list connected-stepper">
-                    <li class="stepper-tab active" data-step="0">
-                        <span class="stepper-label"><span class="stepper-icon">📅</span> Connect your calendars</span>
-                        <div class="stepper-desc">Sync up to six calendars for real-time scheduling availability.</div>
-                        <div class="step-timer-bar"></div>
-                    </li>
-                    <li class="stepper-tab" data-step="1">
-                        <span class="stepper-label"><span class="stepper-icon">⏰</span> Add your availability</span>
-                        <div class="stepper-desc">Set your available hours so people can only book you when you want.</div>
-                        <div class="step-timer-bar"></div>
-                    </li>
-                    <li class="stepper-tab" data-step="2">
-                        <span class="stepper-label"><span class="stepper-icon">📹</span> Integrated video calls</span>
-                        <div class="stepper-desc">Built-in video conferencing - no external tools needed. Connect with clients instantly.</div>
-                        <div class="step-timer-bar"></div>
-                    </li>
-                    <li class="stepper-tab" data-step="3">
-                        <span class="stepper-label"><span class="stepper-icon">💰</span> Start making money</span>
-                        <div class="stepper-desc">Set your rates, share your profile, and start earning from your expertise.</div>
-                        <div class="step-timer-bar"></div>
-                    </li>
-                </ul>
-            </div>
-            <div class="hero-step-image-animated-box">
-                <div class="step-image-wrapper">
-                    <img id="step-image" src="{{ url_for('static', filename='img/section2/item1.png') }}" alt="Step Image" class="step-image-large pop-in">
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Divider: Section 2 to Section 3 (white to white) -->
-    <div class="section-divider">
-      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
-        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#fff"/>
-      </svg>
-    </div>
-
-    <!-- Hero Section 3 - Closed Cube -->
-    <section class="hero-section hero-section-cube">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <h1>Your Droply Profile, Your Revenue</h1>
-                    <p>Create your personalized Droply profile and share it everywhere. Every connection becomes a potential revenue stream. It's that simple to start earning.</p>
-                    <div class="hero-buttons">
-                        <a href="{{ url_for('register') }}" class="btn btn-outline">Get Your Droply Profile</a>
-                    </div>
-                </div>
-                <div class="hero-animation">
-                    <div class="hero-images-cube">
-                        <div class="cube">
-                            <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Expert View 1" class="cube-face">
-                            <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Expert View 2" class="cube-face">
-                            <img src="{{ url_for('static', filename='img/generated-icon.png') }}" alt="Expert View 3" class="cube-face">
-                            <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Expert View 4" class="cube-face">
-                            <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Expert View 5" class="cube-face">
-                            <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Expert View 6" class="cube-face">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Divider: Section 3 to Section 4 (white to white) -->
-    <div class="section-divider">
-      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
-        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#fff"/>
-      </svg>
-    </div>
-
-    <!-- Hero Section 4 - Stripe Payment Integration -->
-    <section class="hero-section hero-section-stripe" style="background: #fff; color: #1a1a1a;">
-        <div class="container">
-            <div class="hero-content hero-content-unified" style="gap: 4rem;">
-                <div class="hero-animation" style="flex:0 0 320px; text-align:center;">
-                    <img src="https://cdn.jsdelivr.net/gh/stripe/brand-assets/logo/stripe/stripe-logo.svg" alt="Stripe Logo" style="height: 64px; margin-bottom: 2rem;">
-                </div>
-                <div class="hero-text">
-                    <h1 style="font-size:2.5rem; font-weight:800; margin-bottom:1.5rem;">Easy, Secure Payments with Stripe</h1>
-                    <p style="font-size:1.3rem; margin-bottom:2rem; max-width:500px;">Droply integrates seamlessly with Stripe, so you can accept payments from clients worldwide with confidence. Fast setup, instant payouts, and industry-leading security—no technical hassle required.</p>
-                    <a href="https://stripe.com" target="_blank" class="btn btn-outline" style="background:transparent; color:#635bff; border-color:#635bff; min-width:220px;">Learn More About Stripe</a>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Divider: Section 4 to FAQ (white to white) -->
-    <div class="section-divider">
-      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
-        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#fff"/>
-      </svg>
-    </div>
-
-    <!-- FAQ Section -->
-    <section class="faq-section">
-        <div class="container">
-            <div class="faq-container">
-                <h2 class="faq-title">Frequently Asked Questions</h2>
-                
-                <div class="faq-item">
-                    <div class="faq-question">How do I start earning on Droply?</div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            Simply create your profile, set your rates, and share your Droply profile. Clients can book sessions directly through your profile, and you'll receive payments automatically.
-                        </div>
-                    </div>
+                    </h2>
+                    <p class="results-count">
+                        {% if users %}
+                            Showing {{ users|length }} result{{ 's' if users|length != 1 else '' }}
+                        {% else %}
+                            Showing 0 results
+                        {% endif %}
+                    </p>
                 </div>
                 
-                <div class="faq-item">
-                    <div class="faq-question">How much can I earn?</div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            You set your own rates and keep the majority of your earnings. Top professionals on Droply earn thousands per month. Your earning potential depends on your expertise and marketing.
+                {% if users %}
+                <div class="experts-grid">
+                    {% for user in users %}
+                    <div class="expert-card">
+                        <img src="{{ user.profile_picture or url_for('static', filename='img/default-avatar.svg') }}" 
+                             alt="{{ user.full_name }}" class="expert-avatar">
+                        <div class="expert-info">
+                            <h3 class="expert-name">{{ user.full_name }}</h3>
+                            <p class="expert-title">{{ user.profession or 'Expert' }}</p>
+                            <span class="expert-rate">${{ "%.0f"|format(user.hourly_rate or 0) }}/hr</span>
+                        </div>
+                        <div class="expert-actions">
+                            <a href="{{ url_for('user_profile', username=user.username) }}" class="action-btn primary">View Profile</a>
+                            <a href="{{ url_for('login', next=url_for('user_profile', username=user.username)) }}" class="action-btn secondary">Login to Book</a>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">What types of professionals can join?</div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            Anyone with valuable expertise can join: consultants, coaches, designers, developers, marketers, writers, trainers, and more. If you have skills others will pay for, you can earn on Droply.
-                        </div>
+                {% else %}
+                <div class="no-results">
+                    <div class="no-results-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3 class="no-results-title">No experts found</h3>
+                    <p class="no-results-text">
+                        {% if request.args.get('search') %}
+                            Try searching with different keywords or browse our categories.
+                        {% else %}
+                            No experts available in this category right now. Try another category or search for specific skills.
+                        {% endif %}
+                    </p>
+                    <div class="no-results-actions">
+                        <a href="{{ url_for('homepage') }}" class="action-btn primary">Browse All Categories</a>
+                        <button onclick="document.querySelector('.search-input').focus()" class="action-btn secondary">Try Different Search</button>
                     </div>
                 </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">How do I get paid?</div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            Payments are processed automatically after each session. You can withdraw your earnings to your bank account or PayPal. We handle all the payment processing for you.
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">Is there a setup fee or monthly cost?</div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            No setup fees or monthly costs. You only pay a small percentage when you earn, so there's no risk to getting started. Create your profile and start earning immediately.
-                        </div>
-                    </div>
-                </div>
+                {% endif %}
             </div>
-        </div>
-    </section>
-
-    {% include 'footer.html' %}
+            {% endif %}
+        </main>
+    </div>
 
     <script>
-        // Mobile navigation is now simplified - just a login button
-        console.log('Mobile navigation simplified - login button only');
+        // Mobile sidebar functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
 
-        // FAQ functionality
-        document.querySelectorAll('.faq-question').forEach(question => {
-            question.addEventListener('click', () => {
-                const faqItem = question.parentElement;
-                const isActive = faqItem.classList.contains('active');
-                
-                // Close all FAQ items
-                document.querySelectorAll('.faq-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                
-                // Open clicked item if it wasn't active
-                if (!isActive) {
-                    faqItem.classList.add('active');
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('open');
+            // Prevent body scroll when sidebar is open
+            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleSidebar);
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+
+        if (sidebarCloseBtn) {
+            sidebarCloseBtn.addEventListener('click', closeSidebar);
+        }
+
+        // Close sidebar on window resize (if switching to desktop)
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
+        });
+
+        // Close sidebar when clicking on category items on mobile
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
                 }
             });
         });
 
-        // Navigation hide on scroll
-        let lastScrollTop = 0;
-        const navbar = document.getElementById('navbar');
-        
-        window.addEventListener('scroll', () => {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            
-            if (scrollTop > lastScrollTop && scrollTop > 100) {
-                // Scrolling down
-                navbar.classList.add('navbar-hidden');
-            } else {
-                // Scrolling up
-                navbar.classList.remove('navbar-hidden');
-            }
-            
-            lastScrollTop = scrollTop;
+        // Handle touch events for better mobile experience
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
         });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const swipeDistance = touchEndX - touchStartX;
+
+            // Swipe right to open sidebar (only on mobile)
+            if (swipeDistance > swipeThreshold && window.innerWidth <= 768 && !sidebar.classList.contains('open')) {
+                toggleSidebar();
+            }
+            // Swipe left to close sidebar
+            else if (swipeDistance < -swipeThreshold && window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                closeSidebar();
+            }
+        }
+
+        // Auto-focus search input
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.search-input');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        });
+
+        // Menu dropdown functionality
+        const menuDropdownBtn = document.getElementById('menuDropdownBtn');
+        const menuDropdownContent = document.getElementById('menuDropdownContent');
+
+        if (menuDropdownBtn && menuDropdownContent) {
+            menuDropdownBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menuDropdownContent.classList.toggle('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!menuDropdownBtn.contains(e.target) && !menuDropdownContent.contains(e.target)) {
+                    menuDropdownContent.classList.remove('show');
+                }
+            });
+        }
+
+        // Theme toggle functionality - Fixed
+        const themeToggle = document.getElementById('themeToggle');
+        const themeToggleSwitch = document.getElementById('themeToggleSwitch');
+        let isDarkMode = true; // Default to dark mode
+
+        if (themeToggle && themeToggleSwitch) {
+            // Initialize theme from localStorage or default to dark
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                isDarkMode = false;
+                document.body.classList.add('light-mode');
+                themeToggleSwitch.classList.add('active');
+            }
+
+            themeToggle.addEventListener('click', function() {
+                isDarkMode = !isDarkMode;
+                
+                if (isDarkMode) {
+                    document.body.classList.remove('light-mode');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.body.classList.add('light-mode');
+                    localStorage.setItem('theme', 'light');
+                }
+                
+                themeToggleSwitch.classList.toggle('active', isDarkMode);
+            });
+        }
     </script>
-    {% block scripts %}
-    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
-    {% endblock %}
 </body>
-</html> 
+</html>

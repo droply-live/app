@@ -1,0 +1,1437 @@
+/* Modern Availability Page - Mobile First Design */
+
+/* Reset and Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+.availability-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  background: #1f1f1f !important;
+  min-height: 100vh;
+  color: #ffffff;
+}
+
+/* Force dark theme for all availability page elements */
+.availability-container * {
+  color: inherit;
+}
+
+.availability-container h1,
+.availability-container h2,
+.availability-container h3,
+.availability-container h4,
+.availability-container h5,
+.availability-container h6 {
+  color: #ffffff !important;
+}
+
+.availability-container p,
+.availability-container span,
+.availability-container div {
+  color: #ffffff !important;
+}
+
+.availability-container .text-muted {
+  color: #9ca3af !important;
+}
+
+.availability-container .text-secondary {
+  color: #6b7280 !important;
+}
+
+/* Override any white backgrounds that might be inherited */
+.availability-container,
+.availability-container > *,
+.availability-container .summary-grid,
+.availability-container .analytics-grid,
+.availability-container .quick-actions,
+.availability-container .chart-section,
+.availability-container .transactions-section,
+.availability-container .settings-section {
+  background: transparent !important;
+}
+
+/* Ensure the main content area has dark background */
+body {
+  background: #1f1f1f !important;
+}
+
+.main-content {
+  background: #1f1f1f !important;
+}
+
+.content-wrapper {
+  background: #1f1f1f !important;
+}
+
+/* Mobile Header */
+.mobile-header {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-title i {
+  color: #10b981;
+  font-size: 1.5rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: #3a3a3a;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #10b981;
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Summary Grid */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Analytics Grid */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.analytics-card {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  color: #ffffff;
+}
+
+.analytics-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.analytics-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.analytics-content {
+  flex: 1;
+}
+
+.analytics-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.analytics-label {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.summary-card {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  transition: all 0.3s ease;
+  color: #ffffff;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: white;
+}
+
+.timezone-card .card-icon {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+}
+
+.calendar-card .card-icon {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.availability-card .card-icon {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+.card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.card-subtitle {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* Quick Actions */
+.quick-actions {
+  margin-bottom: 1.5rem;
+}
+
+.action-card {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  transition: all 0.3s ease;
+  color: #ffffff;
+}
+
+.action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.action-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+}
+
+.action-details {
+  flex: 1;
+}
+
+.action-details h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 0.25rem 0;
+}
+
+.action-details p {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.action-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: #3a3a3a;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: #10b981;
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Availability Section */
+.availability-section {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* Weekly Hours List */
+.weekly-hours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.day-row {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #3a3a3a;
+  background: #2a2a2a;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  min-height: 80px;
+  height: 80px;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+}
+
+.day-row:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  background: #333333 !important;
+}
+
+.day-row.active {
+  background: rgba(16, 185, 129, 0.1);
+  box-shadow: inset 0 0 0 2px #10b981;
+  border-color: #3a3a3a;
+  height: 80px;
+  min-height: 80px;
+}
+
+.day-row.inactive {
+  background: #2a2a2a;
+  box-shadow: none;
+  border-color: #3a3a3a;
+  height: 80px;
+  min-height: 80px;
+}
+
+.day-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+  flex-wrap: nowrap;
+  gap: 12px;
+  height: 100%;
+  width: 100%;
+}
+
+.day-info-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.day-info-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.day-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #10b981;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.day-name {
+  font-weight: 600;
+  color: #ffffff !important;
+  font-size: 16px;
+  flex: 1;
+  margin-left: 0;
+}
+
+.day-status {
+  flex-shrink: 0;
+}
+
+.unavailable-text {
+  color: #9ca3af !important;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.form-check-label {
+  font-size: 12px;
+  color: #ffffff !important;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.form-check-label:empty {
+  display: none;
+}
+
+.form-check-input {
+  width: 44px;
+  height: 24px;
+  background-color: #3a3a3a;
+  border: 1px solid #5a5a5a;
+}
+
+.form-check-input:checked {
+  background-color: #10b981;
+  border-color: #10b981;
+}
+
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+}
+
+.form-check-input:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.form-check-label:hover {
+  transform: none !important;
+}
+
+/* Time Inputs */
+.day-schedule {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.time-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.time-input {
+  width: 70px;
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid #5a5a5a;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #ffffff;
+  text-align: center;
+  min-height: 28px;
+  max-height: 28px;
+}
+
+.time-input:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.time-input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+  outline: none;
+}
+
+.time-separator {
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 12px;
+  margin: 0 2px;
+}
+
+/* Form Controls */
+.form-select, .form-control {
+  background: #1a1a1a !important;
+  border: 1px solid #5a5a5a !important;
+  color: #ffffff !important;
+  font-size: 16px;
+  padding: 12px 16px;
+  min-height: 48px;
+}
+
+.form-select:focus, .form-control:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25) !important;
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+.form-select option {
+  color: #ffffff !important;
+  background-color: #1a1a1a !important;
+}
+
+/* Labels and Text */
+.form-label {
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.form-label.fw-bold {
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+.form-text small {
+  color: #9ca3af !important;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.alert-light {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+.alert-light small {
+  color: #9ca3af !important;
+  font-weight: 500;
+}
+
+/* Status Indicators */
+.status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-indicator.connected {
+  background-color: #10b981;
+}
+
+.status-indicator.disconnected {
+  background-color: #ef4444;
+}
+
+#calendar-status-text {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* Buttons */
+.btn {
+  min-height: 48px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: #10b981 !important;
+  border-color: #10b981 !important;
+  color: white !important;
+}
+
+.btn-primary:hover {
+  background: #047857 !important;
+  border-color: #047857 !important;
+  color: white !important;
+}
+
+.btn-primary:disabled {
+  background: #6b7280 !important;
+  border-color: #6b7280 !important;
+  color: #9ca3af !important;
+}
+
+/* Cards */
+.card {
+  background: #2a2a2a !important;
+  border: 1px solid #3a3a3a !important;
+  color: #ffffff !important;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.card-header {
+  background: #1a1a1a !important;
+  border-bottom: 1px solid #3a3a3a !important;
+  color: #ffffff !important;
+}
+
+.card-body {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+}
+
+/* Ensure all text is visible */
+.card-body p, .card-body .text-muted {
+  color: #ffffff !important;
+}
+
+/* Mobile Status Indicators */
+.mobile-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mobile-status .status-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(107, 114, 128, 0.1);
+  transition: all 0.2s ease;
+}
+
+.mobile-status .status-text.active {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+/* Mobile day row enhancements */
+.mobile-day-row {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.mobile-day-row:active {
+  transform: scale(0.98);
+  background: #333333 !important;
+}
+
+.mobile-day-row.active {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border-color: #10b981 !important;
+}
+
+.mobile-day-row.inactive {
+  background: #2a2a2a !important;
+  border-color: #3a3a3a !important;
+}
+
+/* Mobile Responsive Design - Clean and Simple */
+@media (max-width: 768px) {
+  .availability-container {
+    padding: 0.75rem;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Mobile header optimization */
+  .mobile-header {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  /* Mobile summary cards - ensure they fit */
+  .summary-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Mobile form controls - prevent overflow */
+  .form-select, .form-control {
+    font-size: 16px;
+    padding: 12px 16px;
+    min-height: 48px;
+    border-radius: 8px;
+    border: 1px solid #3a3a3a;
+    background: #1f1f1f;
+    color: #fff;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .form-select:focus, .form-control:focus {
+    border-color: #10b981;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  }
+  
+  .form-label {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  
+  /* Mobile day rows - optimized for mobile with more space */
+  .day-row {
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.2s ease;
+    min-height: auto;
+    height: auto;
+    flex-direction: column;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .day-row.active {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  }
+  
+  .day-row.inactive {
+    border-color: #6b7280;
+    background: #2a2a2a;
+  }
+  
+  .day-row:active {
+    transform: scale(0.98);
+    background: #333333 !important;
+  }
+  
+  /* Mobile day info layout - stack vertically */
+  .day-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  
+  .day-info-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .day-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  
+  .day-row.active .day-circle {
+    background: #10b981;
+    color: #000;
+  }
+  
+  .day-row.inactive .day-circle {
+    background: #6b7280;
+    color: #fff;
+  }
+  
+  .day-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Mobile toggle switch - smaller and more touch-friendly */
+  .form-check {
+    margin: 0;
+    flex-shrink: 0;
+  }
+  
+  .form-check-input {
+    width: 44px;
+    height: 24px;
+    transform: scale(1);
+  }
+  
+  .form-check-label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+  
+  /* Mobile time inputs - compact and functional */
+  .day-schedule {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 2px solid #10b981;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  }
+  
+  .time-slot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 320px;
+  }
+  
+  .time-input {
+    width: 120px;
+    height: 40px;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 8px 12px;
+    border: 2px solid #10b981;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1f1f1f;
+    text-align: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .time-input:focus {
+    border-color: #047857;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+    background: #f0fdf4;
+  }
+  
+  .time-input:hover {
+    border-color: #047857;
+    background: #f0fdf4;
+  }
+  
+  .time-separator {
+    font-size: 18px;
+    font-weight: 600;
+    color: #10b981;
+    flex-shrink: 0;
+    margin: 0 6px;
+  }
+  
+  /* Time label styling - compact */
+  .time-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #10b981;
+    text-align: center;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 8px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  
+  /* Mobile buttons */
+  .btn {
+    width: 100%;
+    margin-bottom: 12px;
+    min-height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-sizing: border-box;
+  }
+  
+  /* Mobile quick actions */
+  .quick-actions-mobile {
+    margin-top: 16px;
+  }
+  
+  .quick-actions-mobile .btn {
+    margin-bottom: 8px;
+    min-height: 44px;
+    font-size: 14px;
+  }
+  
+  /* Mobile save button */
+  #save-availability-btn {
+    background: #10b981;
+    border: none;
+    border-radius: 8px;
+  }
+  
+  #save-availability-btn:disabled {
+    background: #6b7280;
+    opacity: 0.6;
+  }
+  
+  /* Mobile alert styling */
+  .alert-light {
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+    font-size: 14px;
+  }
+  
+  /* Mobile touch feedback */
+  .day-row:active {
+    transform: scale(0.98);
+  }
+  
+  .btn:active {
+    transform: scale(0.95);
+  }
+  
+  /* Ensure no horizontal scrolling */
+  .availability-container,
+  .summary-grid,
+  .availability-section,
+  .weekly-hours-list {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Mobile calendar card optimization */
+  .calendar-card .card-body {
+    padding: 1rem;
+  }
+  
+  .calendar-list {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  .calendar-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #3a3a3a;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .calendar-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .calendar-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  
+  .calendar-actions .btn {
+    width: auto;
+    min-width: 32px;
+    height: 32px;
+    padding: 4px 8px;
+    font-size: 12px;
+    margin: 0;
+  }
+}
+
+/* Extra small mobile screens (320px and below) */
+@media (max-width: 480px) {
+  .availability-container {
+    padding: 0.5rem;
+  }
+  
+  .mobile-header {
+    padding: 0.75rem;
+  }
+  
+  .page-title {
+    font-size: 1.25rem;
+  }
+  
+  .summary-card {
+    padding: 0.75rem;
+  }
+  
+  .day-row {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .day-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+  
+  .day-name {
+    font-size: 13px;
+  }
+  
+  .form-check-input {
+    width: 40px;
+    height: 22px;
+  }
+  
+  .form-check-label {
+    font-size: 11px;
+    margin-left: 4px;
+  }
+  
+  /* Compact time inputs for very small screens */
+  .day-schedule {
+    padding: 16px;
+    margin-top: 16px;
+  }
+  
+  .time-slot {
+    max-width: 280px;
+    gap: 6px;
+  }
+  
+  .time-input {
+    width: 100px;
+    height: 36px;
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+  
+  .time-separator {
+    font-size: 16px;
+    margin: 0 4px;
+  }
+  
+  .time-label {
+    font-size: 11px;
+    padding: 3px 6px;
+    margin-bottom: 10px;
+  }
+  
+  .btn {
+    min-height: 44px;
+    font-size: 15px;
+    padding: 10px 14px;
+  }
+}
+
+/* Very small screens (320px and below) */
+@media (max-width: 360px) {
+  .availability-container {
+    padding: 0.25rem;
+  }
+  
+  .day-row {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  
+  .day-info {
+    gap: 6px;
+  }
+  
+  .day-circle {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+  
+  .day-name {
+    font-size: 12px;
+  }
+  
+  .form-check-input {
+    width: 36px;
+    height: 20px;
+  }
+  
+  .form-check-label {
+    font-size: 10px;
+    margin-left: 3px;
+  }
+  
+  /* Ultra-compact time inputs for very small screens */
+  .day-schedule {
+    padding: 12px;
+    margin-top: 12px;
+  }
+  
+  .time-slot {
+    gap: 4px;
+    max-width: 240px;
+  }
+  
+  .time-input {
+    width: 80px;
+    height: 32px;
+    font-size: 13px;
+    padding: 4px 8px;
+  }
+  
+  .time-separator {
+    font-size: 14px;
+    margin: 0 3px;
+  }
+  
+  .time-label {
+    font-size: 10px;
+    padding: 2px 6px;
+    margin-bottom: 8px;
+  }
+  
+  .btn {
+    min-height: 40px;
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 769px) {
+  .day-row {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .day-info {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 0;
+  }
+  
+  .day-schedule {
+    margin-top: 0;
+    margin-left: auto;
+  }
+  
+  .time-slot {
+    flex-direction: row;
+    gap: 4px;
+  }
+  
+  .time-input {
+    width: 80px;
+    font-size: 13px;
+    padding: 6px 8px;
+    min-height: 32px;
+    max-height: 32px;
+  }
+}
+
+/* Responsive Design */
+@media (min-width: 640px) {
+  .availability-container {
+    padding: 2rem;
+  }
+  
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .card-value {
+    font-size: 2.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .availability-container {
+    padding: 2.5rem;
+  }
+  
+  .mobile-header {
+    padding: 2rem;
+  }
+  
+  .summary-card {
+    padding: 2rem;
+  }
+  
+  .availability-section {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .availability-container {
+    padding: 3rem;
+  }
+  
+  .summary-grid {
+    gap: 1.5rem;
+  }
+  
+  .summary-card {
+    padding: 2.5rem;
+  }
+  
+  .card-value {
+    font-size: 3rem;
+  }
+}
+
+/* Animation and Transitions */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.summary-card,
+.action-card,
+.availability-section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.summary-card:nth-child(1) { animation-delay: 0.1s; }
+.summary-card:nth-child(2) { animation-delay: 0.2s; }
+.summary-card:nth-child(3) { animation-delay: 0.3s; }
+.action-card { animation-delay: 0.4s; }
+.availability-section { animation-delay: 0.5s; }
+
+/* Loading States */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #10b981;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Focus States for Accessibility */
+.action-btn:focus,
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .summary-card,
+  .action-card,
+  .availability-section {
+    border: 2px solid #000;
+  }
+  
+  .day-row {
+    border: 1px solid #000;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile-specific optimizations for touch devices */
+@media (max-width: 768px) and (pointer: coarse) {
+  /* Increase touch targets for better mobile interaction */
+  .form-check-input {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .day-row {
+    min-height: 60px;
+    padding: 16px;
+  }
+  
+  .time-input {
+    min-height: 44px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .btn {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  /* Improve touch feedback */
+  .day-row:active {
+    background: #333333 !important;
+    transform: scale(0.98);
+  }
+  
+  .btn:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .availability-container {
+    padding: 0.5rem;
+  }
+  
+  .day-row {
+    padding: 8px;
+    min-height: 50px;
+  }
+  
+  .time-input {
+    width: 70px;
+    height: 32px;
+    font-size: 13px;
+  }
+  
+  .btn {
+    min-height: 40px;
+    font-size: 14px;
+  }
+}

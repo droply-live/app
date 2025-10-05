@@ -2,169 +2,231 @@
 
 {% block title %}Dashboard - Droply{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+  /* Ensure dashboard page has consistent dark background */
+  body, .main-content, .content-wrapper {
+    background: #1f1f1f !important;
+  }
+  
+  .dashboard-container {
+    background: #1f1f1f !important;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <!-- Dashboard Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="fw-bold mb-1">
-                <i data-feather="home" class="me-2"></i>Dashboard
-            </h2>
-            <p class="text-muted mb-0">Welcome back, {{ current_user.full_name or current_user.username }}!</p>
-        </div>
+<div class="dashboard-container">
+  <!-- Mobile Header -->
+  <div class="mobile-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="fas fa-tachometer-alt"></i>
+        Dashboard
+      </h1>
+      <div class="header-actions">
+        <button class="action-btn" id="refreshBtn" title="Refresh">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
     </div>
-    
-    <!-- Quick Stats -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="stat-card card text-center">
-                <div class="card-body">
-                    <i data-feather="calendar" class="text-primary mb-2" style="width: 32px; height: 32px;"></i>
-                    <h4 class="fw-bold mb-1">{{ time_slots|length }}</h4>
-                    <small class="text-muted">Time Slots</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="stat-card card text-center">
-                <div class="card-body">
-                    <i data-feather="users" class="text-success mb-2" style="width: 32px; height: 32px;"></i>
-                    <h4 class="fw-bold mb-1">{{ provider_bookings|length }}</h4>
-                    <small class="text-muted">Bookings Received</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="stat-card card text-center">
-                <div class="card-body">
-                    <i data-feather="bookmark" class="text-info mb-2" style="width: 32px; height: 32px;"></i>
-                    <h4 class="fw-bold mb-1">{{ client_bookings|length }}</h4>
-                    <small class="text-muted">Sessions Booked</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="stat-card card text-center">
-                <div class="card-body">
-                    <i data-feather="dollar-sign" class="text-warning mb-2" style="width: 32px; height: 32px;"></i>
-                    <h4 class="fw-bold mb-1">${{ "%.0f"|format(current_user.hourly_rate or 0) }}</h4>
-                    <small class="text-muted">Session Price</small>
-                </div>
-            </div>
-        </div>
-    </div>
-    
+  </div>
 
-    
-    <div class="row">
-        <!-- Recent Bookings as Provider -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="fw-bold mb-0">
-                        <i data-feather="users" class="me-2"></i>Bookings Received
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if provider_bookings %}
-                    <div class="booking-list">
-                        {% for booking in provider_bookings[:5] %}
-                        <div class="booking-item d-flex justify-content-between align-items-center py-2 {% if not loop.last %}border-bottom{% endif %}">
-                            <div>
-                                <h6 class="mb-1">{{ booking.client_name or booking.user.full_name }}</h6>
-                                <small class="text-muted">Session with {{ booking.user.full_name }}</small>
-                                <br>
-                                <small class="text-muted">
-                                    <i data-feather="calendar" style="width: 12px; height: 12px;"></i>
-                                    {{ booking.start_time.strftime('%b %d, %Y at %I:%M %p') }}
-                                </small>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-{% if booking.status == 'confirmed' %}success{% elif booking.status == 'pending' %}warning{% else %}secondary{% endif %}">
-                                    {{ booking.status|title }}
-                                </span>
-                                {% if booking.payment_amount and booking.payment_amount > 0 %}
-                                <br><small class="text-muted">${{ "%.0f"|format(booking.payment_amount) }}</small>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    
-                    {% if provider_bookings|length > 5 %}
-                    <div class="text-center mt-3">
-                        <a href="#" class="btn btn-sm btn-outline-primary">View All ({{ provider_bookings|length }})</a>
-                    </div>
-                    {% endif %}
-                    
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i data-feather="x-circle" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
-                        <p class="text-muted mb-0">No bookings received yet</p>
-                        <small class="text-muted">Share your profile link to get started!</small>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+  <!-- Welcome Header -->
+  <div class="dashboard-header">
+    <div class="dashboard-header-content">
+      <h1>Welcome back, {{ current_user.full_name or current_user.username }}!</h1>
+      <p>Here's what's happening with your account today.</p>
+      <div class="status-summary">
+        <div class="status-item {% if today_bookings > 0 %}success{% else %}warning{% endif %}">
+          <span>📅</span>
+          <span>{{ today_bookings }} today</span>
         </div>
-        
-        <!-- Sessions Booked as Client -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="fw-bold mb-0">
-                        <i data-feather="bookmark" class="me-2"></i>My Bookings
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if client_bookings %}
-                    <div class="booking-list">
-                        {% for booking in client_bookings[:5] %}
-                        <div class="booking-item d-flex justify-content-between align-items-center py-2 {% if not loop.last %}border-bottom{% endif %}">
-                            <div>
-                                <h6 class="mb-1">Session with {{ booking.expert.full_name }}</h6>
-                                <small class="text-muted">{{ booking.expert.profession or 'Expert' }}</small>
-                                <br>
-                                <small class="text-muted">
-                                    <i data-feather="calendar" style="width: 12px; height: 12px;"></i>
-                                    {{ booking.start_time.strftime('%b %d, %Y at %I:%M %p') }}
-                                </small>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-{% if booking.status == 'confirmed' %}success{% elif booking.status == 'pending' %}warning{% else %}secondary{% endif %}">
-                                    {{ booking.status|title }}
-                                </span>
-                                {% if booking.payment_amount and booking.payment_amount > 0 %}
-                                <br><small class="text-muted">${{ "%.0f"|format(booking.payment_amount) }}</small>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    
-                    {% if client_bookings|length > 5 %}
-                    <div class="text-center mt-3">
-                        <a href="#" class="btn btn-sm btn-outline-primary">View All ({{ client_bookings|length }})</a>
-                    </div>
-                    {% endif %}
-                    
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i data-feather="search" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
-                        <p class="text-muted mb-0">No sessions booked yet</p>
-                        <small class="text-muted">
-                            <a href="{{ url_for('search') }}">Browse users</a> to book your first session!
-                        </small>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="status-item {% if upcoming_count > 0 %}success{% else %}warning{% endif %}">
+          <span>⏰</span>
+          <span>{{ upcoming_count }} upcoming</span>
         </div>
+        <div class="status-item {% if profile_completion >= 80 %}success{% elif profile_completion >= 50 %}warning{% else %}danger{% endif %}">
+          <span>👤</span>
+          <span>{{ profile_completion }}% complete</span>
+        </div>
+        <div class="status-item {% if stripe_setup_complete %}success{% else %}warning{% endif %}">
+          <span>💳</span>
+          <span>{% if stripe_setup_complete %}Payment Ready{% else %}Setup Payment{% endif %}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Next Booking Highlight -->
+  {% if next_booking %}
+  <div class="next-booking">
+    <div class="next-booking-content">
+      <h6>📅 Next Session</h6>
+      <div class="next-booking-info">
+        <strong>{% if next_booking.provider_id == current_user.id %}{{ next_booking.user.full_name or next_booking.client_name }}{% else %}{{ next_booking.provider.full_name }}{% endif %}</strong><br>
+        {{ next_booking.start_time.strftime('%B %d at %I:%M %p') }}{% if next_booking.payment_amount %} • ${{ "%.0f"|format(next_booking.payment_amount) }}{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">{{ total_sessions }}</div>
+      <div class="stat-label">Total Sessions</div>
+      <div class="stat-change positive">+{{ recent_bookings }} this week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">${{ "%.0f"|format(total_earnings) }}</div>
+      <div class="stat-label">Total Earnings</div>
+      <div class="stat-change positive">${{ "%.0f"|format(this_week_earnings) }} this week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ total_provider_bookings }}</div>
+      <div class="stat-label">Sessions Given</div>
+      <div class="stat-change positive">{{ provider_bookings|length }} upcoming</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ total_client_bookings }}</div>
+      <div class="stat-label">Sessions Booked</div>
+      <div class="stat-change positive">{{ client_bookings|length }} upcoming</div>
+    </div>
+  </div>
+  
+  <!-- Main Dashboard Grid -->
+  <div class="dashboard-grid">
+    <!-- Profile Status Card -->
+    <div class="profile-status-card">
+      <div class="profile-status-header">
+        <h6>👤 Profile Status</h6>
+      </div>
+      <div class="profile-status-body">
+        <div class="profile-status">
+          <div class="profile-progress">
+            <div class="profile-progress-fill" data-width="{{ profile_completion }}"></div>
+          </div>
+          <div class="profile-percentage">{{ profile_completion }}%</div>
+        </div>
+        <div class="profile-details">
+          <div class="profile-detail">
+            <div class="profile-detail-icon">{% if has_availability %}✅{% else %}❌{% endif %}</div>
+            <div class="profile-detail-text">Availability</div>
+          </div>
+          <div class="profile-detail">
+            <div class="profile-detail-icon">{% if google_calendar_connected %}✅{% else %}❌{% endif %}</div>
+            <div class="profile-detail-text">Calendar</div>
+          </div>
+          <div class="profile-detail">
+            <div class="profile-detail-icon">{% if stripe_setup_complete %}✅{% else %}❌{% endif %}</div>
+            <div class="profile-detail-text">Payment</div>
+          </div>
+          {% if user_rating > 0 %}
+          <div class="profile-detail">
+            <div class="profile-detail-icon">⭐</div>
+            <div class="profile-detail-text">{{ "%.1f"|format(user_rating) }} Rating</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
     </div>
     
-
+    <!-- Quick Actions Card -->
+    <div class="quick-actions-card">
+      <div class="quick-actions-header">
+        <h6>⚡ Quick Actions</h6>
+      </div>
+      <div class="quick-actions-body">
+        <div class="quick-actions">
+          <a href="{{ url_for('discover') }}" class="quick-action">
+            <div class="quick-action-icon">🔍</div>
+            <div class="quick-action-text">Find Experts</div>
+          </a>
+          <a href="{{ url_for('profile') }}" class="quick-action">
+            <div class="quick-action-icon">👤</div>
+            <div class="quick-action-text">Edit Profile</div>
+          </a>
+          <a href="{{ url_for('availability') }}" class="quick-action">
+            <div class="quick-action-icon">⏰</div>
+            <div class="quick-action-text">Set Availability</div>
+          </a>
+          <a href="{{ url_for('bookings') }}" class="quick-action">
+            <div class="quick-action-icon">📅</div>
+            <div class="quick-action-text">View Bookings</div>
+          </a>
+          {% if current_user.hourly_rate > 0 %}
+          <a href="{{ url_for('payment_setup') }}" class="quick-action">
+            <div class="quick-action-icon">💳</div>
+            <div class="quick-action-text">Payment Setup</div>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Animate progress bar
+  const progressBar = document.querySelector('.profile-progress-fill');
+  if (progressBar) {
+    const width = progressBar.getAttribute('data-width');
+    setTimeout(() => {
+      progressBar.style.width = width + '%';
+    }, 300);
+  }
+  
+  // Refresh button functionality
+  const refreshBtn = document.getElementById('refreshBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', function() {
+      this.style.transform = 'rotate(180deg)';
+      setTimeout(() => {
+        location.reload();
+      }, 300);
+    });
+  }
+  
+  // Enhanced hover effects for stat cards
+  const statCards = document.querySelectorAll('.stat-card');
+  statCards.forEach(card => {
+    card.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-2px)';
+      this.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
+    });
+  });
+  
+  // Enhanced click effects for quick actions
+  const quickActions = document.querySelectorAll('.quick-action');
+  quickActions.forEach(action => {
+    action.addEventListener('click', function(e) {
+      // Add a subtle click animation
+      this.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        this.style.transform = '';
+      }, 150);
+    });
+  });
+  
+  // Add loading states for better UX
+  const statusItems = document.querySelectorAll('.status-item');
+  statusItems.forEach(item => {
+    item.addEventListener('click', function() {
+      // Add subtle feedback for interactive elements
+      this.style.transform = 'scale(1.02)';
+      setTimeout(() => {
+        this.style.transform = 'scale(1)';
+      }, 150);
+    });
+  });
+});
+</script>
 {% endblock %}
