@@ -5,17 +5,19 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Load branch-specific environment variables
-if os.path.exists('.env.branch'):
-    load_dotenv('.env.branch', override=True)
-    print(f"📋 Loaded environment from .env.branch")
+# Environment variables are set automatically by Git hook
+# Just show what environment we're running in
+current_env = os.environ.get('FLASK_ENV', 'development')
+current_branch = os.environ.get('ENVIRONMENT', 'development')
+
+if current_env == 'production':
+    print("🚀 Running in: Production environment")
+    print("   Book Now button: Hidden")
+    print("   Debug logging: Minimal")
 else:
-    # Fallback to default environment
-    os.environ.setdefault('FLASK_ENV', 'development')
-    os.environ.setdefault('ENVIRONMENT', 'development')
-    os.environ.setdefault('FLASK_DEBUG', '1')
-    os.environ.setdefault('YOUR_DOMAIN', 'http://localhost:5000')
-    print("⚠️  No .env.branch found, using default development environment")
+    print("🔧 Running in: Development environment")
+    print("   Book Now button: Visible")
+    print("   Debug logging: Enabled")
 
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
