@@ -1,41 +1,21 @@
 import os
 import logging
-import subprocess
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-def get_current_branch():
-    """Get the current Git branch"""
-    try:
-        result = subprocess.run(['git', 'branch', '--show-current'], 
-                              capture_output=True, text=True, check=True)
-        return result.stdout.strip()
-    except subprocess.CalledProcessError:
-        return None
-
-def auto_set_environment():
-    """Automatically set environment variables based on Git branch"""
-    current_branch = get_current_branch()
-    
-    if current_branch == 'main':
-        # Production environment
-        os.environ.setdefault('FLASK_ENV', 'production')
-        os.environ.setdefault('ENVIRONMENT', 'production')
-        os.environ.setdefault('FLASK_DEBUG', '0')
-        os.environ.setdefault('YOUR_DOMAIN', 'https://droply.live')
-        print("🚀 Auto-detected: Production environment (main branch)")
-    else:
-        # Development environment for all other branches
-        os.environ.setdefault('FLASK_ENV', 'development')
-        os.environ.setdefault('ENVIRONMENT', 'development')
-        os.environ.setdefault('FLASK_DEBUG', '1')
-        os.environ.setdefault('YOUR_DOMAIN', 'http://localhost:5000')
-        print(f"🔧 Auto-detected: Development environment ({current_branch} branch)")
-
-# Auto-set environment based on Git branch
-auto_set_environment()
+# Load branch-specific environment variables
+if os.path.exists('.env.branch'):
+    load_dotenv('.env.branch', override=True)
+    print(f"📋 Loaded environment from .env.branch")
+else:
+    # Fallback to default environment
+    os.environ.setdefault('FLASK_ENV', 'development')
+    os.environ.setdefault('ENVIRONMENT', 'development')
+    os.environ.setdefault('FLASK_DEBUG', '1')
+    os.environ.setdefault('YOUR_DOMAIN', 'http://localhost:5000')
+    print("⚠️  No .env.branch found, using default development environment")
 
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
