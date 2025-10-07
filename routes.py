@@ -3859,6 +3859,91 @@ def meeting_status(booking_id):
         'end_time': booking.end_time.isoformat() if booking.end_time else None
     })
 
+@app.route('/dev-video-call')
+def dev_video_call():
+    """Development-only route for testing video call UI without booking"""
+    # Only allow in development environment
+    if os.environ.get('FLASK_ENV') != 'development':
+        flash('This route is only available in development environment.', 'error')
+        return redirect(url_for('index'))
+    
+    # Create a mock booking for testing
+    mock_booking = type('MockBooking', (), {
+        'id': 999,
+        'meeting_room_id': 'dev-test-room',
+        'meeting_url': 'https://droply-test.daily.co/dev-test-room',
+        'start_time': datetime.now(EASTERN_TIMEZONE),
+        'end_time': datetime.now(EASTERN_TIMEZONE) + timedelta(minutes=30),
+        'status': 'confirmed',
+        'user_id': 1,
+        'expert_id': 2
+    })()
+    
+    # Create mock users
+    mock_user = type('MockUser', (), {
+        'id': 1,
+        'name': 'Test User',
+        'email': 'test@example.com'
+    })()
+    
+    mock_expert = type('MockExpert', (), {
+        'id': 2,
+        'name': 'Test Expert',
+        'email': 'expert@example.com'
+    })()
+    
+    # Generate meeting token
+    token, error = get_meeting_token('dev-test-room', 1, True)
+    if error:
+        print(f"Error generating token: {error}")
+        token = "dev-test-token"
+    
+    return render_template('meeting.html', 
+                         booking=mock_booking, 
+                         token=token, 
+                         room_name='dev-test-room',
+                         other_user=mock_expert,
+                         current_user=mock_user)
+
+@app.route('/dev-simple-video-call')
+def dev_simple_video_call():
+    """Development-only route for testing simple WebRTC video call UI"""
+    # Only allow in development environment
+    if os.environ.get('FLASK_ENV') != 'development':
+        flash('This route is only available in development environment.', 'error')
+        return redirect(url_for('index'))
+    
+    # Create a mock booking for testing
+    mock_booking = type('MockBooking', (), {
+        'id': 998,
+        'meeting_room_id': 'dev-simple-room',
+        'meeting_url': 'https://meet.daily.co/dev-simple-room',
+        'start_time': datetime.now(EASTERN_TIMEZONE),
+        'end_time': datetime.now(EASTERN_TIMEZONE) + timedelta(minutes=30),
+        'status': 'confirmed',
+        'user_id': 1,
+        'expert_id': 2
+    })()
+    
+    # Create mock users
+    mock_user = type('MockUser', (), {
+        'id': 1,
+        'name': 'Test User',
+        'email': 'test@example.com'
+    })()
+    
+    mock_expert = type('MockExpert', (), {
+        'id': 2,
+        'name': 'Test Expert',
+        'email': 'expert@example.com'
+    })()
+    
+    return render_template('meeting_simple.html', 
+                         booking=mock_booking, 
+                         room_name='dev-simple-room',
+                         other_user=mock_expert,
+                         current_user=mock_user)
+
 @app.route('/test-meeting/<int:booking_id>')
 def test_meeting(booking_id):
     """Temporary test route for video calling - bypasses authentication"""

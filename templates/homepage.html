@@ -290,6 +290,8 @@
                     <a href="{{ url_for('dashboard') }}" class="top-nav-link">Dashboard</a>
                     {% if request.host != 'droply.live' %}
                         <a href="{{ url_for('test_video_call') }}" class="top-nav-link" style="color: #ff6b35; font-weight: bold;">🧪 Test Video</a>
+                        <a href="{{ url_for('dev_video_call') }}" class="top-nav-link" style="color: #059669; font-weight: bold;">📹 Dev Video Call</a>
+                        <a href="{{ url_for('dev_simple_video_call') }}" class="top-nav-link" style="color: #3b82f6; font-weight: bold;">📞 Simple Video</a>
                     {% endif %}
                     <a href="{{ url_for('logout') }}" class="top-nav-link">Logout</a>
                 {% else %}
