@@ -70,6 +70,14 @@
         <div class="times-container">
           <h3 class="selected-date" id="selectedDate">Select a date to see available times</h3>
           
+          <!-- DEBUG INFO - REMOVE AFTER FIXING -->
+          <div style="background: yellow; padding: 10px; margin: 10px 0; border: 2px solid red;">
+            <strong>DEBUG INFO:</strong><br>
+            FLASK_ENV: {{ config.get('FLASK_ENV', 'NOT_SET') }}<br>
+            ENVIRONMENT: {{ config.get('ENVIRONMENT', 'NOT_SET') }}<br>
+            Should show button: {{ expert.is_available and config.get('FLASK_ENV') != 'production' }}
+          </div>
+          
           {% if has_availability %}
             <!-- Book Now Button for Immediate Meeting - Only show in development -->
             <!-- DEBUG: FLASK_ENV={{ config.get('FLASK_ENV') }}, ENVIRONMENT={{ config.get('ENVIRONMENT') }} -->
