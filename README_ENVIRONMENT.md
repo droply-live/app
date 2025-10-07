@@ -1,11 +1,10 @@
-# 🎯 Ultimate Solution - Just ONE Line!
+# 🎯 Droply Environment Setup
 
-## **✨ Add This to Your Shell Profile**
+## **One-Line Solution**
 
-Add this ONE function to your `~/.bashrc` or `~/.zshrc`:
+Add this function to your `~/.bashrc` or `~/.zshrc`:
 
 ```bash
-# Droply automatic environment switching
 git() {
     /usr/bin/git "$@"
     if [ "$1" = "checkout" ] && [ $? -eq 0 ]; then
@@ -31,7 +30,7 @@ git() {
 }
 ```
 
-## **🚀 Your Ultimate Workflow:**
+## **Usage**
 
 ```bash
 # Development
@@ -43,21 +42,4 @@ git checkout main
 python app.py
 ```
 
-## **🎯 What Happens:**
-
-1. **`git checkout develop`** → Automatically sets development environment
-2. **`python app.py`** → Runs with correct environment
-
-**That's it! Just 2 lines total!**
-
-## **📝 Setup (One-time only):**
-
-1. **Add the function** to your `~/.bashrc` or `~/.zshrc`
-2. **Reload your shell**: `source ~/.bashrc` (or `source ~/.zshrc`)
-3. **Done!** Now just use `git checkout` and everything is automatic
-
-## **🎉 Result:**
-
-- **Just `git checkout`** - environment automatically switches
-- **Just `python app.py`** - runs with correct environment
-- **No extra commands needed!**
+**That's it! Just switch branches and run your app.**
