@@ -288,7 +288,7 @@
                 <a href="{{ url_for('search') }}" class="top-nav-link">Search</a>
                 {% if current_user.is_authenticated %}
                     <a href="{{ url_for('dashboard') }}" class="top-nav-link">Dashboard</a>
-                    {% if config.get('FLASK_ENV') == 'development' %}
+                    {% if request.host != 'droply.live' %}
                         <a href="{{ url_for('test_video_call') }}" class="top-nav-link" style="color: #ff6b35; font-weight: bold;">🧪 Test Video</a>
                     {% endif %}
                     <a href="{{ url_for('logout') }}" class="top-nav-link">Logout</a>
