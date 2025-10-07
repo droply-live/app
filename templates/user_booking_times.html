@@ -72,7 +72,8 @@
           
           {% if has_availability %}
             <!-- Book Now Button for Immediate Meeting - Only show in development -->
-            {% if expert.is_available and config.get('FLASK_ENV') == 'development' %}
+            <!-- DEBUG: FLASK_ENV={{ config.get('FLASK_ENV') }}, ENVIRONMENT={{ config.get('ENVIRONMENT') }} -->
+            {% if expert.is_available and config.get('FLASK_ENV') != 'production' %}
             <div class="book-now-section">
               <a href="{{ url_for('book_immediate_meeting', username=expert.username) }}" 
                  class="book-now-btn">
