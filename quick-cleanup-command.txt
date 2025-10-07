@@ -1,3 +1,0 @@
-# Quick cleanup command - copy and paste this into your server terminal:
-
-cd /opt/droply && docker ps -q --filter "publish=5001" | xargs -r docker stop && docker ps -aq --filter "publish=5001" | xargs -r docker rm && docker ps -aq --filter "name=droply-web-new" | xargs -r docker stop && docker ps -aq --filter "name=droply-web-new" | xargs -r docker rm && echo "✅ Cleanup completed! You can now trigger a new deployment."

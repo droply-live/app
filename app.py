@@ -5,6 +5,20 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# Environment variables are set automatically by Git hook
+# Just show what environment we're running in
+current_env = os.environ.get('FLASK_ENV', 'development')
+current_branch = os.environ.get('ENVIRONMENT', 'development')
+
+if current_env == 'production':
+    print("🚀 Running in: Production environment")
+    print("   Book Now button: Hidden")
+    print("   Debug logging: Minimal")
+else:
+    print("🔧 Running in: Development environment")
+    print("   Book Now button: Visible")
+    print("   Debug logging: Enabled")
+
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 from extensions import db, login_manager

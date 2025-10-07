@@ -18,7 +18,7 @@ services:
       - DAILY_API_KEY=${DAILY_API_KEY}
       - YOUR_DOMAIN=${YOUR_DOMAIN:-https://droply.live}
       - REPLIT_DEV_DOMAIN=droply.live
-    command: python -m flask run --host=0.0.0.0 --port=5000
+    command: python app.py
 
 # Removed db service and depends_on
 
