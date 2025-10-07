@@ -40,6 +40,10 @@ app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE
 app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-12345')
 
+# Add environment variables to config for template access
+app.config['FLASK_ENV'] = os.environ.get('FLASK_ENV', 'development')
+app.config['ENVIRONMENT'] = os.environ.get('ENVIRONMENT', 'development')
+
 # Configure URL scheme based on environment
 # For local development, use HTTP; for production, use HTTPS
 if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG') == '1':
