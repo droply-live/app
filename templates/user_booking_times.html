@@ -71,9 +71,8 @@
           <h3 class="selected-date" id="selectedDate">Select a date to see available times</h3>
           
           {% if has_availability %}
-            <!-- Book Now Button for Immediate Meeting - DISABLED FOR PRODUCTION -->
-            <!-- 
-            {% if expert.is_available and request.host != 'droply.live' %}
+            <!-- Book Now Button for Immediate Meeting - Only show in development -->
+            {% if expert.is_available and config.get('FLASK_ENV') == 'development' %}
             <div class="book-now-section">
               <a href="{{ url_for('book_immediate_meeting', username=expert.username) }}" 
                  class="book-now-btn">
@@ -87,7 +86,6 @@
               </a>
             </div>
             {% endif %}
-            -->
             
             <div class="time-slots" id="timeSlots">
               <div class="no-date-selected">
