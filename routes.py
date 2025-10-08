@@ -1450,76 +1450,93 @@ def create_checkout_session(booking_id):
         print(f"DEBUG: Request args: {dict(request.args)}")
         print(f"DEBUG: Request form: {dict(request.form)}")
         
+        # Check if Stripe is configured
+        if not stripe.api_key:
+            print("DEBUG: Stripe API key not configured")
+            flash('Payment system not configured. Please contact support.', 'error')
+            return redirect(url_for('homepage'))
+        
         # Production safeguard - temporarily disabled for debugging
         if False and is_production_environment() and stripe.api_key.startswith('sk_test_'):
             print("DEBUG: Production environment with test keys detected")
             flash('Payment system temporarily unavailable. Please try again later.', 'error')
             return redirect(url_for('homepage'))
-    
-    booking = Booking.query.get_or_404(booking_id)
-    print(f"DEBUG: Booking found - ID: {booking.id}, Amount: {booking.payment_amount}, Status: {booking.status}")
-    
-    try:
-        # Get expert details for the checkout session
-        expert = User.query.get(booking.expert_id)
-        if not expert:
-            print("DEBUG: Expert not found for booking")
-            flash('Expert not found', 'error')
+        
+        # Get booking with better error handling
+        try:
+            booking = Booking.query.get(booking_id)
+            if not booking:
+                print(f"DEBUG: Booking {booking_id} not found")
+                flash('Booking not found. Please try again.', 'error')
+                return redirect(url_for('homepage'))
+        except Exception as e:
+            print(f"DEBUG: Database error getting booking: {e}")
+            flash('Database error. Please try again.', 'error')
             return redirect(url_for('homepage'))
         
-        print(f"DEBUG: Expert found - {expert.username}, Rate: {expert.hourly_rate}")
+        print(f"DEBUG: Booking found - ID: {booking.id}, Amount: {booking.payment_amount}, Status: {booking.status}")
         
-        # Validate payment amount
-        if not booking.payment_amount or booking.payment_amount <= 0:
-            print(f"DEBUG: Invalid payment amount: {booking.payment_amount}")
-            flash('Invalid payment amount', 'error')
-            return redirect(url_for('user_profile', username=expert.username))
-        
-        print(f"DEBUG: Creating Stripe checkout session...")
-        print(f"DEBUG: YOUR_DOMAIN: {YOUR_DOMAIN}")
-        print(f"DEBUG: Success URL: {YOUR_DOMAIN}/booking/success/{booking.id}")
-        print(f"DEBUG: Cancel URL: {YOUR_DOMAIN}/user/{expert.username}")
-        
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',  # Default to USD for now
-                    'product_data': {
-                        'name': f'Session with {expert.full_name or expert.username}',
-                        'description': f'{booking.duration}-minute video consultation on {booking.start_time.strftime("%B %d, %Y at %I:%M %p")}',
+        try:
+            # Get expert details for the checkout session
+            expert = User.query.get(booking.expert_id)
+            if not expert:
+                print("DEBUG: Expert not found for booking")
+                flash('Expert not found', 'error')
+                return redirect(url_for('homepage'))
+            
+            print(f"DEBUG: Expert found - {expert.username}, Rate: {expert.hourly_rate}")
+            
+            # Validate payment amount
+            if not booking.payment_amount or booking.payment_amount <= 0:
+                print(f"DEBUG: Invalid payment amount: {booking.payment_amount}")
+                flash('Invalid payment amount', 'error')
+                return redirect(url_for('user_profile', username=expert.username))
+            
+            print(f"DEBUG: Creating Stripe checkout session...")
+            print(f"DEBUG: YOUR_DOMAIN: {YOUR_DOMAIN}")
+            print(f"DEBUG: Success URL: {YOUR_DOMAIN}/booking/success/{booking.id}")
+            print(f"DEBUG: Cancel URL: {YOUR_DOMAIN}/user/{expert.username}")
+            
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'usd',  # Default to USD for now
+                        'product_data': {
+                            'name': f'Session with {expert.full_name or expert.username}',
+                            'description': f'{booking.duration}-minute video consultation on {booking.start_time.strftime("%B %d, %Y at %I:%M %p")}',
+                        },
+                        'unit_amount': int(booking.payment_amount * 100),  # Amount in cents
                     },
-                    'unit_amount': int(booking.payment_amount * 100),  # Amount in cents
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=f'{YOUR_DOMAIN}/booking/success/{booking.id}',
-            cancel_url=f'{YOUR_DOMAIN}/user/{expert.username}',
-            metadata={
-                'booking_id': booking.id
-            }
-        )
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=f'{YOUR_DOMAIN}/booking/success/{booking.id}',
+                cancel_url=f'{YOUR_DOMAIN}/user/{expert.username}',
+                metadata={
+                    'booking_id': booking.id
+                }
+            )
+            
+            print(f"DEBUG: Stripe checkout session created successfully: {checkout_session.id}")
+            print(f"DEBUG: Checkout URL: {checkout_session.url}")
+            
+            booking.stripe_session_id = checkout_session.id
+            db.session.commit()
+            
+            print(f"DEBUG: Redirecting to Stripe checkout...")
+            return redirect(checkout_session.url, code=303)
         
-        print(f"DEBUG: Stripe checkout session created successfully: {checkout_session.id}")
-        print(f"DEBUG: Checkout URL: {checkout_session.url}")
-        
-        booking.stripe_session_id = checkout_session.id
-        db.session.commit()
-        
-        print(f"DEBUG: Redirecting to Stripe checkout...")
-        return redirect(checkout_session.url, code=303)
-        
-    except stripe.error.StripeError as e:
-        print(f"DEBUG: Stripe error: {str(e)}")
-        flash(f'Payment system error: {str(e)}', 'error')
-        return redirect(url_for('user_profile', username=expert.username if expert else 'unknown'))
-    except Exception as e:
-        print(f"DEBUG: General error in create_checkout_session: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        flash(f'Payment error: {str(e)}', 'error')
-        return redirect(url_for('user_profile', username=expert.username if expert else 'unknown'))
+        except stripe.error.StripeError as e:
+            print(f"DEBUG: Stripe error: {str(e)}")
+            flash(f'Payment system error: {str(e)}', 'error')
+            return redirect(url_for('user_profile', username=expert.username if expert else 'unknown'))
+        except Exception as e:
+            print(f"DEBUG: General error in create_checkout_session: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            flash(f'Payment error: {str(e)}', 'error')
+            return redirect(url_for('user_profile', username=expert.username if expert else 'unknown'))
     
     except Exception as e:
         print(f"DEBUG: CRITICAL ERROR in create_checkout_session: {str(e)}")
