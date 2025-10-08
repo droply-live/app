@@ -1504,7 +1504,7 @@ def create_checkout_session(booking_id):
         print(f"DEBUG: Redirecting to Stripe checkout...")
         return redirect(checkout_session.url, code=303)
         
-    except stripe.error.StripeError as e:
+    except stripe.StripeError as e:
         print(f"DEBUG: Stripe error: {str(e)}")
         flash(f'Payment system error: {str(e)}', 'error')
         return redirect(url_for('user_profile', username=expert.username if expert else 'unknown'))
