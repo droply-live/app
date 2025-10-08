@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Translation Test</title>
+    <script src="static/js/translations.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .language-selector select {
+            background: white;
+            color: black;
+            border: none;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <label for="languageSelect">Language:</label>
+        <select id="languageSelect">
+            <option value="EN">English</option>
+            <option value="FR">Français</option>
+            <option value="ES">Español</option>
+            <option value="AR">العربية</option>
+        </select>
+    </div>
+
+    <div class="test-section">
+        <h1 data-translate="home.title">Discover People</h1>
+        <p data-translate="home.subtitle">Connect with verified professionals for personalized consultations</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Navigation</h2>
+        <button data-translate="nav.discover">Discover</button>
+        <button data-translate="nav.earnings">Start Earning</button>
+        <button data-translate="nav.logout">Logout</button>
+        <button data-translate="nav.login">Login</button>
+        <button data-translate="nav.menu">Menu</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Menu Items</h2>
+        <button data-translate="menu.submit_feedback">Submit feedback</button>
+        <button data-translate="menu.terms_conditions">Terms and Conditions</button>
+        <button data-translate="menu.privacy_policy">Privacy Policy</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Expert Actions</h2>
+        <button data-translate="expert.view">View Profile</button>
+        <button data-translate="expert.login_to_book">Login to Book</button>
+        <button data-translate="expert.book">Book Now</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Dashboard</h2>
+        <button data-translate="dashboard.find_experts">Find Experts</button>
+        <button data-translate="dashboard.edit_profile">Edit Profile</button>
+        <button data-translate="dashboard.set_availability">Set Availability</button>
+        <button data-translate="dashboard.view_bookings">View Bookings</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Messages</h2>
+        <p data-translate="message.success">Success!</p>
+        <p data-translate="message.error">Error occurred</p>
+        <p data-translate="message.loading">Loading...</p>
+        <p data-translate="message.no_experts">No experts found</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Categories</h2>
+        <button data-translate="category.technology">Technology</button>
+        <button data-translate="category.business">Business</button>
+        <button data-translate="category.design">Design</button>
+        <button data-translate="category.marketing">Marketing</button>
+    </div>
+
+    <script>
+        // Language selector functionality
+        const languageSelect = document.getElementById('languageSelect');
+        
+        // Restore saved language
+        const savedLanguage = localStorage.getItem('selectedLanguage') || 'EN';
+        languageSelect.value = savedLanguage;
+        translatePage(savedLanguage);
+        
+        // Handle language change
+        languageSelect.addEventListener('change', function() {
+            const selectedLanguage = this.value;
+            localStorage.setItem('selectedLanguage', selectedLanguage);
+            translatePage(selectedLanguage);
+        });
+    </script>
+</body>
+</html>

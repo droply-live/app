@@ -33,7 +33,8 @@ function initializeMobileEnhancements() {
     initializeTouchGestures();
     initializeMobileCards();
     initializeMobileForms();
-    initializeMobileNavigation();
+    // Skip navigation initialization as it's handled in base template
+    // initializeMobileNavigation();
     initializeMobileUserMenu();
     initializeMobileSearch();
     initializeMobileBookings();

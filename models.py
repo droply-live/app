@@ -488,3 +488,5 @@ class AIMatch(db.Model):
     
     def __repr__(self):
         return f'<AIMatch {self.id} - User {self.user_id} matched with User {self.matched_user_id} (score: {self.match_score})>'
+
+

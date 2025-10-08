@@ -105,5 +105,14 @@ with app.app_context():
 # Import routes after app initialization
 from routes import *  # noqa: F401,F403
 
+# Initialize agentic system
+try:
+    from agents.flask_integration import init_agents
+    init_agents(app)
+    print("✅ ProcuraAI agentic system initialized successfully")
+except Exception as e:
+    print(f"⚠️  Warning: Could not initialize agentic system: {e}")
+    print("   The system will run without AI agents")
+
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)

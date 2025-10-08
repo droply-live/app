@@ -25,12 +25,6 @@ class OnboardingForm(FlaskForm):
         ('other', 'Other')
     ], validators=[DataRequired()])
 
-class LoginForm(FlaskForm):
-    email_or_username = StringField('Email or Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    remember_me = BooleanField('Remember Me')
-    submit = SubmitField('Sign In')
-
 class ProfileForm(FlaskForm):
     full_name = StringField('Full Name', validators=[DataRequired(), Length(max=100)])
     bio = TextAreaField('Bio', validators=[Optional(), Length(max=1000)])

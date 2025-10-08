@@ -8,7 +8,22 @@
   <div class="search-area {% if request.args.get('search') %}search-area-compact{% endif %}">
     <div class="search-wrapper">
       {% if not request.args.get('search') %}
-        <h1 class="page-title">Discover People</h1>
+        <!-- Show buttons instead of title when logged in -->
+        {% if current_user.is_authenticated %}
+          <div class="discover-buttons-header">
+            <button class="discover-btn" onclick="viewHistorical('recent')">
+              <i class="fas fa-history"></i> Recent Views
+            </button>
+            <button class="discover-btn" onclick="viewHistorical('favorites')">
+              <i class="fas fa-heart"></i> Favorites
+            </button>
+            <button class="discover-btn browse-all" onclick="viewHistorical('browse_all')">
+              <i class="fas fa-globe"></i> Browse All
+            </button>
+          </div>
+        {% else %}
+          <h1 class="page-title">Discover People</h1>
+        {% endif %}
       {% else %}
         <div class="search-results-header">
           <span class="results-count">{{ users|length }} results</span>
@@ -25,28 +40,17 @@
             name="search" 
             placeholder="Search for experts..." 
             class="search-input"
+            id="animated-search-input"
             value="{{ request.args.get('search', '') }}"
+            autocomplete="off"
+            required
+            data-translate="home.search.placeholder"
           >
           <button type="submit" class="search-button">
             <i class="fas fa-search"></i>
           </button>
         </div>
       </form>
-      
-      <!-- Historical Data Buttons - Only show when not searching and user is authenticated -->
-      {% if not request.args.get('search') and current_user.is_authenticated %}
-      <div class="historical-buttons">
-        <button class="historical-btn" onclick="viewHistorical('recent')">
-          <i class="fas fa-history"></i> Recent Views
-        </button>
-        <button class="historical-btn" onclick="viewHistorical('favorites')">
-          <i class="fas fa-heart"></i> Favorites
-        </button>
-        <button class="historical-btn browse-all" onclick="viewHistorical('browse_all')">
-          <i class="fas fa-globe"></i> Browse All
-        </button>
-      </div>
-      {% endif %}
     </div>
   </div>
 
@@ -79,21 +83,33 @@
 </div>
 
 <style>
-/* Ensure consistent background throughout the page */
+/* Ensure consistent background throughout the page matching homepage */
 html, body {
   background: #1f1f1f !important;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
   margin: 0 !important;
   padding: 0 !important;
 }
 
-/* Ensure main content area has consistent background */
+/* Ensure main content area has consistent background matching homepage */
 .main-content, .content-wrapper {
   background: #1f1f1f !important;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
 }
 
 /* Clean, Minimal Discover Page */
 .discover-page {
-  background: #1f1f1f;
+  background: #1f1f1f !important;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
   min-height: 100vh;
   padding: 0;
   width: 100%;
@@ -102,13 +118,62 @@ html, body {
 
 /* Search Area - Clean and Simple */
 .search-area {
-  background: #1f1f1f;
+  background: #1f1f1f !important;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
   padding: 2rem 1rem;
   border-bottom: 1px solid #333;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Discover Buttons Header */
+.discover-buttons-header {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.discover-btn {
+  background: #333;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
+    linear-gradient(45deg, rgba(99, 102, 241, 0.02) 0%, transparent 40%);
+  border: 1px solid #555;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.discover-btn:hover {
+  background: #444;
+  border-color: #10b981;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.discover-btn.browse-all {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+.discover-btn.browse-all:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 /* Compact search area when showing results */
@@ -164,35 +229,51 @@ html, body {
   color: white;
 }
 
-/* Search Input - Compact */
+/* Search Input - Enhanced like Homepage */
 .search-input-wrapper {
-  display: flex;
-  align-items: center;
-  background: #333;
-  border: 1px solid #555;
-  border-radius: 8px;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  transition: all 0.2s ease;
+  display: flex !important;
+  align-items: center !important;
+  background: #333 !important;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
+    linear-gradient(45deg, rgba(99, 102, 241, 0.02) 0%, transparent 40%) !important;
+  border: 1px solid #555 !important;
+  border-radius: 12px !important;
+  padding: 0.75rem !important;
+  margin-bottom: 1rem !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
 }
 
 .search-input-wrapper:focus-within {
-  border-color: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1) !important;
 }
 
 .search-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 1rem;
-  padding: 0.5rem;
-  color: white;
+  flex: 1 !important;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  font-size: 1rem !important;
+  padding: 0.75rem !important;
+  color: white !important;
+  z-index: 2 !important;
+  position: relative !important;
 }
 
 .search-input::placeholder {
-  color: #999;
+  color: #999 !important;
+}
+
+/* Enhanced search input styling */
+.search-input:focus {
+  outline: none !important;
+}
+
+.search-input::placeholder {
+  transition: opacity 0.3s ease !important;
+  opacity: var(--placeholder-opacity, 1) !important;
 }
 
 .search-button {
@@ -255,10 +336,28 @@ html, body {
 }
 
 
-/* Results Area - Card Grid */
+/* Results Area - Card Grid with Dropdown Animation */
 .results-area {
   background: #1f1f1f;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%);
   padding: 2rem 1rem;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: dropdownFadeIn 0.5s ease-out forwards;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .experts-grid {
@@ -659,6 +758,157 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Focus the search input when page loads
     searchInput.focus();
+  }
+  
+  // Trigger dropdown animation for results area if it exists
+  const resultsArea = document.querySelector('.results-area');
+  if (resultsArea) {
+    // Add a small delay to ensure the element is rendered
+    setTimeout(() => {
+      resultsArea.style.opacity = '0';
+      resultsArea.style.transform = 'translateY(-20px)';
+      
+      // Trigger animation
+      setTimeout(() => {
+        resultsArea.style.opacity = '1';
+        resultsArea.style.transform = 'translateY(0)';
+        resultsArea.style.transition = 'all 0.5s ease-out';
+      }, 50);
+    }, 100);
+  }
+});
+
+// Animated Search Bar with Random Placeholder Text
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('animated-search-input');
+  if (!searchInput) return;
+
+  // Only animate if the input is empty (no search query)
+  if (searchInput.value.trim() !== '') {
+    return;
+  }
+
+  const placeholderTexts = [
+    'Search for experts...',
+    'Find developers...',
+    'Look for designers...',
+    'Search marketers...',
+    'Find consultants...',
+    'Look for coaches...',
+    'Search freelancers...',
+    'Find specialists...'
+  ];
+
+  let currentIndex = 0;
+  let isAnimating = false;
+  let animationInterval;
+
+  function startAnimation() {
+    if (isAnimating) return;
+    isAnimating = true;
+    
+    function animateText() {
+      const currentText = placeholderTexts[currentIndex];
+      
+      // Fade out placeholder
+      searchInput.style.setProperty('--placeholder-opacity', '0');
+      
+      setTimeout(() => {
+        searchInput.placeholder = currentText;
+        // Fade in new placeholder
+        searchInput.style.setProperty('--placeholder-opacity', '1');
+      }, 150);
+      
+      currentIndex = (currentIndex + 1) % placeholderTexts.length;
+    }
+
+    // Start immediately
+    animateText();
+    
+    // Then continue every 3 seconds
+    animationInterval = setInterval(animateText, 3000);
+  }
+
+  function stopAnimation() {
+    isAnimating = false;
+    if (animationInterval) {
+      clearInterval(animationInterval);
+      animationInterval = null;
+    }
+  }
+
+  // Start animation when page loads (if no search query)
+  if (searchInput.value.trim() === '') {
+    startAnimation();
+  }
+
+  // Stop animation when user starts typing
+  searchInput.addEventListener('input', function() {
+    if (this.value.trim() !== '') {
+      stopAnimation();
+    }
+  });
+
+  // Stop animation when user focuses
+  searchInput.addEventListener('focus', function() {
+    stopAnimation();
+  });
+
+  // Restart animation when user clears input and blurs
+  searchInput.addEventListener('blur', function() {
+    if (this.value.trim() === '') {
+      startAnimation();
+    }
+  });
+
+  // Handle Enter key
+  searchInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      stopAnimation();
+      // Add loading state and submit
+      addSearchLoadingState();
+      searchInput.form.submit();
+    }
+  });
+
+  // Handle input events
+  searchInput.addEventListener('input', function() {
+    const query = this.value.trim();
+    
+    // Stop animation when user types
+    if (query !== '') {
+      stopAnimation();
+    } else {
+      // Restart animation if input is cleared
+      startAnimation();
+    }
+  });
+});
+
+// Add loading state for search
+function addSearchLoadingState() {
+  const searchInput = document.querySelector('.search-input');
+  const searchButton = document.querySelector('.search-button');
+  
+  if (searchInput && searchButton) {
+    searchInput.disabled = true;
+    searchButton.disabled = true;
+    searchButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    searchButton.style.opacity = '0.7';
+  }
+}
+
+// Handle form submission with animation
+document.addEventListener('DOMContentLoaded', function() {
+  const searchForm = document.querySelector('.search-form');
+  if (searchForm) {
+    searchForm.addEventListener('submit', function(e) {
+      // Add loading state
+      addSearchLoadingState();
+      
+      // The form will submit normally, and the server will return the results
+      // The dropdown animation will be triggered when the page loads with results
+    });
   }
 });
 </script>

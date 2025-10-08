@@ -5,33 +5,35 @@
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/bookings.css') }}">
 <style>
-  /* Ensure bookings page has consistent dark background */
-  body, .main-content, .content-wrapper {
+  /* Ensure bookings page has consistent dark background matching homepage */
+  body {
     background: #1f1f1f !important;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+  }
+  
+  .main-content, .content-wrapper {
+    background: #1f1f1f !important;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
   }
   
   .bookings-container {
     background: #1f1f1f !important;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="bookings-container">
-  <!-- Mobile Header -->
-  <div class="mobile-header">
-    <div class="header-content">
-      <h1 class="page-title">
-        <i class="fas fa-calendar-check"></i>
-        Bookings
-      </h1>
-      <div class="header-actions">
-        <button class="action-btn" id="refreshBtn" title="Refresh">
-          <i class="fas fa-sync-alt"></i>
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- Bookings Summary Cards -->
   <div class="summary-grid">
@@ -387,13 +389,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
     
-    // Refresh button functionality
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', function() {
-            location.reload();
-        });
-    }
 });
 
 // AJAX function to cancel bookings

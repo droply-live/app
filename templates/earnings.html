@@ -6,33 +6,35 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/earnings.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  /* Ensure earnings page has consistent dark background */
-  body, .main-content, .content-wrapper {
+  /* Ensure earnings page has consistent dark background matching homepage */
+  body {
     background: #1f1f1f !important;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+  }
+  
+  .main-content, .content-wrapper {
+    background: #1f1f1f !important;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
   }
   
   .earnings-container {
     background: #1f1f1f !important;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="earnings-container">
-  <!-- Mobile Header -->
-  <div class="mobile-header">
-    <div class="header-content">
-      <h1 class="page-title">
-        <i class="fas fa-chart-line"></i>
-        Earnings
-      </h1>
-      <div class="header-actions">
-        <button class="action-btn" id="refreshBtn" title="Refresh">
-          <i class="fas fa-sync-alt"></i>
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- Earnings Summary Cards -->
   <div class="summary-grid">
@@ -181,70 +183,6 @@
     {% endif %}
   </div>
 
-  <!-- Payment Settings -->
-  <div class="settings-section">
-    <div class="section-header">
-      <h2>Payment Settings</h2>
-    </div>
-    
-    <div class="settings-card">
-      {% if current_user.stripe_account_id %}
-        {% if current_user.stripe_account_status == 'active' %}
-        <div class="setting-item success">
-          <div class="setting-icon">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          <div class="setting-content">
-            <h4>Payment Account Connected</h4>
-            <p>Your Stripe account is active and ready to receive payments</p>
-          </div>
-          <a href="{{ url_for('payment_setup') }}" class="setting-action">
-            <i class="fas fa-external-link-alt"></i>
-          </a>
-        </div>
-        {% elif current_user.stripe_account_status == 'pending' %}
-        <div class="setting-item warning">
-          <div class="setting-icon">
-            <i class="fas fa-clock"></i>
-          </div>
-          <div class="setting-content">
-            <h4>Account Verification Pending</h4>
-            <p>Complete your Stripe account verification to receive payments</p>
-          </div>
-          <a href="{{ url_for('payment_setup') }}" class="setting-action">
-            <i class="fas fa-external-link-alt"></i>
-          </a>
-        </div>
-        {% else %}
-        <div class="setting-item warning">
-          <div class="setting-icon">
-            <i class="fas fa-exclamation-triangle"></i>
-          </div>
-          <div class="setting-content">
-            <h4>Account Setup Required</h4>
-            <p>Complete Stripe setup to receive payments</p>
-          </div>
-          <a href="{{ url_for('payment_setup') }}" class="setting-action">
-            <i class="fas fa-link"></i>
-          </a>
-        </div>
-        {% endif %}
-      {% else %}
-      <div class="setting-item info">
-        <div class="setting-icon">
-          <i class="fas fa-credit-card"></i>
-        </div>
-        <div class="setting-content">
-          <h4>Connect Payment Account</h4>
-          <p>Connect Stripe to receive payments securely</p>
-        </div>
-        <a href="{{ url_for('payment_setup') }}" class="setting-action">
-          <i class="fas fa-link"></i>
-        </a>
-      </div>
-      {% endif %}
-    </div>
-  </div>
 </div>
 
 <!-- Withdrawal Modal -->
@@ -306,10 +244,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Refresh button
-  document.getElementById('refreshBtn').addEventListener('click', function() {
-    location.reload();
-  });
 });
 
 function initEarningsChart() {
@@ -329,7 +263,7 @@ function initEarningsChart() {
     }]
   };
   
-  new Chart(ctx, {
+  window.earningsChart = new Chart(ctx, {
     type: 'line',
     data: earningsData,
     options: {
@@ -376,6 +310,21 @@ function initEarningsChart() {
 function updateChart(period) {
   // Update chart based on selected period
   console.log('Updating chart for period:', period);
+  
+  // Fetch new data from the API
+  fetch(`/api/earnings-chart-data?period=${period}`)
+    .then(response => response.json())
+    .then(data => {
+      // Update the chart with new data
+      if (window.earningsChart) {
+        window.earningsChart.data.labels = data.labels;
+        window.earningsChart.data.datasets[0].data = data.data;
+        window.earningsChart.update();
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching chart data:', error);
+    });
 }
 
 function showWithdrawModal() {

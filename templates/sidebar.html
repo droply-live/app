@@ -71,9 +71,13 @@
           <i class="fas fa-cog"></i>
           <span>Settings</span>
         </a>
-        <a href="#" class="dropdown-item affiliate-option">
-          <i class="fas fa-dollar-sign"></i>
-          <span>Become an Affiliate</span>
+        <a href="{{ url_for('privacy_policy') }}" class="dropdown-item" target="_blank">
+          <i class="fas fa-shield-alt"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="{{ url_for('terms_of_service') }}" class="dropdown-item" target="_blank">
+          <i class="fas fa-file-contract"></i>
+          <span>Terms of Service</span>
         </a>
         <div class="dropdown-divider"></div>
         <a href="{{ url_for('logout') }}" class="dropdown-item logout-option">
@@ -84,5 +88,8 @@
     </div>
   </div>
   
-  <button id="sidebar-burger" class="sidebar-burger" aria-label="Open sidebar">&#9776;</button>
+  <!-- Sidebar Toggle Button -->
+  <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+    <i class="fas fa-chevron-left"></i>
+  </button>
 </aside> 

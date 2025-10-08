@@ -1,69 +1,45 @@
 {% extends "base_signed_in.html" %}
 
-{% block title %}Profile - Droply{% endblock %}
+{% block title %}Profile Editor - Droply{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile-editor.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="profile-editor-container">
-    <!-- Compact Header -->
-    <div class="editor-header">
-        <div class="header-content">
-            <h1>Profile Editor</h1>
-            <p>Customize your professional presence and visual design</p>
-            <div class="header-note">
-                <i class="fas fa-info-circle"></i>
-                <span>For critical settings like username and session pricing, visit <a href="/settings" style="color: #10b981; text-decoration: underline;">Settings</a></span>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Left Sidebar for Profile Settings -->
+        <div class="col-md-3">
+            <div class="profile-settings-sidebar">
+                <h4 class="sidebar-title">Profile Settings</h4>
+                <nav class="settings-nav">
+                    <a href="#basic" class="settings-nav-item active" onclick="switchTab('basic')">
+                        <i class="fas fa-user"></i>
+                        <span>Basic Info</span>
+                    </a>
+                    <a href="#appearance" class="settings-nav-item" onclick="switchTab('appearance')">
+                        <i class="fas fa-palette"></i>
+                        <span>Appearance</span>
+                    </a>
+                    <a href="#content" class="settings-nav-item" onclick="switchTab('content')">
+                        <i class="fas fa-folder"></i>
+                        <span>Content</span>
+                    </a>
+                </nav>
             </div>
         </div>
-        <div class="header-actions">
-            <button class="btn-secondary" onclick="previewProfile()">
-                <i class="fas fa-external-link-alt"></i>
-                <span>Preview</span>
-            </button>
-            <button class="btn-primary" onclick="saveProfile()">
-                <i class="fas fa-check"></i>
-                <span>Save Changes</span>
-            </button>
-        </div>
-    </div>
 
-    <div class="editor-layout">
-        <!-- Compact Tab Navigation -->
-        <div class="tab-navigation">
-            <button class="tab-btn active" data-tab="images" onclick="switchTab('images')">
-                <i class="fas fa-image"></i>
-                <span>Images</span>
-            </button>
-            <button class="tab-btn" data-tab="appearance" onclick="switchTab('appearance')">
-                <i class="fas fa-palette"></i>
-                <span>Appearance</span>
-            </button>
-            <button class="tab-btn" data-tab="social" onclick="switchTab('social')">
-                <i class="fas fa-share-alt"></i>
-                <span>Social</span>
-            </button>
-            <button class="tab-btn" data-tab="content" onclick="switchTab('content')">
-                <i class="fas fa-folder"></i>
-                <span>Content</span>
-            </button>
-            <button class="tab-btn" data-tab="professional" onclick="switchTab('professional')">
-                <i class="fas fa-briefcase"></i>
-                <span>About</span>
-            </button>
-        </div>
-
-        <!-- Two Panel Layout -->
-        <div class="panels-container">
-            <!-- Left Panel - Form Content -->
-            <div class="form-panel">
-
-            <!-- Tab Content -->
-            <div class="tab-content">
-                <!-- Images Tab -->
-                <div id="images-tab" class="tab-panel active">
+        <!-- Main Content Area -->
+        <div class="col-md-9">
+            <div class="row">
+                <!-- Form Content Area -->
+                <div class="col-md-8">
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                <!-- Basic Info Tab -->
+                <div id="basic-tab" class="tab-panel active">
+                    <!-- Profile Images Section -->
                     <div class="section">
                         <div class="section-header">
                             <div class="section-icon">
@@ -71,7 +47,7 @@
                             </div>
                             <div class="section-title">
                                 <h3>Profile Images</h3>
-                                <p>Visual identity for your profile</p>
+                                <p>Your visual identity</p>
                             </div>
                         </div>
                         <div class="image-upload-grid">
@@ -92,37 +68,18 @@
                                     <input type="file" id="profileImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
                                 </div>
                             </div>
-                            <div class="image-upload-item">
-                                <label>Background Image</label>
-                                <div class="image-upload-area" onclick="document.getElementById('backgroundImageUpload').click()">
-                                    <div class="upload-preview">
-                                        {% if current_user.background_image_url %}
-                                            <img id="backgroundImagePreview" src="{{ current_user.background_image_url }}" alt="Background">
-                                        {% else %}
-                                            <div class="upload-placeholder">
-                                                <i class="fas fa-image"></i>
-                                                <p>Upload background</p>
-                                                <small>Optional header image</small>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    <input type="file" id="backgroundImageUpload" accept="image/*" style="display: none;" onchange="handleBackgroundUpload(this)">
-                                </div>
-                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Professional Tab -->
-                <div id="professional-tab" class="tab-panel">
+                    <!-- Personal Information Section -->
                     <div class="section">
                         <div class="section-header">
                             <div class="section-icon">
-                                <i class="fas fa-briefcase"></i>
+                                <i class="fas fa-user"></i>
                             </div>
                             <div class="section-title">
-                                <h3>About & Expertise</h3>
-                                <p>Your professional information and expertise areas</p>
+                                <h3>Personal Information</h3>
+                                <p>Basic details about yourself</p>
                             </div>
                         </div>
                         <div class="form-grid">
@@ -149,261 +106,14 @@
                                 <input type="text" id="industry" value="{{ current_user.industry or '' }}" placeholder="e.g., Technology, Finance, Healthcare" onchange="updatePreview()">
                             </div>
                         </div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Phone</label>
-                                <input type="tel" id="phone" value="{{ current_user.phone or '' }}" placeholder="+1 (555) 123-4567" onchange="updatePreview()">
-                            </div>
-                            <div class="form-group">
-                                <label>Language</label>
-                                <select id="language" onchange="updatePreview()">
-                                    <option value="en" {{ 'selected' if current_user.language == 'en' else '' }}>English</option>
-                                    <option value="es" {{ 'selected' if current_user.language == 'es' else '' }}>Spanish</option>
-                                    <option value="fr" {{ 'selected' if current_user.language == 'fr' else '' }}>French</option>
-                                    <option value="de" {{ 'selected' if current_user.language == 'de' else '' }}>German</option>
-                                </select>
-                            </div>
-                        </div>
                         <div class="form-group full-width">
                             <label>Expertise Tags</label>
                             <input type="text" id="expertiseTags" value="{{ current_user.specialty_tags or '' }}" placeholder="e.g., JavaScript, React, Node.js, Python, Machine Learning" onchange="updatePreview()">
                             <small class="form-hint">Separate tags with commas</small>
                         </div>
-                        <div class="form-group">
-                            <label>Timezone</label>
-                            <select id="timezone" onchange="updatePreview()">
-                                <option value="UTC" {{ 'selected' if current_user.timezone == 'UTC' else '' }}>UTC</option>
-                                <option value="America/New_York" {{ 'selected' if current_user.timezone == 'America/New_York' else '' }}>Eastern Time</option>
-                                <option value="America/Chicago" {{ 'selected' if current_user.timezone == 'America/Chicago' else '' }}>Central Time</option>
-                                <option value="America/Denver" {{ 'selected' if current_user.timezone == 'America/Denver' else '' }}>Mountain Time</option>
-                                <option value="America/Los_Angeles" {{ 'selected' if current_user.timezone == 'America/Los_Angeles' else '' }}>Pacific Time</option>
-                                <option value="Europe/London" {{ 'selected' if current_user.timezone == 'Europe/London' else '' }}>London</option>
-                                <option value="Europe/Paris" {{ 'selected' if current_user.timezone == 'Europe/Paris' else '' }}>Paris</option>
-                            </select>
-                        </div>
-                        <div class="checkbox-grid">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="isAvailable" {{ 'checked' if current_user.is_available else '' }} onchange="updatePreview()">
-                                <div class="checkbox-content">
-                                    <span class="checkbox-title">Available for Bookings</span>
-                                    <span class="checkbox-desc">Show that you're accepting new clients</span>
-                                </div>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="emailNotifications" {{ 'checked' if current_user.email_notifications else '' }} onchange="updatePreview()">
-                                <div class="checkbox-content">
-                                    <span class="checkbox-title">Email Notifications</span>
-                                    <span class="checkbox-desc">Receive booking and message notifications</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Appearance Tab -->
-                <div id="appearance-tab" class="tab-panel">
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-palette"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Color Scheme</h3>
-                                <p>Customize your profile's visual theme</p>
-                            </div>
-                        </div>
-                        <div class="color-picker-grid">
-                            <div class="color-option">
-                                <label>Primary Color</label>
-                                <div class="color-input-group">
-                                    <input type="color" id="primaryColor" value="{{ current_user.primary_color or '#667eea' }}" onchange="updatePreview()">
-                                    <input type="text" id="primaryColorText" value="{{ current_user.primary_color or '#667eea' }}" onchange="updateColorFromText('primary')" placeholder="#667eea">
-                                </div>
-                                <small class="form-hint">Main brand color for buttons and accents</small>
-                            </div>
-                            <div class="color-option">
-                                <label>Secondary Color</label>
-                                <div class="color-input-group">
-                                    <input type="color" id="secondaryColor" value="{{ current_user.secondary_color or '#764ba2' }}" onchange="updatePreview()">
-                                    <input type="text" id="secondaryColorText" value="{{ current_user.secondary_color or '#764ba2' }}" onchange="updateColorFromText('secondary')" placeholder="#764ba2">
-                                </div>
-                                <small class="form-hint">Secondary color for gradients and highlights</small>
-                            </div>
-                            <div class="color-option">
-                                <label>Background Color</label>
-                                <div class="color-input-group">
-                                    <input type="color" id="backgroundColor" value="{{ current_user.background_color or '#f7faff' }}" onchange="updatePreview()">
-                                    <input type="text" id="backgroundColorText" value="{{ current_user.background_color or '#f7faff' }}" onchange="updateColorFromText('background')" placeholder="#f7faff">
-                                </div>
-                                <small class="form-hint">Page background color</small>
-                            </div>
-                        </div>
                     </div>
 
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-font"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Typography</h3>
-                                <p>Choose fonts that represent your style</p>
-                            </div>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Font Family</label>
-                                <select id="fontFamily" onchange="updatePreview()">
-                                    <option value="Inter" {{ 'selected' if current_user.font_family == 'Inter' else '' }}>Inter - Modern & Clean</option>
-                                    <option value="Roboto" {{ 'selected' if current_user.font_family == 'Roboto' else '' }}>Roboto - Google's Choice</option>
-                                    <option value="Open Sans" {{ 'selected' if current_user.font_family == 'Open Sans' else '' }}>Open Sans - Friendly</option>
-                                    <option value="Lato" {{ 'selected' if current_user.font_family == 'Lato' else '' }}>Lato - Elegant</option>
-                                    <option value="Poppins" {{ 'selected' if current_user.font_family == 'Poppins' else '' }}>Poppins - Rounded</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Font Size</label>
-                                <div class="range-input">
-                                    <input type="range" id="fontSize" min="12" max="24" value="{{ current_user.font_size or 16 }}" onchange="updatePreview()">
-                                    <div class="range-value">
-                                        <span id="fontSizeValue">{{ current_user.font_size or 16 }}px</span>
-                                    </div>
-                                </div>
-                                <small class="form-hint">Adjust text size for readability</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-th"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Layout Style</h3>
-                                <p>Choose your profile's visual structure</p>
-                            </div>
-                        </div>
-                        <div class="layout-options">
-                            <div class="layout-option" onclick="selectLayout('modern')">
-                                <div class="layout-preview modern-layout"></div>
-                                <div class="layout-info">
-                                    <span class="layout-name">Modern</span>
-                                    <span class="layout-desc">Clean, professional design</span>
-                                </div>
-                            </div>
-                            <div class="layout-option" onclick="selectLayout('minimal')">
-                                <div class="layout-preview minimal-layout"></div>
-                                <div class="layout-info">
-                                    <span class="layout-name">Minimal</span>
-                                    <span class="layout-desc">Simple, focused layout</span>
-                                </div>
-                            </div>
-                            <div class="layout-option" onclick="selectLayout('creative')">
-                                <div class="layout-preview creative-layout"></div>
-                                <div class="layout-info">
-                                    <span class="layout-name">Creative</span>
-                                    <span class="layout-desc">Bold, expressive style</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Content Tab -->
-                <div id="content-tab" class="tab-panel">
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-folder"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Content Management</h3>
-                                <p>Control what sections appear on your profile</p>
-                            </div>
-                        </div>
-                        <div class="checkbox-grid">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="showServices" checked onchange="updatePreview()">
-                                <div class="checkbox-content">
-                                    <span class="checkbox-title">Services</span>
-                                    <span class="checkbox-desc">Show your 1-on-1 sessions</span>
-                                </div>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="showContent" checked onchange="updatePreview()">
-                                <div class="checkbox-content">
-                                    <span class="checkbox-title">Premium Content</span>
-                                    <span class="checkbox-desc">Display your paid content</span>
-                                </div>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="showAbout" checked onchange="updatePreview()">
-                                <div class="checkbox-content">
-                                    <span class="checkbox-title">About</span>
-                                    <span class="checkbox-desc">Show professional details</span>
-                                </div>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="showSocial" checked onchange="updatePreview()">
-                                <div class="checkbox-content">
-                                    <span class="checkbox-title">Social Links</span>
-                                    <span class="checkbox-desc">Display social media links</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-video"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Services</h3>
-                                <p>Configure your consultation offerings</p>
-                            </div>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>Service Description</label>
-                                <textarea id="serviceDescription" rows="3" placeholder="Describe your 1-on-1 sessions..." onchange="updatePreview()">{{ current_user.service_description or '' }}</textarea>
-                                <small class="form-hint">Explain what clients can expect from your sessions</small>
-                            </div>
-                            <div class="form-group">
-                                <label>Session Duration (minutes)</label>
-                                <input type="number" id="sessionDuration" value="{{ current_user.session_duration or 30 }}" min="15" max="120" onchange="updatePreview()" placeholder="30">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-lock"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Premium Content</h3>
-                                <p>Describe your paid content offerings</p>
-                            </div>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>Content Description</label>
-                                <textarea id="contentDescription" rows="3" placeholder="Describe your premium content offerings..." onchange="updatePreview()">{{ current_user.content_description or '' }}</textarea>
-                                <small class="form-hint">What types of premium content do you offer?</small>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Content Categories</label>
-                                <input type="text" id="contentCategories" value="{{ current_user.content_categories or '' }}" placeholder="e.g., Courses, Videos, PDFs, Templates" onchange="updatePreview()">
-                                <small class="form-hint">Separate categories with commas</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Social Media Tab -->
-                <div id="social-tab" class="tab-panel">
+                    <!-- Social Media Section -->
                     <div class="section">
                         <div class="section-header">
                             <div class="section-icon">
@@ -461,44 +171,123 @@
                     </div>
                 </div>
 
-
-            </div>
-            </div>
-
-            <!-- Right Panel - Live Preview -->
-            <div class="preview-panel">
-                <div class="preview-header">
-                    <div class="preview-title">
-                        <h3>Live Preview</h3>
-                        <p>See how your profile looks to visitors</p>
-                    </div>
-                    <div class="preview-controls">
-                        <div class="preview-tabs">
-                            <button class="preview-tab active" onclick="switchPreview('desktop')">
-                                <i class="fas fa-desktop"></i>
-                                <span>Desktop</span>
-                            </button>
-                            <button class="preview-tab" onclick="switchPreview('mobile')">
-                                <i class="fas fa-mobile-alt"></i>
-                                <span>Mobile</span>
-                            </button>
+                <!-- Content Tab -->
+                <div id="content-tab" class="tab-panel">
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <div class="section-title">
+                                <h3>Services</h3>
+                                <p>Configure your consultation offerings</p>
+                            </div>
                         </div>
-                        <button class="preview-action" onclick="copyProfileLink()">
-                            <i class="fas fa-link"></i>
-                            <span>Copy Link</span>
-                        </button>
+                        <div class="form-group full-width">
+                            <label>Service Description</label>
+                            <textarea id="serviceDescription" rows="3" placeholder="Describe your 1-on-1 sessions..." onchange="updatePreview()">{{ current_user.service_description or '' }}</textarea>
+                            <small class="form-hint">Explain what clients can expect from your sessions</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Session Duration (minutes)</label>
+                            <input type="number" id="sessionDuration" value="{{ current_user.session_duration or 30 }}" min="15" max="120" onchange="updatePreview()" placeholder="30">
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="section-title">
+                                <h3>Premium Content</h3>
+                                <p>Describe your paid content offerings</p>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Content Description</label>
+                            <textarea id="contentDescription" rows="3" placeholder="Describe your premium content offerings..." onchange="updatePreview()">{{ current_user.content_description or '' }}</textarea>
+                            <small class="form-hint">What types of premium content do you offer?</small>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Content Categories</label>
+                            <input type="text" id="contentCategories" value="{{ current_user.content_categories or '' }}" placeholder="e.g., Courses, Videos, PDFs, Templates" onchange="updatePreview()">
+                            <small class="form-hint">Separate categories with commas</small>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="section-title">
+                                <h3>Settings</h3>
+                                <p>Control your profile visibility and preferences</p>
+                            </div>
+                        </div>
+                        <div class="checkbox-grid">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="isAvailable" {{ 'checked' if current_user.is_available else '' }} onchange="updatePreview()">
+                                <div class="checkbox-content">
+                                    <span class="checkbox-title">Available for Bookings</span>
+                                    <span class="checkbox-desc">Show that you're accepting new clients</span>
+                                </div>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="emailNotifications" {{ 'checked' if current_user.email_notifications else '' }} onchange="updatePreview()">
+                                <div class="checkbox-content">
+                                    <span class="checkbox-title">Email Notifications</span>
+                                    <span class="checkbox-desc">Receive booking and message notifications</span>
+                                </div>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="showServices" checked onchange="updatePreview()">
+                                <div class="checkbox-content">
+                                    <span class="checkbox-title">Show Services</span>
+                                    <span class="checkbox-desc">Display your 1-on-1 sessions</span>
+                                </div>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="showContent" checked onchange="updatePreview()">
+                                <div class="checkbox-content">
+                                    <span class="checkbox-title">Show Premium Content</span>
+                                    <span class="checkbox-desc">Display your paid content</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="preview-container">
-                    <div id="desktop-preview" class="preview-frame desktop-preview">
-                        <div class="profile-preview" id="profilePreview">
-                            <!-- Preview content will be dynamically generated -->
+                </div>
+
+                <!-- Live Preview Area -->
+                <div class="col-md-4">
+                    <div class="preview-section">
+                        <!-- Live Preview Header -->
+                        <div class="preview-header">
+                            <h4>Live Preview</h4>
+                            <div class="preview-controls">
+                                <button class="btn btn-outline-primary btn-sm active" onclick="switchPreview('desktop')">
+                                    <i class="fas fa-desktop"></i> Desktop
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="switchPreview('mobile')">
+                                    <i class="fas fa-mobile-alt"></i> Mobile
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div id="mobile-preview" class="preview-frame mobile-preview" style="display: none;">
-                        <div class="profile-preview mobile" id="profilePreviewMobile">
-                            <!-- Mobile preview content will be dynamically generated -->
+
+                        <!-- Live Preview Container -->
+                        <div class="preview-container">
+                            <div id="desktop-preview" class="preview-frame desktop-preview">
+                                <div class="profile-preview" id="profilePreview">
+                                    <!-- Preview content will be dynamically generated -->
+                                </div>
+                            </div>
+                            <div id="mobile-preview" class="preview-frame mobile-preview" style="display: none;">
+                                <div class="profile-preview mobile" id="profilePreviewMobile">
+                                    <!-- Mobile preview content will be dynamically generated -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -508,142 +297,55 @@
 </div>
 
 <style>
-.profile-editor-container {
-    min-height: 100vh;
+/* Profile Settings Sidebar */
+.profile-settings-sidebar {
     background: #1a1a1a;
-}
-
-.editor-header {
-    background: #2a2a2a;
-    color: white;
-    padding: 1.5rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #333;
+}
+
+.sidebar-title {
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 600;
     margin-bottom: 1rem;
-    border: 1px solid #3a3a3a;
+    text-align: center;
 }
 
-.header-content h1 {
-    margin: 0;
-    font-size: 2rem;
-    font-weight: 700;
-}
-
-.header-content p {
-    margin: 0.5rem 0 0 0;
-    opacity: 0.9;
-}
-
-.header-note {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    border-radius: 6px;
-    font-size: 0.875rem;
-    color: #10b981;
-}
-
-.header-note i {
-    font-size: 0.875rem;
-}
-
-.editor-layout {
+.settings-nav {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 2rem;
-    max-width: 1600px;
-    margin: 0 auto;
-    min-height: calc(100vh - 120px);
-    background: #1a1a1a;
-}
-
-/* Compact Tab Navigation */
-.tab-navigation {
-    display: flex;
     gap: 0.5rem;
-    background: #2a2a2a;
-    border-radius: 12px;
-    padding: 0.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-    border: 1px solid #404040;
-    overflow-x: auto;
 }
 
-.tab-btn {
+.settings-nav-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    border: none;
-    background: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
     color: #cccccc;
-    white-space: nowrap;
-    min-width: fit-content;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
-.tab-btn:hover {
-    background: #404040;
+.settings-nav-item:hover {
+    background: #2a2a2a;
     color: #ffffff;
 }
 
-.tab-btn.active {
+.settings-nav-item.active {
     background: #10b981;
-    color: white;
-    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+    color: #ffffff;
 }
 
-.tab-btn i {
+.settings-nav-item i {
     font-size: 1rem;
-}
-
-/* Two Panel Layout */
-.panels-container {
-    display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 2rem;
-    height: calc(100vh - 200px);
-    min-height: 600px;
-}
-
-/* Form Panel */
-.form-panel {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Preview Panel */
-.preview-panel {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Tab Content */
-.tab-content {
-    padding: 2rem;
-    flex: 1;
-    overflow-y: auto;
+    width: 16px;
 }
 
 /* Preview Header */
@@ -651,9 +353,237 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #333;
+}
+
+.preview-header h4 {
+    color: #ffffff;
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.preview-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.preview-controls .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.preview-controls .btn.active {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
+}
+
+/* Tab Content */
+.tab-content {
+    background: #1a1a1a;
+    border-radius: 12px;
     padding: 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
-    background: #f8fafc;
+    margin-bottom: 2rem;
+    border: 1px solid #333;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.section {
+    margin-bottom: 2rem;
+}
+
+.section:last-child {
+    margin-bottom: 0;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-icon {
+    width: 40px;
+    height: 40px;
+    background: #2a2a2a;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #10b981;
+    font-size: 1.125rem;
+}
+
+.section-title h3 {
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+}
+
+.section-title p {
+    color: #cccccc;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Form Styling */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    color: #ffffff;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    background: #2a2a2a;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #10b981;
+}
+
+.form-hint {
+    color: #9ca3af;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+/* Preview Section */
+.preview-section {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+}
+
+/* Preview Container */
+.preview-container {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #333;
+}
+
+.preview-frame {
+    width: 100%;
+    border: 1px solid #404040;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+}
+
+.desktop-preview {
+    min-height: 400px;
+}
+
+.mobile-preview {
+    max-width: 375px;
+    margin: 0 auto;
+    min-height: 500px;
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+    .col-md-3 {
+        margin-bottom: 1rem;
+    }
+    
+    .profile-settings-sidebar {
+        margin-bottom: 1rem;
+    }
+    
+    .col-md-8, .col-md-4 {
+        width: 100%;
+        margin-bottom: 2rem;
+    }
+    
+    .preview-section {
+        position: static;
+    }
+    
+    .preview-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .preview-controls {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .image-upload-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tab-content {
+        padding: 1rem;
+    }
+    
+    .preview-container {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tab-content {
+        padding: 0.75rem;
+    }
+    
+    .preview-container {
+        padding: 0.75rem;
+    }
+    
+    .preview-controls .btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
 }
 
 .preview-title h3 {
@@ -1071,39 +1001,37 @@
     font-size: 1rem;
 }
 
-@media (max-width: 1200px) {
-    .panels-container {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-        height: auto;
-    }
-    
-    .form-panel {
-        order: 2;
-    }
-    
-    .preview-panel {
-        order: 1;
-    }
-    
-    .editor-layout {
-        padding: 1rem;
-    }
-}
-
+/* Mobile Responsive Design */
 @media (max-width: 768px) {
     .editor-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar-nav {
+        display: none;
+    }
+    
+    .main-content {
+        width: 100%;
+    }
+    
+    .preview-header-compact {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .preview-controls {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .tab-content {
         padding: 1rem;
     }
     
-    .tab-navigation {
-        flex-wrap: wrap;
-        gap: 0.25rem;
-    }
-    
-    .tab-btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
+    .preview-container-compact {
+        padding: 1rem;
     }
     
     .form-grid {
@@ -1113,27 +1041,29 @@
     .image-upload-grid {
         grid-template-columns: 1fr;
     }
-    
-    .layout-options {
-        grid-template-columns: 1fr;
+}
+
+@media (max-width: 480px) {
+    .tab-content {
+        padding: 0.75rem;
     }
     
-    .preview-header {
-        flex-direction: column;
-        gap: 1rem;
+    .preview-container-compact {
+        padding: 0.75rem;
     }
     
-    .preview-controls {
-        width: 100%;
-        justify-content: center;
+    .preview-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
     }
 }
 </style>
 
 <script>
-let currentTab = 'images';
+let currentTab = 'basic';
 let currentPreview = 'desktop';
 let profileData = {};
+let autoSaveTimeout;
 
 // Initialize profile data
 function initializeProfileData() {
@@ -1164,17 +1094,21 @@ function initializeProfileData() {
         showServices: document.getElementById('showServices')?.checked || true,
         showContent: document.getElementById('showContent')?.checked || true,
         showAbout: document.getElementById('showAbout')?.checked || true,
-        showSocial: document.getElementById('showSocial')?.checked || true
+        showSocial: document.getElementById('showSocial')?.checked || true,
+        serviceDescription: document.getElementById('serviceDescription')?.value || '{{ current_user.service_description or "" }}',
+        sessionDuration: document.getElementById('sessionDuration')?.value || '{{ current_user.session_duration or 30 }}',
+        contentDescription: document.getElementById('contentDescription')?.value || '{{ current_user.content_description or "" }}',
+        contentCategories: document.getElementById('contentCategories')?.value || '{{ current_user.content_categories or "" }}'
     };
 }
 
 // Tab switching
 function switchTab(tabName) {
-    // Update tab buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    const clickedBtn = event.target.closest('.tab-btn');
-    if (clickedBtn) {
-        clickedBtn.classList.add('active');
+    // Update nav items
+    document.querySelectorAll('.settings-nav-item').forEach(item => item.classList.remove('active'));
+    const clickedItem = event.target.closest('.settings-nav-item');
+    if (clickedItem) {
+        clickedItem.classList.add('active');
     }
     
     // Update tab panels
@@ -1194,7 +1128,7 @@ function switchTab(tabName) {
 
 // Preview switching
 function switchPreview(previewType) {
-    document.querySelectorAll('.preview-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.preview-controls .btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
     
     document.getElementById('desktop-preview').style.display = previewType === 'desktop' ? 'block' : 'none';
@@ -1202,6 +1136,14 @@ function switchPreview(previewType) {
     
     currentPreview = previewType;
     updatePreview();
+}
+
+// Auto-save functionality
+function autoSave() {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+        saveProfile(true); // Silent save
+    }, 2000); // Save 2 seconds after last change
 }
 
 // Update preview
@@ -1224,13 +1166,16 @@ function updatePreview() {
     previewElement.style.fontFamily = profileData.fontFamily;
     previewElement.style.fontSize = profileData.fontSize + 'px';
     
+    // Trigger auto-save
+    autoSave();
+    
     // Re-render feather icons if they exist
     if (window.feather) {
         feather.replace();
     }
 }
 
-// Generate preview HTML
+// Generate preview HTML - matches real profile exactly
 function generatePreviewHTML() {
     const socialLinks = [];
     if (profileData.linkedinUrl) socialLinks.push({name: 'LinkedIn', url: profileData.linkedinUrl, icon: 'fab fa-linkedin'});
@@ -1241,118 +1186,130 @@ function generatePreviewHTML() {
     if (profileData.websiteUrl) socialLinks.push({name: 'Website', url: profileData.websiteUrl, icon: 'fas fa-globe'});
     
     return `
-        <div class="modern-profile-page" style="background: #ffffff; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-            <!-- Navigation -->
-            <div class="header-nav" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; margin-bottom: 2rem;">
-                <a href="#" class="nav-back" style="display: flex; align-items: center; gap: 0.5rem; color: #6b7280; text-decoration: none; font-size: 0.9rem;">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>Back to Discover</span>
-                </a>
-                <div class="nav-actions" style="display: flex; gap: 0.5rem;">
-                    <button class="action-btn" style="padding: 0.5rem; border: 1px solid #e5e7eb; background: #ffffff; border-radius: 6px; color: #6b7280; cursor: pointer;">
-                        <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="action-btn" style="padding: 0.5rem; border: 1px solid #e5e7eb; background: #ffffff; border-radius: 6px; color: #6b7280; cursor: pointer;">
-                        <i class="far fa-heart"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Main Content -->
-            <div class="profile-content">
-                <div class="content-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1200px; margin: 0 auto;">
-                    <!-- Left Column: About & Social -->
-                    <div class="content-left">
-                        <!-- Profile Image Section -->
-                        <div class="content-section" style="background: #ffffff; border: 1px solid #f3f4f6; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-                            <div class="profile-image-container" style="text-align: center; margin-bottom: 1.5rem;">
-                                <img src="${document.getElementById('profileImagePreview')?.src || '/static/img/default-avatar.svg'}" 
-                                     alt="Profile" 
-                                     style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #f3f4f6;">
+        <div class="container-fluid" style="background: ${profileData.backgroundColor || '#f7faff'}; min-height: 100vh;">
+            <div class="row">
+                <div class="col-12">
+                    <!-- Profile Header -->
+                    <div class="profile-header" style="background: linear-gradient(135deg, ${profileData.primaryColor || '#667eea'} 0%, ${profileData.secondaryColor || '#764ba2'} 100%); color: white; padding: 1.5rem 1rem; margin-bottom: 1.5rem; border-radius: 0.5rem;">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <div class="profile-avatar text-center">
+                                    <img src="${document.getElementById('profileImagePreview')?.src || '/static/img/default-avatar.svg'}" 
+                                         alt="Profile Picture" 
+                                         class="rounded-circle mb-3 profile-avatar-img" 
+                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                </div>
                             </div>
-                            
-                            <div class="profile-name-section" style="text-align: center;">
-                                <h1 style="font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem 0; color: #1a1a1a;">${profileData.fullName || 'Your Name'}</h1>
-                                ${profileData.profession ? `<p style="font-size: 1.1rem; color: #6b7280; margin: 0 0 0.5rem 0;">${profileData.profession}</p>` : ''}
-                                ${profileData.location ? `<p style="color: #9ca3af; margin: 0 0 1rem 0; font-size: 0.9rem;">
-                                    <i class="fas fa-map-marker-alt" style="margin-right: 0.25rem;"></i>
-                                    ${profileData.location}
-                                </p>` : ''}
-                                
-                                <!-- Social Media Icons -->
-                                <div class="profile-social-icons" style="display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap;">
-                                    ${socialLinks.map(link => `
-                                        <a href="${link.url}" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #f1f5f9; border: 1px solid #e5e7eb; border-radius: 6px; color: #6b7280; text-decoration: none; transition: all 0.2s;">
-                                            <i class="${link.icon}"></i>
-                                        </a>
-                                    `).join('')}
+                            <div class="col-md-9">
+                                <div class="profile-info">
+                                    <h1 class="profile-name" style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.3;">${profileData.fullName || 'Your Name'}</h1>
+                                    <p class="profile-title" style="font-size: 1rem; opacity: 0.9; margin-bottom: 0.5rem;">${profileData.profession || 'Professional'}</p>
+                                    <p class="profile-location" style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem;">
+                                        <i class="fas fa-map-marker-alt me-2"></i>${profileData.location || 'Location not specified'}
+                                    </p>
+                                    
+                                    ${profileData.bio ? `
+                                    <div class="profile-bio" style="margin-bottom: 1rem; font-size: 0.95rem; line-height: 1.5;">
+                                        <p>${profileData.bio}</p>
+                                    </div>
+                                    ` : ''}
+                                    
+                                    <div class="profile-stats" style="margin-top: 1rem;">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="stat-item" style="text-align: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.1); border-radius: 0.5rem; margin-bottom: 0.75rem;">
+                                                    <h5 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">4.8</h5>
+                                                    <small style="opacity: 0.8;">Rating</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="stat-item" style="text-align: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.1); border-radius: 0.5rem; margin-bottom: 0.75rem;">
+                                                    <h5 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">24</h5>
+                                                    <small style="opacity: 0.8;">Reviews</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="stat-item" style="text-align: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.1); border-radius: 0.5rem; margin-bottom: 0.75rem;">
+                                                    <h5 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">$${profileData.hourlyRate || 0}</h5>
+                                                    <small style="opacity: 0.8;">Per Session</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="stat-item" style="text-align: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.1); border-radius: 0.5rem; margin-bottom: 0.75rem;">
+                                                    <h5 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">12</h5>
+                                                    <small style="opacity: 0.8;">Content Items</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- About Section -->
-                        ${profileData.bio ? `
-                        <div class="content-section" style="background: #ffffff; border: 1px solid #f3f4f6; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-                            <h2 style="font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem 0; color: #1a1a1a;">About Me</h2>
-                            <div class="bio-content">
-                                <p style="color: #6b7280; line-height: 1.6; margin: 0;">${profileData.bio}</p>
-                            </div>
-                        </div>
-                        ` : ''}
-                        
-                        <!-- Expertise Section -->
-                        ${profileData.expertiseTags ? `
-                        <div class="content-section" style="background: #ffffff; border: 1px solid #f3f4f6; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-                            <h2 style="font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem 0; color: #1a1a1a;">Expertise</h2>
-                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                                ${profileData.expertiseTags.split(',').map(tag => `
-                                    <span style="background: #f1f5f9; color: #6b7280; padding: 0.25rem 0.75rem; border-radius: 8px; font-size: 0.875rem; border: 1px solid #e5e7eb;">${tag.trim()}</span>
-                                `).join('')}
-                            </div>
-                        </div>
-                        ` : ''}
                     </div>
-                    
-                    <!-- Right Column: Services & Pricing -->
-                    <div class="content-right">
-                        <!-- Services Section -->
-                        <div class="content-section" style="background: #ffffff; border: 1px solid #f3f4f6; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-                            <h2 style="font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem 0; color: #1a1a1a;">Services</h2>
-                            <div class="service-card" style="background: #f1f5f9; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem;">
-                                <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem 0; color: #1a1a1a;">1-on-1 Consultation</h3>
-                                <p style="color: #6b7280; margin: 0 0 1rem 0; font-size: 0.9rem;">Personalized session to help you achieve your goals</p>
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-size: 1.25rem; font-weight: 700; color: #1a1a1a;">$${profileData.hourlyRate || 0}/hour</span>
-                                    <button style="background: #10b981; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s;">Book Session</button>
+
+                    <!-- Navigation Tabs -->
+                    <div class="profile-nav" style="margin-bottom: 1.5rem;">
+                        <ul class="nav nav-tabs" id="profileTabs" role="tablist" style="border-bottom: 2px solid #e5e7eb;">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" style="border: none; color: ${profileData.primaryColor || '#667eea'}; font-weight: 500; padding: 0.75rem 1rem; border-radius: 0.5rem 0.5rem 0 0; margin-right: 0.5rem; background: #f8fafc; border-bottom: 2px solid ${profileData.primaryColor || '#667eea'};">
+                                    <i class="fas fa-video me-2"></i>Services
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" style="border: none; color: #6b7280; font-weight: 500; padding: 0.75rem 1rem; border-radius: 0.5rem 0.5rem 0 0; margin-right: 0.5rem;">
+                                    <i class="fas fa-lock me-2"></i>Premium Content
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" style="border: none; color: #6b7280; font-weight: 500; padding: 0.75rem 1rem; border-radius: 0.5rem 0.5rem 0 0; margin-right: 0.5rem;">
+                                    <i class="fas fa-user me-2"></i>About
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="profileTabContent">
+                        <!-- Services Tab -->
+                        <div class="tab-pane fade show active" id="services" role="tabpanel">
+                            <div class="card" style="background: #fff; border: 1px solid #dee2e6; border-radius: 0.5rem; padding: 1rem; transition: transform 0.2s ease, box-shadow 0.2s ease; height: 100%; margin-bottom: 1rem;">
+                                <div class="card-body">
+                                    <h5 class="card-title">1-on-1 Sessions</h5>
+                                    <p class="card-text">Book a personal session with ${profileData.fullName || 'Your Name'}</p>
+                                    
+                                    <div class="service-details">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>Session Details</h6>
+                                                <ul class="list-unstyled">
+                                                    <li><i class="fas fa-clock me-2"></i>Duration: ${profileData.sessionDuration || 30} minutes</li>
+                                                    <li><i class="fas fa-dollar-sign me-2"></i>Price: $${profileData.hourlyRate || 0}</li>
+                                                    <li><i class="fas fa-video me-2"></i>Video call via platform</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>What You'll Get</h6>
+                                                <ul class="list-unstyled">
+                                                    <li><i class="fas fa-check me-2 text-success"></i>Personalized advice</li>
+                                                    <li><i class="fas fa-check me-2 text-success"></i>Direct interaction</li>
+                                                    <li><i class="fas fa-check me-2 text-success"></i>Follow-up resources</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center mt-4">
+                                        ${profileData.isAvailable ? `
+                                            <button class="btn btn-primary btn-lg" style="background: ${profileData.primaryColor || '#667eea'}; border-color: ${profileData.primaryColor || '#667eea'};">
+                                                <i class="fas fa-calendar-plus me-2"></i>Book a Session
+                                            </button>
+                                        ` : `
+                                            <button class="btn btn-secondary btn-lg" disabled>
+                                                <i class="fas fa-pause me-2"></i>Currently Unavailable
+                                            </button>
+                                        `}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Availability Status -->
-                        <div class="content-section" style="background: #ffffff; border: 1px solid #f3f4f6; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-                            <h2 style="font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem 0; color: #1a1a1a;">Availability</h2>
-                            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${profileData.isAvailable ? '#10b981' : '#ef4444'};"></div>
-                                <span style="color: #6b7280; font-weight: 500;">${profileData.isAvailable ? 'Available for bookings' : 'Currently unavailable'}</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Industry & Location -->
-                        <div class="content-section" style="background: #ffffff; border: 1px solid #f3f4f6; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-                            <h2 style="font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem 0; color: #1a1a1a;">Details</h2>
-                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                ${profileData.industry ? `
-                                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                    <i class="fas fa-briefcase" style="color: #9ca3af; width: 16px;"></i>
-                                    <span style="color: #6b7280;">${profileData.industry}</span>
-                                </div>
-                                ` : ''}
-                                ${profileData.location ? `
-                                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                    <i class="fas fa-map-marker-alt" style="color: #9ca3af; width: 16px;"></i>
-                                    <span style="color: #6b7280;">${profileData.location}</span>
-                                </div>
-                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -1422,7 +1379,7 @@ document.getElementById('fontSize').addEventListener('input', function() {
 });
 
 // Save profile
-function saveProfile() {
+function saveProfile(silent = false) {
     initializeProfileData();
     
     const formData = new FormData();
@@ -1460,11 +1417,16 @@ function saveProfile() {
         formData.append('background_image', backgroundImage.files[0]);
     }
     
-    // Show loading state
-    const saveBtn = document.querySelector('.btn-primary');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Saving...</span>';
-    saveBtn.disabled = true;
+    // Show loading state only if not silent
+    let saveBtn, originalText;
+    if (!silent) {
+        saveBtn = document.querySelector('.btn-primary');
+        if (saveBtn) {
+            originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Saving...</span>';
+            saveBtn.disabled = true;
+        }
+    }
     
     fetch('/api/profile/update', {
         method: 'POST',
@@ -1478,25 +1440,35 @@ function saveProfile() {
     })
     .then(data => {
         if (data.success) {
-            // Show success message
-            saveBtn.innerHTML = '<i class="fas fa-check"></i><span>Saved!</span>';
-            saveBtn.style.background = '#10b981';
-            setTimeout(() => {
-                saveBtn.innerHTML = originalText;
-                saveBtn.style.background = '';
-                saveBtn.disabled = false;
-            }, 2000);
+            if (!silent && saveBtn) {
+                // Show success message
+                saveBtn.innerHTML = '<i class="fas fa-check"></i><span>Saved!</span>';
+                saveBtn.style.background = '#10b981';
+                setTimeout(() => {
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.style.background = '';
+                    saveBtn.disabled = false;
+                }, 2000);
+            }
         } else {
-            alert('Failed to update profile: ' + (data.message || data.error || 'Unknown error'));
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
+            if (!silent) {
+                alert('Failed to update profile: ' + (data.message || data.error || 'Unknown error'));
+                if (saveBtn) {
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                }
+            }
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Failed to update profile: ' + error.message);
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
+        if (!silent) {
+            alert('Failed to update profile: ' + error.message);
+            if (saveBtn) {
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            }
+        }
     });
 }
 

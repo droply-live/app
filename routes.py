@@ -4,7 +4,7 @@ from sqlalchemy import or_, and_, case, func
 from app import app
 from extensions import db
 from models import User, AvailabilityRule, AvailabilityException, Booking, Payout, Favorite, UserInteraction, Content, ContentPurchase
-from forms import RegistrationForm, LoginForm, SearchForm, OnboardingForm, ProfileForm, TimeSlotForm, BookingForm
+from forms import RegistrationForm, SearchForm, OnboardingForm, ProfileForm, TimeSlotForm, BookingForm
 # Removed unused imports: utils and keyword_mappings
 import json
 # import faiss  # Temporarily disabled
@@ -142,12 +142,27 @@ def setup_availability_for_user(username):
 def get_connected_calendar():
     """Get information about the user's connected Google Calendar"""
     try:
-        if not current_user.google_calendar_connected or not current_user.google_calendar_id:
+        print(f"DEBUG: Checking calendar connection for user {current_user.id}")
+        print(f"DEBUG: google_calendar_connected: {current_user.google_calendar_connected}")
+        print(f"DEBUG: google_calendar_id: {current_user.google_calendar_id}")
+        print(f"DEBUG: has_token: {bool(current_user.google_calendar_token)}")
+        print(f"DEBUG: has_refresh_token: {bool(current_user.google_calendar_refresh_token)}")
+        
+        # Check if user has calendar connection set up
+        if not current_user.google_calendar_connected:
             return jsonify({'connected': False, 'message': 'No calendar connected'})
+        
+        if not current_user.google_calendar_id:
+            return jsonify({'connected': False, 'message': 'No calendar ID found'})
+        
+        if not current_user.google_calendar_token:
+            print("DEBUG: No Google Calendar token found")
+            return jsonify({'connected': False, 'message': 'No calendar token found'})
         
         # Get calendar name from Google Calendar API
         from googleapiclient.discovery import build
         from google.oauth2.credentials import Credentials
+        from google.auth.exceptions import RefreshError
         
         # Create credentials object
         credentials = Credentials(
@@ -158,8 +173,13 @@ def get_connected_calendar():
             client_secret=app.config['GOOGLE_CLIENT_SECRET']
         )
         
+        print("DEBUG: Building calendar service...")
         service = build('calendar', 'v3', credentials=credentials)
+        
+        print(f"DEBUG: Getting calendar info for ID: {current_user.google_calendar_id}")
         calendar = service.calendars().get(calendarId=current_user.google_calendar_id).execute()
+        
+        print(f"DEBUG: Successfully retrieved calendar: {calendar.get('summary', 'Unknown')}")
         
         return jsonify({
             'connected': True,
@@ -168,9 +188,29 @@ def get_connected_calendar():
             'calendar_email': calendar.get('id', '')
         })
         
+    except RefreshError as e:
+        print(f"ERROR: Token refresh failed: {e}")
+        # Mark calendar as disconnected due to invalid tokens
+        current_user.google_calendar_connected = False
+        db.session.commit()
+        return jsonify({'connected': False, 'message': 'Calendar access expired. Please reconnect.'})
+        
     except Exception as e:
-        print(f"Error getting connected calendar info: {e}")
-        return jsonify({'connected': False, 'error': str(e)}), 500
+        print(f"ERROR: Failed to get connected calendar info: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Check if it's a specific Google API error
+        error_message = str(e)
+        if 'invalid_grant' in error_message:
+            # Token is invalid, mark as disconnected
+            current_user.google_calendar_connected = False
+            db.session.commit()
+            return jsonify({'connected': False, 'message': 'Calendar access expired. Please reconnect.'})
+        elif 'insufficient authentication' in error_message:
+            return jsonify({'connected': False, 'message': 'Calendar permissions required. Please reconnect.'})
+        else:
+            return jsonify({'connected': False, 'error': 'Unable to access calendar. Please try reconnecting.'})
 
 def convert_to_local_time(dt, user_timezone='America/New_York'):
     """Convert timezone-naive datetime to user's local timezone"""
@@ -455,6 +495,119 @@ def validate_stripe_environment():
 #     model = None
 model = None  # Temporarily disabled
 
+def is_sequential_match(query, text):
+    """Check if query letters appear in sequence in text"""
+    if not query:
+        return True
+    
+    # Remove spaces and convert to lowercase for matching
+    text_clean = text.replace(' ', '').lower()
+    query_lower = query.lower()
+    
+    # Simple approach: check if query is a substring
+    return query_lower in text_clean
+
+@app.route('/api/search-suggestions')
+def search_suggestions():
+    """API endpoint for smart search suggestions - only real people"""
+    query = request.args.get('q', '').strip()
+    if not query or len(query) < 1:
+        return jsonify([])
+    
+    # Get all available users first
+    all_users = User.query.filter(
+        and_(
+            User.full_name.isnot(None),
+            User.is_available == True
+        )
+    ).all()
+    
+    # Filter users based on sequential letter matching
+    matching_users = []
+    query_lower = query.lower()
+    
+    for user in all_users:
+        name_lower = user.full_name.lower()
+        
+        # Check if the query letters appear in sequence in the name
+        if is_sequential_match(query_lower, name_lower):
+            matching_users.append(user)
+    
+    # Sort by relevance (exact start match first, then contains)
+    def sort_key(user):
+        name_lower = user.full_name.lower()
+        if name_lower.startswith(query_lower):
+            return (0, name_lower)  # Exact start match
+        else:
+            return (1, name_lower)  # Contains match
+    
+    matching_users.sort(key=sort_key)
+    users = matching_users[:6]
+    
+    suggestions = []
+    for user in users:
+        # Build person info
+        person_info = []
+        if user.profession:
+            person_info.append(user.profession)
+        if user.location:
+            person_info.append(user.location)
+        if user.hourly_rate and user.hourly_rate > 0:
+            person_info.append(f"${user.hourly_rate:.0f}/hr")
+        
+        subtitle = " • ".join(person_info) if person_info else "Available Expert"
+        
+        # Determine category and icon
+        profession_lower = (user.profession or '').lower()
+        category = 'person'
+        icon = '👤'
+        
+        if any(word in profession_lower for word in ['trainer', 'fitness', 'coach', 'personal trainer', 'yoga', 'pilates']):
+            category = 'fitness'
+            icon = '💪'
+        elif any(word in profession_lower for word in ['marketing', 'digital marketing', 'social media', 'seo', 'advertising']):
+            category = 'marketing'
+            icon = '📈'
+        elif any(word in profession_lower for word in ['designer', 'design', 'graphic', 'ui', 'ux', 'creative']):
+            category = 'design'
+            icon = '🎨'
+        elif any(word in profession_lower for word in ['developer', 'engineer', 'programmer', 'software', 'tech', 'coding']):
+            category = 'tech'
+            icon = '💻'
+        elif any(word in profession_lower for word in ['consultant', 'advisor', 'business', 'strategy']):
+            category = 'business'
+            icon = '💼'
+        elif any(word in profession_lower for word in ['writer', 'content', 'blogger', 'journalist', 'author']):
+            category = 'writing'
+            icon = '✍️'
+        elif any(word in profession_lower for word in ['teacher', 'educator', 'instructor', 'tutor', 'mentor']):
+            category = 'education'
+            icon = '📚'
+        elif any(word in profession_lower for word in ['doctor', 'nurse', 'therapist', 'health', 'medical']):
+            category = 'health'
+            icon = '🏥'
+        elif any(word in profession_lower for word in ['photographer', 'videographer', 'filmmaker', 'camera']):
+            category = 'media'
+            icon = '📸'
+        elif any(word in profession_lower for word in ['chef', 'cook', 'culinary', 'food']):
+            category = 'culinary'
+            icon = '👨‍🍳'
+        
+        suggestions.append({
+            'text': user.full_name,
+            'type': category,
+            'subtitle': subtitle,
+            'value': user.full_name,
+            'profession': user.profession or 'Expert',
+            'location': user.location or 'Remote',
+            'rate': f"${user.hourly_rate:.0f}/hr" if user.hourly_rate and user.hourly_rate > 0 else None,
+            'rating': user.rating if user.rating > 0 else None,
+            'icon': icon,
+            'category': category
+        })
+    
+    return jsonify(suggestions)
+
 @app.route('/')
 def homepage():
     # Get search query and filters
@@ -666,30 +819,61 @@ def onboarding():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """User login"""
-    form = LoginForm()
-    
-    # Clear any existing flash messages on GET request (when just visiting the page)
-    if request.method == 'GET':
-        # Clear flash messages from session to prevent showing old messages
-        if '_flashes' in session:
-            del session['_flashes']
-    
-    if form.validate_on_submit():
-        # Try to find user by email first, then by username
-        user = User.query.filter_by(email=form.email_or_username.data).first()
-        if not user:
-            user = User.query.filter_by(username=form.email_or_username.data).first()
+    """User login - handles both modal form and direct access"""
+    if request.method == 'POST':
+        # Handle form submission from modal
+        email = request.form.get('email')
+        password = request.form.get('password')
+        password_confirm = request.form.get('passwordConfirm')
         
-        if user and user.check_password(form.password.data):
-            login_user(user)
-            next_page = request.args.get('next')
-            flash('Login successful!', 'success')
-            return redirect(next_page) if next_page else redirect(url_for('dashboard'))
+        # Check if this is a signup (has password confirmation)
+        if password_confirm:
+            # Handle signup
+            if password != password_confirm:
+                flash('Passwords do not match.', 'error')
+                return redirect(url_for('homepage'))
+            
+            # Check if user already exists
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user:
+                flash('User with this email already exists.', 'error')
+                return redirect(url_for('homepage'))
+            
+            # Create new user
+            try:
+                new_user = User(
+                    email=email,
+                    username=email.split('@')[0],  # Use email prefix as username
+                    full_name=''
+                )
+                new_user.set_password(password)
+                db.session.add(new_user)
+                db.session.commit()
+                
+                login_user(new_user)
+                flash('Account created successfully!', 'success')
+                return redirect(url_for('dashboard'))
+            except Exception as e:
+                db.session.rollback()
+                flash('Error creating account. Please try again.', 'error')
+                return redirect(url_for('homepage'))
         else:
-            flash('Invalid email/username or password.', 'error')
+            # Handle login
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                user = User.query.filter_by(username=email).first()
+            
+            if user and user.check_password(password):
+                login_user(user)
+                next_page = request.args.get('next')
+                flash('Login successful!', 'success')
+                return redirect(next_page) if next_page else redirect(url_for('dashboard'))
+            else:
+                flash('Invalid email/username or password.', 'error')
+                return redirect(url_for('homepage'))
     
-    return render_template('login.html', form=form)
+    # For GET requests, redirect to homepage (modal will handle login)
+    return redirect(url_for('homepage'))
 
 @app.route('/logout')
 @login_required
@@ -3217,6 +3401,101 @@ def api_availability_time_slots():
         print(f"Error getting time slots: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/availability/next-7-days', methods=['GET', 'POST'])
+@login_required
+def api_next_7_days():
+    """Get or update Next 7 Days availability"""
+    if request.method == 'GET':
+        try:
+            # Get the next 7 days starting from today
+            today = datetime.now().date()
+            next_7_days = []
+            
+            for i in range(7):
+                date = today + timedelta(days=i)
+                weekday = date.weekday()
+                
+                # Get typical availability for this weekday
+                rule = AvailabilityRule.query.filter_by(
+                    user_id=current_user.id, 
+                    weekday=weekday, 
+                    enabled=True
+                ).first()
+                
+                day_data = {
+                    'date': date.isoformat(),
+                    'weekday': weekday,
+                    'day_name': date.strftime('%A'),
+                    'typical_availability': {
+                        'start': rule.start if rule else '09:00',
+                        'end': rule.end if rule else '17:00',
+                        'enabled': rule.enabled if rule else False
+                    },
+                    'exceptions': [],
+                    'removed_slots': []
+                }
+                
+                # Get exceptions for this specific date
+                exceptions = AvailabilityException.query.filter_by(
+                    user_id=current_user.id,
+                    date=date
+                ).all()
+                
+                for exception in exceptions:
+                    day_data['exceptions'].append({
+                        'id': exception.id,
+                        'start': exception.start,
+                        'end': exception.end,
+                        'type': exception.exception_type
+                    })
+                
+                next_7_days.append(day_data)
+            
+            return jsonify({
+                'success': True,
+                'days': next_7_days
+            })
+            
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+            date_str = data.get('date')
+            removed_slots = data.get('removed_slots', [])
+            
+            if not date_str:
+                return jsonify({'success': False, 'error': 'Date required'}), 400
+            
+            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            
+            # Remove existing exceptions for this date
+            AvailabilityException.query.filter_by(
+                user_id=current_user.id,
+                date=target_date,
+                exception_type='removed_slot'
+            ).delete()
+            
+            # Add new removed slots as exceptions
+            for slot in removed_slots:
+                exception = AvailabilityException(
+                    user_id=current_user.id,
+                    date=target_date,
+                    start=slot['start'],
+                    end=slot['end'],
+                    exception_type='removed_slot'
+                )
+                db.session.add(exception)
+            
+            db.session.commit()
+            
+            return jsonify({'success': True})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/availability/calendar-events', methods=['GET'])
 @login_required
 def api_calendar_events():
@@ -4002,6 +4281,54 @@ def earnings():
                          chart_labels=chart_labels,
                          chart_data=chart_data)
 
+@app.route('/api/earnings-chart-data')
+@login_required
+def earnings_chart_data():
+    """API endpoint to get chart data for different time periods"""
+    period = request.args.get('period', '7d')
+    
+    payouts = Payout.query.filter_by(user_id=current_user.id, status='paid').all()
+    
+    if period == '7d':
+        days = 7
+        date_format = '%a'  # Day name
+    elif period == '30d':
+        days = 30
+        date_format = '%m/%d'  # Month/Day
+    elif period == '90d':
+        days = 90
+        date_format = '%m/%d'  # Month/Day
+    else:
+        days = 7
+        date_format = '%a'
+    
+    # Create earnings data for the specified period
+    earnings_data = {}
+    for i in range(days):
+        date = (datetime.now() - timedelta(days=i)).date()
+        earnings_data[date.strftime(date_format)] = 0
+    
+    # Populate with actual earnings data
+    for payout in payouts:
+        payout_date = payout.created_at.date()
+        if payout_date >= (datetime.now() - timedelta(days=days)).date():
+            date_key = payout_date.strftime(date_format)
+            if date_key in earnings_data:
+                earnings_data[date_key] += payout.amount / 100  # Convert to dollars
+    
+    # Convert to lists for JSON response
+    labels = list(earnings_data.keys())
+    data = list(earnings_data.values())
+    
+    # Reverse to show oldest to newest
+    labels.reverse()
+    data.reverse()
+    
+    return jsonify({
+        'labels': labels,
+        'data': data
+    })
+
 @app.route('/expert/payout-details')
 @login_required
 def expert_payout_details():
@@ -4722,3 +5049,13 @@ def privacy_policy():
 def terms_of_service():
     """Display the terms of service page"""
     return render_template('terms_of_service.html')
+
+@app.route('/dashboard/privacy-policy')
+def dashboard_privacy_policy():
+    """Display the privacy policy within the dashboard"""
+    return render_template('dashboard_privacy_policy.html')
+
+@app.route('/dashboard/terms-of-service')
+def dashboard_terms_of_service():
+    """Display the terms of service within the dashboard"""
+    return render_template('dashboard_terms_of_service.html')

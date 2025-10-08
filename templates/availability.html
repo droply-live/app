@@ -5,331 +5,359 @@
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/availability.css') }}">
 <style>
-  /* Ensure availability page has consistent dark background */
-  body, .main-content, .content-wrapper {
+  /* Ensure availability page has consistent dark background matching homepage */
+  body {
     background: #1f1f1f !important;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+  }
+  
+  .main-content, .content-wrapper {
+    background: #1f1f1f !important;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
   }
   
   .availability-container {
     background: #1f1f1f !important;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+  }
+
+  /* Calendar section improvements */
+
+  .calendar-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.2s ease;
+    color: white;
+  }
+
+  .calendar-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .calendar-item .calendar-name {
+    color: white !important;
+  }
+
+  .calendar-item .fab.fa-google {
+    color: white !important;
+  }
+
+  .calendar-item span {
+    color: white !important;
+  }
+
+  .calendar-item * {
+    color: white !important;
+  }
+
+  .calendar-actions .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .calendar-actions .btn:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Google-style button */
+  .google-btn {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.8rem !important;
+    min-width: auto !important;
+    background-color: white !important;
+    color: #5f6368 !important;
+    border: 1px solid #dadce0 !important;
+    border-radius: 4px !important;
+    font-family: 'Google Sans', Roboto, Arial, sans-serif !important;
+    font-weight: 500 !important;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15) !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    text-decoration: none !important;
+  }
+
+  .google-btn:hover {
+    background-color: #f8f9fa !important;
+    color: #3c4043 !important;
+    border-color: #dadce0 !important;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15) !important;
+  }
+
+  .google-btn:focus {
+    outline: none !important;
+    border-color: #1a73e8 !important;
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2) !important;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="availability-container">
-  <!-- Mobile Header -->
-  <div class="mobile-header">
-    <div class="header-content">
-      <h1 class="page-title">
-        <i class="fas fa-calendar-alt"></i>
-        Availability
-      </h1>
-      <div class="header-actions">
-        <button class="action-btn" id="refreshBtn" title="Refresh">
-          <i class="fas fa-sync-alt"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Summary Cards -->
-  <div class="summary-grid">
-    <div class="summary-card timezone-card">
-      <div class="card-header">
-        <div class="card-icon">
-          <i class="fas fa-globe"></i>
-        </div>
-        <div class="card-title">Timezone</div>
-      </div>
-      <div class="card-body">
-        <div class="mb-4">
-          <label for="timezone-select" class="form-label fw-bold">Your Timezone</label>
-          <select id="timezone-select" class="form-select form-select-lg" style="width: 100%; max-width: 100%;">
-            <option value="">Select your timezone...</option>
-            <!-- Timezone options will be populated by JavaScript -->
-          </select>
-          <div class="form-text">
-            <small class="text-muted">
-              <i class="fas fa-info-circle me-1"></i>
-              Your availability will be automatically converted to each client's timezone.
-            </small>
-          </div>
-        </div>
-      </div>
+  <!-- Vertical Tab Navigation -->
+  <div class="availability-tabs">
+    <div class="tab-navigation">
+      <button class="tab-button active" data-tab="next-7-days">
+        <i class="fas fa-calendar-week"></i>
+        <span>Next 7 Days</span>
+      </button>
+      <button class="tab-button" data-tab="typical-availability">
+        <i class="fas fa-clock"></i>
+        <span>Typical Availability</span>
+      </button>
+      <button class="tab-button" data-tab="settings">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+      </button>
     </div>
 
-    <div class="summary-card calendar-card">
-      <div class="card-header">
-        <div class="card-icon">
-          <i class="fas fa-calendar-alt"></i>
-        </div>
-        <div class="card-title">Calendar</div>
-      </div>
-      <div class="card-body">
-        <div class="mb-3">
-          <label class="form-label fw-bold">Connected Calendars</label>
-          <div class="d-flex align-items-center mb-2">
-            <span id="calendar-status-indicator" class="status-indicator disconnected"></span>
-            <span id="calendar-status-text" class="fw-bold">Not Connected</span>
-          </div>
-          <div id="connected-calendars" class="mb-3" style="display: none;">
-            <div class="calendar-list">
-              <!-- Connected calendars will be populated here -->
-            </div>
-          </div>
-          <button id="connect-calendar-btn" class="btn btn-primary w-100 btn-lg">
-            <i class="fab fa-google"></i>
-            Connect Calendar
-          </button>
-        </div>
-
-        <div class="alert alert-light py-2">
-          <small class="text-muted">
-            <i class="fas fa-info-circle me-1"></i>
-            Connect multiple calendars to avoid conflicts with personal or work schedules.
-          </small>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Availability Section -->
-  <div class="availability-section">
-    <div class="section-header">
-      <h2>Working Hours</h2>
-    </div>
-    
-    <p class="text-muted mb-3">Set when you are typically available for meetings.</p>
-    
-    <!-- Clean Day List -->
-    <div class="weekly-hours-list">
-        <!-- Sunday -->
-        <div class="day-row inactive" data-day="sunday">
-            <div class="day-info">
-                <div class="day-info-left">
-                    <div class="day-circle">S</div>
-                    <span class="day-name">Sunday</span>
-                </div>
-                <div class="day-info-right">
-                    <!-- Desktop toggle (hidden on mobile) -->
-                    <div class="form-check form-switch d-none d-md-block">
-                        <input class="form-check-input day-toggle" type="checkbox" id="sunday-toggle">
-                        <label class="form-check-label" for="sunday-toggle">Available</label>
-                    </div>
-                    <!-- Mobile status indicator -->
-                    <div class="mobile-status d-md-none">
-                        <span class="status-text">Tap to activate</span>
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule" style="display: none;">
-                <div class="time-slot">
-                    <input type="time" class="time-input" id="sunday-start" value="09:00" style="width: 100%; max-width: 80px;">
-                    <span class="time-separator">-</span>
-                    <input type="time" class="time-input" id="sunday-end" value="17:00" style="width: 100%; max-width: 80px;">
-                </div>
-            </div>
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- Next 7 Days Tab -->
+      <div class="tab-panel active" id="next-7-days">
+        <div class="tab-header">
+          <h3>Next 7 Days Availability</h3>
+          <p class="text-muted">Manage your availability for the upcoming week and remove specific hours.</p>
         </div>
         
-        <!-- Monday -->
-        <div class="day-row active" data-day="monday">
-            <div class="day-info">
-                <div class="day-info-left">
-                    <div class="day-circle">M</div>
-                    <span class="day-name">Monday</span>
-                </div>
-                <div class="day-info-right">
-                    <!-- Desktop toggle (hidden on mobile) -->
-                    <div class="form-check form-switch d-none d-md-block">
-                        <input class="form-check-input day-toggle" type="checkbox" id="monday-toggle" checked>
-                        <label class="form-check-label" for="monday-toggle">Available</label>
-                    </div>
-                    <!-- Mobile status indicator -->
-                    <div class="mobile-status d-md-none">
-                        <span class="status-text active">Active</span>
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <div class="time-label d-md-none">Set your hours:</div>
-                <div class="time-slot">
-                    <input type="time" class="time-input" id="monday-start" value="09:00" style="width: 100%; max-width: 80px;">
-                    <span class="time-separator">-</span>
-                    <input type="time" class="time-input" id="monday-end" value="17:00" style="width: 100%; max-width: 80px;">
-                </div>
-            </div>
+        <div class="next-7-days-content">
+          <!-- Next 7 Days Grid -->
+          <div class="next-7-days-grid" id="next-7-days-grid">
+            <!-- Days will be populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Typical Availability Tab -->
+      <div class="tab-panel" id="typical-availability">
+        <div class="tab-header">
+          <h3>Typical Weekly Availability</h3>
+          <p class="text-muted">Set your recurring availability patterns for each day of the week.</p>
         </div>
         
-        <!-- Tuesday -->
-        <div class="day-row active" data-day="tuesday">
-            <div class="day-info">
-                <div class="day-info-left">
-                    <div class="day-circle">T</div>
-                    <span class="day-name">Tuesday</span>
+        <div class="typical-availability-content">
+          <!-- Weekly Hours List -->
+          <div class="weekly-hours-list">
+            <!-- Sunday -->
+            <div class="day-row inactive" data-day="sunday">
+              <div class="day-info">
+                <span class="day-name">Sunday</span>
+              </div>
+              <div class="day-schedule">
+                <div class="time-inputs-row">
+                  <div class="time-input-group">
+                    <label class="time-label">Start</label>
+                    <input type="time" class="time-input" id="sunday-start" value="09:00" disabled>
+                  </div>
+                  <div class="time-separator">to</div>
+                  <div class="time-input-group">
+                    <label class="time-label">End</label>
+                    <input type="time" class="time-input" id="sunday-end" value="17:00" disabled>
+                  </div>
                 </div>
-                <div class="day-info-right">
-                    <!-- Desktop toggle (hidden on mobile) -->
-                    <div class="form-check form-switch d-none d-md-block">
-                        <input class="form-check-input day-toggle" type="checkbox" id="tuesday-toggle" checked>
-                        <label class="form-check-label" for="tuesday-toggle">Available</label>
-                    </div>
-                    <!-- Mobile status indicator -->
-                    <div class="mobile-status d-md-none">
-                        <span class="status-text active">Active</span>
-                    </div>
-                </div>
+              </div>
             </div>
-            <div class="day-schedule">
-                <div class="time-label d-md-none">Set your hours:</div>
-                <div class="time-slot">
-                    <input type="time" class="time-input" id="tuesday-start" value="09:00" style="width: 100%; max-width: 80px;">
-                    <span class="time-separator">-</span>
-                    <input type="time" class="time-input" id="tuesday-end" value="17:00" style="width: 100%; max-width: 80px;">
+            
+            <!-- Monday -->
+            <div class="day-row active" data-day="monday">
+              <div class="day-info">
+                <span class="day-name">Monday</span>
+              </div>
+              <div class="day-schedule">
+                <div class="time-inputs-row">
+                  <div class="time-input-group">
+                    <label class="time-label">Start</label>
+                    <input type="time" class="time-input" id="monday-start" value="09:00">
+                  </div>
+                  <div class="time-separator">to</div>
+                  <div class="time-input-group">
+                    <label class="time-label">End</label>
+                    <input type="time" class="time-input" id="monday-end" value="17:00">
+                  </div>
                 </div>
+              </div>
             </div>
-        </div>
+            
+            <!-- Tuesday -->
+            <div class="day-row active" data-day="tuesday">
+              <div class="day-info">
+                <span class="day-name">Tuesday</span>
+              </div>
+              <div class="day-schedule">
+                <div class="time-inputs-row">
+                  <div class="time-input-group">
+                    <label class="time-label">Start</label>
+                    <input type="time" class="time-input" id="tuesday-start" value="09:00">
+                  </div>
+                  <div class="time-separator">to</div>
+                  <div class="time-input-group">
+                    <label class="time-label">End</label>
+                    <input type="time" class="time-input" id="tuesday-end" value="17:00">
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        <!-- Wednesday -->
-        <div class="day-row active" data-day="wednesday">
-            <div class="day-info">
-                <div class="day-info-left">
-                    <div class="day-circle">W</div>
-                    <span class="day-name">Wednesday</span>
+            <!-- Wednesday -->
+            <div class="day-row active" data-day="wednesday">
+              <div class="day-info">
+                <span class="day-name">Wednesday</span>
+              </div>
+              <div class="day-schedule">
+                <div class="time-inputs-row">
+                  <div class="time-input-group">
+                    <label class="time-label">Start</label>
+                    <input type="time" class="time-input" id="wednesday-start" value="09:00">
+                  </div>
+                  <div class="time-separator">to</div>
+                  <div class="time-input-group">
+                    <label class="time-label">End</label>
+                    <input type="time" class="time-input" id="wednesday-end" value="17:00">
+                  </div>
                 </div>
-                <div class="day-info-right">
-                    <!-- Desktop toggle (hidden on mobile) -->
-                    <div class="form-check form-switch d-none d-md-block">
-                        <input class="form-check-input day-toggle" type="checkbox" id="wednesday-toggle" checked>
-                        <label class="form-check-label" for="wednesday-toggle">Available</label>
-                    </div>
-                    <!-- Mobile status indicator -->
-                    <div class="mobile-status d-md-none">
-                        <span class="status-text active">Active</span>
-                    </div>
-                </div>
+              </div>
             </div>
-            <div class="day-schedule">
-                <div class="time-label d-md-none">Set your hours:</div>
-                <div class="time-slot">
-                    <input type="time" class="time-input" id="wednesday-start" value="09:00" style="width: 100%; max-width: 80px;">
-                    <span class="time-separator">-</span>
-                    <input type="time" class="time-input" id="wednesday-end" value="17:00" style="width: 100%; max-width: 80px;">
-                </div>
-            </div>
-        </div>
 
-        <!-- Thursday -->
-        <div class="day-row active" data-day="thursday">
-            <div class="day-info">
-                <div class="day-info-left">
-                    <div class="day-circle">T</div>
-                    <span class="day-name">Thursday</span>
+            <!-- Thursday -->
+            <div class="day-row active" data-day="thursday">
+              <div class="day-info">
+                <span class="day-name">Thursday</span>
+              </div>
+              <div class="day-schedule">
+                <div class="time-inputs-row">
+                  <div class="time-input-group">
+                    <label class="time-label">Start</label>
+                    <input type="time" class="time-input" id="thursday-start" value="09:00">
+                  </div>
+                  <div class="time-separator">to</div>
+                  <div class="time-input-group">
+                    <label class="time-label">End</label>
+                    <input type="time" class="time-input" id="thursday-end" value="17:00">
+                  </div>
                 </div>
-                <div class="day-info-right">
-                    <!-- Desktop toggle (hidden on mobile) -->
-                    <div class="form-check form-switch d-none d-md-block">
-                        <input class="form-check-input day-toggle" type="checkbox" id="thursday-toggle" checked>
-                        <label class="form-check-label" for="thursday-toggle">Available</label>
-                    </div>
-                    <!-- Mobile status indicator -->
-                    <div class="mobile-status d-md-none">
-                        <span class="status-text active">Active</span>
-                    </div>
-                </div>
+              </div>
             </div>
-            <div class="day-schedule">
-                <div class="time-label d-md-none">Set your hours:</div>
-                <div class="time-slot">
-                    <input type="time" class="time-input" id="thursday-start" value="09:00" style="width: 100%; max-width: 80px;">
-                    <span class="time-separator">-</span>
-                    <input type="time" class="time-input" id="thursday-end" value="17:00" style="width: 100%; max-width: 80px;">
-                </div>
-            </div>
-        </div>
 
-        <!-- Friday -->
-        <div class="day-row active" data-day="friday">
-            <div class="day-info">
-                <div class="day-info-left">
-                    <div class="day-circle">F</div>
-                    <span class="day-name">Friday</span>
+            <!-- Friday -->
+            <div class="day-row active" data-day="friday">
+              <div class="day-info">
+                <span class="day-name">Friday</span>
+              </div>
+              <div class="day-schedule">
+                <div class="time-inputs-row">
+                  <div class="time-input-group">
+                    <label class="time-label">Start</label>
+                    <input type="time" class="time-input" id="friday-start" value="09:00">
+                  </div>
+                  <div class="time-separator">to</div>
+                  <div class="time-input-group">
+                    <label class="time-label">End</label>
+                    <input type="time" class="time-input" id="friday-end" value="17:00">
+                  </div>
                 </div>
-                <div class="day-info-right">
-                    <!-- Desktop toggle (hidden on mobile) -->
-                    <div class="form-check form-switch d-none d-md-block">
-                        <input class="form-check-input day-toggle" type="checkbox" id="friday-toggle" checked>
-                        <label class="form-check-label" for="friday-toggle">Available</label>
-                    </div>
-                    <!-- Mobile status indicator -->
-                    <div class="mobile-status d-md-none">
-                        <span class="status-text active">Active</span>
-                    </div>
-                </div>
+              </div>
             </div>
-            <div class="day-schedule">
-                <div class="time-label d-md-none">Set your hours:</div>
-                <div class="time-slot">
-                    <input type="time" class="time-input" id="friday-start" value="09:00" style="width: 100%; max-width: 80px;">
-                    <span class="time-separator">-</span>
-                    <input type="time" class="time-input" id="friday-end" value="17:00" style="width: 100%; max-width: 80px;">
-                </div>
-            </div>
-        </div>
 
-        <!-- Saturday -->
-        <div class="day-row inactive" data-day="saturday">
-            <div class="day-info">
-                <div class="day-info-left">
-                    <div class="day-circle">S</div>
-                    <span class="day-name">Saturday</span>
+            <!-- Saturday -->
+            <div class="day-row inactive" data-day="saturday">
+              <div class="day-info">
+                <span class="day-name">Saturday</span>
+              </div>
+              <div class="day-schedule">
+                <div class="time-inputs-row">
+                  <div class="time-input-group">
+                    <label class="time-label">Start</label>
+                    <input type="time" class="time-input" id="saturday-start" value="09:00" disabled>
+                  </div>
+                  <div class="time-separator">to</div>
+                  <div class="time-input-group">
+                    <label class="time-label">End</label>
+                    <input type="time" class="time-input" id="saturday-end" value="17:00" disabled>
+                  </div>
                 </div>
-                <div class="day-info-right">
-                    <!-- Desktop toggle (hidden on mobile) -->
-                    <div class="form-check form-switch d-none d-md-block">
-                        <input class="form-check-input day-toggle" type="checkbox" id="saturday-toggle">
-                        <label class="form-check-label" for="saturday-toggle">Available</label>
-                    </div>
-                    <!-- Mobile status indicator -->
-                    <div class="mobile-status d-md-none">
-                        <span class="status-text">Tap to activate</span>
-                    </div>
-                </div>
+              </div>
             </div>
-            <div class="day-schedule" style="display: none;">
-                <div class="time-slot">
-                    <input type="time" class="time-input" id="saturday-start" value="09:00" style="width: 100%; max-width: 80px;">
-                    <span class="time-separator">-</span>
-                    <input type="time" class="time-input" id="saturday-end" value="17:00" style="width: 100%; max-width: 80px;">
-                </div>
-            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div class="tab-panel" id="settings">
+        <div class="tab-header">
+          <h3>Settings</h3>
+          <p class="text-muted">Configure your timezone and calendar integration settings.</p>
+        </div>
+        
+        <div class="settings-content">
+          <!-- Timezone Settings -->
+          <div class="settings-card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-globe"></i>
+              </div>
+              <div class="card-title">Timezone</div>
+            </div>
+            <div class="card-body">
+              <div class="mb-4">
+                <select id="timezone-select" class="form-select form-select-lg" style="width: 100%; max-width: 100%;">
+                  <option value="">Select your timezone...</option>
+                  <!-- Timezone options will be populated by JavaScript -->
+                </select>
+                <div class="form-text">
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Your availability will be automatically converted to each client's timezone.
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Calendar Settings -->
+          <div class="settings-card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-calendar-alt"></i>
+              </div>
+              <div class="card-title">Calendar Integration</div>
+            </div>
+            <div class="card-body">
+              <!-- Connected Calendars List -->
+              <div id="connected-calendars" class="mb-3" style="display: none;">
+                <div class="calendar-list">
+                  <!-- Connected calendars will be populated here -->
+                </div>
+              </div>
+
+              <!-- Connect Button -->
+              <div class="text-center">
+                <button id="connect-calendar-btn-settings" class="google-btn">
+                  <i class="fab fa-google me-1"></i>
+                  <span id="connect-btn-text">Connect Calendar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     
-    <!-- Mobile-Optimized Save Button -->
+    <!-- Save Button -->
     <div class="text-center mt-4">
-        <button id="save-availability-btn" class="btn btn-primary btn-lg w-100" disabled>
-            <i class="fas fa-save"></i>
-            Save Availability
-        </button>
-    </div>
-    
-    <!-- Mobile Quick Actions (hidden on desktop) -->
-    <div class="quick-actions-mobile d-md-none mt-3">
-        <div class="row g-2">
-            <div class="col-6">
-                <button type="button" class="btn btn-outline-success btn-sm w-100" id="quick-enable-all">
-                    <i class="fas fa-check-circle me-1"></i>
-                    Enable All
-                </button>
-            </div>
-            <div class="col-6">
-                <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="quick-disable-all">
-                    <i class="fas fa-times-circle me-1"></i>
-                    Disable All
-                </button>
-            </div>
-        </div>
+      <button id="save-availability-btn" class="btn btn-primary btn-lg w-100" disabled>
+        <i class="fas fa-save"></i>
+        Save Availability
+      </button>
     </div>
   </div>
 </div>
@@ -364,13 +392,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Populate timezone options first
-    populateTimezoneOptions();
-    
     // Load data before initializing UI to prevent flashing
     Promise.all([
-        loadAvailabilityRulesAsync(),
-        loadCurrentTimezoneAsync()
+        loadAvailabilityRulesAsync()
     ]).then(() => {
         // Initialize the availability management system after data is loaded
         initializeAvailabilitySystem();
@@ -381,17 +405,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Setup event listeners
         setupEventListeners();
         
-        // Setup mobile quick actions
-        setupMobileQuickActions();
+        // Setup tab navigation
+        setupTabNavigation();
+        
+        // Load Next 7 Days data
+        loadNext7DaysData();
+        
+        // Populate timezone options with user's timezone as default
+        populateTimezoneOptions();
         
         // Show the content with a smooth fade-in
         document.querySelector('.availability-container').style.opacity = '1';
     });
     
-    // Refresh button
-    document.getElementById('refreshBtn').addEventListener('click', function() {
-        location.reload();
-    });
 });
 
 function initializeAvailabilitySystem() {
@@ -431,60 +457,6 @@ function loadAvailabilityRules() {
     });
 }
 
-function loadCurrentTimezoneAsync() {
-    return fetch('/api/user/timezone')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.timezone) {
-                document.getElementById('timezone-select').value = data.timezone;
-                return data.timezone;
-            } else {
-                // If no timezone is set, detect and set the user's current timezone
-                detectAndSetTimezone();
-                return document.getElementById('timezone-select').value;
-            }
-        })
-        .catch(error => {
-            console.error('Error loading timezone:', error);
-            // Fallback to timezone detection
-            detectAndSetTimezone();
-            return document.getElementById('timezone-select').value;
-        });
-}
-
-function loadCurrentTimezone() {
-    loadCurrentTimezoneAsync().then(() => {
-        // Update initial state after timezone is set
-        setTimeout(() => {
-            if (typeof storeInitialState === 'function') {
-                storeInitialState();
-                checkForChanges();
-            }
-        }, 100);
-    });
-}
-
-function detectAndSetTimezone() {
-    try {
-        // Get the user's current timezone
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        
-        // Set it in the dropdown
-        const timezoneSelect = document.getElementById('timezone-select');
-        timezoneSelect.value = userTimezone;
-        
-        // Save it to the server
-        saveTimezone(userTimezone);
-        
-        console.log('Auto-detected timezone:', userTimezone);
-    } catch (error) {
-        console.error('Error detecting timezone:', error);
-        // Fallback to Eastern Time
-        const timezoneSelect = document.getElementById('timezone-select');
-        timezoneSelect.value = 'America/New_York';
-        saveTimezone('America/New_York');
-    }
-}
 
 function checkCalendarConnectionStatus() {
     fetch('/api/availability/calendar-status')
@@ -504,30 +476,30 @@ function updateAvailabilityDisplay(rules) {
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     dayNames.forEach((dayName, index) => {
         const dayRow = document.querySelector(`[data-day="${dayName}"]`);
-        const toggle = document.getElementById(`${dayName}-toggle`);
         const daySchedule = dayRow.querySelector('.day-schedule');
         const dayStatus = dayRow.querySelector('.day-status');
-        
-        // Set toggle to unchecked
-        if (toggle) {
-            toggle.checked = false;
-        }
         
         // Set row to inactive
         dayRow.classList.remove('active');
         dayRow.classList.add('inactive');
         
-        // Hide time inputs
+        // ALWAYS show time inputs (even for inactive days)
         if (daySchedule) {
-            daySchedule.style.display = 'none';
+            daySchedule.style.display = 'flex';
+            const startInput = daySchedule.querySelector(`#${dayName}-start`);
+            const endInput = daySchedule.querySelector(`#${dayName}-end`);
+            
+            if (startInput) {
+                startInput.disabled = true;
+            }
+            if (endInput) {
+                endInput.disabled = true;
+            }
         }
         
-        // Show unavailable text
+        // Hide any status text
         if (dayStatus) {
-            dayStatus.style.display = 'flex';
-            dayStatus.innerHTML = `
-                <span class="unavailable-text">Unavailable</span>
-            `;
+            dayStatus.style.display = 'none';
         }
     });
     
@@ -536,57 +508,52 @@ function updateAvailabilityDisplay(rules) {
         const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         const dayName = dayNames[rule.weekday];
         const dayRow = document.querySelector(`[data-day="${dayName}"]`);
-        const toggle = document.getElementById(`${dayName}-toggle`);
         const daySchedule = dayRow.querySelector('.day-schedule');
         const dayStatus = dayRow.querySelector('.day-status');
         
         if (dayRow && rule.is_active) {
-            // Set toggle to checked
-            if (toggle) {
-                toggle.checked = true;
-            }
-            
             // Set row to active
             dayRow.classList.remove('inactive');
             dayRow.classList.add('active');
             
-            // Show time inputs
+            // Enable time inputs
             if (daySchedule) {
                 daySchedule.style.display = 'flex';
                 const startInput = daySchedule.querySelector(`#${dayName}-start`);
                 const endInput = daySchedule.querySelector(`#${dayName}-end`);
                 
-                if (startInput) startInput.value = rule.start;
-                if (endInput) endInput.value = rule.end;
+                if (startInput) {
+                    startInput.value = rule.start;
+                    startInput.disabled = false;
+                }
+                if (endInput) {
+                    endInput.value = rule.end;
+                    endInput.disabled = false;
+                }
             }
             
             // Hide unavailable text
             if (dayStatus) {
                 dayStatus.style.display = 'none';
             }
-    }
-  });
+        }
+    });
 }
 
 function updateCalendarStatus(connected) {
-    const statusIndicator = document.getElementById('calendar-status-indicator');
-    const statusText = document.getElementById('calendar-status-text');
     const connectBtn = document.getElementById('connect-calendar-btn');
+    const connectBtnText = document.getElementById('connect-btn-text');
     const connectedCalendars = document.getElementById('connected-calendars');
     
     if (connected) {
-        statusIndicator.className = 'status-indicator connected';
-        statusText.textContent = 'Connected';
-        connectBtn.textContent = 'Add Another Calendar';
+        connectBtnText.textContent = 'Add Another';
         connectBtn.onclick = () => connectCalendar();
         connectedCalendars.style.display = 'block';
         
         // Load connected calendars
         loadConnectedCalendars();
-      } else {
-        statusIndicator.className = 'status-indicator disconnected';
-        statusText.textContent = 'Not Connected';
-        connectBtn.innerHTML = '<i class="fab fa-google me-2"></i>Connect Calendar';
+    } else {
+        connectBtnText.textContent = 'Connect Calendar';
         connectBtn.onclick = () => connectCalendar();
         connectedCalendars.style.display = 'none';
     }
@@ -595,27 +562,51 @@ function updateCalendarStatus(connected) {
 function loadConnectedCalendars() {
     // Fetch connected calendar info from API
     fetch('/api/connected-calendar')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Calendar API response:', data);
             const calendarList = document.querySelector('.calendar-list');
             if (data.connected) {
                 calendarList.innerHTML = `
-                    <div class="calendar-item">
-                        <span class="calendar-name">${data.calendar_name}</span>
+                    <div class="calendar-item d-flex align-items-center justify-content-between p-2 border rounded">
+                        <div class="d-flex align-items-center">
+                            <i class="fab fa-google text-primary me-2"></i>
+                            <span class="calendar-name fw-medium">${data.calendar_name || 'Google Calendar'}</span>
+                        </div>
                         <div class="calendar-actions">
-                            <button class="btn btn-xs btn-outline-primary" title="Sync">
+                            <button class="btn btn-sm btn-outline-secondary me-1" title="Sync" onclick="syncCalendar()">
                                 <i class="fas fa-sync"></i>
                             </button>
-                            <button class="btn btn-xs btn-outline-danger" title="Disconnect">
+                            <button class="btn btn-sm btn-outline-danger" title="Disconnect" onclick="disconnectCalendar()">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
                     </div>
                 `;
             } else {
+                // Show appropriate message based on the error
+                let message = data.message || 'No calendar connected';
+                let icon = 'fas fa-calendar-times';
+                let actionButton = '';
+                
+                if (data.message && (data.message.includes('expired') || data.message.includes('reconnect'))) {
+                    icon = 'fas fa-exclamation-triangle';
+                    actionButton = '<button class="btn btn-sm btn-primary ms-2" onclick="connectCalendar()">Reconnect</button>';
+                } else if (data.message && data.message.includes('permissions')) {
+                    icon = 'fas fa-lock';
+                    actionButton = '<button class="btn btn-sm btn-primary ms-2" onclick="connectCalendar()">Grant Access</button>';
+                }
+                
                 calendarList.innerHTML = `
-                    <div class="calendar-item text-muted">
-                        <span class="calendar-name">No calendar connected</span>
+                    <div class="calendar-item text-muted text-center py-2">
+                        <i class="${icon} me-2"></i>
+                        <span>${message}</span>
+                        ${actionButton}
                     </div>
                 `;
             }
@@ -624,8 +615,10 @@ function loadConnectedCalendars() {
             console.error('Error loading connected calendars:', error);
             const calendarList = document.querySelector('.calendar-list');
             calendarList.innerHTML = `
-                <div class="calendar-item text-muted">
-                    <span class="calendar-name">Error loading calendar info</span>
+                <div class="calendar-item text-muted text-center py-2">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span>Error loading calendar info: ${error.message}</span>
+                    <button class="btn btn-sm btn-primary ms-2" onclick="connectCalendar()">Try Again</button>
                 </div>
             `;
         });
@@ -640,26 +633,17 @@ function toggleDay(day, isActive) {
         dayRow.classList.remove('inactive');
         dayRow.classList.add('active');
         
-        // Show time inputs
+        // Enable time inputs
         if (daySchedule) {
             daySchedule.style.display = 'flex';
-        } else {
-            // Create time schedule if it doesn't exist
-            const dayInfoRight = dayRow.querySelector('.day-info-right');
-            const newSchedule = document.createElement('div');
-            newSchedule.className = 'day-schedule';
-            newSchedule.innerHTML = `
-                <div class="time-label d-md-none">Set your hours:</div>
-                <div class="time-slot">
-                    <input type="time" class="form-control form-control-sm time-input" id="${day}-start" value="09:00" style="width: 100%; max-width: 80px;">
-                    <span class="time-separator">-</span>
-                    <input type="time" class="form-control form-control-sm time-input" id="${day}-end" value="17:00" style="width: 100%; max-width: 80px;">
-                </div>
-            `;
-            dayInfoRight.appendChild(newSchedule);
+            const startInput = daySchedule.querySelector(`#${day}-start`);
+            const endInput = daySchedule.querySelector(`#${day}-end`);
+            
+            if (startInput) startInput.disabled = false;
+            if (endInput) endInput.disabled = false;
         }
         
-        // Hide unavailable text
+        // Hide any status text
         if (dayStatus) {
             dayStatus.style.display = 'none';
         }
@@ -667,32 +651,49 @@ function toggleDay(day, isActive) {
         dayRow.classList.remove('active');
         dayRow.classList.add('inactive');
         
-        // Hide time inputs
+        // Disable time inputs but keep them visible
         if (daySchedule) {
-            daySchedule.style.display = 'none';
+            daySchedule.style.display = 'flex';
+            const startInput = daySchedule.querySelector(`#${day}-start`);
+            const endInput = daySchedule.querySelector(`#${day}-end`);
+            
+            if (startInput) startInput.disabled = true;
+            if (endInput) endInput.disabled = true;
         }
         
-        // Show unavailable text
+        // Hide any status text
         if (dayStatus) {
-            dayStatus.style.display = 'flex';
-            dayStatus.innerHTML = `
-                <span class="unavailable-text">Unavailable</span>
-            `;
-        } else {
-            // Create unavailable status if it doesn't exist
-            const dayInfoRight = dayRow.querySelector('.day-info-right');
-            const newStatus = document.createElement('div');
-            newStatus.className = 'day-status';
-            newStatus.innerHTML = `
-                <span class="unavailable-text">Unavailable</span>
-            `;
-            dayInfoRight.appendChild(newStatus);
+            dayStatus.style.display = 'none';
         }
     }
 }
 
 function connectCalendar() {
     window.location.href = '/auth/google-calendar';
+}
+
+function disconnectCalendar() {
+    if (confirm('Are you sure you want to disconnect your calendar? This will stop syncing your availability with your calendar events.')) {
+        fetch('/disconnect-google-calendar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Refresh the calendar status
+                checkCalendarConnectionStatus();
+                alert('Calendar disconnected successfully!');
+            } else {
+                throw new Error('Failed to disconnect calendar');
+            }
+        })
+        .catch(error => {
+            console.error('Error disconnecting calendar:', error);
+            alert('Error disconnecting calendar');
+        });
+    }
 }
 
 function syncCalendar() {
@@ -717,60 +718,41 @@ function syncCalendar() {
 }
 
 function setupEventListeners() {
-    // Timezone change
-    document.getElementById('timezone-select').addEventListener('change', function() {
-        saveTimezone(this.value);
-        checkForChanges();
-    });
-    
     // Save availability button
     document.getElementById('save-availability-btn').addEventListener('click', function() {
         saveAvailabilityRules();
     });
     
-    // Day toggle switches
-    document.querySelectorAll('.day-toggle').forEach(toggle => {
-        toggle.addEventListener('change', function() {
-            const day = this.id.replace('-toggle', '');
-            toggleDay(day, this.checked);
+    // Day toggle switches - removed, using click handlers instead
+    
+    // Day info click handlers - clicking on the day-info area toggles the day
+    document.querySelectorAll('.day-info').forEach(dayInfo => {
+        dayInfo.addEventListener('click', function(e) {
+            const dayRow = this.closest('.day-row');
+            const day = dayRow.getAttribute('data-day');
+            
+            // Toggle the day directly
+            const isCurrentlyActive = dayRow.classList.contains('active');
+            toggleDay(day, !isCurrentlyActive);
             checkForChanges();
         });
-    });
-    
-    // Day row click handlers - clicking anywhere on the row toggles the day
-    document.querySelectorAll('.day-row').forEach(dayRow => {
-        dayRow.addEventListener('click', function(e) {
-            // Don't trigger if clicking on the toggle switch or time inputs
-            if (e.target.classList.contains('day-toggle') || 
-                e.target.classList.contains('time-input') ||
-                e.target.closest('.form-check') ||
-                e.target.closest('.day-schedule')) {
-                return;
-            }
-            
-            const day = this.getAttribute('data-day');
-            const toggle = document.getElementById(`${day}-toggle`);
-            
-            if (toggle) {
-                // Toggle the switch
-                toggle.checked = !toggle.checked;
-                // Trigger the change event to update the UI
-                toggle.dispatchEvent(new Event('change'));
-                checkForChanges();
-            }
-        });
-        
-        // Add cursor pointer to indicate clickability
-        dayRow.style.cursor = 'pointer';
     });
     
     // Mobile-specific day activation
     setupMobileDayActivation();
   
-  // Time input changes
+    // Time input changes
     document.addEventListener('change', function(e) {
         if (e.target.classList.contains('time-input')) {
             checkForChanges();
+        }
+    });
+    
+    // Make time inputs clickable to open time picker
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('time-input')) {
+            e.target.focus();
+            e.target.click();
         }
     });
     
@@ -779,6 +761,274 @@ function setupEventListeners() {
     
     // Modal event handlers
     setupModalHandlers();
+}
+
+// Tab Navigation Functions
+function setupTabNavigation() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Remove active class from all buttons and panels
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanels.forEach(panel => panel.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding panel
+            this.classList.add('active');
+            document.getElementById(targetTab).classList.add('active');
+        });
+    });
+}
+
+// Next 7 Days Functions
+function loadNext7DaysData() {
+    fetch('/api/availability/next-7-days')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderNext7DaysGrid(data.days);
+                loadCalendarEventsForNext7Days(data.days);
+            } else {
+                console.error('Error loading Next 7 Days data:', data.error);
+                // Fallback to basic implementation
+                const today = new Date();
+                const next7Days = [];
+                
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() + i);
+                    next7Days.push({
+                        date: date.toISOString().split('T')[0],
+                        day_name: date.toLocaleDateString('en-US', { weekday: 'long' }),
+                        typical_availability: { start: '09:00', end: '17:00', enabled: true }
+                    });
+                }
+                
+                renderNext7DaysGrid(next7Days);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading Next 7 Days data:', error);
+        });
+}
+
+function renderNext7DaysGrid(days) {
+    const grid = document.getElementById('next-7-days-grid');
+    grid.innerHTML = '';
+    
+    days.forEach((dayData, index) => {
+        const dayCard = createDayCard(dayData, index);
+        grid.appendChild(dayCard);
+    });
+}
+
+function createDayCard(dayData, index) {
+    const dayCard = document.createElement('div');
+    dayCard.className = 'day-card';
+    dayCard.setAttribute('data-date', dayData.date);
+    
+    const date = new Date(dayData.date);
+    const dateStr = date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+    });
+    
+    const availability = dayData.typical_availability;
+    const startTime = formatTimeForDisplay(parseInt(availability.start.split(':')[0]));
+    const endTime = formatTimeForDisplay(parseInt(availability.end.split(':')[0]));
+    
+    dayCard.innerHTML = `
+        <div class="day-card-header">
+            <div class="day-name">${dayData.day_name}</div>
+            <div class="day-date">${dateStr}</div>
+        </div>
+        <div class="availability-window">
+            <div class="availability-window-header">
+                <div class="availability-window-title">Typical Availability</div>
+                <div class="availability-window-times">${startTime} - ${endTime}</div>
+            </div>
+            <div class="time-slots-grid" id="time-slots-${index}">
+                <!-- Time slots will be populated here -->
+            </div>
+        </div>
+    `;
+    
+    // Generate time slots for this day
+    generateTimeSlots(dayCard, index, dayData);
+    
+    return dayCard;
+}
+
+function generateTimeSlots(dayCard, dayIndex, dayData) {
+    const timeSlotsContainer = dayCard.querySelector('.time-slots-grid');
+    const slots = [];
+    
+    const availability = dayData.typical_availability;
+    const startHour = parseInt(availability.start.split(':')[0]);
+    const endHour = parseInt(availability.end.split(':')[0]);
+    
+    // Generate hourly slots based on typical availability
+    for (let hour = startHour; hour < endHour; hour++) {
+        const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+        const displayTime = formatTimeForDisplay(hour);
+        
+        const slot = document.createElement('div');
+        slot.className = 'time-slot available';
+        slot.setAttribute('data-time', timeStr);
+        slot.setAttribute('data-day-index', dayIndex);
+        slot.setAttribute('data-date', dayData.date);
+        slot.textContent = displayTime;
+        
+        // Check if this slot is in removed slots
+        const isRemoved = dayData.removed_slots && dayData.removed_slots.some(removed => {
+            const removedStart = parseInt(removed.start.split(':')[0]);
+            const removedEnd = parseInt(removed.end.split(':')[0]);
+            return hour >= removedStart && hour < removedEnd;
+        });
+        
+        if (isRemoved) {
+            slot.classList.remove('available');
+            slot.classList.add('removed');
+        }
+        
+        // Add click handler for removing/adding slots
+        slot.addEventListener('click', function() {
+            toggleTimeSlot(this);
+        });
+        
+        slots.push(slot);
+    }
+    
+    timeSlotsContainer.innerHTML = '';
+    slots.forEach(slot => timeSlotsContainer.appendChild(slot));
+}
+
+function formatTimeForDisplay(hour) {
+    if (hour === 0) return '12:00 AM';
+    if (hour < 12) return `${hour}:00 AM`;
+    if (hour === 12) return '12:00 PM';
+    return `${hour - 12}:00 PM`;
+}
+
+function toggleTimeSlot(slot) {
+    if (slot.classList.contains('booked')) {
+        return; // Can't toggle booked slots
+    }
+    
+    if (slot.classList.contains('removed')) {
+        slot.classList.remove('removed');
+        slot.classList.add('available');
+    } else {
+        slot.classList.remove('available');
+        slot.classList.add('removed');
+    }
+    
+    // Save changes to backend
+    saveRemovedSlots(slot);
+    checkForChanges();
+}
+
+function saveRemovedSlots(changedSlot) {
+    const date = changedSlot.getAttribute('data-date');
+    const dayCard = changedSlot.closest('.day-card');
+    const timeSlots = dayCard.querySelectorAll('.time-slot');
+    
+    // Collect all removed slots for this date
+    const removedSlots = [];
+    let currentRemovedSlot = null;
+    
+    timeSlots.forEach(slot => {
+        if (slot.classList.contains('removed')) {
+            const time = slot.getAttribute('data-time');
+            const hour = parseInt(time.split(':')[0]);
+            
+            if (!currentRemovedSlot || currentRemovedSlot.endHour !== hour) {
+                // Start a new removed slot
+                if (currentRemovedSlot) {
+                    removedSlots.push(currentRemovedSlot);
+                }
+                currentRemovedSlot = {
+                    start: time,
+                    end: `${(hour + 1).toString().padStart(2, '0')}:00`
+                };
+            } else {
+                // Extend current removed slot
+                currentRemovedSlot.end = `${(hour + 1).toString().padStart(2, '0')}:00`;
+            }
+        } else if (currentRemovedSlot) {
+            // End current removed slot
+            removedSlots.push(currentRemovedSlot);
+            currentRemovedSlot = null;
+        }
+    });
+    
+    // Add the last removed slot if it exists
+    if (currentRemovedSlot) {
+        removedSlots.push(currentRemovedSlot);
+    }
+    
+    // Save to backend
+    fetch('/api/availability/next-7-days', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            date: date,
+            removed_slots: removedSlots
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            console.error('Error saving removed slots:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error saving removed slots:', error);
+    });
+}
+
+function loadCalendarEventsForNext7Days(days) {
+    if (!days || days.length === 0) return;
+    
+    const startDate = days[0].date;
+    const endDate = days[days.length - 1].date;
+    
+    fetch(`/api/availability/calendar-events?start=${startDate}&end=${endDate}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.events) {
+                markBookedSlots(data.events, days);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading calendar events:', error);
+        });
+}
+
+function markBookedSlots(events, days) {
+    events.forEach(event => {
+        const eventDate = new Date(event.start.dateTime || event.start.date);
+        const eventDateStr = eventDate.toISOString().split('T')[0];
+        
+        // Find the corresponding day card
+        const dayCard = document.querySelector(`[data-date="${eventDateStr}"]`);
+        if (dayCard) {
+            const eventHour = eventDate.getHours();
+            const timeSlot = dayCard.querySelector(`[data-time="${eventHour.toString().padStart(2, '0')}:00"]`);
+            
+            if (timeSlot) {
+                timeSlot.classList.remove('available', 'removed');
+                timeSlot.classList.add('booked');
+                timeSlot.title = event.summary || 'Booked';
+            }
+        }
+    });
 }
 
 function setupNavigationWarning() {
@@ -833,15 +1083,14 @@ let pendingNavigation = null;
 
 function storeInitialState() {
     initialState = {
-        timezone: document.getElementById('timezone-select').value,
-        toggles: {},
+        days: {},
         times: {}
     };
     
-    // Store toggle states
-    document.querySelectorAll('.day-toggle').forEach(toggle => {
-        const day = toggle.id.replace('-toggle', '');
-        initialState.toggles[day] = toggle.checked;
+    // Store day active states
+    document.querySelectorAll('.day-row').forEach(dayRow => {
+        const day = dayRow.getAttribute('data-day');
+        initialState.days[day] = dayRow.classList.contains('active');
     });
     
     // Store time values
@@ -861,15 +1110,11 @@ function checkForChanges() {
     const saveBtn = document.getElementById('save-availability-btn');
     let hasChanges = false;
     
-    // Check timezone
-    if (document.getElementById('timezone-select').value !== initialState.timezone) {
-        hasChanges = true;
-    }
-    
-    // Check toggles
-    document.querySelectorAll('.day-toggle').forEach(toggle => {
-        const day = toggle.id.replace('-toggle', '');
-        if (toggle.checked !== initialState.toggles[day]) {
+    // Check day active states
+    document.querySelectorAll('.day-row').forEach(dayRow => {
+        const day = dayRow.getAttribute('data-day');
+        const isCurrentlyActive = dayRow.classList.contains('active');
+        if (isCurrentlyActive !== initialState.days[day]) {
             hasChanges = true;
         }
     });
@@ -889,45 +1134,25 @@ function checkForChanges() {
         saveBtn.disabled = false;
         saveBtn.classList.remove('btn-secondary');
         saveBtn.classList.add('btn-primary');
-  } else {
+    } else {
         saveBtn.disabled = true;
         saveBtn.classList.remove('btn-primary');
         saveBtn.classList.add('btn-secondary');
     }
 }
 
-function saveTimezone(timezone) {
-    fetch('/api/user/timezone', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-        body: JSON.stringify({ timezone: timezone })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-            console.log('Timezone saved successfully');
-    } else {
-            console.error('Error saving timezone:', data.message);
-    }
-  })
-  .catch(error => {
-        console.error('Error saving timezone:', error);
-    });
-}
 
 function saveAvailabilityRules() {
     const rules = [];
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     
     dayNames.forEach((dayName, index) => {
-        const toggle = document.getElementById(`${dayName}-toggle`);
+        const dayRow = document.querySelector(`[data-day="${dayName}"]`);
         const startInput = document.getElementById(`${dayName}-start`);
         const endInput = document.getElementById(`${dayName}-end`);
         
         // Only include active days with valid times
-        if (toggle && toggle.checked && startInput && endInput && startInput.value && endInput.value) {
+        if (dayRow && dayRow.classList.contains('active') && startInput && endInput && startInput.value && endInput.value) {
             rules.push({
                 weekday: index,
                 start: startInput.value,
@@ -1017,11 +1242,13 @@ function addTimeSlot(day) {
         const newSchedule = document.createElement('div');
         newSchedule.className = 'day-schedule';
         newSchedule.innerHTML = `
-            <div class="time-label d-md-none">Set your hours:</div>
             <div class="time-slot">
-                <input type="time" class="form-control form-control-sm time-input" id="${day}-start" value="09:00">
-                <span class="time-separator">-</span>
-                <input type="time" class="form-control form-control-sm time-input" id="${day}-end" value="17:00">
+                <div class="time-label">START</div>
+                <input type="time" class="time-input" id="${day}-start" value="09:00">
+            </div>
+            <div class="time-slot">
+                <div class="time-label">END</div>
+                <input type="time" class="time-input" id="${day}-end" value="17:00">
             </div>
         `;
         dayInfoRight.appendChild(newSchedule);
@@ -1039,6 +1266,10 @@ function addTimeSlot(day) {
 
 // Populate timezone options
 function populateTimezoneOptions() {
+    // Get user's current timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    console.log('User timezone detected:', userTimezone);
+    
     const timezones = [
         // North America
         { value: 'America/New_York', label: 'Eastern Time (ET) - New York' },
@@ -1124,40 +1355,31 @@ function populateTimezoneOptions() {
         const option = document.createElement('option');
         option.value = tz.value;
         option.textContent = tz.label;
+        
+        // Set user's timezone as selected by default
+        if (tz.value === userTimezone) {
+            option.selected = true;
+        }
+        
         select.appendChild(option);
     });
+    
+    // If no exact match found, try to find a close match
+    if (!select.value) {
+        const timezoneParts = userTimezone.split('/');
+        if (timezoneParts.length > 1) {
+            const region = timezoneParts[0];
+            const city = timezoneParts[1];
+            
+            // Try to find a match in the same region
+            const regionMatch = timezones.find(tz => tz.value.startsWith(region));
+            if (regionMatch) {
+                select.value = regionMatch.value;
+            }
+        }
+    }
 }
 
-// Mobile Quick Actions
-function setupMobileQuickActions() {
-    // Enable all days
-    document.getElementById('quick-enable-all').addEventListener('click', function() {
-        const dayToggles = document.querySelectorAll('.day-toggle');
-        dayToggles.forEach(toggle => {
-            if (!toggle.checked) {
-                toggle.checked = true;
-                toggle.dispatchEvent(new Event('change'));
-            }
-        });
-        
-        // Show success feedback
-        showMobileFeedback('All days enabled!', 'success');
-    });
-    
-    // Disable all days
-    document.getElementById('quick-disable-all').addEventListener('click', function() {
-        const dayToggles = document.querySelectorAll('.day-toggle');
-        dayToggles.forEach(toggle => {
-            if (toggle.checked) {
-                toggle.checked = false;
-                toggle.dispatchEvent(new Event('change'));
-            }
-        });
-        
-        // Show success feedback
-        showMobileFeedback('All days disabled!', 'info');
-    });
-}
 
 // Mobile feedback function
 function showMobileFeedback(message, type) {
@@ -1203,8 +1425,8 @@ function setupMobileDayActivation() {
     if (window.innerWidth > 768) return;
     
     document.querySelectorAll('.day-row').forEach(dayRow => {
-        // Remove existing click handlers to avoid conflicts
-        dayRow.removeEventListener('click', handleDayRowClick);
+        // Remove any existing click handlers to avoid conflicts
+        dayRow.onclick = null;
         
         // Add mobile-specific click handler
         dayRow.addEventListener('click', handleMobileDayClick);

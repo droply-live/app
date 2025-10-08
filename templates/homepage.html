@@ -6,6 +6,7 @@
     <title>Droply - Find What People Have to Offer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="{{ url_for('static', filename='js/translations.js') }}"></script>
     <style>
         /* Whop.com Inspired Design - Discover Page Style */
         * {
@@ -74,10 +75,88 @@
 
         body.light-mode .search-input {
             color: #000 !important;
+            background: transparent !important;
         }
 
         body.light-mode .search-input::placeholder {
             color: #6c757d !important;
+        }
+
+        body.light-mode .animated-placeholder {
+            color: #6c757d !important;
+            background: transparent !important;
+        }
+
+        /* Light mode toggle buttons - white background with black text */
+        body.light-mode .menu-dropdown-btn {
+            background: #fff !important;
+            border: 1px solid #dee2e6 !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .menu-dropdown-btn:hover {
+            background: #f8f9fa !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .language-toggle {
+            background: #fff !important;
+            border: 1px solid #dee2e6 !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .language-toggle:hover {
+            background: #f8f9fa !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .theme-toggle {
+            background: #fff !important;
+            border: 1px solid #dee2e6 !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .theme-toggle:hover {
+            background: #f8f9fa !important;
+            color: #000 !important;
+        }
+
+        /* Light mode sidebar footer - white background */
+        body.light-mode .sidebar-footer {
+            background: #fff !important;
+            border-top: 1px solid #dee2e6 !important;
+        }
+
+        /* Light mode dropdown content - white backgrounds */
+        body.light-mode .menu-dropdown-content {
+            background: #fff !important;
+            border: 1px solid #dee2e6 !important;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1) !important;
+        }
+
+        body.light-mode .language-dropdown-content {
+            background: #fff !important;
+            border: 1px solid #dee2e6 !important;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Light mode dropdown items - black text */
+        body.light-mode .menu-dropdown-item {
+            color: #000 !important;
+        }
+
+        body.light-mode .menu-dropdown-item:hover {
+            background-color: #f8f9fa !important;
+            color: #10b981 !important;
+        }
+
+        body.light-mode .language-option {
+            color: #000 !important;
+        }
+
+        body.light-mode .language-option:hover {
+            background-color: #f8f9fa !important;
+            color: #10b981 !important;
         }
 
         /* Main Layout */
@@ -89,8 +168,11 @@
 
         /* Left Sidebar */
         .sidebar {
-            width: 280px !important;
+            width: 240px !important;
             background: #1a1a1a !important;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+                linear-gradient(45deg, rgba(99, 102, 241, 0.02) 0%, transparent 40%) !important;
             border-right: 1px solid #333 !important;
             display: flex !important;
             flex-direction: column !important;
@@ -99,22 +181,142 @@
             left: 0 !important;
             top: 0 !important;
             z-index: 1000 !important;
+            transition: all 0.3s cubic-bezier(.4,0,.2,1) !important;
+        }
+        
+        /* Collapsed sidebar state */
+        .sidebar.collapsed {
+            width: 80px !important;
+        }
+        
+        /* Hide text content when collapsed but keep positioning */
+        .sidebar.collapsed .nav-item,
+        .sidebar.collapsed .theme-toggle {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        /* Hide text nodes specifically */
+        .sidebar.collapsed .nav-item {
+            color: transparent !important;
+        }
+
+        /* Hide text spans in collapsed nav items */
+        .sidebar.collapsed .nav-item span {
+            display: none !important;
+        }
+        
+        .sidebar.collapsed .nav-item::after {
+            content: "" !important;
+        }
+        
+        /* Show only icons when collapsed */
+        .sidebar.collapsed .nav-item i,
+        .sidebar.collapsed .theme-toggle i {
+            font-size: 1.1rem !important;
+            color: #ccc !important;
+            line-height: normal !important;
+            display: inline-block !important;
+        }
+        
+        /* Hide logo when collapsed */
+        .sidebar.collapsed .sidebar-logo {
+            display: none !important;
+        }
+        
+        .sidebar.collapsed .logo-text {
+            display: none !important;
+        }
+        
+        
+        /* Light mode collapsed sidebar navigation icons only */
+        body.light-mode .sidebar.collapsed .nav-item i {
+            color: #333 !important;
+        }
+        
+        /* Keep navigation items in same position - don't center them */
+        .sidebar.collapsed .nav-item {
+            justify-content: flex-start !important;
+            padding: 0.75rem 1rem !important;
+            gap: 0.75rem !important;
+            min-height: 48px !important;
+            display: flex !important;
+            align-items: center !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+            font-size: 1.1rem !important;
+        }
+        
+        /* Keep logo in same position when collapsed */
+        .sidebar.collapsed .sidebar-logo {
+            justify-content: flex-start !important;
+        }
+        
+        /* Hide dropdown content when collapsed */
+        .sidebar.collapsed .menu-dropdown-content {
+            display: none !important;
+        }
+        
+        /* Adjust theme toggle when collapsed */
+        .sidebar.collapsed .theme-toggle {
+            justify-content: center !important;
+            padding: 0.75rem 0.5rem !important;
+        }
+        
+        .sidebar.collapsed .theme-toggle-switch {
+            display: none !important;
+        }
+        
+        /* Show only active theme icon when collapsed */
+        .sidebar.collapsed .theme-toggle .fa-sun {
+            display: none !important;
+        }
+        
+        .sidebar.collapsed .theme-toggle .fa-moon {
+            display: none !important;
+        }
+        
+        /* Show sun icon when in light mode and collapsed */
+        body.light-mode .sidebar.collapsed .theme-toggle .fa-sun {
+            display: block !important;
+            color: #000 !important;
+        }
+        
+        /* Show moon icon when in dark mode and collapsed (default state) */
+        .sidebar.collapsed .theme-toggle .fa-moon {
+            display: block !important;
+        }
+        
+        /* Hide moon icon when in light mode and collapsed */
+        body.light-mode .sidebar.collapsed .theme-toggle .fa-moon {
+            display: none !important;
         }
 
         /* Sidebar Header */
         .sidebar-header {
-            padding: 1.5rem 1rem !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 80px !important;
+            padding: 1.5rem 1rem 1rem 1rem !important;
             border-bottom: 1px solid #333 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            z-index: 10 !important;
         }
 
         .sidebar-logo {
             display: flex !important;
             align-items: center !important;
+            justify-content: center !important;
             text-decoration: none !important;
             color: #10b981 !important;
             font-weight: 700 !important;
-            font-size: 1.5rem !important;
-            letter-spacing: -0.5px !important;
+            font-size: 2.5rem !important;
+            letter-spacing: -2px !important;
+            width: 100% !important;
         }
 
         .logo-text {
@@ -123,11 +325,20 @@
 
         /* Sidebar Navigation */
         .sidebar-nav {
-            padding: 1rem 0 !important;
-            flex: 1 !important;
+            position: absolute !important;
+            top: 80px !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            padding: 0.5rem 0 !important;
+            overflow-y: auto !important;
         }
 
+        /* Navigation Section */
         .nav-section {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0 !important;
             margin-bottom: 2rem !important;
         }
 
@@ -146,8 +357,12 @@
             padding: 0.75rem 1rem !important;
             color: #ccc !important;
             text-decoration: none !important;
-            transition: all 0.2s ease !important;
+            transition: background-color 0.2s ease, color 0.2s ease, border-left-color 0.2s ease !important;
             border-left: 3px solid transparent !important;
+            font-size: 1.1rem !important;
+            min-height: 48px !important;
+            box-sizing: border-box !important;
+            position: relative !important;
         }
 
         .nav-item:hover {
@@ -169,6 +384,7 @@
             width: 20px !important;
             text-align: center !important;
             font-size: 1.1rem !important;
+            flex-shrink: 0 !important;
         }
 
         /* Categories in Sidebar */
@@ -205,6 +421,72 @@
             width: 20px !important;
             text-align: center !important;
             font-size: 1.1rem !important;
+        }
+
+        /* Sidebar Toggle Button - ChatGPT Style */
+        .sidebar-toggle {
+            position: absolute !important;
+            top: 20px !important;
+            right: -12px !important;
+            background: #2a2a2a !important;
+            border: 1px solid #3a3a3a !important;
+            color: #ffffff !important;
+            font-size: 0.875rem !important;
+            border-radius: 6px !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+            padding: 0.5rem !important;
+            z-index: 1200 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            width: 24px !important;
+            height: 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            backdrop-filter: blur(10px) !important;
+        }
+        
+        /* Position toggle button where logo is when collapsed */
+        .sidebar.collapsed .sidebar-toggle {
+            position: absolute !important;
+            top: 1.5rem !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            background: #2a2a2a !important;
+            border-color: #3a3a3a !important;
+            width: 40px !important;
+            height: 40px !important;
+            font-size: 1rem !important;
+        }
+        
+        .sidebar-toggle:hover {
+            background: #3a3a3a !important;
+            border-color: #4a4a4a !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+        }
+        
+        /* Hover effect for collapsed toggle button */
+        .sidebar.collapsed .sidebar-toggle:hover {
+            transform: translateX(-50%) scale(1.05) !important;
+        }
+        
+        .sidebar-toggle:active {
+            transform: scale(0.95) !important;
+        }
+        
+        /* Active effect for collapsed toggle button */
+        .sidebar.collapsed .sidebar-toggle:active {
+            transform: translateX(-50%) scale(0.95) !important;
+        }
+        
+        .sidebar-toggle i {
+            transition: transform 0.2s ease !important;
+            font-size: 0.75rem !important;
+        }
+        
+        .sidebar.collapsed .sidebar-toggle i {
+            transform: rotate(180deg) !important;
         }
 
         /* Sidebar Close Button */
@@ -253,6 +535,7 @@
             align-items: center !important;
             justify-content: space-between !important;
             font-size: 0.9rem !important;
+            margin-bottom: 0.5rem !important;
         }
 
         .menu-dropdown-btn:hover {
@@ -285,7 +568,8 @@
             text-decoration: none !important;
             display: flex !important;
             align-items: center !important;
-            justify-content: space-between !important;
+            justify-content: flex-start !important;
+            gap: 0.75rem !important;
             transition: all 0.2s ease !important;
             font-size: 0.9rem !important;
         }
@@ -301,18 +585,142 @@
             text-align: center !important;
         }
 
-        /* Theme Toggle */
-        .theme-toggle {
+        /* Toggle Row Container */
+        .toggle-row {
+            display: flex !important;
+            gap: 0.5rem !important;
+            margin-top: 0.5rem !important;
+        }
+
+        /* Language Dropdown Container */
+        .language-dropdown {
+            position: relative !important;
+            flex: 1 !important;
+        }
+
+        /* Language Toggle */
+        .language-toggle {
             display: flex !important;
             align-items: center !important;
             gap: 0.5rem !important;
-            padding: 0.75rem 1rem !important;
+            padding: 0.5rem 0.75rem !important;
             color: #ccc !important;
             cursor: pointer !important;
             transition: all 0.2s ease !important;
             background: #333 !important;
             border: 1px solid #555 !important;
             border-radius: 8px !important;
+            width: 100% !important;
+            justify-content: flex-start !important;
+            height: 40px !important;
+            font-size: 0.85rem !important;
+        }
+        
+        .language-toggle:hover {
+            background-color: #444 !important;
+            color: #fff !important;
+        }
+
+        /* Language Dropdown Content */
+        .language-dropdown-content {
+            position: absolute !important;
+            bottom: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: #2a2a2a !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3) !important;
+            z-index: 1000 !important;
+            display: none !important;
+            margin-bottom: 0.25rem !important;
+        }
+
+        .language-dropdown-content.show {
+            display: block !important;
+        }
+
+        /* Language Options */
+        .language-option {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            padding: 0.75rem 1rem !important;
+            color: #ccc !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            font-size: 0.9rem !important;
+            font-weight: 500 !important;
+        }
+
+        .language-flag {
+            font-size: 1rem !important;
+            width: 20px !important;
+            text-align: center !important;
+        }
+
+        .language-option:hover {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+        }
+
+        .language-option:first-child {
+            border-radius: 8px 8px 0 0 !important;
+        }
+
+        .language-option:last-child {
+            border-radius: 0 0 8px 8px !important;
+        }
+
+        
+        /* Show toggle row when collapsed - only theme toggle visible */
+        .sidebar.collapsed .toggle-row {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+        }
+        
+        /* Only theme toggle visible when collapsed */
+        .sidebar.collapsed .theme-toggle {
+            margin-top: 0.5rem !important;
+        }
+        
+        /* Hide language text when collapsed */
+        .sidebar.collapsed .language-text {
+            display: none !important;
+        }
+        
+
+        /* Hide language dropdown when collapsed */
+        .sidebar.collapsed .language-dropdown-content {
+            display: none !important;
+        }
+
+        /* Hide menu dropdown and language toggle when collapsed - only show theme toggle */
+        .sidebar.collapsed .menu-dropdown-btn {
+            display: none !important;
+        }
+        
+        .sidebar.collapsed .language-toggle {
+            display: none !important;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            padding: 0.5rem 0.75rem !important;
+            color: #ccc !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+            flex: 1 !important;
+            height: 40px !important;
+            font-size: 0.85rem !important;
         }
 
         .theme-toggle:hover {
@@ -351,14 +759,28 @@
         /* Main Content Area - Identical to Discover Page */
         .main-content {
             flex: 1 !important;
-            margin-left: 280px !important;
+            margin-left: 240px !important;
             background: #1f1f1f !important;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
             min-height: 100vh !important;
+            transition: all 0.3s cubic-bezier(.4,0,.2,1) !important;
+        }
+        
+        /* Adjust main content when sidebar is collapsed */
+        .sidebar.collapsed + .main-content {
+            margin-left: 80px !important;
         }
 
         /* Search Area - Identical to Discover Page */
         .search-area {
             background: #1f1f1f !important;
+            background-image: 
+                radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.03) 0%, transparent 60%),
+                radial-gradient(circle at 70% 70%, rgba(99, 102, 241, 0.02) 0%, transparent 60%),
+                linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
             padding: 2rem 1rem !important;
             min-height: 100vh !important;
             display: flex !important;
@@ -387,6 +809,9 @@
             display: flex !important;
             align-items: center !important;
             background: #333 !important;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
+                linear-gradient(45deg, rgba(99, 102, 241, 0.01) 0%, transparent 40%) !important;
             border: 1px solid #555 !important;
             border-radius: 8px !important;
             padding: 0.5rem !important;
@@ -411,6 +836,163 @@
 
         .search-input::placeholder {
             color: #999 !important;
+        }
+
+        /* Animated Placeholder Overlay */
+        .search-input-wrapper {
+            position: relative !important;
+        }
+
+        .animated-placeholder {
+            position: absolute !important;
+            top: 0.5rem !important;
+            left: 0.5rem !important;
+            color: #999 !important;
+            font-size: 1rem !important;
+            pointer-events: none !important;
+            z-index: 2 !important;
+            opacity: 0 !important;
+            transition: opacity 0.2s ease !important;
+            background: #333 !important;
+            padding: 0.5rem !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+        }
+
+        .animated-placeholder.show {
+            opacity: 1 !important;
+        }
+
+        .search-input:focus + .animated-placeholder,
+        .search-input:not(:placeholder-shown) + .animated-placeholder {
+            opacity: 0 !important;
+        }
+
+        /* Hide the original placeholder when animation is active */
+        .search-input-wrapper.animating .search-input::placeholder {
+            opacity: 0 !important;
+        }
+
+        /* Search Suggestions - Modern & Natural */
+        .search-suggestions {
+            position: absolute !important;
+            top: calc(100% + 2px) !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            max-height: 240px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            z-index: 1000 !important;
+            display: none !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            opacity: 0 !important;
+            transform: translateY(-8px) scale(0.95) !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .search-suggestions.show {
+            display: block !important;
+            opacity: 1 !important;
+            transform: translateY(0) scale(1) !important;
+        }
+
+        .suggestion-item {
+            padding: 0.75rem 1rem !important;
+            cursor: pointer !important;
+            border-bottom: 1px solid #f3f4f6 !important;
+            display: flex !important;
+            align-items: center !important;
+            transition: all 0.15s ease !important;
+            min-height: 48px !important;
+            position: relative !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+        }
+
+        .suggestion-item:hover {
+            background: #f0fdf4 !important;
+            transform: translateX(2px) !important;
+            border-left: 3px solid #10b981 !important;
+        }
+
+        .suggestion-item.selected {
+            background: #f0fdf4 !important;
+            border-left: 3px solid #10b981 !important;
+            transform: translateX(2px) !important;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none !important;
+            border-radius: 0 0 12px 12px !important;
+            margin-bottom: 0 !important;
+        }
+
+        .suggestion-item:first-child {
+            border-radius: 12px 12px 0 0 !important;
+        }
+
+        .suggestion-content {
+            flex: 1 !important;
+            min-width: 0 !important;
+            display: grid !important;
+            grid-template-columns: auto 1fr 1fr !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+        }
+
+        .suggestion-icon {
+            width: 20px !important;
+            height: 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 14px !important;
+            flex-shrink: 0 !important;
+        }
+
+        .suggestion-text {
+            color: #1f2937 !important;
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            text-align: left !important;
+            line-height: 1.4 !important;
+        }
+
+        .suggestion-subtitle {
+            color: #6b7280 !important;
+            font-size: 0.8rem !important;
+            white-space: nowrap !important;
+            text-align: left !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            line-height: 1.3 !important;
+        }
+
+        /* Custom scrollbar for suggestions */
+        .search-suggestions::-webkit-scrollbar {
+            width: 4px !important;
+        }
+
+        .search-suggestions::-webkit-scrollbar-track {
+            background: transparent !important;
+        }
+
+        .search-suggestions::-webkit-scrollbar-thumb {
+            background: #d1d5db !important;
+            border-radius: 2px !important;
+        }
+
+        .search-suggestions::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af !important;
         }
 
         .search-button {
@@ -497,6 +1079,9 @@
 
         .expert-card {
             background: #333 !important;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+                linear-gradient(45deg, rgba(99, 102, 241, 0.02) 0%, transparent 40%) !important;
             border: 1px solid #555 !important;
             border-radius: 12px !important;
             padding: 1.5rem !important;
@@ -586,18 +1171,25 @@
             color: white !important;
         }
 
+        /* Desktop Layout */
+        @media (min-width: 769px) {
+            .sidebar-toggle {
+                display: flex !important;
+            }
+        }
+
         /* Mobile Top Navigation Bar - Hidden on Desktop */
         .mobile-top-nav {
             display: none !important;
         }
 
         .mobile-nav-logo {
-            display: flex !important;
-            align-items: center !important;
-            text-decoration: none !important;
-            color: #10b981 !important;
-            font-weight: 900 !important;
+            position: absolute !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
             font-size: 1.5rem !important;
+            font-weight: 900 !important;
+            color: #10b981 !important;
             letter-spacing: -1px !important;
         }
 
@@ -628,27 +1220,34 @@
         }
 
         .mobile-signin-btn {
-            background: #10b981 !important;
-            color: white !important;
-            padding: 0.5rem 1rem !important;
+            background: transparent !important;
+            color: #fff !important;
+            padding: 0.5rem !important;
             border-radius: 6px !important;
             text-decoration: none !important;
-            font-weight: 500 !important;
-            font-size: 0.9rem !important;
+            font-weight: 700 !important;
+            font-size: 1.2rem !important;
             transition: all 0.2s ease !important;
             min-height: 36px !important;
+            min-width: 36px !important;
             display: flex !important;
             align-items: center !important;
+            justify-content: center !important;
+            border: none !important;
         }
 
         .mobile-signin-btn:hover {
-            background: #047857 !important;
-            color: white !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
             text-decoration: none !important;
         }
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
+            .sidebar-toggle {
+                display: none !important;
+            }
+            
             .mobile-top-nav {
                 display: flex !important;
                 position: fixed !important;
@@ -673,7 +1272,7 @@
             .sidebar {
                 transform: translateX(-100%) !important;
                 transition: transform 0.3s ease !important;
-                width: 280px !important;
+                width: 240px !important;
                 top: 0 !important;
                 height: 100vh !important;
             }
@@ -768,12 +1367,12 @@
             }
 
             .sidebar-logo {
-                font-size: 1.25rem !important;
+                font-size: 2rem !important;
             }
 
             .nav-item, .category-item {
                 padding: 1rem !important;
-                font-size: 0.95rem !important;
+                font-size: 1.1rem !important;
             }
 
             .sidebar-close-btn {
@@ -790,7 +1389,7 @@
                 padding: 1rem !important;
             }
 
-            .menu-dropdown-btn, .theme-toggle {
+            .menu-dropdown-btn, .theme-toggle, .language-toggle {
                 padding: 1rem !important;
                 font-size: 0.9rem !important;
             }
@@ -865,7 +1464,7 @@
                 min-height: 44px !important;
             }
 
-            .menu-dropdown-btn, .theme-toggle {
+            .menu-dropdown-btn, .theme-toggle, .language-toggle {
                 min-height: 44px !important;
             }
         }
@@ -893,6 +1492,306 @@
         .sidebar-overlay.open {
             display: block !important;
         }
+
+        /* Login Modal Styles */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .login-modal-content {
+            position: relative;
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 0;
+            max-width: 400px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #333;
+        }
+
+        .login-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 24px 0 24px;
+        }
+
+
+        .login-modal-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .login-modal-close:hover {
+            background: #374151;
+            color: #fff;
+        }
+
+        .login-modal-body {
+            padding: 8px 24px 24px 24px;
+        }
+
+        .login-modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 24px 0;
+            text-align: center;
+        }
+
+        .login-modal-brand {
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        .login-modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .login-modal-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .login-modal-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            margin: 0;
+        }
+
+        .login-modal-input {
+            padding: 12px 16px;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            background: #1f2937;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .login-modal-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .login-modal-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .login-modal-continue-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 8px;
+        }
+
+        .login-modal-continue-btn:hover {
+            background: #2563eb;
+        }
+
+        .login-modal-back-btn {
+            background: transparent;
+            color: #9ca3af;
+            border: 1px solid #374151;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        .login-modal-back-btn:hover {
+            background: #374151;
+            color: #fff;
+            border-color: #4b5563;
+        }
+
+        .login-modal-signup-link {
+            text-align: center;
+            margin-top: 16px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .login-modal-signup-btn {
+            background: none;
+            border: none;
+            color: #10b981;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            margin: 0;
+        }
+
+        .login-modal-signup-btn:hover {
+            color: #059669;
+        }
+
+        .login-modal-step {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .login-modal-separator {
+            position: relative;
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .login-modal-separator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #374151;
+        }
+
+        .login-modal-separator-text {
+            background: #1a1a1a;
+            color: #9ca3af;
+            padding: 0 16px;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .login-modal-social {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .login-modal-google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: white;
+            color: #1f2937;
+            border: 1px solid #d1d5db;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .login-modal-google-btn:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .login-modal-google-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .login-modal-footer {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .login-modal-terms {
+            font-size: 12px;
+            color: #9ca3af;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .login-modal-link {
+            color: #10b981;
+            text-decoration: underline;
+        }
+
+        .login-modal-link:hover {
+            color: #059669;
+        }
+
+        /* Light mode adjustments for login modal */
+        body.light-mode .login-modal-content {
+            background: #fff;
+            border-color: #e5e7eb;
+        }
+
+        body.light-mode .login-modal-title {
+            color: #1f2937;
+        }
+
+        body.light-mode .login-modal-label {
+            color: #1f2937;
+        }
+
+        body.light-mode .login-modal-input {
+            background: #fff;
+            border-color: #d1d5db;
+            color: #1f2937;
+        }
+
+        body.light-mode .login-modal-input:focus {
+            border-color: #10b981;
+        }
+
+        body.light-mode .login-modal-separator::before {
+            background: #d1d5db;
+        }
+
+        body.light-mode .login-modal-separator-text {
+            background: #fff;
+        }
+
+        body.light-mode .login-modal-terms {
+            color: #6b7280;
+        }
+
+        body.light-mode .login-modal-brand {
+            color: #10b981;
+        }
+
     </style>
 </head>
 <body class="homepage">
@@ -906,9 +1805,13 @@
             </a>
             <div class="mobile-nav-right">
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('dashboard') }}" class="mobile-signin-btn">Dashboard</a>
+                    <a href="{{ url_for('dashboard') }}" class="mobile-signin-btn">
+                        <i class="fas fa-chart-line"></i>
+                    </a>
                 {% else %}
-                    <a href="{{ url_for('login') }}" class="mobile-signin-btn">Sign in</a>
+                    <a href="{{ url_for('login') }}" class="mobile-signin-btn">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </a>
                 {% endif %}
             </div>
         </div>
@@ -928,69 +1831,37 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+            
+            <!-- Sidebar Toggle Button -->
+            <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
 
             <!-- Sidebar Navigation -->
             <div class="sidebar-nav">
                 <!-- Main Navigation -->
                 <div class="nav-section">
-                    <div class="nav-section-title">Main</div>
                     <a href="{{ url_for('homepage') }}" class="nav-item active">
                         <i class="fas fa-compass"></i>
-                        Discover
+                        <span data-translate="nav.discover">Discover</span>
                     </a>
                     {% if current_user.is_authenticated %}
                         <a href="{{ url_for('dashboard') }}" class="nav-item">
                             <i class="fas fa-chart-line"></i>
-                            Start Earning
+                            <span data-translate="nav.earnings">Start Earning</span>
                         </a>
                         <a href="{{ url_for('logout') }}" class="nav-item">
                             <i class="fas fa-sign-out-alt"></i>
-                            Logout
+                            <span data-translate="nav.logout">Logout</span>
                         </a>
                     {% else %}
                         <a href="{{ url_for('login') }}" class="nav-item">
                             <i class="fas fa-sign-in-alt"></i>
-                            Login
+                            <span data-translate="nav.login">Login</span>
                         </a>
                     {% endif %}
                 </div>
 
-                <!-- Categories -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Categories</div>
-                    <a href="{{ url_for('homepage') }}?category=technology" class="category-item {% if request.args.get('category') == 'technology' %}active{% endif %}">
-                        <i class="fas fa-laptop-code"></i>
-                        Technology & Development
-                    </a>
-                    <a href="{{ url_for('homepage') }}?category=business" class="category-item {% if request.args.get('category') == 'business' %}active{% endif %}">
-                        <i class="fas fa-briefcase"></i>
-                        Business & Consulting
-                    </a>
-                    <a href="{{ url_for('homepage') }}?category=creative" class="category-item {% if request.args.get('category') == 'creative' %}active{% endif %}">
-                        <i class="fas fa-palette"></i>
-                        Creative & Design
-                    </a>
-                    <a href="{{ url_for('homepage') }}?category=health" class="category-item {% if request.args.get('category') == 'health' %}active{% endif %}">
-                        <i class="fas fa-heart"></i>
-                        Health & Wellness
-                    </a>
-                    <a href="{{ url_for('homepage') }}?category=education" class="category-item {% if request.args.get('category') == 'education' %}active{% endif %}">
-                        <i class="fas fa-graduation-cap"></i>
-                        Education & Training
-                    </a>
-                    <a href="{{ url_for('homepage') }}?category=finance" class="category-item {% if request.args.get('category') == 'finance' %}active{% endif %}">
-                        <i class="fas fa-dollar-sign"></i>
-                        Finance & Investment
-                    </a>
-                    <a href="{{ url_for('homepage') }}?category=marketing" class="category-item {% if request.args.get('category') == 'marketing' %}active{% endif %}">
-                        <i class="fas fa-chart-line"></i>
-                        Marketing & Growth
-                    </a>
-                    <a href="{{ url_for('homepage') }}?category=writing" class="category-item {% if request.args.get('category') == 'writing' %}active{% endif %}">
-                        <i class="fas fa-pen"></i>
-                        Writing & Content
-                    </a>
-                </div>
             </div>
 
             <!-- Sidebar Footer -->
@@ -999,50 +1870,63 @@
                 <div class="menu-dropdown">
                     <button class="menu-dropdown-btn" id="menuDropdownBtn">
                         <i class="fas fa-bars"></i>
-                        Menu
+                        <span data-translate="nav.menu">Menu</span>
                         <i class="fas fa-chevron-down"></i>
                     </button>
+                    
                     <div class="menu-dropdown-content" id="menuDropdownContent">
                         <a href="#" class="menu-dropdown-item">
-                            <i class="fas fa-language"></i>
-                            Language
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                        <a href="#" class="menu-dropdown-item">
-                            <i class="fas fa-link"></i>
-                            Links
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                        <a href="#" class="menu-dropdown-item">
-                            <i class="fas fa-question-circle"></i>
-                            Need help?
-                        </a>
-                        <a href="#" class="menu-dropdown-item">
                             <i class="fas fa-comment"></i>
-                            Submit feedback
+                            <span data-translate="menu.submit_feedback">Submit feedback</span>
                         </a>
-                        <a href="#" class="menu-dropdown-item">
-                            <i class="fas fa-handshake"></i>
-                            Become a partner
-                        </a>
-                        <a href="#" class="menu-dropdown-item">
+                        <a href="{{ url_for('terms_of_service') }}" class="menu-dropdown-item" target="_blank">
                             <i class="fas fa-file-contract"></i>
-                            Terms
+                            <span data-translate="menu.terms_conditions">Terms and Conditions</span>
                         </a>
-                        <a href="#" class="menu-dropdown-item">
+                        <a href="{{ url_for('privacy_policy') }}" class="menu-dropdown-item" target="_blank">
                             <i class="fas fa-shield-alt"></i>
-                            Privacy
+                            <span data-translate="menu.privacy_policy">Privacy Policy</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- Theme Toggle -->
-                <div class="theme-toggle" id="themeToggle">
-                    <i class="fas fa-sun"></i>
-                    <div class="theme-toggle-switch" id="themeToggleSwitch">
-                        <div class="theme-toggle-slider"></div>
+                <!-- Language and Theme Toggle Row -->
+                <div class="toggle-row">
+                <!-- Language Dropdown -->
+                <div class="language-dropdown">
+                    <button class="language-toggle" id="languageToggle" title="Switch Language">
+                        <i class="fas fa-globe"></i>
+                        <span class="language-text">EN</span>
+                    </button>
+                    
+                    <div class="language-dropdown-content" id="languageDropdownContent">
+                        <a href="#" class="language-option" data-lang="EN">
+                            <span class="language-flag">🇺🇸</span>
+                            EN
+                        </a>
+                        <a href="#" class="language-option" data-lang="FR">
+                            <span class="language-flag">🇫🇷</span>
+                            FR
+                        </a>
+                        <a href="#" class="language-option" data-lang="ES">
+                            <span class="language-flag">🇪🇸</span>
+                            ES
+                        </a>
+                        <a href="#" class="language-option" data-lang="AR">
+                            <span class="language-flag">🇸🇦</span>
+                            AR
+                        </a>
                     </div>
-                    <i class="fas fa-moon"></i>
+                </div>
+
+                    <!-- Theme Toggle -->
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-sun"></i>
+                        <div class="theme-toggle-switch active" id="themeToggleSwitch">
+                            <div class="theme-toggle-slider"></div>
+                        </div>
+                        <i class="fas fa-moon"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1051,7 +1935,7 @@
         <main class="main-content">
             <div class="search-area">
                 <div class="search-wrapper">
-                    <h1 class="page-title">Discover People</h1>
+                    <h1 class="page-title" data-translate="home.title">Discover People</h1>
                     
                     <form method="GET" action="{{ url_for('homepage') }}" class="search-form">
                         <div class="search-input-wrapper">
@@ -1060,9 +1944,14 @@
                                 name="search" 
                                 placeholder="Search for experts..." 
                                 class="search-input"
+                                id="animated-search-input"
                                 value="{{ request.args.get('search', '') }}"
+                                autocomplete="off"
                                 required
+                                data-translate="home.search.placeholder"
                             >
+                            <div id="animated-placeholder" class="animated-placeholder"></div>
+                            <div id="search-suggestions" class="search-suggestions"></div>
                             <button type="submit" class="search-button">
                                 <i class="fas fa-search"></i>
                             </button>
@@ -1113,8 +2002,8 @@
                             <span class="expert-rate">${{ "%.0f"|format(user.hourly_rate or 0) }}/hr</span>
                         </div>
                         <div class="expert-actions">
-                            <a href="{{ url_for('user_profile', username=user.username) }}" class="action-btn primary">View Profile</a>
-                            <a href="{{ url_for('login', next=url_for('user_profile', username=user.username)) }}" class="action-btn secondary">Login to Book</a>
+                            <a href="{{ url_for('user_profile', username=user.username) }}" class="action-btn primary" data-translate="expert.view">View Profile</a>
+                            <a href="{{ url_for('login', next=url_for('user_profile', username=user.username)) }}" class="action-btn secondary" data-translate="expert.login_to_book">Login to Book</a>
                         </div>
                     </div>
                     {% endfor %}
@@ -1124,22 +2013,23 @@
                     <div class="no-results-icon">
                         <i class="fas fa-search"></i>
                     </div>
-                    <h3 class="no-results-title">No experts found</h3>
+                    <h3 class="no-results-title" data-translate="message.no_experts">No experts found</h3>
                     <p class="no-results-text">
                         {% if request.args.get('search') %}
-                            Try searching with different keywords or browse our categories.
+                            <span data-translate="message.try_different_search">Try searching with different keywords or browse our categories.</span>
                         {% else %}
-                            No experts available in this category right now. Try another category or search for specific skills.
+                            <span data-translate="message.no_experts_category">No experts available in this category right now. Try another category or search for specific skills.</span>
                         {% endif %}
                     </p>
                     <div class="no-results-actions">
-                        <a href="{{ url_for('homepage') }}" class="action-btn primary">Browse All Categories</a>
-                        <button onclick="document.querySelector('.search-input').focus()" class="action-btn secondary">Try Different Search</button>
+                        <a href="{{ url_for('homepage') }}" class="action-btn primary" data-translate="button.browse_categories">Browse All Categories</a>
+                        <button onclick="document.querySelector('.search-input').focus()" class="action-btn secondary" data-translate="button.try_different_search">Try Different Search</button>
                     </div>
                 </div>
                 {% endif %}
             </div>
             {% endif %}
+
         </main>
     </div>
 
@@ -1149,6 +2039,82 @@
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
         const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        
+        // Desktop sidebar toggle functionality
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                
+                // Store sidebar state in localStorage
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebarCollapsed', isCollapsed);
+            });
+        }
+        
+        // Restore sidebar state from localStorage
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+        
+        // Language dropdown functionality
+        const languageToggle = document.getElementById('languageToggle');
+        const languageDropdown = document.querySelector('.language-dropdown');
+        const languageDropdownContent = document.getElementById('languageDropdownContent');
+        const languageOptions = document.querySelectorAll('.language-option');
+
+        if (languageToggle && languageDropdownContent) {
+            // Toggle dropdown
+            languageToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Close menu dropdown if it's open
+                if (menuDropdownContent) {
+                    menuDropdownContent.classList.remove('show');
+                }
+                // Toggle language dropdown
+                languageDropdownContent.classList.toggle('show');
+            });
+
+            // Handle language selection
+            languageOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const selectedLang = this.getAttribute('data-lang');
+                    const languageText = languageToggle.querySelector('.language-text');
+                    
+                    // Update button text
+                    languageText.textContent = selectedLang;
+                    
+                    // Store language preference
+                    localStorage.setItem('selectedLanguage', selectedLang);
+                    
+                    // Close dropdown
+                    languageDropdown.classList.remove('open');
+                    languageDropdownContent.classList.remove('show');
+                    
+                    // Translate the page to the selected language
+                    if (typeof translatePage === 'function') {
+                        translatePage(selectedLang);
+                    }
+                    console.log('Language switched to:', selectedLang);
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!languageDropdown.contains(e.target)) {
+                    languageDropdown.classList.remove('open');
+                    languageDropdownContent.classList.remove('show');
+                }
+            });
+        }
+        
+        // Restore language preference
+        const savedLanguage = localStorage.getItem('selectedLanguage');
+        if (savedLanguage && languageToggle) {
+            languageToggle.querySelector('.language-text').textContent = savedLanguage;
+        }
 
         function toggleSidebar() {
             sidebar.classList.toggle('open');
@@ -1233,6 +2199,11 @@
         if (menuDropdownBtn && menuDropdownContent) {
             menuDropdownBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
+                // Close language dropdown if it's open
+                if (languageDropdownContent) {
+                    languageDropdownContent.classList.remove('show');
+                }
+                // Toggle menu dropdown
                 menuDropdownContent.classList.toggle('show');
             });
 
@@ -1272,6 +2243,476 @@
                 themeToggleSwitch.classList.toggle('active', isDarkMode);
             });
         }
+
+    </script>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-modal-overlay" id="loginModalOverlay"></div>
+        <div class="login-modal-content">
+            <div class="login-modal-header">
+                <button class="login-modal-close" id="loginModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="login-modal-body">
+                <h2 class="login-modal-title">Sign in to <span class="login-modal-brand">droply</span></h2>
+                
+                <form class="login-modal-form" method="POST" action="{{ url_for('login') }}">
+                    <!-- Step 1: Email Input -->
+                    <div class="login-modal-step" id="emailStep">
+                        <div class="login-modal-field">
+                            <label for="email" class="login-modal-label">Email</label>
+                            <input type="email" id="email" name="email" class="login-modal-input" placeholder="johnsmith@gmail.com" required>
+                        </div>
+                        
+                        <button type="button" class="login-modal-continue-btn" id="emailContinueBtn">Continue</button>
+                        <div class="login-modal-signup-link">
+                            Don't have an account? <button type="button" class="login-modal-signup-btn" id="emailSignupBtn">Sign up</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Password Input -->
+                    <div class="login-modal-step" id="passwordStep" style="display: none;">
+                        <div class="login-modal-field">
+                            <label for="password" class="login-modal-label">Password</label>
+                            <input type="password" id="password" name="password" class="login-modal-input" placeholder="Enter your password" required>
+                        </div>
+                        
+                        <button type="submit" class="login-modal-continue-btn">Sign In</button>
+                        <button type="button" class="login-modal-back-btn" id="backToEmailBtn">Back</button>
+                    </div>
+                    
+                    <!-- Sign Up Step: All three inputs at once -->
+                    <div class="login-modal-step" id="signupStep" style="display: none;">
+                        <div class="login-modal-field">
+                            <label for="signupEmail" class="login-modal-label">Email</label>
+                            <input type="email" id="signupEmail" name="email" class="login-modal-input" placeholder="johnsmith@gmail.com" required>
+                        </div>
+                        
+                        <div class="login-modal-field">
+                            <label for="signupPassword" class="login-modal-label">Password</label>
+                            <input type="password" id="signupPassword" name="password" class="login-modal-input" placeholder="Enter your password" required>
+                        </div>
+                        
+                        <div class="login-modal-field">
+                            <label for="signupPasswordConfirm" class="login-modal-label">Confirm Password</label>
+                            <input type="password" id="signupPasswordConfirm" name="passwordConfirm" class="login-modal-input" placeholder="Confirm your password" required>
+                        </div>
+                        
+                        <button type="submit" class="login-modal-continue-btn">Sign Up</button>
+                        <button type="button" class="login-modal-back-btn" id="backToEmailFromSignupBtn">Back</button>
+                    </div>
+                    
+                    <div class="login-modal-separator">
+                        <span class="login-modal-separator-text">OR</span>
+                    </div>
+                    
+                    <div class="login-modal-social">
+                        <button type="button" class="login-modal-google-btn" onclick="handleGoogleSignIn()">
+                            <svg class="login-modal-google-icon" viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Continue with Google
+                        </button>
+                    </div>
+                    
+                    <div class="login-modal-footer">
+                        <p class="login-modal-terms">
+                            By signing in you agree to droply's 
+                            <a href="{{ url_for('terms_of_service') }}" class="login-modal-link" target="_blank" rel="noopener noreferrer">Terms of Service</a> 
+                            and 
+                            <a href="{{ url_for('privacy_policy') }}" class="login-modal-link" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Login Modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginModal = document.getElementById('loginModal');
+            const loginModalOverlay = document.getElementById('loginModalOverlay');
+            const loginModalClose = document.getElementById('loginModalClose');
+            const loginLinks = document.querySelectorAll('a[href="{{ url_for("login") }}"]');
+            
+            // Show modal when login links are clicked
+            loginLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loginModal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+            
+            // Hide modal when close button or overlay is clicked
+            function hideModal() {
+                loginModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                // Reset to email step when modal is closed
+                resetLoginSteps();
+            }
+            
+            loginModalClose.addEventListener('click', hideModal);
+            loginModalOverlay.addEventListener('click', hideModal);
+            
+            // Login/signup functionality
+            const emailStep = document.getElementById('emailStep');
+            const passwordStep = document.getElementById('passwordStep');
+            const signupStep = document.getElementById('signupStep');
+            const emailContinueBtn = document.getElementById('emailContinueBtn');
+            const emailSignupBtn = document.getElementById('emailSignupBtn');
+            const backToEmailBtn = document.getElementById('backToEmailBtn');
+            const backToEmailFromSignupBtn = document.getElementById('backToEmailFromSignupBtn');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            
+            function resetLoginSteps() {
+                emailStep.style.display = 'flex';
+                passwordStep.style.display = 'none';
+                signupStep.style.display = 'none';
+                emailInput.value = '';
+                passwordInput.value = '';
+                // Clear signup inputs
+                document.getElementById('signupEmail').value = '';
+                document.getElementById('signupPassword').value = '';
+                document.getElementById('signupPasswordConfirm').value = '';
+            }
+            
+            // Handle email continue button (login flow)
+            emailContinueBtn.addEventListener('click', function() {
+                if (emailInput.value.trim()) {
+                    emailStep.style.display = 'none';
+                    passwordStep.style.display = 'flex';
+                    passwordInput.focus();
+                }
+            });
+            
+            // Handle email signup button
+            emailSignupBtn.addEventListener('click', function() {
+                emailStep.style.display = 'none';
+                signupStep.style.display = 'flex';
+                document.getElementById('signupEmail').focus();
+            });
+            
+            // Handle back to email button (from password step)
+            backToEmailBtn.addEventListener('click', function() {
+                passwordStep.style.display = 'none';
+                emailStep.style.display = 'flex';
+                emailInput.focus();
+            });
+            
+            // Handle back to email button (from signup step)
+            backToEmailFromSignupBtn.addEventListener('click', function() {
+                signupStep.style.display = 'none';
+                emailStep.style.display = 'flex';
+                emailInput.focus();
+            });
+            
+            // Handle Enter key on email input
+            emailInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && emailInput.value.trim()) {
+                    emailStep.style.display = 'none';
+                    passwordStep.style.display = 'flex';
+                    passwordInput.focus();
+                }
+            });
+            
+            // Handle Google Sign In
+            function handleGoogleSignIn() {
+                const googleClientId = '{{ config.get("GOOGLE_CLIENT_ID", "") }}';
+                if (!googleClientId || googleClientId === 'YOUR_GOOGLE_CLIENT_ID') {
+                    alert('Google Sign-In is not configured. Please use the email form instead.');
+                    return;
+                }
+                window.location.href = '{{ url_for("auth_google") }}';
+            }
+            
+            // Make handleGoogleSignIn globally available
+            window.handleGoogleSignIn = handleGoogleSignIn;
+        });
+
+        // Animated Search Bar with Random Names
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('animated-search-input');
+            const animatedPlaceholder = document.getElementById('animated-placeholder');
+            if (!searchInput || !animatedPlaceholder) return;
+
+            // Only animate if the input is empty (no search query)
+            // Clear any existing value to ensure animation starts
+            if (searchInput.value.trim() !== '') {
+                searchInput.value = '';
+            }
+
+            const randomNames = [
+                'Sarah Johnson',
+                'Michael Chen',
+                'Emily Rodriguez',
+                'David Kim',
+                'Jessica Martinez',
+                'Alex Thompson',
+                'Maria Garcia',
+                'James Wilson',
+                'Lisa Anderson',
+                'Robert Taylor',
+                'Jennifer Brown',
+                'Christopher Lee',
+                'Amanda Davis',
+                'Matthew White',
+                'Ashley Miller',
+                'Daniel Jones',
+                'Rachel Green',
+                'Kevin Smith',
+                'Nicole Williams',
+                'Andrew Clark',
+                'Stephanie Hall',
+                'Ryan Moore',
+                'Michelle Turner',
+                'Brandon Scott',
+                'Samantha Young'
+            ];
+
+            let isAnimating = false;
+            let currentText = '';
+            let currentIndex = 0;
+            let isDeleting = false;
+            let animationTimeout;
+
+            function startAnimation() {
+                if (isAnimating || searchInput.value.trim() !== '') return;
+                
+                isAnimating = true;
+                searchInput.parentElement.classList.add('animating');
+                animatedPlaceholder.classList.add('show');
+                animateText();
+            }
+
+            function animateText() {
+                if (searchInput.value.trim() !== '') {
+                    isAnimating = false;
+                    animatedPlaceholder.classList.remove('show');
+                    return;
+                }
+
+                const targetText = randomNames[currentIndex];
+                
+                if (isDeleting) {
+                    // Delete characters
+                    currentText = targetText.substring(0, currentText.length - 1);
+                    animatedPlaceholder.textContent = currentText;
+                    
+                    if (currentText.length === 0) {
+                        isDeleting = false;
+                        currentIndex = (currentIndex + 1) % randomNames.length;
+                        animationTimeout = setTimeout(animateText, 500); // Pause before next word
+                    } else {
+                        animationTimeout = setTimeout(animateText, 50); // Fast delete
+                    }
+                } else {
+                    // Type characters
+                    currentText = targetText.substring(0, currentText.length + 1);
+                    animatedPlaceholder.textContent = currentText;
+                    
+                    if (currentText === targetText) {
+                        isDeleting = true;
+                        animationTimeout = setTimeout(animateText, 2000); // Pause before deleting
+                    } else {
+                        animationTimeout = setTimeout(animateText, 100); // Typing speed
+                    }
+                }
+            }
+
+            function stopAnimation() {
+                isAnimating = false;
+                searchInput.parentElement.classList.remove('animating');
+                animatedPlaceholder.classList.remove('show');
+                if (animationTimeout) {
+                    clearTimeout(animationTimeout);
+                }
+            }
+
+            // Start animation when page loads
+            startAnimation();
+
+            // Stop animation when user starts typing
+            searchInput.addEventListener('input', function() {
+                if (this.value.trim() !== '') {
+                    stopAnimation();
+                }
+            });
+
+            // Don't stop animation on focus - only stop when user actually types
+
+            // Restart animation when user clears the input
+            searchInput.addEventListener('blur', function() {
+                if (this.value.trim() === '') {
+                    setTimeout(startAnimation, 500);
+                }
+            });
+
+            // Smart Autocomplete System
+            const suggestionsContainer = document.getElementById('search-suggestions');
+            let debounceTimer;
+            let currentSuggestions = [];
+
+            function fetchSuggestions(query) {
+                if (query.length < 1) {
+                    hideSuggestions();
+                    return;
+                }
+
+                fetch(`/api/search-suggestions?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(suggestions => {
+                        currentSuggestions = suggestions;
+                        showSuggestions(suggestions);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching suggestions:', error);
+                        hideSuggestions();
+                    });
+            }
+
+            function showSuggestions(suggestions) {
+                if (suggestions.length === 0) {
+                    hideSuggestions();
+                    return;
+                }
+
+                suggestionsContainer.innerHTML = '';
+                suggestions.forEach((suggestion, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.setAttribute('data-index', index);
+                    
+                    const content = document.createElement('div');
+                    content.className = 'suggestion-content';
+                    
+                    const icon = document.createElement('div');
+                    icon.className = 'suggestion-icon';
+                    icon.textContent = suggestion.icon;
+                    
+                    const text = document.createElement('div');
+                    text.className = 'suggestion-text';
+                    text.textContent = suggestion.text;
+                    
+                    const subtitle = document.createElement('div');
+                    subtitle.className = 'suggestion-subtitle';
+                    subtitle.textContent = suggestion.subtitle;
+                    
+                    content.appendChild(icon);
+                    content.appendChild(text);
+                    content.appendChild(subtitle);
+                    
+                    item.appendChild(content);
+                    
+                    item.addEventListener('click', () => {
+                        selectSuggestion(suggestion);
+                    });
+                    
+                    suggestionsContainer.appendChild(item);
+                });
+                
+                suggestionsContainer.classList.add('show');
+            }
+
+            function hideSuggestions() {
+                suggestionsContainer.classList.remove('show');
+                suggestionsContainer.innerHTML = '';
+            }
+
+            function selectSuggestion(suggestion) {
+                searchInput.value = suggestion.value;
+                hideSuggestions();
+                stopAnimation();
+                // Auto-submit the form
+                searchInput.form.submit();
+            }
+
+            // Handle input events
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                
+                // Stop animation when user types
+                if (query !== '') {
+                    stopAnimation();
+                }
+                
+                // Clear previous debounce timer
+                clearTimeout(debounceTimer);
+                
+                // Set new debounce timer
+                debounceTimer = setTimeout(() => {
+                    fetchSuggestions(query);
+                }, 50);
+            });
+
+            // Handle keyboard navigation
+            let selectedIndex = -1;
+            searchInput.addEventListener('keydown', function(e) {
+                // Handle Cmd+A / Ctrl+A to select all text
+                if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+                    e.preventDefault();
+                    this.select();
+                    return;
+                }
+                
+                if (!suggestionsContainer.classList.contains('show')) return;
+                
+                const items = suggestionsContainer.querySelectorAll('.suggestion-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex === -1) {
+                        selectedIndex = 0; // Start with first item
+                    } else {
+                        selectedIndex = (selectedIndex + 1) % items.length; // Cycle through items
+                    }
+                    updateSelection(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex === -1) {
+                        selectedIndex = items.length - 1; // Go to last item
+                    } else {
+                        selectedIndex = (selectedIndex - 1 + items.length) % items.length; // Cycle through items
+                    }
+                    updateSelection(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && currentSuggestions[selectedIndex]) {
+                        selectSuggestion(currentSuggestions[selectedIndex]);
+                    } else {
+                        this.form.submit();
+                    }
+                } else if (e.key === 'Escape') {
+                    hideSuggestions();
+                    selectedIndex = -1;
+                }
+            });
+
+            function updateSelection(items) {
+                items.forEach((item, index) => {
+                    if (index === selectedIndex) {
+                        item.classList.add('selected');
+                    } else {
+                        item.classList.remove('selected');
+                    }
+                });
+            }
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                    hideSuggestions();
+                }
+            });
+        });
     </script>
 </body>
 </html>
