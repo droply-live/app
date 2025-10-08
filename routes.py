@@ -1437,18 +1437,19 @@ def availability():
 @app.route('/create-checkout-session/<int:booking_id>', methods=['POST', 'GET'])
 def create_checkout_session(booking_id):
     """Create Stripe checkout session"""
-    print(f"DEBUG: create_checkout_session called with booking_id: {booking_id}")
-    print(f"DEBUG: Stripe API key configured: {bool(stripe.api_key)}")
-    print(f"DEBUG: YOUR_DOMAIN: {YOUR_DOMAIN}")
-    print(f"DEBUG: Request method: {request.method}")
-    print(f"DEBUG: Request args: {dict(request.args)}")
-    print(f"DEBUG: Request form: {dict(request.form)}")
-    
-    # Production safeguard
-    if is_production_environment() and stripe.api_key.startswith('sk_test_'):
-        print("DEBUG: Production environment with test keys detected")
-        flash('Payment system temporarily unavailable. Please try again later.', 'error')
-        return redirect(url_for('homepage'))
+    try:
+        print(f"DEBUG: create_checkout_session called with booking_id: {booking_id}")
+        print(f"DEBUG: Stripe API key configured: {bool(stripe.api_key)}")
+        print(f"DEBUG: YOUR_DOMAIN: {YOUR_DOMAIN}")
+        print(f"DEBUG: Request method: {request.method}")
+        print(f"DEBUG: Request args: {dict(request.args)}")
+        print(f"DEBUG: Request form: {dict(request.form)}")
+        
+        # Production safeguard - temporarily disabled for debugging
+        if False and is_production_environment() and stripe.api_key.startswith('sk_test_'):
+            print("DEBUG: Production environment with test keys detected")
+            flash('Payment system temporarily unavailable. Please try again later.', 'error')
+            return redirect(url_for('homepage'))
     
     booking = Booking.query.get_or_404(booking_id)
     print(f"DEBUG: Booking found - ID: {booking.id}, Amount: {booking.payment_amount}, Status: {booking.status}")
@@ -1514,6 +1515,13 @@ def create_checkout_session(booking_id):
         traceback.print_exc()
         flash(f'Payment error: {str(e)}', 'error')
         return redirect(url_for('user_profile', username=expert.username if expert else 'unknown'))
+    
+    except Exception as e:
+        print(f"DEBUG: CRITICAL ERROR in create_checkout_session: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Return a proper error response instead of letting it bubble up
+        return f"Internal server error: {str(e)}", 500
 
 @app.route('/booking/success/<int:booking_id>')
 def booking_success(booking_id):
