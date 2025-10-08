@@ -2345,8 +2345,8 @@
                             <span class="expert-rate">${{ "%.0f"|format(user.hourly_rate or 0) }}/hr</span>
                         </div>
                         <div class="expert-actions">
-                            <a href="{{ url_for('user_profile', username=user.username) }}" class="action-btn primary" data-translate="expert.view">View Profile</a>
-                            <a href="{{ url_for('login', next=url_for('user_profile', username=user.username)) }}" class="action-btn secondary" data-translate="expert.login_to_book">Login to Book</a>
+                            <a href="{{ url_for('public_user_profile', username=user.username) }}" class="action-btn primary" target="_blank" data-translate="expert.view">View Profile</a>
+                            <a href="{{ url_for('login', next=url_for('user_booking_times', username=user.username)) }}" class="action-btn secondary" data-translate="expert.login_to_book">Login to Book</a>
                         </div>
                     </div>
                     {% endfor %}
@@ -3437,7 +3437,7 @@
                                                 <span class="person-rate">$${Math.round(user.hourly_rate || 0)}/hr</span>
                                             </div>
                                             <div class="person-actions">
-                                                <a href="/user/${user.username}" class="action-btn primary">View Profile</a>
+                                                <a href="/user/${user.username}" class="action-btn primary" target="_blank">View Profile</a>
                                             </div>
                                         </div>
                                     `).join('')}
@@ -3464,7 +3464,7 @@
                                         <span class="person-rate">$${Math.round(user.hourly_rate || 0)}/hr</span>
                                     </div>
                                     <div class="person-actions">
-                                        <a href="/user/${user.username}" class="action-btn primary">View Profile</a>
+                                        <a href="/user/${user.username}" class="action-btn primary" target="_blank">View Profile</a>
                                     </div>
                                 </div>
                             `).join('')}

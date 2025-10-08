@@ -1108,9 +1108,19 @@ def profile_preview(username):
     return render_template('user_profile.html', user=user, availability_rules=availability_rules)
 
 @app.route('/user/<username>')
+def public_user_profile(username):
+    """Public user profile page - accessible without login"""
+    user = User.query.filter_by(username=username).first_or_404()
+    
+    # Get user's availability for booking
+    availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
+    
+    return render_template('user_profile_public.html', user=user, availability_rules=availability_rules)
+
+@app.route('/user/<username>/private')
 @login_required
 def user_profile(username):
-    """View user profile for booking"""
+    """Private user profile for booking - requires login"""
     user = User.query.filter_by(username=username).first_or_404()
     
     # Get user's availability for booking
