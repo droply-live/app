@@ -858,7 +858,7 @@
             z-index: 2 !important;
             opacity: 0 !important;
             transition: opacity 0.2s ease !important;
-            background: #333 !important;
+            background: transparent !important;
             padding: 0.5rem !important;
             border-radius: 0 !important;
             margin: 0 !important;
@@ -1900,7 +1900,7 @@
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
-            justify-content: flex-start;
+            justify-content: center;
             margin-bottom: 2rem;
             width: 100%;
         }
@@ -2974,7 +2974,16 @@
                     return;
                 }
 
+                // Check if randomNames is available and not empty
+                if (!randomNames || randomNames.length === 0) {
+                    return;
+                }
+
                 const targetText = randomNames[currentIndex];
+                
+                if (!targetText) {
+                    return;
+                }
                 
                 if (isDeleting) {
                     // Delete characters
@@ -3011,24 +3020,18 @@
                 }
             }
 
-            // Start animation when page loads
-            startAnimation();
-
-            // Stop animation when user starts typing
-            searchInput.addEventListener('input', function() {
-                if (this.value.trim() !== '') {
-                    stopAnimation();
+            // Start animation when page loads, but wait for randomNames to be loaded
+            setTimeout(() => {
+                if (randomNames && randomNames.length > 0) {
+                    startAnimation();
+                } else {
+                    setTimeout(() => {
+                        if (randomNames && randomNames.length > 0) {
+                            startAnimation();
+                        }
+                    }, 1000);
                 }
-            });
-
-            // Don't stop animation on focus - only stop when user actually types
-
-            // Restart animation when user clears the input
-            searchInput.addEventListener('blur', function() {
-                if (this.value.trim() === '') {
-                    setTimeout(startAnimation, 500);
-                }
-            });
+            }, 100);
 
             // Smart Autocomplete System
             const suggestionsContainer = document.getElementById('search-suggestions');
@@ -3054,46 +3057,35 @@
             }
 
             function showSuggestions(suggestions) {
-                if (suggestions.length === 0) {
+                if (!suggestions || suggestions.length === 0) {
                     hideSuggestions();
                     return;
                 }
 
-                suggestionsContainer.innerHTML = '';
+                let html = '';
                 suggestions.forEach((suggestion, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item';
-                    item.setAttribute('data-index', index);
-                    
-                    const content = document.createElement('div');
-                    content.className = 'suggestion-content';
-                    
-                    const icon = document.createElement('div');
-                    icon.className = 'suggestion-icon';
-                    icon.textContent = suggestion.icon;
-                    
-                    const text = document.createElement('div');
-                    text.className = 'suggestion-text';
-                    text.textContent = suggestion.text;
-                    
-                    const subtitle = document.createElement('div');
-                    subtitle.className = 'suggestion-subtitle';
-                    subtitle.textContent = suggestion.subtitle;
-                    
-                    content.appendChild(icon);
-                    content.appendChild(text);
-                    content.appendChild(subtitle);
-                    
-                    item.appendChild(content);
-                    
-                    item.addEventListener('click', () => {
-                        selectSuggestion(suggestion);
-                    });
-                    
-                    suggestionsContainer.appendChild(item);
+                    html += `
+                        <div class="suggestion-item" data-index="${index}">
+                            <div class="suggestion-content">
+                                <div class="suggestion-icon">${suggestion.icon || '👤'}</div>
+                                <div class="suggestion-text">
+                                    <div class="suggestion-title">${suggestion.text}</div>
+                                    <div class="suggestion-subtitle">${suggestion.subtitle || ''}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 });
-                
+
+                suggestionsContainer.innerHTML = html;
                 suggestionsContainer.classList.add('show');
+
+                // Add click handlers
+                suggestionsContainer.querySelectorAll('.suggestion-item').forEach((item, index) => {
+                    item.addEventListener('click', function() {
+                        selectSuggestion(currentSuggestions[index]);
+                    });
+                });
             }
 
             function hideSuggestions() {
@@ -3109,7 +3101,7 @@
                 searchInput.form.submit();
             }
 
-            // Handle input events
+            // Combined input event handler for both animation and suggestions
             searchInput.addEventListener('input', function() {
                 const query = this.value.trim();
                 
@@ -3125,6 +3117,13 @@
                 debounceTimer = setTimeout(() => {
                     fetchSuggestions(query);
                 }, 50);
+            });
+
+            // Restart animation when user clears the input
+            searchInput.addEventListener('blur', function() {
+                if (this.value.trim() === '') {
+                    setTimeout(startAnimation, 500);
+                }
             });
 
             // Handle keyboard navigation
@@ -3186,6 +3185,7 @@
                     hideSuggestions();
                 }
             });
+
         });
 
         // Function to handle discover button clicks
@@ -3259,7 +3259,7 @@
             // Load all users initially
             loadBrowseResults('all');
             
-            // Add search functionality
+            // Add search functionality - simple filtering
             const searchInput = document.getElementById('browse-search-input');
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
