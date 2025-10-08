@@ -373,7 +373,7 @@ body.light-mode .person-title {
   {% endif %}
 
   <!-- Results Section -->
-  {% if request.args.get('search') or view_type %}
+  {% if request.args.get('search') or view_type or users %}
   <div class="results-area">
     <div class="experts-grid">
       {% for user in users %}

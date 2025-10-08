@@ -1115,7 +1115,7 @@ def public_user_profile(username):
     # Get user's availability for booking
     availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
     
-    return render_template('user_profile_public.html', user=user, availability_rules=availability_rules)
+    return render_template('user_profile_ultra_simple.html', user=user, availability_rules=availability_rules)
 
 @app.route('/user/<username>/private')
 @login_required
@@ -1238,7 +1238,169 @@ def account():
 @login_required
 def profile_editor():
     """Enhanced profile editor with customization options"""
-    return render_template('profile_editor.html')
+    return render_template('profile_editor_ultra_simple.html')
+
+@app.route('/api/profile/update', methods=['POST'])
+@login_required
+def api_profile_update():
+    """API endpoint for updating user profile"""
+    try:
+        # Handle JSON data from inline editor
+        if request.is_json:
+            data = request.get_json()
+            
+            # Update all fields from JSON data
+            current_user.full_name = data.get('fullName', current_user.full_name)
+            current_user.profession = data.get('profession', current_user.profession)
+            current_user.bio = data.get('bio', current_user.bio)
+            current_user.location = data.get('location', current_user.location)
+            current_user.service_description = data.get('serviceDescription', current_user.service_description)
+            current_user.session_duration = int(data.get('sessionDuration', current_user.session_duration or 30))
+            current_user.hourly_rate = float(data.get('hourlyRate', current_user.hourly_rate or 0))
+            current_user.specialty_tags = data.get('expertiseTags', current_user.specialty_tags)
+            current_user.linkedin_url = data.get('linkedinUrl', current_user.linkedin_url)
+            current_user.twitter_url = data.get('twitterUrl', current_user.twitter_url)
+            current_user.github_url = data.get('githubUrl', current_user.github_url)
+            current_user.primary_color = data.get('primaryColor', current_user.primary_color)
+            current_user.secondary_color = data.get('secondaryColor', current_user.secondary_color)
+            current_user.background_color = data.get('backgroundColor', current_user.background_color)
+            
+        else:
+            # Get form data
+            full_name = request.form.get('fullName', '').strip()
+        profession = request.form.get('profession', '').strip()
+        bio = request.form.get('bio', '').strip()
+        location = request.form.get('location', '').strip()
+        industry = request.form.get('industry', '').strip()
+        expertise_tags = request.form.get('expertiseTags', '').strip()
+        
+        # Social media URLs
+        linkedin_url = request.form.get('linkedinUrl', '').strip()
+        twitter_url = request.form.get('twitterUrl', '').strip()
+        github_url = request.form.get('githubUrl', '').strip()
+        instagram_url = request.form.get('instagramUrl', '').strip()
+        youtube_url = request.form.get('youtubeUrl', '').strip()
+        website_url = request.form.get('websiteUrl', '').strip()
+        
+        # Appearance settings
+        primary_color = request.form.get('primaryColor', '').strip()
+        secondary_color = request.form.get('secondaryColor', '').strip()
+        background_color = request.form.get('backgroundColor', '').strip()
+        font_family = request.form.get('fontFamily', '').strip()
+        font_size = request.form.get('fontSize', '').strip()
+        
+        # Content settings
+        service_description = request.form.get('serviceDescription', '').strip()
+        session_duration = request.form.get('sessionDuration', '').strip()
+        content_description = request.form.get('contentDescription', '').strip()
+        content_categories = request.form.get('contentCategories', '').strip()
+        
+        # Boolean settings
+        is_available = request.form.get('isAvailable') == 'true'
+        email_notifications = request.form.get('emailNotifications') == 'true'
+        show_services = request.form.get('showServices') == 'true'
+        show_content = request.form.get('showContent') == 'true'
+        
+        # Update user profile
+        if full_name:
+            current_user.full_name = full_name
+        if profession:
+            current_user.profession = profession
+        if bio:
+            current_user.bio = bio
+        if location:
+            current_user.location = location
+        if industry:
+            current_user.industry = industry
+        if expertise_tags:
+            current_user.specialty_tags = expertise_tags
+        
+        # Update social media URLs
+        if linkedin_url:
+            current_user.linkedin_url = linkedin_url
+        if twitter_url:
+            current_user.twitter_url = twitter_url
+        if github_url:
+            current_user.github_url = github_url
+        if instagram_url:
+            current_user.instagram_url = instagram_url
+        if youtube_url:
+            current_user.youtube_url = youtube_url
+        if website_url:
+            current_user.website_url = website_url
+        
+        # Update appearance settings
+        if primary_color:
+            current_user.primary_color = primary_color
+        if secondary_color:
+            current_user.secondary_color = secondary_color
+        if background_color:
+            current_user.background_color = background_color
+        if font_family:
+            current_user.font_family = font_family
+        if font_size:
+            try:
+                current_user.font_size = int(font_size)
+            except ValueError:
+                pass
+        
+        # Update content settings
+        if service_description:
+            current_user.service_description = service_description
+        if session_duration:
+            try:
+                current_user.session_duration = int(session_duration)
+            except ValueError:
+                pass
+        if content_description:
+            current_user.content_description = content_description
+        if content_categories:
+            current_user.content_categories = content_categories
+        
+        # Update boolean settings
+        current_user.is_available = is_available
+        current_user.email_notifications = email_notifications
+        
+        # Handle profile image upload
+        if 'profile_image' in request.files:
+            profile_image = request.files['profile_image']
+            if profile_image and profile_image.filename:
+                # Generate unique filename
+                import time
+                import os
+                from werkzeug.utils import secure_filename
+                
+                filename = secure_filename(profile_image.filename)
+                timestamp = str(int(time.time()))
+                name, ext = os.path.splitext(filename)
+                unique_filename = f"profile_{current_user.id}_{timestamp}{ext}"
+                
+                # Create uploads directory if it doesn't exist
+                upload_dir = os.path.join(app.static_folder, 'uploads')
+                os.makedirs(upload_dir, exist_ok=True)
+                
+                # Save the file
+                file_path = os.path.join(upload_dir, unique_filename)
+                profile_image.save(file_path)
+                
+                # Update user's profile picture path
+                current_user.profile_picture = f"/static/uploads/{unique_filename}"
+        
+        # Commit changes
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Profile updated successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Failed to update profile'
+        }), 500
 
 @app.route('/profile/update', methods=['POST'])
 @login_required
@@ -2854,145 +3016,6 @@ def api_profile_test():
         'username': current_user.username
     })
 
-@app.route('/api/profile/update', methods=['POST'])
-@login_required
-def api_profile_update():
-    """Update user profile via API"""
-    try:
-        
-        # Handle both JSON and form data
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = request.form.to_dict()
-        
-        # Update basic profile fields
-        if 'username' in data:
-            new_username = data['username'].strip()
-            if new_username != current_user.username:
-                # Check if username is already taken
-                existing_user = User.query.filter_by(username=new_username).first()
-                if existing_user:
-                    return jsonify({
-                        'success': False,
-                        'message': 'Username is already taken'
-                    }), 400
-                current_user.username = new_username
-        
-        if 'bio' in data:
-            current_user.bio = data['bio']
-            
-        # Update full name (handle multiple field names)
-        if 'full_name' in data:
-            current_user.full_name = data['full_name']
-        elif 'name' in data:
-            current_user.full_name = data['name']
-            
-        # Update profession/title
-        if 'profession' in data:
-            current_user.profession = data['profession']
-        elif 'title' in data:
-            current_user.profession = data['title']
-            
-        # Update industry/category
-        if 'industry' in data:
-            current_user.industry = data['industry']
-        elif 'category' in data:
-            current_user.industry = data['category']
-            
-        # Update hourly rate
-        if 'hourly_rate' in data:
-            current_user.hourly_rate = float(data['hourly_rate']) if data['hourly_rate'] else 0
-        elif 'rate' in data:
-            current_user.hourly_rate = float(data['rate']) if data['rate'] else 0
-            
-        # Update location
-        if 'location' in data:
-            current_user.location = data['location']
-            
-        # Update phone
-        if 'phone' in data:
-            current_user.phone = data['phone']
-            
-        # Update preference fields (for settings page auto-save)
-        if 'language' in data:
-            current_user.language = data['language']
-        if 'timezone' in data:
-            current_user.timezone = data['timezone']
-        if 'email_notifications' in data:
-            current_user.email_notifications = data['email_notifications']
-            
-        # Update social media URLs
-        if 'linkedin' in data:
-            current_user.linkedin_url = data['linkedin']
-        if 'twitter' in data:
-            current_user.twitter_url = data['twitter']
-        if 'github' in data:
-            current_user.github_url = data['github']
-        if 'instagram' in data:
-            current_user.instagram_url = data['instagram']
-        if 'facebook' in data:
-            current_user.facebook_url = data['facebook']
-        if 'youtube' in data:
-            current_user.youtube_url = data['youtube']
-        if 'snapchat' in data:
-            current_user.snapchat_url = data['snapchat']
-        if 'website' in data:
-            current_user.website_url = data['website']
-            
-        # Update availability
-        if 'is_available' in data:
-            current_user.is_available = data['is_available']
-            
-        # Update customization fields
-        if 'primaryColor' in data:
-            current_user.primary_color = data['primaryColor']
-        if 'secondaryColor' in data:
-            current_user.secondary_color = data['secondaryColor']
-        if 'backgroundColor' in data:
-            current_user.background_color = data['backgroundColor']
-        if 'fontFamily' in data:
-            current_user.font_family = data['fontFamily']
-        if 'fontSize' in data:
-            current_user.font_size = int(data['fontSize'])
-        if 'profileLayout' in data:
-            current_user.profile_layout = data['profileLayout']
-        if 'skillsTags' in data:
-            current_user.specialty_tags = data['skillsTags']
-            
-        # Handle image uploads
-        if 'profile_image' in request.files:
-            file = request.files['profile_image']
-            if file and file.filename:
-                filename = f"profile_{current_user.id}_{int(time.time())}.{file.filename.split('.')[-1]}"
-                filepath = os.path.join('static', 'uploads', filename)
-                file.save(filepath)
-                current_user.profile_picture = f"/static/uploads/{filename}"
-                
-        if 'background_image' in request.files:
-            file = request.files['background_image']
-            if file and file.filename:
-                filename = f"background_{current_user.id}_{int(time.time())}.{file.filename.split('.')[-1]}"
-                filepath = os.path.join('static', 'uploads', filename)
-                file.save(filepath)
-                current_user.background_image_url = f"/static/uploads/{filename}"
-        
-        db.session.commit()
-        
-        # Handle different response types
-        if request.is_json:
-            return jsonify({'success': True})
-        else:
-            # For form submissions, redirect back to account page with success message
-            flash('Profile updated successfully!', 'success')
-            return redirect(url_for('account'))
-    except Exception as e:
-        db.session.rollback()
-        if request.is_json:
-            return jsonify({'success': False, 'error': str(e)}), 500
-        else:
-            flash('Failed to update profile: ' + str(e), 'error')
-            return redirect(url_for('account'))
 
 @app.route('/api/profile/specialties', methods=['POST'])
 @login_required

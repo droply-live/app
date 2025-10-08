@@ -1,0 +1,445 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Profile Editor - Droply{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-editor-inline.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="inline-editor-page">
+    <div class="editor-header">
+        <h2>Profile Editor</h2>
+        <div class="editor-controls">
+            <button class="btn btn-secondary" onclick="previewProfile()">
+                <i class="fas fa-external-link-alt"></i> Preview Profile
+            </button>
+            <button class="btn btn-primary" onclick="saveProfile()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+    
+    <div class="editor-container">
+        <div class="editable-preview">
+            <!-- Profile Header - Editable -->
+            <div class="profile-header editable" data-field="header">
+                <div class="edit-overlay">
+                    <button class="edit-btn" onclick="editHeader()">
+                        <i class="fas fa-edit"></i> Edit Header
+                    </button>
+                </div>
+                
+                <div class="profile-avatar-section">
+                    <div class="avatar-container editable" data-field="avatar">
+                        <div class="edit-overlay">
+                            <button class="edit-btn" onclick="editAvatar()">
+                                <i class="fas fa-camera"></i> Change Photo
+                            </button>
+                        </div>
+                        <img id="profileImagePreview" 
+                             src="{{ current_user.profile_picture or '/static/img/default-avatar.svg' }}" 
+                             alt="Profile Picture" 
+                             class="profile-avatar">
+                    </div>
+                </div>
+                
+                <div class="profile-info-section">
+                    <h1 class="profile-name editable" data-field="name" onclick="editField('name')">
+                        {{ current_user.full_name or 'Your Name' }}
+                        <i class="fas fa-edit edit-icon"></i>
+                    </h1>
+                    <p class="profile-title editable" data-field="profession" onclick="editField('profession')">
+                        {{ current_user.profession or 'Professional' }}
+                        <i class="fas fa-edit edit-icon"></i>
+                    </p>
+                    <p class="profile-location editable" data-field="location" onclick="editField('location')">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ current_user.location or 'Your Location' }}
+                        <i class="fas fa-edit edit-icon"></i>
+                    </p>
+                    <div class="profile-bio editable" data-field="bio" onclick="editField('bio')">
+                        <p>{{ current_user.bio or 'Tell us about yourself...' }}</p>
+                        <i class="fas fa-edit edit-icon"></i>
+                    </div>
+                </div>
+                
+                <div class="color-controls">
+                    <button class="color-btn" onclick="editColors()" title="Change Colors">
+                        <i class="fas fa-palette"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Services Section - Editable -->
+            <div class="services-section editable" data-field="services">
+                <div class="edit-overlay">
+                    <button class="edit-btn" onclick="editServices()">
+                        <i class="fas fa-plus"></i> Add Services
+                    </button>
+                </div>
+                <div class="section-header">
+                    <h3>Services</h3>
+                    <button class="add-item-btn" onclick="addService()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="service-item">
+                    <h4>1-on-1 Sessions</h4>
+                    <p class="service-description editable" data-field="serviceDescription" onclick="editField('serviceDescription')">
+                        {{ current_user.service_description or 'Book a personal session with me' }}
+                        <i class="fas fa-edit edit-icon"></i>
+                    </p>
+                    <div class="service-details">
+                        <span class="duration editable" data-field="sessionDuration" onclick="editField('sessionDuration')">
+                            <i class="fas fa-clock"></i> {{ current_user.session_duration or 30 }} minutes
+                            <i class="fas fa-edit edit-icon"></i>
+                        </span>
+                        <span class="price editable" data-field="hourlyRate" onclick="editField('hourlyRate')">
+                            <i class="fas fa-dollar-sign"></i> ${{ current_user.hourly_rate or 0 }}/session
+                            <i class="fas fa-edit edit-icon"></i>
+                        </span>
+                    </div>
+                    <button class="book-btn">Book Session</button>
+                </div>
+            </div>
+            
+            <!-- Skills Section - Editable -->
+            <div class="skills-section editable" data-field="skills">
+                <div class="edit-overlay">
+                    <button class="edit-btn" onclick="editSkills()">
+                        <i class="fas fa-plus"></i> Add Skills
+                    </button>
+                </div>
+                <div class="section-header">
+                    <h3>Skills & Expertise</h3>
+                    <button class="add-item-btn" onclick="addSkill()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="skills-tags">
+                    <span class="skill-tag editable" data-field="expertiseTags" onclick="editField('expertiseTags')">
+                        {{ current_user.specialty_tags or 'Add your skills' }}
+                        <i class="fas fa-edit edit-icon"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Social Links - Editable -->
+            <div class="social-section editable" data-field="social">
+                <div class="edit-overlay">
+                    <button class="edit-btn" onclick="editSocial()">
+                        <i class="fas fa-plus"></i> Add Social Links
+                    </button>
+                </div>
+                <div class="section-header">
+                    <h3>Connect With Me</h3>
+                    <button class="add-item-btn" onclick="addSocialLink()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="social-links">
+                    <a href="{{ current_user.linkedin_url or '#' }}" class="social-link editable" data-field="linkedinUrl" onclick="editField('linkedinUrl')">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                        <i class="fas fa-edit edit-icon"></i>
+                    </a>
+                    <a href="{{ current_user.twitter_url or '#' }}" class="social-link editable" data-field="twitterUrl" onclick="editField('twitterUrl')">
+                        <i class="fab fa-twitter"></i> Twitter
+                        <i class="fas fa-edit edit-icon"></i>
+                    </a>
+                    <a href="{{ current_user.github_url or '#' }}" class="social-link editable" data-field="githubUrl" onclick="editField('githubUrl')">
+                        <i class="fab fa-github"></i> GitHub
+                        <i class="fas fa-edit edit-icon"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Edit Field</h3>
+            <button class="close-btn" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="modalContent">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveField()">Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentField = null;
+let profileData = {};
+
+// Initialize profile data
+function initializeProfileData() {
+    profileData = {
+        fullName: '{{ current_user.full_name or "Your Name" }}',
+        profession: '{{ current_user.profession or "Professional" }}',
+        bio: '{{ current_user.bio or "Tell us about yourself..." }}',
+        location: '{{ current_user.location or "Your Location" }}',
+        serviceDescription: '{{ current_user.service_description or "Book a personal session with me" }}',
+        sessionDuration: {{ current_user.session_duration or 30 }},
+        hourlyRate: {{ current_user.hourly_rate or 0 }},
+        expertiseTags: '{{ current_user.specialty_tags or "Add your skills" }}',
+        linkedinUrl: '{{ current_user.linkedin_url or "" }}',
+        twitterUrl: '{{ current_user.twitter_url or "" }}',
+        githubUrl: '{{ current_user.github_url or "" }}',
+        primaryColor: '{{ current_user.primary_color or "#667eea" }}',
+        secondaryColor: '{{ current_user.secondary_color or "#764ba2" }}',
+        backgroundColor: '{{ current_user.background_color or "#f7faff" }}'
+    };
+}
+
+// Edit field function
+function editField(fieldName) {
+    currentField = fieldName;
+    const modal = document.getElementById('editModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Set modal title
+    modalTitle.textContent = `Edit ${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}`;
+    
+    // Generate form content based on field type
+    let formHTML = '';
+    
+    switch(fieldName) {
+        case 'name':
+            formHTML = `
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="editValue" value="${profileData.fullName}" class="form-control">
+                </div>
+            `;
+            break;
+        case 'profession':
+            formHTML = `
+                <div class="form-group">
+                    <label>Profession/Title</label>
+                    <input type="text" id="editValue" value="${profileData.profession}" class="form-control">
+                </div>
+            `;
+            break;
+        case 'bio':
+            formHTML = `
+                <div class="form-group">
+                    <label>Bio/About</label>
+                    <textarea id="editValue" rows="4" class="form-control">${profileData.bio}</textarea>
+                </div>
+            `;
+            break;
+        case 'location':
+            formHTML = `
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="editValue" value="${profileData.location}" class="form-control">
+                </div>
+            `;
+            break;
+        case 'serviceDescription':
+            formHTML = `
+                <div class="form-group">
+                    <label>Service Description</label>
+                    <textarea id="editValue" rows="3" class="form-control">${profileData.serviceDescription}</textarea>
+                </div>
+            `;
+            break;
+        case 'sessionDuration':
+            formHTML = `
+                <div class="form-group">
+                    <label>Session Duration (minutes)</label>
+                    <input type="number" id="editValue" value="${profileData.sessionDuration}" min="15" max="120" class="form-control">
+                </div>
+            `;
+            break;
+        case 'hourlyRate':
+            formHTML = `
+                <div class="form-group">
+                    <label>Hourly Rate ($)</label>
+                    <input type="number" id="editValue" value="${profileData.hourlyRate}" min="0" class="form-control">
+                </div>
+            `;
+            break;
+        case 'expertiseTags':
+            formHTML = `
+                <div class="form-group">
+                    <label>Skills & Expertise (comma-separated)</label>
+                    <input type="text" id="editValue" value="${profileData.expertiseTags}" class="form-control" placeholder="e.g., JavaScript, React, Node.js">
+                </div>
+            `;
+            break;
+        case 'linkedinUrl':
+        case 'twitterUrl':
+        case 'githubUrl':
+            formHTML = `
+                <div class="form-group">
+                    <label>${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} URL</label>
+                    <input type="url" id="editValue" value="${profileData[fieldName]}" class="form-control" placeholder="https://...">
+                </div>
+            `;
+            break;
+    }
+    
+    modalContent.innerHTML = formHTML;
+    modal.style.display = 'block';
+}
+
+// Save field function
+function saveField() {
+    const value = document.getElementById('editValue').value;
+    profileData[currentField] = value;
+    
+    // Update the display
+    updateDisplay();
+    closeModal();
+}
+
+// Update display function
+function updateDisplay() {
+    // Update name
+    document.querySelector('[data-field="name"]').innerHTML = 
+        `${profileData.fullName} <i class="fas fa-edit edit-icon"></i>`;
+    
+    // Update profession
+    document.querySelector('[data-field="profession"]').innerHTML = 
+        `${profileData.profession} <i class="fas fa-edit edit-icon"></i>`;
+    
+    // Update bio
+    document.querySelector('[data-field="bio"]').innerHTML = 
+        `<p>${profileData.bio}</p> <i class="fas fa-edit edit-icon"></i>`;
+    
+    // Update location
+    document.querySelector('[data-field="location"]').innerHTML = 
+        `<i class="fas fa-map-marker-alt"></i> ${profileData.location} <i class="fas fa-edit edit-icon"></i>`;
+    
+    // Update service description
+    document.querySelector('[data-field="serviceDescription"]').innerHTML = 
+        `${profileData.serviceDescription} <i class="fas fa-edit edit-icon"></i>`;
+    
+    // Update session duration
+    document.querySelector('[data-field="sessionDuration"]').innerHTML = 
+        `<i class="fas fa-clock"></i> ${profileData.sessionDuration} minutes <i class="fas fa-edit edit-icon"></i>`;
+    
+    // Update hourly rate
+    document.querySelector('[data-field="hourlyRate"]').innerHTML = 
+        `<i class="fas fa-dollar-sign"></i> $${profileData.hourlyRate}/session <i class="fas fa-edit edit-icon"></i>`;
+    
+    // Update expertise tags
+    document.querySelector('[data-field="expertiseTags"]').innerHTML = 
+        `${profileData.expertiseTags} <i class="fas fa-edit edit-icon"></i>`;
+    
+    // Update social links
+    if (profileData.linkedinUrl) {
+        document.querySelector('[data-field="linkedinUrl"]').href = profileData.linkedinUrl;
+    }
+    if (profileData.twitterUrl) {
+        document.querySelector('[data-field="twitterUrl"]').href = profileData.twitterUrl;
+    }
+    if (profileData.githubUrl) {
+        document.querySelector('[data-field="githubUrl"]').href = profileData.githubUrl;
+    }
+}
+
+// Close modal function
+function closeModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+// Edit avatar function
+function editAvatar() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profileImagePreview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+
+// Edit colors function
+function editColors() {
+    currentField = 'colors';
+    const modal = document.getElementById('editModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
+    
+    modalTitle.textContent = 'Edit Colors';
+    modalContent.innerHTML = `
+        <div class="form-group">
+            <label>Primary Color</label>
+            <input type="color" id="primaryColor" value="${profileData.primaryColor}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Secondary Color</label>
+            <input type="color" id="secondaryColor" value="${profileData.secondaryColor}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Background Color</label>
+            <input type="color" id="backgroundColor" value="${profileData.backgroundColor}" class="form-control">
+        </div>
+    `;
+    modal.style.display = 'block';
+}
+
+// Save profile function
+function saveProfile() {
+    // Send data to server
+    fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Profile saved successfully!');
+        } else {
+            alert('Error saving profile: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving profile: ' + error.message);
+    });
+}
+
+// Preview profile function
+function previewProfile() {
+    window.open('/profile/{{ current_user.username }}', '_blank');
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeProfileData();
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('editModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+</script>
+{% endblock %}

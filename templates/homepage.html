@@ -2304,7 +2304,7 @@
             </div>
 
             <!-- Results Section - Always show when searching or filtering -->
-            {% if request.args.get('search') or request.args.get('category') %}
+            {% if request.args.get('search') or request.args.get('category') or users %}
             <div class="results-area">
                 <div class="results-header">
                     <h2 class="results-title">

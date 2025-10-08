@@ -66,6 +66,12 @@ class User(UserMixin, db.Model):
     timezone = db.Column(db.String(50), default='America/New_York')  # Timezone preference
     email_notifications = db.Column(db.Boolean, default=True)  # Email notifications preference
     
+    # Content and service fields
+    service_description = db.Column(db.Text)  # Description of 1-on-1 sessions
+    session_duration = db.Column(db.Integer, default=30)  # Session duration in minutes
+    content_description = db.Column(db.Text)  # Description of premium content
+    content_categories = db.Column(db.String(200))  # Categories of content offered
+    
     # Google Calendar integration
     google_calendar_connected = db.Column(db.Boolean, default=False)  # Whether user has connected Google Calendar
     google_calendar_token = db.Column(db.Text)  # Encrypted Google Calendar access token

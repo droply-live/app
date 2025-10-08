@@ -1,0 +1,407 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Profile Editor - Droply{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-editor-final.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-editor-page">
+    <div class="editor-container">
+        <!-- Left Panel: Form Interface -->
+        <div class="form-panel">
+            <div class="panel-header">
+                <h3>Profile Settings</h3>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('basic')">
+                    <i class="fas fa-user"></i> Basic
+                </button>
+                <button class="tab-btn" onclick="switchTab('content')">
+                    <i class="fas fa-edit"></i> Content
+                </button>
+                <button class="tab-btn" onclick="switchTab('appearance')">
+                    <i class="fas fa-palette"></i> Colors
+                </button>
+                <button class="tab-btn" onclick="switchTab('social')">
+                    <i class="fas fa-share-alt"></i> Social
+                </button>
+            </div>
+            
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Basic Info Tab -->
+                <div id="basic-tab" class="tab-panel active">
+                    <div class="form-section">
+                        <h4>Profile Image</h4>
+                        <div class="form-group">
+                            <div class="image-upload" onclick="document.getElementById('profileImageUpload').click()">
+                                <div class="upload-preview">
+                                    {% if current_user.profile_picture %}
+                                        <img id="profileImagePreview" src="{{ current_user.profile_picture }}" alt="Profile">
+                                    {% else %}
+                                        <div class="upload-placeholder">
+                                            <i class="fas fa-camera"></i>
+                                            <p>Upload photo</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <input type="file" id="profileImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Personal Information</h4>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="fullName" value="{{ current_user.full_name or '' }}" placeholder="Your full name">
+                        </div>
+                        <div class="form-group">
+                            <label>Profession/Title</label>
+                            <input type="text" id="profession" value="{{ current_user.profession or '' }}" placeholder="e.g., Software Engineer">
+                        </div>
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" id="location" value="{{ current_user.location or '' }}" placeholder="Your location">
+                        </div>
+                        <div class="form-group">
+                            <label>Industry</label>
+                            <select id="industry" value="{{ current_user.industry or '' }}">
+                                <option value="">Select Industry</option>
+                                <option value="Technology" {% if current_user.industry == 'Technology' %}selected{% endif %}>Technology</option>
+                                <option value="Business" {% if current_user.industry == 'Business' %}selected{% endif %}>Business</option>
+                                <option value="Creative" {% if current_user.industry == 'Creative' %}selected{% endif %}>Creative</option>
+                                <option value="Health" {% if current_user.industry == 'Health' %}selected{% endif %}>Health</option>
+                                <option value="Education" {% if current_user.industry == 'Education' %}selected{% endif %}>Education</option>
+                                <option value="Finance" {% if current_user.industry == 'Finance' %}selected{% endif %}>Finance</option>
+                                <option value="Marketing" {% if current_user.industry == 'Marketing' %}selected{% endif %}>Marketing</option>
+                                <option value="Writing" {% if current_user.industry == 'Writing' %}selected{% endif %}>Writing</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Content Tab -->
+                <div id="content-tab" class="tab-panel">
+                    <div class="form-section">
+                        <h4>About Me</h4>
+                        <div class="form-group">
+                            <label>Bio/About</label>
+                            <textarea id="bio" rows="4" placeholder="Tell us about yourself...">{{ current_user.bio or '' }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Expertise & Skills</h4>
+                        <div class="form-group">
+                            <label>Main Category</label>
+                            <input type="text" id="mainCategory" value="{{ current_user.specialty_tags or '' }}" placeholder="e.g., Financial Planning, Writing">
+                        </div>
+                        <div class="form-group">
+                            <label>Additional Skills (comma-separated)</label>
+                            <input type="text" id="additionalSkills" value="{{ current_user.skills_2 or '' }}" placeholder="e.g., Project Management, Leadership">
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Services</h4>
+                        <div class="form-group">
+                            <label>Service Description</label>
+                            <textarea id="serviceDescription" rows="3" placeholder="Describe your 1-on-1 sessions...">{{ current_user.service_description or '' }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Session Duration (minutes)</label>
+                            <input type="number" id="sessionDuration" value="{{ current_user.session_duration or 30 }}" min="15" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label>Hourly Rate ($)</label>
+                            <input type="number" id="hourlyRate" value="{{ current_user.hourly_rate or 0 }}" min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Appearance Tab -->
+                <div id="appearance-tab" class="tab-panel">
+                    <div class="form-section">
+                        <h4>Background Colors</h4>
+                        <div class="form-group">
+                            <label>Profile Background</label>
+                            <input type="color" id="backgroundColor" value="{{ current_user.background_color or '#1f1f1f' }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Header Background</label>
+                            <input type="color" id="headerBackground" value="{{ current_user.primary_color or '#2a2a2a' }}">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Social Tab -->
+                <div id="social-tab" class="tab-panel">
+                    <div class="form-section">
+                        <h4>Social Media Links</h4>
+                        <div class="form-group">
+                            <label>LinkedIn URL</label>
+                            <input type="url" id="linkedinUrl" value="{{ current_user.linkedin_url or '' }}" placeholder="https://linkedin.com/in/yourname">
+                        </div>
+                        <div class="form-group">
+                            <label>Twitter URL</label>
+                            <input type="url" id="twitterUrl" value="{{ current_user.twitter_url or '' }}" placeholder="https://twitter.com/yourname">
+                        </div>
+                        <div class="form-group">
+                            <label>GitHub URL</label>
+                            <input type="url" id="githubUrl" value="{{ current_user.github_url or '' }}" placeholder="https://github.com/yourname">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel: Live Preview -->
+        <div class="preview-panel">
+            <div class="panel-header">
+                <h3>Live Preview</h3>
+                <div class="preview-controls">
+                    <button class="preview-btn active" onclick="switchPreview('desktop')">
+                        <i class="fas fa-desktop"></i> Desktop
+                    </button>
+                    <button class="preview-btn" onclick="switchPreview('mobile')">
+                        <i class="fas fa-mobile-alt"></i> Mobile
+                    </button>
+                </div>
+            </div>
+            
+            <div class="preview-content">
+                <div id="desktop-preview" class="preview-frame">
+                    <div class="profile-preview" id="profilePreview">
+                        <!-- Preview content will be generated here -->
+                    </div>
+                </div>
+                <div id="mobile-preview" class="preview-frame" style="display: none;">
+                    <div class="profile-preview mobile" id="profilePreviewMobile">
+                        <!-- Mobile preview content will be generated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple JavaScript for the final layout
+let currentTab = 'basic';
+let currentPreview = 'desktop';
+
+function switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Update tab panels
+    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    currentTab = tabName;
+    updatePreview();
+}
+
+function switchPreview(previewType) {
+    document.querySelectorAll('.preview-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.getElementById('desktop-preview').style.display = previewType === 'desktop' ? 'block' : 'none';
+    document.getElementById('mobile-preview').style.display = previewType === 'mobile' ? 'block' : 'none';
+    
+    currentPreview = previewType;
+    updatePreview();
+}
+
+function updatePreview() {
+    const fullName = document.getElementById('fullName')?.value || 'Your Name';
+    const profession = document.getElementById('profession')?.value || 'Professional';
+    const bio = document.getElementById('bio')?.value || 'Tell us about yourself...';
+    const location = document.getElementById('location')?.value || 'Your Location';
+    const industry = document.getElementById('industry')?.value || 'Technology';
+    const mainCategory = document.getElementById('mainCategory')?.value || 'Main Skill';
+    const additionalSkills = document.getElementById('additionalSkills')?.value || '';
+    const serviceDescription = document.getElementById('serviceDescription')?.value || 'Personalized video call session';
+    const sessionDuration = document.getElementById('sessionDuration')?.value || 30;
+    const hourlyRate = document.getElementById('hourlyRate')?.value || 0;
+    const backgroundColor = document.getElementById('backgroundColor')?.value || '#1f1f1f';
+    const headerBackground = document.getElementById('headerBackground')?.value || '#2a2a2a';
+    const linkedinUrl = document.getElementById('linkedinUrl')?.value || '';
+    const twitterUrl = document.getElementById('twitterUrl')?.value || '';
+    const githubUrl = document.getElementById('githubUrl')?.value || '';
+    const profileImage = document.getElementById('profileImagePreview')?.src || '/static/img/default-avatar.svg';
+    
+    // Parse additional skills
+    const skillsArray = additionalSkills ? additionalSkills.split(',').map(s => s.trim()).filter(s => s) : [];
+    
+    // Use the EXACT HTML structure from the real profile page
+    const previewHTML = `
+        <div class="profile-container" style="max-width: 1200px; margin: 0 auto; padding: 1rem; background: ${backgroundColor} !important; min-height: 100vh; color: #ffffff;">
+            <!-- Profile Header -->
+            <div class="profile-header" style="background: ${headerBackground}; border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); border: 1px solid #3a3a3a; color: #ffffff; text-align: center;">
+                <div class="profile-image-container" style="position: relative; margin-bottom: 1.5rem; display: inline-block;">
+                    <img src="${profileImage}" 
+                         alt="${fullName}" 
+                         class="profile-hero-image"
+                         style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #3a3a3a; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease;">
+                </div>
+                
+                <h1 class="profile-hero-name" style="font-size: 1.75rem; font-weight: 700; color: #ffffff; margin: 0 0 0.5rem 0; line-height: 1.3;">${fullName}</h1>
+                ${profession ? `<p class="profile-hero-title" style="font-size: 1.1rem; font-weight: 500; margin: 0 0 0.5rem 0; color: #9ca3af;">${profession}</p>` : ''}
+                ${location ? `<p class="profile-hero-location" style="font-size: 1rem; margin: 0 0 1.5rem 0; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: #9ca3af;">
+                    <i class="fas fa-map-marker-alt"></i> ${location}
+                </p>` : ''}
+                
+                <!-- Social Media Icons -->
+                <div class="profile-social-icons" style="display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem;">
+                    ${linkedinUrl ? `<a href="${linkedinUrl}" class="social-icon" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #3a3a3a; border: 1px solid #4a4a4a; color: #9ca3af; text-decoration: none; transition: all 0.2s ease; font-size: 1.1rem;"><i class="fab fa-linkedin"></i></a>` : ''}
+                    ${twitterUrl ? `<a href="${twitterUrl}" class="social-icon" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #3a3a3a; border: 1px solid #4a4a4a; color: #9ca3af; text-decoration: none; transition: all 0.2s ease; font-size: 1.1rem;"><i class="fab fa-twitter"></i></a>` : ''}
+                    ${githubUrl ? `<a href="${githubUrl}" class="social-icon" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #3a3a3a; border: 1px solid #4a4a4a; color: #9ca3af; text-decoration: none; transition: all 0.2s ease; font-size: 1.1rem;"><i class="fab fa-github"></i></a>` : ''}
+                </div>
+            </div>
+
+            <!-- Profile Content Grid -->
+            <div class="profile-content" style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <!-- Left Column: About & Skills -->
+                <div class="content-left">
+                    <!-- About Section -->
+                    ${bio ? `
+                    <div class="content-section" style="background: #2a2a2a; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); border: 1px solid #3a3a3a; color: #ffffff;">
+                        <h2 class="section-title" style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="content: ''; width: 4px; height: 24px; background: linear-gradient(135deg, #10b981 0%, #047857 100%); border-radius: 2px;"></span>
+                            About Me
+                        </h2>
+                        <div class="bio-content" style="color: #d1d5db; line-height: 1.7;">
+                            <p style="margin: 0; font-size: 1rem;">${bio}</p>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Industry Section -->
+                    ${industry ? `
+                    <div class="content-section" style="background: #2a2a2a; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); border: 1px solid #3a3a3a; color: #ffffff;">
+                        <h2 class="section-title" style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="content: ''; width: 4px; height: 24px; background: linear-gradient(135deg, #10b981 0%, #047857 100%); border-radius: 2px;"></span>
+                            Industry
+                        </h2>
+                        <div class="industry-content" style="margin-top: 0.5rem;">
+                            <span class="industry-badge" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.9rem; text-transform: capitalize;">${industry}</span>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <!-- Right Column: Services & Booking -->
+                <div class="content-right">
+                    <!-- Services Section -->
+                    <div class="services-section" style="background: #2a2a2a; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); border: 1px solid #3a3a3a; color: #ffffff;">
+                        <div class="services-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                            <h2 class="services-title" style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin: 0;">Services & Pricing</h2>
+                        </div>
+                        
+                        <div class="service-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: #3a3a3a; border-radius: 12px; border: 1px solid #4a4a4a; margin-bottom: 1rem; transition: all 0.2s ease;">
+                            <div class="service-header" style="display: flex; align-items: center; gap: 1rem;">
+                                <div class="service-icon" style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #10b981 0%, #047857 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">
+                                    <i class="fas fa-video"></i>
+                                </div>
+                                <div class="service-info" style="flex: 1;">
+                                    <h3 class="service-title" style="font-size: 1.1rem; font-weight: 600; color: #ffffff; margin: 0 0 0.25rem 0;">1-on-1</h3>
+                                    <p class="service-desc" style="color: #9ca3af; margin: 0; font-size: 0.9rem;">${serviceDescription}</p>
+                                </div>
+                            </div>
+                            <div class="service-price" style="text-align: right;">
+                                <span class="price-amount" style="font-size: 1.5rem; font-weight: 700; color: #10b981;">$${hourlyRate}</span>
+                                <span class="price-unit" style="font-size: 0.9rem; color: #9ca3af; margin-left: 0.25rem;">/session</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Booking Section -->
+                    <div class="booking-section" style="background: #2a2a2a; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); border: 1px solid #3a3a3a; color: #ffffff;">
+                        <div class="booking-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h2 class="booking-title" style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin: 0;">Book a Session</h2>
+                            <div class="availability-status" style="display: flex; align-items: center; gap: 0.5rem; color: #10b981; font-weight: 600; font-size: 0.9rem;">
+                                <i class="fas fa-circle" style="color: #10b981; font-size: 0.8rem;"></i>
+                                <span>Available Now</span>
+                            </div>
+                        </div>
+                        
+                        <button class="book-now-btn" style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; width: 100%; padding: 1rem 1.5rem; background: #10b981; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600; text-decoration: none; transition: all 0.2s ease; margin-bottom: 1rem; cursor: pointer;">
+                            <i class="fas fa-calendar-plus"></i>
+                            <span>Book Now - $${hourlyRate}</span>
+                        </button>
+                        
+                        <div class="booking-footer" style="text-align: center;">
+                            <p class="booking-note" style="color: #9ca3af; font-size: 0.85rem; margin: 0; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                <i class="fas fa-shield-alt" style="color: #10b981;"></i>
+                                Secure payment • Cancel anytime
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const previewElement = currentPreview === 'mobile' ? 
+        document.getElementById('profilePreviewMobile') : 
+        document.getElementById('profilePreview');
+    
+    if (previewElement) {
+        previewElement.innerHTML = previewHTML;
+    }
+}
+
+function handleImageUpload(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('profileImagePreview');
+            if (preview) {
+                preview.src = e.target.result;
+            } else {
+                const placeholder = document.querySelector('.upload-placeholder');
+                placeholder.innerHTML = `<img src="${e.target.result}" alt="Profile" style="max-width: 100%; max-height: 200px; border-radius: 8px;">`;
+            }
+            updatePreview();
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Debounced update function to prevent excessive updates while typing
+let updateTimeout;
+function debouncedUpdatePreview() {
+    clearTimeout(updateTimeout);
+    updateTimeout = setTimeout(updatePreview, 50);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updatePreview();
+    
+    // Add event listeners to all form fields for immediate updates
+    const formFields = ['fullName', 'profession', 'bio', 'location', 'industry', 'mainCategory', 'additionalSkills', 'serviceDescription', 'sessionDuration', 'hourlyRate', 'backgroundColor', 'headerBackground', 'linkedinUrl', 'twitterUrl', 'githubUrl'];
+    formFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            // Use debounced updates for text fields to prevent excessive updates
+            if (['fullName', 'profession', 'bio', 'location', 'industry', 'mainCategory', 'additionalSkills', 'serviceDescription', 'linkedinUrl', 'twitterUrl', 'githubUrl'].includes(fieldId)) {
+                element.addEventListener('input', debouncedUpdatePreview);
+            } else {
+                // Immediate updates for color pickers and numbers
+                element.addEventListener('input', updatePreview);
+            }
+            element.addEventListener('change', updatePreview);
+        }
+    });
+});
+</script>
+{% endblock %}

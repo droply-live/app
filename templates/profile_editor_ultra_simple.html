@@ -1,0 +1,380 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Profile Editor - Droply{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-editor-ultra-simple.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-editor-page">
+    <div class="editor-container">
+        <!-- Left Panel: Form Interface -->
+        <div class="form-panel">
+            <div class="panel-header">
+                <h3>Profile Settings</h3>
+                <button class="save-btn" id="saveBtn" onclick="saveProfile()" disabled>
+                    <i class="fas fa-save"></i>
+                    Save Changes
+                </button>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('basic')">
+                    <i class="fas fa-user"></i> Basic
+                </button>
+                <button class="tab-btn" onclick="switchTab('social')">
+                    <i class="fas fa-share-alt"></i> Social
+                </button>
+                <button class="tab-btn" onclick="switchTab('booking')">
+                    <i class="fas fa-calendar"></i> Booking
+                </button>
+            </div>
+            
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Basic Info Tab -->
+                <div id="basic-tab" class="tab-panel active">
+                    <div class="form-section">
+                        <h4>Profile Image</h4>
+                        <div class="form-group">
+                            <div class="image-upload-small" onclick="document.getElementById('profileImageUpload').click()">
+                                <div class="upload-preview-small">
+                                    {% if current_user.profile_picture %}
+                                        <img id="profileImagePreview" src="{{ current_user.profile_picture }}" alt="Profile">
+                                    {% else %}
+                                        <div class="upload-placeholder-small">
+                                            <i class="fas fa-camera"></i>
+                                            <p>Upload</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <input type="file" id="profileImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Personal Information</h4>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="fullName" value="{{ current_user.full_name or '' }}" placeholder="Your full name">
+                        </div>
+                        <div class="form-group">
+                            <label>Profession/Title</label>
+                            <input type="text" id="profession" value="{{ current_user.profession or '' }}" placeholder="e.g., Software Engineer">
+                        </div>
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" id="location" value="{{ current_user.location or '' }}" placeholder="Your location">
+                        </div>
+                        <div class="form-group">
+                            <label>Industry</label>
+                            <select id="industry" value="{{ current_user.industry or '' }}">
+                                <option value="">Select Industry</option>
+                                <option value="Technology" {% if current_user.industry == 'Technology' %}selected{% endif %}>Technology</option>
+                                <option value="Business" {% if current_user.industry == 'Business' %}selected{% endif %}>Business</option>
+                                <option value="Creative" {% if current_user.industry == 'Creative' %}selected{% endif %}>Creative</option>
+                                <option value="Health" {% if current_user.industry == 'Health' %}selected{% endif %}>Health</option>
+                                <option value="Education" {% if current_user.industry == 'Education' %}selected{% endif %}>Education</option>
+                                <option value="Finance" {% if current_user.industry == 'Finance' %}selected{% endif %}>Finance</option>
+                                <option value="Marketing" {% if current_user.industry == 'Marketing' %}selected{% endif %}>Marketing</option>
+                                <option value="Writing" {% if current_user.industry == 'Writing' %}selected{% endif %}>Writing</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Social Tab -->
+                <div id="social-tab" class="tab-panel">
+                    <div class="form-section">
+                        <h4>Social Media Links</h4>
+                        <div class="form-group">
+                            <label>LinkedIn URL</label>
+                            <input type="url" id="linkedinUrl" value="{{ current_user.linkedin_url or '' }}" placeholder="https://linkedin.com/in/yourname">
+                        </div>
+                        <div class="form-group">
+                            <label>Twitter URL</label>
+                            <input type="url" id="twitterUrl" value="{{ current_user.twitter_url or '' }}" placeholder="https://twitter.com/yourname">
+                        </div>
+                        <div class="form-group">
+                            <label>GitHub URL</label>
+                            <input type="url" id="githubUrl" value="{{ current_user.github_url or '' }}" placeholder="https://github.com/yourname">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Booking Tab -->
+                <div id="booking-tab" class="tab-panel">
+                    <div class="form-section">
+                        <h4>Booking Settings</h4>
+                        <div class="form-group">
+                            <label>Hourly Rate ($)</label>
+                            <input type="number" id="hourlyRate" value="{{ current_user.hourly_rate or 0 }}" min="0" step="0.01">
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel: Live Preview -->
+        <div class="preview-panel">
+            <div class="panel-header">
+                <h3>Live Preview</h3>
+            </div>
+            
+            <div class="preview-content">
+                <div class="preview-frame">
+                    <div class="profile-preview" id="profilePreview">
+                        <!-- Preview content will be generated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Ultra Simple JavaScript for the profile editor
+let currentTab = 'basic';
+let currentPreview = 'desktop';
+
+function switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Update tab panels
+    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    currentTab = tabName;
+    updatePreview();
+}
+
+// Track if changes have been made
+let hasChanges = false;
+
+function enableSaveButton() {
+    hasChanges = true;
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = false;
+    saveBtn.style.background = '#10b981';
+    saveBtn.style.cursor = 'pointer';
+}
+
+function disableSaveButton() {
+    hasChanges = false;
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;
+    saveBtn.style.background = '#6b7280';
+    saveBtn.style.cursor = 'not-allowed';
+}
+
+function updatePreview() {
+    const fullName = document.getElementById('fullName')?.value || 'Your Name';
+    const profession = document.getElementById('profession')?.value || 'Professional';
+    const location = document.getElementById('location')?.value || 'Your Location';
+    const industry = document.getElementById('industry')?.value || '';
+    const hourlyRate = document.getElementById('hourlyRate')?.value || 0;
+    const linkedinUrl = document.getElementById('linkedinUrl')?.value || '';
+    const twitterUrl = document.getElementById('twitterUrl')?.value || '';
+    const githubUrl = document.getElementById('githubUrl')?.value || '';
+    const profileImage = window.currentProfileImage || document.getElementById('profileImagePreview')?.src || '/static/img/default-avatar.svg';
+    
+    // Ultra simple HTML structure - just header + book now button
+    const previewHTML = `
+        <div class="profile-container" style="max-width: 600px; margin: 0 auto; padding: 2rem 1rem; background: #1f1f1f !important; min-height: 100vh; color: #ffffff;">
+            <!-- Profile Header -->
+            <div class="profile-header" style="background: #2a2a2a; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid #3a3a3a; color: #ffffff; text-align: center;">
+                <div class="profile-image-container" style="position: relative; margin-bottom: 1.5rem; display: inline-block;">
+                    <img src="${profileImage}" 
+                         alt="${fullName}" 
+                         class="profile-hero-image"
+                         style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #3a3a3a; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease;">
+                </div>
+                
+                <h1 class="profile-hero-name" style="font-size: 2rem; font-weight: 700; color: #ffffff; margin: 0 0 0.5rem 0; line-height: 1.2;">${fullName}</h1>
+                ${profession ? `<p class="profile-hero-title" style="font-size: 1.2rem; font-weight: 500; margin: 0 0 0.5rem 0; color: #9ca3af;">${profession}</p>` : ''}
+                ${location ? `<p class="profile-hero-location" style="font-size: 1rem; margin: 0 0 1rem 0; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: #9ca3af;">
+                    <i class="fas fa-map-marker-alt"></i> ${location}
+                </p>` : ''}
+                
+                ${industry ? `<div class="industry-badge" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.9rem; text-transform: capitalize; margin-bottom: 1.5rem;">${industry}</div>` : ''}
+                
+                <!-- Social Media Icons -->
+                <div class="profile-social-icons" style="display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem;">
+                    ${linkedinUrl ? `<a href="${linkedinUrl}" class="social-icon" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #3a3a3a; border: 1px solid #4a4a4a; color: #9ca3af; text-decoration: none; transition: all 0.2s ease; font-size: 1.1rem;"><i class="fab fa-linkedin"></i></a>` : ''}
+                    ${twitterUrl ? `<a href="${twitterUrl}" class="social-icon" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #3a3a3a; border: 1px solid #4a4a4a; color: #9ca3af; text-decoration: none; transition: all 0.2s ease; font-size: 1.1rem;"><i class="fab fa-twitter"></i></a>` : ''}
+                    ${githubUrl ? `<a href="${githubUrl}" class="social-icon" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #3a3a3a; border: 1px solid #4a4a4a; color: #9ca3af; text-decoration: none; transition: all 0.2s ease; font-size: 1.1rem;"><i class="fab fa-github"></i></a>` : ''}
+                </div>
+            </div>
+
+            <!-- Book Now Section -->
+            <div class="booking-section" style="background: #2a2a2a; border-radius: 20px; padding: 2rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid #3a3a3a; color: #ffffff; text-align: center;">
+                <div class="booking-header" style="margin-bottom: 1.5rem;">
+                    <h2 class="booking-title" style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin: 0 0 0.5rem 0;">Book a Session</h2>
+                    <div class="availability-status" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: #10b981; font-weight: 600; font-size: 0.9rem;">
+                        <i class="fas fa-circle" style="color: #10b981; font-size: 0.8rem;"></i>
+                        <span>Available Now</span>
+                    </div>
+                </div>
+                
+                <button class="book-now-btn" style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; width: 100%; padding: 1.25rem 2rem; background: #10b981; color: white; border: none; border-radius: 16px; font-size: 1.2rem; font-weight: 600; text-decoration: none; transition: all 0.2s ease; margin-bottom: 1rem; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span>Book Now - $${hourlyRate}</span>
+                </button>
+                
+                <div class="booking-footer" style="text-align: center;">
+                    <p class="booking-note" style="color: #9ca3af; font-size: 0.9rem; margin: 0; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-shield-alt" style="color: #10b981;"></i>
+                        Secure payment • Cancel anytime
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const previewElement = document.getElementById('profilePreview');
+    
+    if (previewElement) {
+        previewElement.innerHTML = previewHTML;
+    }
+}
+
+function handleImageUpload(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Update the preview image in the form
+            const preview = document.getElementById('profileImagePreview');
+            if (preview) {
+                preview.src = e.target.result;
+            } else {
+                const placeholder = document.querySelector('.upload-placeholder-small');
+                placeholder.innerHTML = `<img id="profileImagePreview" src="${e.target.result}" alt="Profile" style="max-width: 100%; max-height: 100px; border-radius: 8px;">`;
+            }
+            
+            // Update the global image variable for preview
+            window.currentProfileImage = e.target.result;
+            
+            enableSaveButton();
+            updatePreview();
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Debounced update function to prevent excessive updates while typing
+let updateTimeout;
+function debouncedUpdatePreview() {
+    clearTimeout(updateTimeout);
+    updateTimeout = setTimeout(updatePreview, 50);
+}
+
+// Save profile function
+async function saveProfile() {
+    const saveBtn = document.getElementById('saveBtn');
+    const originalText = saveBtn.innerHTML;
+    
+    // Show loading state
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    saveBtn.disabled = true;
+    
+    try {
+        // Collect all form data
+        const formData = new FormData();
+        formData.append('full_name', document.getElementById('fullName').value);
+        formData.append('profession', document.getElementById('profession').value);
+        formData.append('location', document.getElementById('location').value);
+        formData.append('industry', document.getElementById('industry').value);
+        formData.append('hourly_rate', document.getElementById('hourlyRate').value);
+        formData.append('linkedin', document.getElementById('linkedinUrl').value);
+        formData.append('twitter', document.getElementById('twitterUrl').value);
+        formData.append('github', document.getElementById('githubUrl').value);
+        
+        // Handle profile image if changed
+        const imageInput = document.getElementById('profileImageUpload');
+        if (imageInput.files && imageInput.files[0]) {
+            formData.append('profile_picture', imageInput.files[0]);
+        }
+        
+        // Send to server
+        const response = await fetch('/api/profile/update', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            // Show success state
+            saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+            saveBtn.style.background = '#10b981';
+            disableSaveButton();
+            
+            // Reset after 2 seconds
+            setTimeout(() => {
+                saveBtn.innerHTML = originalText;
+            }, 2000);
+        } else {
+            throw new Error('Failed to save profile');
+        }
+    } catch (error) {
+        console.error('Error saving profile:', error);
+        
+        // Show error state
+        saveBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+        saveBtn.style.background = '#ef4444';
+        
+        // Reset after 3 seconds
+        setTimeout(() => {
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+            saveBtn.style.background = '#10b981';
+        }, 3000);
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updatePreview();
+    
+    // Add event listeners to all form fields for immediate updates
+    const formFields = ['fullName', 'profession', 'location', 'industry', 'hourlyRate', 'linkedinUrl', 'twitterUrl', 'githubUrl'];
+    formFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            // Use debounced updates for text fields to prevent excessive updates
+            if (['fullName', 'profession', 'location', 'linkedinUrl', 'twitterUrl', 'githubUrl'].includes(fieldId)) {
+                element.addEventListener('input', () => {
+                    debouncedUpdatePreview();
+                    enableSaveButton();
+                });
+            } else {
+                // Immediate updates for dropdowns and numbers
+                element.addEventListener('input', () => {
+                    updatePreview();
+                    enableSaveButton();
+                });
+            }
+            element.addEventListener('change', () => {
+                updatePreview();
+                enableSaveButton();
+            });
+        }
+    });
+    
+    // Auto-save on change (optional - uncomment if you want auto-save)
+    // formFields.forEach(fieldId => {
+    //     const element = document.getElementById(fieldId);
+    //     if (element) {
+    //         element.addEventListener('change', () => {
+    //             setTimeout(saveProfile, 1000); // Auto-save after 1 second of no changes
+    //         });
+    //     }
+    // });
+});
+</script>
+{% endblock %}

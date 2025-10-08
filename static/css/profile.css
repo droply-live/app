@@ -601,6 +601,22 @@ body {
   color: #10b981;
 }
 
+/* Industry Badge */
+.industry-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+.industry-content {
+  margin-top: 0.5rem;
+}
+
 /* Testimonials Section */
 .testimonials-section {
   background: #2a2a2a;

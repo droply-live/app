@@ -7,287 +7,356 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <!-- Left Sidebar for Profile Settings -->
-        <div class="col-md-3">
-            <div class="profile-settings-sidebar">
-                <h4 class="sidebar-title">Profile Settings</h4>
-                <nav class="settings-nav">
-                    <a href="#basic" class="settings-nav-item active" onclick="switchTab('basic')">
+<div class="profile-editor-container">
+    <div class="profile-editor-layout">
+        <!-- Left Side: Tabbed Form Interface -->
+        <div class="profile-editor-left">
+            <div style="padding: 1rem; color: white; font-weight: bold; background: rgba(16, 185, 129, 0.2);">
+                LEFT PANEL - FORM INTERFACE
+            </div>
+            <div class="profile-editor-panel">
+                <!-- Tab Navigation -->
+                <div class="tab-navigation">
+                    <button class="tab-btn active" onclick="switchTab('basic')">
                         <i class="fas fa-user"></i>
                         <span>Basic Info</span>
-                    </a>
-                    <a href="#appearance" class="settings-nav-item" onclick="switchTab('appearance')">
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('appearance')">
                         <i class="fas fa-palette"></i>
                         <span>Appearance</span>
-                    </a>
-                    <a href="#content" class="settings-nav-item" onclick="switchTab('content')">
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('content')">
                         <i class="fas fa-folder"></i>
                         <span>Content</span>
-                    </a>
-                </nav>
+                    </button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                        <!-- Basic Info Tab -->
+                        <div id="basic-tab" class="tab-panel active">
+                            <!-- Profile Images Section -->
+                            <div class="section">
+                                <div class="section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                    <div class="section-title">
+                                        <h3>Profile Images</h3>
+                                        <p>Your visual identity</p>
+                                    </div>
+                                </div>
+                                <div class="image-upload-grid">
+                                    <div class="image-upload-item">
+                                        <label>Profile Picture</label>
+                                        <div class="image-upload-area" onclick="document.getElementById('profileImageUpload').click()">
+                                            <div class="upload-preview">
+                                                {% if current_user.profile_picture %}
+                                                    <img id="profileImagePreview" src="{{ current_user.profile_picture }}" alt="Profile">
+                                                {% else %}
+                                                    <div class="upload-placeholder">
+                                                        <i class="fas fa-camera"></i>
+                                                        <p>Upload photo</p>
+                                                        <small>JPG, PNG up to 5MB</small>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <input type="file" id="profileImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Personal Information Section -->
+                            <div class="section">
+                                <div class="section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="section-title">
+                                        <h3>Personal Information</h3>
+                                        <p>Basic details about yourself</p>
+                                    </div>
+                                </div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Full Name</label>
+                                        <input type="text" id="fullName" value="{{ current_user.full_name or '' }}" placeholder="Your full name" onchange="updatePreview()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Profession/Title</label>
+                                        <input type="text" id="profession" value="{{ current_user.profession or '' }}" placeholder="e.g., Software Engineer, Consultant" onchange="updatePreview()">
+                                    </div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Bio/About</label>
+                                    <textarea id="bio" rows="4" placeholder="Tell us about yourself, your experience, and what you offer..." onchange="updatePreview()">{{ current_user.bio or '' }}</textarea>
+                                </div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Location</label>
+                                        <input type="text" id="location" value="{{ current_user.location or '' }}" placeholder="City, Country" onchange="updatePreview()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Industry</label>
+                                        <input type="text" id="industry" value="{{ current_user.industry or '' }}" placeholder="e.g., Technology, Finance, Healthcare" onchange="updatePreview()">
+                                    </div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Expertise Tags</label>
+                                    <input type="text" id="expertiseTags" value="{{ current_user.specialty_tags or '' }}" placeholder="e.g., JavaScript, React, Node.js, Python, Machine Learning" onchange="updatePreview()">
+                                    <small class="form-hint">Separate tags with commas</small>
+                                </div>
+                            </div>
+
+                            <!-- Social Media Section -->
+                            <div class="section">
+                                <div class="section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-share-alt"></i>
+                                    </div>
+                                    <div class="section-title">
+                                        <h3>Social Media Links</h3>
+                                        <p>Connect your professional profiles</p>
+                                    </div>
+                                </div>
+                                <div class="social-links-grid">
+                                    <div class="social-link-item">
+                                        <div class="social-link-header">
+                                            <i class="fab fa-linkedin"></i>
+                                            <span>LinkedIn</span>
+                                        </div>
+                                        <input type="url" id="linkedinUrl" value="{{ current_user.linkedin_url or '' }}" onchange="updatePreview()" placeholder="https://linkedin.com/in/yourprofile">
+                                    </div>
+                                    <div class="social-link-item">
+                                        <div class="social-link-header">
+                                            <i class="fab fa-twitter"></i>
+                                            <span>Twitter</span>
+                                        </div>
+                                        <input type="url" id="twitterUrl" value="{{ current_user.twitter_url or '' }}" onchange="updatePreview()" placeholder="https://twitter.com/yourhandle">
+                                    </div>
+                                    <div class="social-link-item">
+                                        <div class="social-link-header">
+                                            <i class="fab fa-github"></i>
+                                            <span>GitHub</span>
+                                        </div>
+                                        <input type="url" id="githubUrl" value="{{ current_user.github_url or '' }}" onchange="updatePreview()" placeholder="https://github.com/yourusername">
+                                    </div>
+                                    <div class="social-link-item">
+                                        <div class="social-link-header">
+                                            <i class="fab fa-instagram"></i>
+                                            <span>Instagram</span>
+                                        </div>
+                                        <input type="url" id="instagramUrl" value="{{ current_user.instagram_url or '' }}" onchange="updatePreview()" placeholder="https://instagram.com/yourhandle">
+                                    </div>
+                                    <div class="social-link-item">
+                                        <div class="social-link-header">
+                                            <i class="fab fa-youtube"></i>
+                                            <span>YouTube</span>
+                                        </div>
+                                        <input type="url" id="youtubeUrl" value="{{ current_user.youtube_url or '' }}" onchange="updatePreview()" placeholder="https://youtube.com/c/yourchannel">
+                                    </div>
+                                    <div class="social-link-item">
+                                        <div class="social-link-header">
+                                            <i class="fas fa-globe"></i>
+                                            <span>Website</span>
+                                        </div>
+                                        <input type="url" id="websiteUrl" value="{{ current_user.website_url or '' }}" onchange="updatePreview()" placeholder="https://yourwebsite.com">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appearance Tab -->
+                        <div id="appearance-tab" class="tab-panel">
+                            <div class="section">
+                                <div class="section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-palette"></i>
+                                    </div>
+                                    <div class="section-title">
+                                        <h3>Color Scheme</h3>
+                                        <p>Customize your profile's visual appearance</p>
+                                    </div>
+                                </div>
+                                <div class="color-picker-grid">
+                                    <div class="color-option">
+                                        <label>Primary Color</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="primaryColor" value="{{ current_user.primary_color or '#667eea' }}" onchange="updatePreview()">
+                                            <input type="text" id="primaryColorText" value="{{ current_user.primary_color or '#667eea' }}" onchange="updateColorFromText('primary')" placeholder="#667eea">
+                                        </div>
+                                    </div>
+                                    <div class="color-option">
+                                        <label>Secondary Color</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="secondaryColor" value="{{ current_user.secondary_color or '#764ba2' }}" onchange="updatePreview()">
+                                            <input type="text" id="secondaryColorText" value="{{ current_user.secondary_color or '#764ba2' }}" onchange="updateColorFromText('secondary')" placeholder="#764ba2">
+                                        </div>
+                                    </div>
+                                    <div class="color-option">
+                                        <label>Background Color</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="backgroundColor" value="{{ current_user.background_color or '#f7faff' }}" onchange="updatePreview()">
+                                            <input type="text" id="backgroundColorText" value="{{ current_user.background_color or '#f7faff' }}" onchange="updateColorFromText('background')" placeholder="#f7faff">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <div class="section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-font"></i>
+                                    </div>
+                                    <div class="section-title">
+                                        <h3>Typography</h3>
+                                        <p>Choose your preferred font and size</p>
+                                    </div>
+                                </div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Font Family</label>
+                                        <select id="fontFamily" onchange="updatePreview()">
+                                            <option value="Inter" {{ 'selected' if current_user.font_family == 'Inter' else '' }}>Inter</option>
+                                            <option value="Roboto" {{ 'selected' if current_user.font_family == 'Roboto' else '' }}>Roboto</option>
+                                            <option value="Open Sans" {{ 'selected' if current_user.font_family == 'Open Sans' else '' }}>Open Sans</option>
+                                            <option value="Lato" {{ 'selected' if current_user.font_family == 'Lato' else '' }}>Lato</option>
+                                            <option value="Poppins" {{ 'selected' if current_user.font_family == 'Poppins' else '' }}>Poppins</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Font Size</label>
+                                        <div class="range-input">
+                                            <input type="range" id="fontSize" min="12" max="20" value="{{ current_user.font_size or 16 }}" onchange="updatePreview()">
+                                            <div class="range-value" id="fontSizeValue">{{ current_user.font_size or 16 }}px</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Content Tab -->
+                        <div id="content-tab" class="tab-panel">
+                            <div class="section">
+                                <div class="section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-video"></i>
+                                    </div>
+                                    <div class="section-title">
+                                        <h3>Services</h3>
+                                        <p>Configure your consultation offerings</p>
+                                    </div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Service Description</label>
+                                    <textarea id="serviceDescription" rows="3" placeholder="Describe your 1-on-1 sessions..." onchange="updatePreview()">{{ current_user.service_description or '' }}</textarea>
+                                    <small class="form-hint">Explain what clients can expect from your sessions</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Session Duration (minutes)</label>
+                                    <input type="number" id="sessionDuration" value="{{ current_user.session_duration or 30 }}" min="15" max="120" onchange="updatePreview()" placeholder="30">
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <div class="section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                    <div class="section-title">
+                                        <h3>Premium Content</h3>
+                                        <p>Describe your paid content offerings</p>
+                                    </div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Content Description</label>
+                                    <textarea id="contentDescription" rows="3" placeholder="Describe your premium content offerings..." onchange="updatePreview()">{{ current_user.content_description or '' }}</textarea>
+                                    <small class="form-hint">What types of premium content do you offer?</small>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Content Categories</label>
+                                    <input type="text" id="contentCategories" value="{{ current_user.content_categories or '' }}" placeholder="e.g., Courses, Videos, PDFs, Templates" onchange="updatePreview()">
+                                    <small class="form-hint">Separate categories with commas</small>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <div class="section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-cog"></i>
+                                    </div>
+                                    <div class="section-title">
+                                        <h3>Settings</h3>
+                                        <p>Control your profile visibility and preferences</p>
+                                    </div>
+                                </div>
+                                <div class="checkbox-grid">
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" id="isAvailable" {{ 'checked' if current_user.is_available else '' }} onchange="updatePreview()">
+                                        <div class="checkbox-content">
+                                            <span class="checkbox-title">Available for Bookings</span>
+                                            <span class="checkbox-desc">Show that you're accepting new clients</span>
+                                        </div>
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" id="emailNotifications" {{ 'checked' if current_user.email_notifications else '' }} onchange="updatePreview()">
+                                        <div class="checkbox-content">
+                                            <span class="checkbox-title">Email Notifications</span>
+                                            <span class="checkbox-desc">Receive booking and message notifications</span>
+                                        </div>
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" id="showServices" checked onchange="updatePreview()">
+                                        <div class="checkbox-content">
+                                            <span class="checkbox-title">Show Services</span>
+                                            <span class="checkbox-desc">Display your 1-on-1 sessions</span>
+                                        </div>
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" id="showContent" checked onchange="updatePreview()">
+                                        <div class="checkbox-content">
+                                            <span class="checkbox-title">Show Premium Content</span>
+                                            <span class="checkbox-desc">Display your paid content</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Main Content Area -->
-        <div class="col-md-9">
-            <div class="row">
-                <!-- Form Content Area -->
-                <div class="col-md-8">
-                    <!-- Tab Content -->
-                    <div class="tab-content">
-                <!-- Basic Info Tab -->
-                <div id="basic-tab" class="tab-panel active">
-                    <!-- Profile Images Section -->
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-image"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Profile Images</h3>
-                                <p>Your visual identity</p>
-                            </div>
-                        </div>
-                        <div class="image-upload-grid">
-                            <div class="image-upload-item">
-                                <label>Profile Picture</label>
-                                <div class="image-upload-area" onclick="document.getElementById('profileImageUpload').click()">
-                                    <div class="upload-preview">
-                                        {% if current_user.profile_picture %}
-                                            <img id="profileImagePreview" src="{{ current_user.profile_picture }}" alt="Profile">
-                                        {% else %}
-                                            <div class="upload-placeholder">
-                                                <i class="fas fa-camera"></i>
-                                                <p>Upload photo</p>
-                                                <small>JPG, PNG up to 5MB</small>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    <input type="file" id="profileImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Personal Information Section -->
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Personal Information</h3>
-                                <p>Basic details about yourself</p>
-                            </div>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Full Name</label>
-                                <input type="text" id="fullName" value="{{ current_user.full_name or '' }}" placeholder="Your full name" onchange="updatePreview()">
-                            </div>
-                            <div class="form-group">
-                                <label>Profession/Title</label>
-                                <input type="text" id="profession" value="{{ current_user.profession or '' }}" placeholder="e.g., Software Engineer, Consultant" onchange="updatePreview()">
-                            </div>
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Bio/About</label>
-                            <textarea id="bio" rows="4" placeholder="Tell us about yourself, your experience, and what you offer..." onchange="updatePreview()">{{ current_user.bio or '' }}</textarea>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Location</label>
-                                <input type="text" id="location" value="{{ current_user.location or '' }}" placeholder="City, Country" onchange="updatePreview()">
-                            </div>
-                            <div class="form-group">
-                                <label>Industry</label>
-                                <input type="text" id="industry" value="{{ current_user.industry or '' }}" placeholder="e.g., Technology, Finance, Healthcare" onchange="updatePreview()">
-                            </div>
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Expertise Tags</label>
-                            <input type="text" id="expertiseTags" value="{{ current_user.specialty_tags or '' }}" placeholder="e.g., JavaScript, React, Node.js, Python, Machine Learning" onchange="updatePreview()">
-                            <small class="form-hint">Separate tags with commas</small>
-                        </div>
-                    </div>
-
-                    <!-- Social Media Section -->
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-share-alt"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Social Media Links</h3>
-                                <p>Connect your professional profiles</p>
-                            </div>
-                        </div>
-                        <div class="social-links-grid">
-                            <div class="social-link-item">
-                                <div class="social-link-header">
-                                    <i class="fab fa-linkedin"></i>
-                                    <span>LinkedIn</span>
-                                </div>
-                                <input type="url" id="linkedinUrl" value="{{ current_user.linkedin_url or '' }}" onchange="updatePreview()" placeholder="https://linkedin.com/in/yourprofile">
-                            </div>
-                            <div class="social-link-item">
-                                <div class="social-link-header">
-                                    <i class="fab fa-twitter"></i>
-                                    <span>Twitter</span>
-                                </div>
-                                <input type="url" id="twitterUrl" value="{{ current_user.twitter_url or '' }}" onchange="updatePreview()" placeholder="https://twitter.com/yourhandle">
-                            </div>
-                            <div class="social-link-item">
-                                <div class="social-link-header">
-                                    <i class="fab fa-github"></i>
-                                    <span>GitHub</span>
-                                </div>
-                                <input type="url" id="githubUrl" value="{{ current_user.github_url or '' }}" onchange="updatePreview()" placeholder="https://github.com/yourusername">
-                            </div>
-                            <div class="social-link-item">
-                                <div class="social-link-header">
-                                    <i class="fab fa-instagram"></i>
-                                    <span>Instagram</span>
-                                </div>
-                                <input type="url" id="instagramUrl" value="{{ current_user.instagram_url or '' }}" onchange="updatePreview()" placeholder="https://instagram.com/yourhandle">
-                            </div>
-                            <div class="social-link-item">
-                                <div class="social-link-header">
-                                    <i class="fab fa-youtube"></i>
-                                    <span>YouTube</span>
-                                </div>
-                                <input type="url" id="youtubeUrl" value="{{ current_user.youtube_url or '' }}" onchange="updatePreview()" placeholder="https://youtube.com/c/yourchannel">
-                            </div>
-                            <div class="social-link-item">
-                                <div class="social-link-header">
-                                    <i class="fas fa-globe"></i>
-                                    <span>Website</span>
-                                </div>
-                                <input type="url" id="websiteUrl" value="{{ current_user.website_url or '' }}" onchange="updatePreview()" placeholder="https://yourwebsite.com">
-                            </div>
-                        </div>
+        <!-- Right Side: Live Preview -->
+        <div class="profile-editor-right">
+            <div style="padding: 1rem; color: white; font-weight: bold; background: rgba(245, 158, 11, 0.2);">
+                RIGHT PANEL - LIVE PREVIEW
+            </div>
+            <div class="preview-panel">
+                <!-- Preview Header -->
+                <div class="preview-header">
+                    <h4>Live Preview</h4>
+                    <div class="preview-controls">
+                        <button class="preview-btn active" onclick="switchPreview('desktop')">
+                            <i class="fas fa-desktop"></i> Desktop
+                        </button>
+                        <button class="preview-btn" onclick="switchPreview('mobile')">
+                            <i class="fas fa-mobile-alt"></i> Mobile
+                        </button>
                     </div>
                 </div>
 
-                <!-- Content Tab -->
-                <div id="content-tab" class="tab-panel">
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-video"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Services</h3>
-                                <p>Configure your consultation offerings</p>
-                            </div>
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Service Description</label>
-                            <textarea id="serviceDescription" rows="3" placeholder="Describe your 1-on-1 sessions..." onchange="updatePreview()">{{ current_user.service_description or '' }}</textarea>
-                            <small class="form-hint">Explain what clients can expect from your sessions</small>
-                        </div>
-                        <div class="form-group">
-                            <label>Session Duration (minutes)</label>
-                            <input type="number" id="sessionDuration" value="{{ current_user.session_duration or 30 }}" min="15" max="120" onchange="updatePreview()" placeholder="30">
+                <!-- Preview Container -->
+                <div class="preview-container">
+                    <div id="desktop-preview" class="preview-frame desktop-preview">
+                        <div class="profile-preview" id="profilePreview">
+                            <!-- Preview content will be dynamically generated -->
                         </div>
                     </div>
-
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-lock"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Premium Content</h3>
-                                <p>Describe your paid content offerings</p>
-                            </div>
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Content Description</label>
-                            <textarea id="contentDescription" rows="3" placeholder="Describe your premium content offerings..." onchange="updatePreview()">{{ current_user.content_description or '' }}</textarea>
-                            <small class="form-hint">What types of premium content do you offer?</small>
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Content Categories</label>
-                            <input type="text" id="contentCategories" value="{{ current_user.content_categories or '' }}" placeholder="e.g., Courses, Videos, PDFs, Templates" onchange="updatePreview()">
-                            <small class="form-hint">Separate categories with commas</small>
-                        </div>
-                    </div>
-
-                    <div class="section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-cog"></i>
-                            </div>
-                            <div class="section-title">
-                                <h3>Settings</h3>
-                                <p>Control your profile visibility and preferences</p>
-                            </div>
-                        </div>
-                        <div class="checkbox-grid">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="isAvailable" {{ 'checked' if current_user.is_available else '' }} onchange="updatePreview()">
-                                <div class="checkbox-content">
-                                    <span class="checkbox-title">Available for Bookings</span>
-                                    <span class="checkbox-desc">Show that you're accepting new clients</span>
-                                </div>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="emailNotifications" {{ 'checked' if current_user.email_notifications else '' }} onchange="updatePreview()">
-                                <div class="checkbox-content">
-                                    <span class="checkbox-title">Email Notifications</span>
-                                    <span class="checkbox-desc">Receive booking and message notifications</span>
-                                </div>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="showServices" checked onchange="updatePreview()">
-                                <div class="checkbox-content">
-                                    <span class="checkbox-title">Show Services</span>
-                                    <span class="checkbox-desc">Display your 1-on-1 sessions</span>
-                                </div>
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="showContent" checked onchange="updatePreview()">
-                                <div class="checkbox-content">
-                                    <span class="checkbox-title">Show Premium Content</span>
-                                    <span class="checkbox-desc">Display your paid content</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                </div>
-
-                <!-- Live Preview Area -->
-                <div class="col-md-4">
-                    <div class="preview-section">
-                        <!-- Live Preview Header -->
-                        <div class="preview-header">
-                            <h4>Live Preview</h4>
-                            <div class="preview-controls">
-                                <button class="btn btn-outline-primary btn-sm active" onclick="switchPreview('desktop')">
-                                    <i class="fas fa-desktop"></i> Desktop
-                                </button>
-                                <button class="btn btn-outline-primary btn-sm" onclick="switchPreview('mobile')">
-                                    <i class="fas fa-mobile-alt"></i> Mobile
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Live Preview Container -->
-                        <div class="preview-container">
-                            <div id="desktop-preview" class="preview-frame desktop-preview">
-                                <div class="profile-preview" id="profilePreview">
-                                    <!-- Preview content will be dynamically generated -->
-                                </div>
-                            </div>
-                            <div id="mobile-preview" class="preview-frame mobile-preview" style="display: none;">
-                                <div class="profile-preview mobile" id="profilePreviewMobile">
-                                    <!-- Mobile preview content will be dynamically generated -->
-                                </div>
-                            </div>
+                    <div id="mobile-preview" class="preview-frame mobile-preview" style="display: none;">
+                        <div class="profile-preview mobile" id="profilePreviewMobile">
+                            <!-- Mobile preview content will be dynamically generated -->
                         </div>
                     </div>
                 </div>
@@ -295,6 +364,8 @@
         </div>
     </div>
 </div>
+
+<script src="{{ url_for('static', filename='js/profile_editor.js') }}"></script>
 
 <style>
 /* Profile Settings Sidebar */
