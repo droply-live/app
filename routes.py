@@ -1434,6 +1434,11 @@ def availability():
 #     flash('Booking functionality is temporarily unavailable.', 'error')
 #     return redirect(url_for('homepage'))
 
+@app.route('/test-checkout/<int:booking_id>')
+def test_checkout(booking_id):
+    """Test endpoint to debug checkout issues"""
+    return f"Test endpoint reached with booking_id: {booking_id}"
+
 @app.route('/create-checkout-session/<int:booking_id>', methods=['POST', 'GET'])
 def create_checkout_session(booking_id):
     """Create Stripe checkout session"""
