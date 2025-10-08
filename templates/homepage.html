@@ -759,7 +759,8 @@
         /* Main Content Area - Identical to Discover Page */
         .main-content {
             flex: 1 !important;
-            margin-left: 240px !important;
+            margin-left: var(--sidebar-margin-left, 240px) !important;
+            width: var(--sidebar-width-calc, calc(100vw - 240px)) !important;
             background: #1f1f1f !important;
             background-image: 
                 radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
@@ -770,8 +771,12 @@
         }
         
         /* Adjust main content when sidebar is collapsed */
-        .sidebar.collapsed + .main-content {
-            margin-left: 80px !important;
+        .sidebar.collapsed + .main-content,
+        .sidebar.collapsed ~ .main-content,
+        body:has(.sidebar.collapsed) .main-content,
+        .main-content.sidebar-collapsed {
+            --sidebar-margin-left: 80px !important;
+            --sidebar-width-calc: calc(100vw - 80px) !important;
         }
 
         /* Search Area - Identical to Discover Page */
@@ -1792,6 +1797,322 @@
             color: #10b981;
         }
 
+        /* Discover Buttons Styles */
+        .discover-buttons-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .discover-btn {
+            background: #333;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .discover-btn:hover {
+            background: #444;
+            color: #fff;
+            border-color: #10b981;
+            transform: translateY(-1px);
+        }
+
+        .discover-btn.browse-all {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .discover-btn.browse-all:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        /* Light mode styles for discover buttons */
+        body.light-mode .discover-btn {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            color: #495057;
+        }
+
+        body.light-mode .discover-btn:hover {
+            background: #e9ecef;
+            color: #10b981;
+            border-color: #10b981;
+        }
+
+        body.light-mode .discover-btn.browse-all {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        body.light-mode .discover-btn.browse-all:hover {
+            background: #047857;
+        }
+
+        /* Browse Interface Styles */
+        .browse-interface {
+            position: absolute;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            width: calc(100vw - var(--sidebar-width));
+            max-width: none;
+            margin: 0;
+            padding: 2rem;
+            background: #1f1f1f;
+            z-index: 10;
+            min-height: 100vh;
+            transition: left 0.3s ease, width 0.3s ease;
+        }
+        
+        /* Adjust browse interface when sidebar is collapsed */
+        .sidebar.collapsed + .main-content .browse-interface,
+        .sidebar.collapsed ~ .main-content .browse-interface,
+        body:has(.sidebar.collapsed) .browse-interface {
+            left: var(--sidebar-collapsed-width);
+            width: calc(100vw - var(--sidebar-collapsed-width));
+        }
+
+        .browse-header {
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .search-bar-container {
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .category-tab {
+            background: #333;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .category-tab:hover {
+            background: #444;
+            color: #fff;
+            border-color: #10b981;
+        }
+
+        .category-tab.active {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .browse-results {
+            min-height: 400px;
+        }
+
+        .loading-message, .error-message {
+            text-align: center;
+            padding: 2rem;
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+
+        .error-message {
+            color: #ef4444;
+        }
+
+        .category-section {
+            margin-bottom: 3rem;
+        }
+
+        .category-section-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #10b981;
+        }
+
+        .people-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        /* Responsive grid for different screen sizes */
+        @media (min-width: 1600px) {
+            .people-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .people-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .people-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .person-card {
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-height: 250px;
+            justify-content: space-between;
+        }
+
+        .person-card:hover {
+            border-color: #10b981;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .person-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+            margin-bottom: 1rem;
+        }
+
+        .person-info {
+            margin-bottom: 0.75rem;
+            width: 100%;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .person-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.2;
+        }
+
+        .person-title {
+            font-size: 0.85rem;
+            color: #ccc;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.2;
+        }
+
+        .person-rate {
+            font-size: 0.9rem;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .person-actions {
+            display: flex;
+            gap: 0.25rem;
+            width: 100%;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: none;
+            font-weight: 500;
+            width: 100%;
+            text-align: center;
+        }
+
+        .action-btn.primary {
+            background: #10b981;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #047857;
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Light mode styles for browse interface */
+        body.light-mode .category-tab {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            color: #495057;
+        }
+
+        body.light-mode .category-tab:hover {
+            background: #e9ecef;
+            color: #10b981;
+            border-color: #10b981;
+        }
+
+        body.light-mode .category-tab.active {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        body.light-mode .category-section-title {
+            color: #1f2937;
+        }
+
+        body.light-mode .person-card {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        body.light-mode .person-card:hover {
+            border-color: #10b981;
+        }
+
+        body.light-mode .person-name {
+            color: #1f2937;
+        }
+
+        body.light-mode .person-title {
+            color: #6b7280;
+        }
+
     </style>
 </head>
 <body class="homepage">
@@ -1937,6 +2258,28 @@
                 <div class="search-wrapper">
                     <h1 class="page-title" data-translate="home.title">Discover People</h1>
                     
+                    <!-- Three buttons for all users -->
+                    <div class="discover-buttons-header">
+                        {% if current_user.is_authenticated %}
+                            <button class="discover-btn" onclick="viewHistorical('recent')">
+                                <i class="fas fa-history"></i> Recent Views
+                            </button>
+                            <button class="discover-btn" onclick="viewHistorical('favorites')">
+                                <i class="fas fa-heart"></i> Favorites
+                            </button>
+                        {% else %}
+                            <button class="discover-btn" onclick="showLoginModal()">
+                                <i class="fas fa-history"></i> Recent Views
+                            </button>
+                            <button class="discover-btn" onclick="showLoginModal()">
+                                <i class="fas fa-heart"></i> Favorites
+                            </button>
+                        {% endif %}
+                        <button class="discover-btn browse-all" onclick="showBrowseAll()">
+                            <i class="fas fa-globe"></i> Browse All
+                        </button>
+                    </div>
+                    
                     <form method="GET" action="{{ url_for('homepage') }}" class="search-form">
                         <div class="search-input-wrapper">
                             <input 
@@ -2049,6 +2392,12 @@
                 // Store sidebar state in localStorage
                 const isCollapsed = sidebar.classList.contains('collapsed');
                 localStorage.setItem('sidebarCollapsed', isCollapsed);
+                
+                // Update layout for Browse All page immediately and with delays
+                updateBrowseAllLayout();
+                setTimeout(updateBrowseAllLayout, 50);
+                setTimeout(updateBrowseAllLayout, 200);
+                setTimeout(updateBrowseAllLayout, 500);
             });
         }
         
@@ -2056,6 +2405,131 @@
         const savedState = localStorage.getItem('sidebarCollapsed');
         if (savedState === 'true') {
             sidebar.classList.add('collapsed');
+        }
+        
+        // Ensure layout is updated after restoring state
+        setTimeout(updateBrowseAllLayout, 100);
+        
+        // Function to update Browse All layout when sidebar changes
+        function updateBrowseAllLayout() {
+            const mainContent = document.querySelector('.main-content');
+            const sidebar = document.querySelector('.sidebar');
+            const browseInterface = document.querySelector('.browse-interface');
+            
+            if (mainContent && sidebar) {
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                console.log('Updating Browse All layout, sidebar collapsed:', isCollapsed);
+                
+                // Update main content
+                mainContent.style.removeProperty('margin-left');
+                mainContent.style.removeProperty('width');
+                mainContent.style.removeProperty('max-width');
+                
+                if (isCollapsed) {
+                    mainContent.style.setProperty('margin-left', '80px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 80px)', 'important');
+                    mainContent.style.setProperty('max-width', 'none', 'important');
+                } else {
+                    mainContent.style.setProperty('margin-left', '240px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 240px)', 'important');
+                    mainContent.style.setProperty('max-width', 'none', 'important');
+                }
+                
+                // Update browse interface if it exists
+                if (browseInterface) {
+                    browseInterface.style.removeProperty('left');
+                    browseInterface.style.removeProperty('width');
+                    
+                    if (isCollapsed) {
+                        browseInterface.style.setProperty('left', '80px', 'important');
+                        browseInterface.style.setProperty('width', 'calc(100vw - 80px)', 'important');
+                    } else {
+                        browseInterface.style.setProperty('left', '240px', 'important');
+                        browseInterface.style.setProperty('width', 'calc(100vw - 240px)', 'important');
+                    }
+                    
+                    console.log('Browse interface updated - left:', browseInterface.style.left, 'width:', browseInterface.style.width);
+                }
+                
+                // Force a reflow to ensure changes take effect
+                mainContent.offsetHeight;
+                if (browseInterface) browseInterface.offsetHeight;
+                console.log('Layout updated - marginLeft:', mainContent.style.marginLeft, 'width:', mainContent.style.width);
+            } else {
+                console.log('Main content or sidebar not found:', { mainContent, sidebar });
+            }
+        }
+        
+        // Use MutationObserver to watch for sidebar class changes
+        if (sidebar) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        console.log('Sidebar class changed, updating layout');
+                        setTimeout(updateBrowseAllLayout, 10);
+                        setTimeout(updateBrowseAllLayout, 100);
+                        setTimeout(updateBrowseAllLayout, 300);
+                    }
+                });
+            });
+            
+            observer.observe(sidebar, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+        
+        // Also watch for browse interface creation/removal
+        const searchWrapper = document.querySelector('.search-wrapper');
+        if (searchWrapper) {
+            const browseObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                        const browseInterface = document.querySelector('.browse-interface');
+                        if (browseInterface) {
+                            console.log('Browse interface detected, updating layout');
+                            setTimeout(updateBrowseAllLayout, 50);
+                            setTimeout(updateBrowseAllLayout, 200);
+                        }
+                    }
+                });
+            });
+            
+            browseObserver.observe(searchWrapper, {
+                childList: true,
+                subtree: true
+            });
+        }
+        
+        // Initial layout update
+        updateBrowseAllLayout();
+        
+        // Listen for window resize
+        window.addEventListener('resize', updateBrowseAllLayout);
+        
+        // Listen for sidebar state changes from localStorage
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'sidebarCollapsed') {
+                setTimeout(updateBrowseAllLayout, 100);
+            }
+        });
+        
+        // Listen for any sidebar toggle events from the base template
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#sidebar-toggle')) {
+                console.log('Sidebar toggle clicked via base template');
+                setTimeout(updateBrowseAllLayout, 100);
+                setTimeout(updateBrowseAllLayout, 300);
+                setTimeout(updateBrowseAllLayout, 600);
+            }
+        });
+        
+        // Also listen for any changes to the sidebar element
+        if (sidebar) {
+            sidebar.addEventListener('transitionend', function() {
+                console.log('Sidebar transition ended, updating layout');
+                updateBrowseAllLayout();
+            });
         }
         
         // Language dropdown functionality
@@ -2450,33 +2924,33 @@
                 searchInput.value = '';
             }
 
-            const randomNames = [
-                'Sarah Johnson',
-                'Michael Chen',
-                'Emily Rodriguez',
-                'David Kim',
-                'Jessica Martinez',
-                'Alex Thompson',
-                'Maria Garcia',
-                'James Wilson',
-                'Lisa Anderson',
-                'Robert Taylor',
-                'Jennifer Brown',
-                'Christopher Lee',
-                'Amanda Davis',
-                'Matthew White',
-                'Ashley Miller',
-                'Daniel Jones',
-                'Rachel Green',
-                'Kevin Smith',
-                'Nicole Williams',
-                'Andrew Clark',
-                'Stephanie Hall',
-                'Ryan Moore',
-                'Michelle Turner',
-                'Brandon Scott',
-                'Samantha Young'
-            ];
+            // Fetch real user names from the server
+            let randomNames = [];
+            
+            // Get real user names from the search suggestions API
+            fetch('/api/search-suggestions?q=')
+                .then(response => response.json())
+                .then(suggestions => {
+                    if (suggestions && suggestions.length > 0) {
+                        randomNames = suggestions.map(suggestion => suggestion.text);
+                    } else {
+                        // Fallback names if API fails
+                        randomNames = [
+                            'Find experts...',
+                            'Search for skills...',
+                            'Discover talent...'
+                        ];
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching real names:', error);
+                    // Fallback names if API fails
+                    randomNames = [
+                        'Find experts...',
+                        'Search for skills...',
+                        'Discover talent...'
+                    ];
+                });
 
             let isAnimating = false;
             let currentText = '';
@@ -2713,6 +3187,404 @@
                 }
             });
         });
+
+        // Function to handle discover button clicks
+        function viewHistorical(viewType) {
+            if (viewType === 'recent' || viewType === 'favorites') {
+                // For recent views and favorites, redirect to discover page
+                window.location.href = `{{ url_for('discover') }}?view=${viewType}`;
+            } else if (viewType === 'browse_all') {
+                // For browse all, show categories and people on homepage
+                showBrowseAll();
+            }
+        }
+
+        // Function to show browse all interface
+        function showBrowseAll() {
+            // Hide the three buttons and show browse interface
+            const discoverButtons = document.querySelector('.discover-buttons-header');
+            const searchWrapper = document.querySelector('.search-wrapper');
+            
+            if (discoverButtons) {
+                discoverButtons.style.display = 'none';
+            }
+            
+            // Hide the original search form
+            const originalSearchForm = document.querySelector('.search-form');
+            if (originalSearchForm) {
+                originalSearchForm.style.display = 'none';
+            }
+            
+            // Create browse interface
+            const browseInterface = document.createElement('div');
+            browseInterface.className = 'browse-interface';
+            browseInterface.innerHTML = `
+                <div class="browse-header">
+                    <div class="search-bar-container">
+                        <form method="GET" action="{{ url_for('homepage') }}" class="search-form">
+                            <div class="search-input-wrapper">
+                                <input 
+                                    type="text" 
+                                    name="search" 
+                                    placeholder="Search for people..." 
+                                    class="search-input"
+                                    id="browse-search-input"
+                                    autocomplete="off"
+                                >
+                                <button type="submit" class="search-button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="category-tabs">
+                        <button class="category-tab active" onclick="filterByCategory('all')">All</button>
+                        <button class="category-tab" onclick="filterByCategory('technology')">Technology</button>
+                        <button class="category-tab" onclick="filterByCategory('business')">Business</button>
+                        <button class="category-tab" onclick="filterByCategory('creative')">Creative</button>
+                        <button class="category-tab" onclick="filterByCategory('health')">Health</button>
+                        <button class="category-tab" onclick="filterByCategory('education')">Education</button>
+                        <button class="category-tab" onclick="filterByCategory('finance')">Finance</button>
+                        <button class="category-tab" onclick="filterByCategory('marketing')">Marketing</button>
+                        <button class="category-tab" onclick="filterByCategory('writing')">Writing</button>
+                    </div>
+                </div>
+                <div class="browse-results" id="browse-results">
+                    <div class="loading-message">Loading people...</div>
+                </div>
+            `;
+            
+            searchWrapper.appendChild(browseInterface);
+            
+            // Load all users initially
+            loadBrowseResults('all');
+            
+            // Add search functionality
+            const searchInput = document.getElementById('browse-search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    filterCurrentResults(searchTerm);
+                });
+            }
+            
+            // Update layout when Browse All interface is shown
+            setTimeout(updateBrowseAllLayout, 50);
+            setTimeout(updateBrowseAllLayout, 200);
+        }
+
+        // Store current results for filtering
+        let currentResults = [];
+        let currentCategory = 'all';
+        let currentSearchTerm = '';
+
+        // Function to get category keywords
+        function getCategoryKeywords(category) {
+            const categoryMapping = {
+                'technology': ['technology', 'development', 'programming', 'coding', 'software', 'web', 'app', 'tech', 'developer', 'engineer', 'computer', 'it'],
+                'business': ['business', 'consulting', 'strategy', 'management', 'entrepreneur', 'startup', 'finance', 'marketing', 'sales'],
+                'creative': ['creative', 'design', 'ui', 'ux', 'graphic', 'visual', 'art', 'branding', 'illustration', 'style', 'beauty', 'fashion', 'photography'],
+                'health': ['health', 'fitness', 'wellness', 'nutrition', 'medical', 'therapy', 'coaching', 'mental health', 'wellness'],
+                'education': ['education', 'teaching', 'tutoring', 'training', 'learning', 'academic', 'course', 'mentor', 'astrology', 'spiritual'],
+                'finance': ['finance', 'accounting', 'investment', 'financial', 'tax', 'budget', 'money', 'wealth'],
+                'marketing': ['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand', 'growth', 'content'],
+                'writing': ['writing', 'content', 'copywriting', 'blogging', 'journalism', 'editing', 'proofreading', 'author']
+            };
+            
+            return categoryMapping[category] || [];
+        }
+
+        // Function to filter by category
+        function filterByCategory(category) {
+            // Update active tab
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update current category
+            currentCategory = category;
+            
+            // If there's a search term, filter the search results by category
+            if (currentSearchTerm) {
+                // Filter the current search results by the selected category
+                const searchFilteredResults = currentResults.filter(user => {
+                    const name = (user.full_name || '').toLowerCase();
+                    const profession = (user.profession || '').toLowerCase();
+                    const skills = (user.skills || '').toLowerCase();
+                    const bio = (user.bio || '').toLowerCase();
+                    
+                    // First apply search filter
+                    const matchesSearch = name.includes(currentSearchTerm) || 
+                                        profession.includes(currentSearchTerm) || 
+                                        skills.includes(currentSearchTerm) || 
+                                        bio.includes(currentSearchTerm);
+                    
+                    if (!matchesSearch) return false;
+                    
+                    // Then apply category filter using the new categorization logic
+                    if (category === 'all') return true;
+                    
+                    const userCategory = categorizeUser(user);
+                    return userCategory.toLowerCase() === category;
+                });
+                
+                displayBrowseResults(searchFilteredResults, category);
+            } else {
+                // Load results for this category
+                loadBrowseResults(category);
+            }
+        }
+
+        // Function to filter current results by search term
+        function filterCurrentResults(searchTerm) {
+            // Store the current search term
+            currentSearchTerm = searchTerm;
+            
+            if (!searchTerm) {
+                // If no search term, show all current results for the category
+                displayBrowseResults(currentResults, currentCategory);
+                return;
+            }
+            
+            // Filter current results by search term
+            const searchFilteredResults = currentResults.filter(user => {
+                const name = (user.full_name || '').toLowerCase();
+                const profession = (user.profession || '').toLowerCase();
+                const skills = (user.skills || '').toLowerCase();
+                const bio = (user.bio || '').toLowerCase();
+                
+                return name.includes(searchTerm) || 
+                       profession.includes(searchTerm) || 
+                       skills.includes(searchTerm) || 
+                       bio.includes(searchTerm);
+            });
+            
+            // Display filtered results with proper category handling
+            displayBrowseResults(searchFilteredResults, currentCategory);
+        }
+
+        // Function to load browse results
+        function loadBrowseResults(category) {
+            const resultsContainer = document.getElementById('browse-results');
+            if (!resultsContainer) return;
+            
+            resultsContainer.innerHTML = '<div class="loading-message">Loading people...</div>';
+            
+            // Clear search term when loading new category
+            currentSearchTerm = '';
+            const searchInput = document.getElementById('browse-search-input');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            // Fetch users for this category
+            fetch(`/api/browse-users?category=${category}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Store current results for filtering
+                    currentResults = data;
+                    displayBrowseResults(data, category);
+                })
+                .catch(error => {
+                    console.error('Error loading browse results:', error);
+                    resultsContainer.innerHTML = '<div class="error-message">Error loading people. Please try again.</div>';
+                });
+        }
+
+        // Function to display browse results
+        function displayBrowseResults(users, category) {
+            const resultsContainer = document.getElementById('browse-results');
+            if (!resultsContainer) return;
+            
+            if (users.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>No people found</h3>
+                        <p>No people available in this category right now.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // If category is 'all', group users by their actual categories
+            // If a specific category is selected, show users in a single section
+            let html = '';
+            
+            if (category === 'all') {
+                // Group users by their actual categories
+                const groupedUsers = groupUsersByCategory(users);
+                
+                for (const [catName, catUsers] of Object.entries(groupedUsers)) {
+                    if (catUsers.length > 0) {
+                        // Limit to 2 rows (10 users max per category)
+                        const limitedUsers = catUsers.slice(0, 10);
+                        
+                        html += `
+                            <div class="category-section">
+                                <h3 class="category-section-title">${catName}</h3>
+                                <div class="people-grid">
+                                    ${limitedUsers.map(user => `
+                                        <div class="person-card">
+                                            <img src="${user.profile_picture || '/static/img/default-avatar.svg'}" 
+                                                 alt="${user.full_name}" class="person-avatar">
+                                            <div class="person-info">
+                                                <h4 class="person-name">${user.full_name}</h4>
+                                                <p class="person-title">${user.profession || 'Professional'}</p>
+                                                <span class="person-rate">$${Math.round(user.hourly_rate || 0)}/hr</span>
+                                            </div>
+                                            <div class="person-actions">
+                                                <a href="/user/${user.username}" class="action-btn primary">View Profile</a>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            } else {
+                // For specific categories, show users in a single section
+                const limitedUsers = users.slice(0, 20); // Limit to 20 users for specific category
+                
+                html += `
+                    <div class="category-section">
+                        <h3 class="category-section-title">${category.charAt(0).toUpperCase() + category.slice(1)}</h3>
+                        <div class="people-grid">
+                            ${limitedUsers.map(user => `
+                                <div class="person-card">
+                                    <img src="${user.profile_picture || '/static/img/default-avatar.svg'}" 
+                                         alt="${user.full_name}" class="person-avatar">
+                                    <div class="person-info">
+                                        <h4 class="person-name">${user.full_name}</h4>
+                                        <p class="person-title">${user.profession || 'Professional'}</p>
+                                        <span class="person-rate">$${Math.round(user.hourly_rate || 0)}/hr</span>
+                                    </div>
+                                    <div class="person-actions">
+                                        <a href="/user/${user.username}" class="action-btn primary">View Profile</a>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            resultsContainer.innerHTML = html;
+        }
+
+        // Function to categorize a single user (matches backend logic)
+        function categorizeUser(user) {
+            const profession = (user.profession || '').toLowerCase();
+            const skills = (user.skills || '').toLowerCase();
+            const bio = (user.bio || '').toLowerCase();
+            
+            // Priority-based categorization (order matters - first match wins)
+            
+            // 1. Technology (highest priority for tech roles)
+            if (['software', 'developer', 'engineer', 'programmer', 'coder', 'architect', 'data scientist', 'product manager', 'tech lead', 'cto', 'cio'].some(keyword => profession.includes(keyword))) {
+                return 'Technology';
+            }
+            if (['javascript', 'python', 'java', 'react', 'node.js', 'programming', 'coding', 'software development', 'web development', 'mobile development', 'machine learning', 'ai', 'data science'].some(keyword => skills.includes(keyword))) {
+                return 'Technology';
+            }
+            
+            // 2. Health (high priority for health roles)
+            if (['doctor', 'nurse', 'therapist', 'counselor', 'psychologist', 'psychiatrist', 'nutritionist', 'dietitian', 'fitness trainer', 'personal trainer', 'yoga instructor', 'massage therapist', 'chiropractor', 'dentist', 'veterinarian'].some(keyword => profession.includes(keyword))) {
+                return 'Health';
+            }
+            if (['fitness', 'nutrition', 'wellness', 'mental health', 'therapy', 'counseling', 'yoga', 'meditation', 'health coaching'].some(keyword => skills.includes(keyword))) {
+                return 'Health';
+            }
+            
+            // 3. Creative (high priority for creative roles)
+            if (['designer', 'artist', 'photographer', 'videographer', 'graphic designer', 'ui designer', 'ux designer', 'interior designer', 'fashion designer', 'illustrator', 'animator', 'video editor', 'creative director'].some(keyword => profession.includes(keyword))) {
+                return 'Creative';
+            }
+            if (['design', 'ui', 'ux', 'graphic design', 'photography', 'video editing', 'illustration', 'branding', 'visual design', 'creative writing', 'art', 'drawing', 'painting'].some(keyword => skills.includes(keyword))) {
+                return 'Creative';
+            }
+            
+            // 4. Education (high priority for education roles)
+            if (['teacher', 'professor', 'instructor', 'tutor', 'trainer', 'educator', 'academic', 'researcher', 'librarian', 'curriculum developer', 'education consultant'].some(keyword => profession.includes(keyword))) {
+                return 'Education';
+            }
+            if (['teaching', 'education', 'tutoring', 'training', 'mentoring', 'coaching', 'curriculum development', 'academic writing', 'research'].some(keyword => skills.includes(keyword))) {
+                return 'Education';
+            }
+            
+            // 5. Finance (specific finance roles)
+            if (['accountant', 'financial advisor', 'investment advisor', 'financial analyst', 'banker', 'insurance agent', 'tax preparer', 'financial planner', 'wealth manager', 'cfo', 'controller'].some(keyword => profession.includes(keyword))) {
+                return 'Finance';
+            }
+            if (['accounting', 'financial planning', 'investment', 'tax preparation', 'budgeting', 'financial analysis', 'wealth management', 'insurance'].some(keyword => skills.includes(keyword))) {
+                return 'Finance';
+            }
+            
+            // 6. Marketing (specific marketing roles)
+            if (['marketing manager', 'marketing director', 'digital marketing', 'social media manager', 'seo specialist', 'content marketer', 'brand manager', 'advertising', 'public relations', 'pr specialist'].some(keyword => profession.includes(keyword))) {
+                return 'Marketing';
+            }
+            if (['digital marketing', 'social media', 'seo', 'content marketing', 'brand management', 'advertising', 'public relations', 'pr', 'growth hacking', 'email marketing'].some(keyword => skills.includes(keyword))) {
+                return 'Marketing';
+            }
+            
+            // 7. Writing (specific writing roles)
+            if (['writer', 'author', 'journalist', 'copywriter', 'content writer', 'blogger', 'editor', 'proofreader', 'technical writer', 'grant writer', 'screenwriter'].some(keyword => profession.includes(keyword))) {
+                return 'Writing';
+            }
+            if (['writing', 'copywriting', 'content writing', 'blogging', 'journalism', 'editing', 'proofreading', 'technical writing', 'creative writing', 'grant writing'].some(keyword => skills.includes(keyword))) {
+                return 'Writing';
+            }
+            
+            // 8. Business (catch-all for business-related roles)
+            if (['manager', 'director', 'executive', 'consultant', 'advisor', 'analyst', 'coordinator', 'specialist', 'supervisor', 'lead', 'head', 'chief', 'president', 'ceo', 'coo', 'vp', 'vice president'].some(keyword => profession.includes(keyword))) {
+                return 'Business';
+            }
+            if (['management', 'leadership', 'strategy', 'consulting', 'project management', 'business development', 'sales', 'customer service', 'operations', 'administration'].some(keyword => skills.includes(keyword))) {
+                return 'Business';
+            }
+            
+            // Default to business if no clear category
+            return 'Business';
+        }
+
+        // Function to group users by category
+        function groupUsersByCategory(users) {
+            const categories = {
+                'Technology': [],
+                'Business': [],
+                'Creative': [],
+                'Health': [],
+                'Education': [],
+                'Finance': [],
+                'Marketing': [],
+                'Writing': []
+            };
+            
+            users.forEach(user => {
+                const category = categorizeUser(user);
+                categories[category].push(user);
+            });
+            
+            return categories;
+        }
+
+        // Function to show login modal for non-authenticated users
+        function showLoginModal() {
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal) {
+                loginModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        // Make functions globally available
+        window.viewHistorical = viewHistorical;
+        window.showLoginModal = showLoginModal;
     </script>
 </body>
 </html>

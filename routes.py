@@ -511,8 +511,6 @@ def is_sequential_match(query, text):
 def search_suggestions():
     """API endpoint for smart search suggestions - only real people"""
     query = request.args.get('q', '').strip()
-    if not query or len(query) < 1:
-        return jsonify([])
     
     # Get all available users first
     all_users = User.query.filter(
@@ -522,15 +520,44 @@ def search_suggestions():
         )
     ).all()
     
-    # Filter users based on sequential letter matching
+    print(f"Search suggestions API called with query: '{query}', found {len(all_users)} users")
+    
+    # If no query, return a sample of users for homepage animation
+    if not query or len(query) < 1:
+        # Return up to 10 random users for homepage animation
+        import random
+        if len(all_users) == 0:
+            # No users in database, return fallback suggestions
+            suggestions = [
+                {'text': 'Find experts...', 'value': 'Find experts...', 'subtitle': 'Search for skills', 'icon': '🔍'},
+                {'text': 'Search for skills...', 'value': 'Search for skills...', 'subtitle': 'Discover talent', 'icon': '💡'},
+                {'text': 'Discover talent...', 'value': 'Discover talent...', 'subtitle': 'Find professionals', 'icon': '👥'}
+            ]
+        else:
+            sample_users = random.sample(all_users, min(10, len(all_users)))
+            suggestions = []
+            for user in sample_users:
+                suggestions.append({
+                    'text': user.full_name,
+                    'value': user.full_name,
+                    'subtitle': user.profession or 'Expert',
+                    'icon': '👤'
+                })
+        return jsonify(suggestions)
+    
+    # Filter users based on simple substring matching
     matching_users = []
     query_lower = query.lower()
     
     for user in all_users:
         name_lower = user.full_name.lower()
+        profession_lower = (user.profession or '').lower()
+        skills_lower = (user.skills or '').lower()
         
-        # Check if the query letters appear in sequence in the name
-        if is_sequential_match(query_lower, name_lower):
+        # Check if query appears in name, profession, or skills
+        if (query_lower in name_lower or 
+            query_lower in profession_lower or 
+            query_lower in skills_lower):
             matching_users.append(user)
     
     # Sort by relevance (exact start match first, then contains)
@@ -608,11 +635,129 @@ def search_suggestions():
     
     return jsonify(suggestions)
 
+def categorize_user(user):
+    """
+    Categorize a user into a single category based on priority.
+    Returns the category name as a string.
+    """
+    profession = (user.profession or '').lower()
+    skills = (user.skills or '').lower()
+    bio = (user.bio or '').lower()
+    
+    # Priority-based categorization (order matters - first match wins)
+    
+    # 1. Technology (highest priority for tech roles)
+    if any(keyword in profession for keyword in ['software', 'developer', 'engineer', 'programmer', 'coder', 'architect', 'data scientist', 'product manager', 'tech lead', 'cto', 'cio']):
+        return 'technology'
+    if any(keyword in skills for keyword in ['javascript', 'python', 'java', 'react', 'node.js', 'programming', 'coding', 'software development', 'web development', 'mobile development', 'machine learning', 'ai', 'data science']):
+        return 'technology'
+    
+    # 2. Health (high priority for health roles)
+    if any(keyword in profession for keyword in ['doctor', 'nurse', 'therapist', 'counselor', 'psychologist', 'psychiatrist', 'nutritionist', 'dietitian', 'fitness trainer', 'personal trainer', 'yoga instructor', 'massage therapist', 'chiropractor', 'dentist', 'veterinarian']):
+        return 'health'
+    if any(keyword in skills for keyword in ['fitness', 'nutrition', 'wellness', 'mental health', 'therapy', 'counseling', 'yoga', 'meditation', 'health coaching']):
+        return 'health'
+    
+    # 3. Creative (high priority for creative roles)
+    if any(keyword in profession for keyword in ['designer', 'artist', 'photographer', 'videographer', 'graphic designer', 'ui designer', 'ux designer', 'interior designer', 'fashion designer', 'illustrator', 'animator', 'video editor', 'creative director']):
+        return 'creative'
+    if any(keyword in skills for keyword in ['design', 'ui', 'ux', 'graphic design', 'photography', 'video editing', 'illustration', 'branding', 'visual design', 'creative writing', 'art', 'drawing', 'painting']):
+        return 'creative'
+    
+    # 4. Education (high priority for education roles)
+    if any(keyword in profession for keyword in ['teacher', 'professor', 'instructor', 'tutor', 'trainer', 'educator', 'academic', 'researcher', 'librarian', 'curriculum developer', 'education consultant']):
+        return 'education'
+    if any(keyword in skills for keyword in ['teaching', 'education', 'tutoring', 'training', 'mentoring', 'coaching', 'curriculum development', 'academic writing', 'research']):
+        return 'education'
+    
+    # 5. Finance (specific finance roles)
+    if any(keyword in profession for keyword in ['accountant', 'financial advisor', 'investment advisor', 'financial analyst', 'banker', 'insurance agent', 'tax preparer', 'financial planner', 'wealth manager', 'cfo', 'controller']):
+        return 'finance'
+    if any(keyword in skills for keyword in ['accounting', 'financial planning', 'investment', 'tax preparation', 'budgeting', 'financial analysis', 'wealth management', 'insurance']):
+        return 'finance'
+    
+    # 6. Marketing (specific marketing roles)
+    if any(keyword in profession for keyword in ['marketing manager', 'marketing director', 'digital marketing', 'social media manager', 'seo specialist', 'content marketer', 'brand manager', 'advertising', 'public relations', 'pr specialist']):
+        return 'marketing'
+    if any(keyword in skills for keyword in ['digital marketing', 'social media', 'seo', 'content marketing', 'brand management', 'advertising', 'public relations', 'pr', 'growth hacking', 'email marketing']):
+        return 'marketing'
+    
+    # 7. Writing (specific writing roles)
+    if any(keyword in profession for keyword in ['writer', 'author', 'journalist', 'copywriter', 'content writer', 'blogger', 'editor', 'proofreader', 'technical writer', 'grant writer', 'screenwriter']):
+        return 'writing'
+    if any(keyword in skills for keyword in ['writing', 'copywriting', 'content writing', 'blogging', 'journalism', 'editing', 'proofreading', 'technical writing', 'creative writing', 'grant writing']):
+        return 'writing'
+    
+    # 8. Business (catch-all for business-related roles)
+    if any(keyword in profession for keyword in ['manager', 'director', 'executive', 'consultant', 'advisor', 'analyst', 'coordinator', 'specialist', 'supervisor', 'lead', 'head', 'chief', 'president', 'ceo', 'coo', 'vp', 'vice president']):
+        return 'business'
+    if any(keyword in skills for keyword in ['management', 'leadership', 'strategy', 'consulting', 'project management', 'business development', 'sales', 'customer service', 'operations', 'administration']):
+        return 'business'
+    
+    # Default to business if no clear category
+    return 'business'
+
+@app.route('/api/browse-users')
+def browse_users():
+    """API endpoint for browsing users by category"""
+    category = request.args.get('category', 'all').strip().lower()
+    
+    # Get all available users
+    query = User.query.filter(
+        and_(
+            User.full_name.isnot(None),
+            User.is_available == True
+        )
+    )
+    
+    # Apply category filter if not 'all'
+    if category != 'all':
+        # Get all users first, then filter by category using priority-based logic
+        all_users = query.all()
+        filtered_users = []
+        
+        for user in all_users:
+            user_category = categorize_user(user)
+            if user_category == category:
+                filtered_users.append(user)
+        
+        # Create a new query with the filtered user IDs
+        if filtered_users:
+            user_ids = [user.id for user in filtered_users]
+            query = User.query.filter(User.id.in_(user_ids))
+        else:
+            # Return empty result if no users match the category
+            query = User.query.filter(User.id == -1)  # Impossible condition
+    
+    # Get users and convert to JSON-serializable format
+    users = query.all()
+    user_data = []
+    
+    for user in users:
+        user_data.append({
+            'id': user.id,
+            'username': user.username,
+            'full_name': user.full_name,
+            'profession': user.profession,
+            'skills': user.skills,
+            'bio': user.bio,
+            'hourly_rate': user.hourly_rate,
+            'profile_picture': user.profile_picture,
+            'location': user.location
+        })
+    
+    return jsonify(user_data)
+
 @app.route('/')
 def homepage():
     # Get search query and filters
     search_query = request.args.get('search', '').strip()
     category = request.args.get('category', '').strip().lower()
+    view_type = request.args.get('view', '').strip()
+    
+    # If view parameter is provided, redirect to discover page
+    if view_type:
+        return redirect(url_for('discover', view=view_type))
     
     # Base query for available users
     query = User.query.filter(
@@ -620,20 +765,16 @@ def homepage():
         User.full_name.isnot(None)
     )
     
-    # Apply search filter if provided
+    # Apply search filter if provided (same logic as discover page)
     if search_query:
-        search_terms = search_query.lower().split()
-        search_conditions = []
-        for term in search_terms:
-            search_conditions.append(
-                or_(
-                    User.full_name.ilike(f'%{term}%'),
-                    User.profession.ilike(f'%{term}%'),
-                    User.bio.ilike(f'%{term}%')
-                )
-            )
-        if search_conditions:
-            query = query.filter(and_(*search_conditions))
+        from sqlalchemy import or_
+        search_conditions = [
+            User.full_name.ilike(f'%{search_query}%'),
+            User.skills.ilike(f'%{search_query}%'),
+            User.profession.ilike(f'%{search_query}%'),
+            User.bio.ilike(f'%{search_query}%')
+        ]
+        query = query.filter(or_(*search_conditions))
     
     # Apply category filter if provided
     elif category:

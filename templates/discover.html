@@ -3,11 +3,282 @@
 {% block title %}Discover - Droply{% endblock %}
 
 {% block content %}
+<style>
+/* Browse Interface Styles */
+.browse-interface {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.browse-interface .page-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.search-bar-container {
+  margin-bottom: 1.5rem;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1rem;
+  padding: 0.5rem;
+  color: white;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-button {
+  background: #10b981;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.search-button:hover {
+  background: #047857;
+}
+
+.category-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.category-tab {
+  background: #333;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.category-tab:hover {
+  background: #444;
+  color: #fff;
+  border-color: #10b981;
+}
+
+.category-tab.active {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.browse-results {
+  min-height: 400px;
+}
+
+.loading-message, .error-message {
+  text-align: center;
+  padding: 2rem;
+  color: #ccc;
+  font-size: 1.1rem;
+}
+
+.error-message {
+  color: #ef4444;
+}
+
+.category-section {
+  margin-bottom: 3rem;
+}
+
+.category-section-title {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #10b981;
+}
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.person-card {
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.person-card:hover {
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.person-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  margin-bottom: 0.75rem;
+}
+
+.person-info {
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+.person-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.25rem 0;
+}
+
+.person-title {
+  font-size: 0.8rem;
+  color: #ccc;
+  margin: 0 0 0.25rem 0;
+}
+
+.person-rate {
+  font-size: 0.8rem;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.person-actions {
+  display: flex;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.action-btn {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border: none;
+  font-weight: 500;
+  flex: 1;
+  text-align: center;
+}
+
+.action-btn.primary {
+  background: #10b981;
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: #047857;
+  color: white;
+  text-decoration: none;
+}
+
+/* Light mode styles */
+body.light-mode .browse-interface .page-title {
+  color: #1f2937;
+}
+
+body.light-mode .search-input-wrapper {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+body.light-mode .search-input {
+  color: #1f2937;
+}
+
+body.light-mode .search-input::placeholder {
+  color: #6b7280;
+}
+
+body.light-mode .category-tab {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  color: #495057;
+}
+
+body.light-mode .category-tab:hover {
+  background: #e9ecef;
+  color: #10b981;
+  border-color: #10b981;
+}
+
+body.light-mode .category-tab.active {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+body.light-mode .category-section-title {
+  color: #1f2937;
+}
+
+body.light-mode .person-card {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+body.light-mode .person-card:hover {
+  border-color: #10b981;
+}
+
+body.light-mode .person-name {
+  color: #1f2937;
+}
+
+body.light-mode .person-title {
+  color: #6b7280;
+}
+</style>
+
 <div class="discover-page">
   <!-- Clean Search Section -->
   <div class="search-area {% if request.args.get('search') %}search-area-compact{% endif %}">
     <div class="search-wrapper">
-      {% if not request.args.get('search') %}
+      {% if not request.args.get('search') and not request.args.get('view') %}
         <!-- Show buttons instead of title when logged in -->
         {% if current_user.is_authenticated %}
           <div class="discover-buttons-header">
@@ -24,6 +295,42 @@
         {% else %}
           <h1 class="page-title">Discover People</h1>
         {% endif %}
+      {% elif request.args.get('view') == 'browse_all' %}
+        <!-- Browse All Interface -->
+        <div class="browse-interface">
+          <h1 class="page-title">Browse All People</h1>
+          
+          <div class="search-bar-container">
+            <form method="GET" action="{{ url_for('discover') }}" class="search-form">
+              <div class="search-input-wrapper">
+                <input 
+                  type="text" 
+                  name="search" 
+                  placeholder="Search for people..." 
+                  class="search-input"
+                  id="browse-search-input"
+                  value="{{ request.args.get('search', '') }}"
+                  autocomplete="off"
+                >
+                <button type="submit" class="search-button">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+          
+          <div class="category-tabs">
+            <button class="category-tab active" onclick="filterByCategory('all')">All</button>
+            <button class="category-tab" onclick="filterByCategory('technology')">Technology</button>
+            <button class="category-tab" onclick="filterByCategory('business')">Business</button>
+            <button class="category-tab" onclick="filterByCategory('creative')">Creative</button>
+            <button class="category-tab" onclick="filterByCategory('health')">Health</button>
+            <button class="category-tab" onclick="filterByCategory('education')">Education</button>
+            <button class="category-tab" onclick="filterByCategory('finance')">Finance</button>
+            <button class="category-tab" onclick="filterByCategory('marketing')">Marketing</button>
+            <button class="category-tab" onclick="filterByCategory('writing')">Writing</button>
+          </div>
+        </div>
       {% else %}
         <div class="search-results-header">
           <span class="results-count">{{ users|length }} results</span>
@@ -33,6 +340,7 @@
         </div>
       {% endif %}
       
+      {% if request.args.get('view') != 'browse_all' %}
       <form method="GET" action="{{ url_for('discover') }}" class="search-form">
         <div class="search-input-wrapper">
           <input 
@@ -51,8 +359,16 @@
           </button>
         </div>
       </form>
+      {% endif %}
     </div>
   </div>
+
+  <!-- Browse Results Section -->
+  {% if request.args.get('view') == 'browse_all' %}
+  <div class="browse-results" id="browse-results">
+    <div class="loading-message">Loading people...</div>
+  </div>
+  {% endif %}
 
   <!-- Results Section -->
   {% if request.args.get('search') or view_type %}
@@ -728,6 +1044,147 @@ function clearSearch() {
 function viewHistorical(viewType) {
   window.location.href = "{{ url_for('discover') }}?view=" + viewType;
 }
+
+// Browse functionality
+function filterByCategory(category) {
+  // Update active tab
+  document.querySelectorAll('.category-tab').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // Load results for this category
+  loadBrowseResults(category);
+}
+
+function loadBrowseResults(category) {
+  const resultsContainer = document.getElementById('browse-results');
+  if (!resultsContainer) return;
+  
+  resultsContainer.innerHTML = '<div class="loading-message">Loading people...</div>';
+  
+  // Fetch users for this category
+  fetch(`/api/browse-users?category=${category}`)
+    .then(response => response.json())
+    .then(data => {
+      displayBrowseResults(data, category);
+    })
+    .catch(error => {
+      console.error('Error loading browse results:', error);
+      resultsContainer.innerHTML = '<div class="error-message">Error loading people. Please try again.</div>';
+    });
+}
+
+function displayBrowseResults(users, category) {
+  const resultsContainer = document.getElementById('browse-results');
+  if (!resultsContainer) return;
+  
+  if (users.length === 0) {
+    resultsContainer.innerHTML = `
+      <div class="no-results">
+        <div class="no-results-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <h3>No people found</h3>
+        <p>No people available in this category right now.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Group users by category for better organization
+  const groupedUsers = groupUsersByCategory(users);
+  
+  let html = '';
+  for (const [catName, catUsers] of Object.entries(groupedUsers)) {
+    if (catUsers.length > 0) {
+      // Limit to 2 rows (10 users max per category)
+      const limitedUsers = catUsers.slice(0, 10);
+      
+      html += `
+        <div class="category-section">
+          <h3 class="category-section-title">${catName} People</h3>
+          <div class="people-grid">
+            ${limitedUsers.map(user => `
+              <div class="person-card">
+                <img src="${user.profile_picture || '/static/img/default-avatar.svg'}" 
+                     alt="${user.full_name}" class="person-avatar">
+                <div class="person-info">
+                  <h4 class="person-name">${user.full_name}</h4>
+                  <p class="person-title">${user.profession || 'Professional'}</p>
+                  <span class="person-rate">$${Math.round(user.hourly_rate || 0)}/hr</span>
+                </div>
+                <div class="person-actions">
+                  <a href="/user/${user.username}" class="action-btn primary">View Profile</a>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+  }
+  
+  resultsContainer.innerHTML = html;
+}
+
+function groupUsersByCategory(users) {
+  const categories = {
+    'Technology': [],
+    'Business': [],
+    'Creative': [],
+    'Health': [],
+    'Education': [],
+    'Finance': [],
+    'Marketing': [],
+    'Writing': []
+  };
+  
+  users.forEach(user => {
+    const profession = (user.profession || '').toLowerCase();
+    const skills = (user.skills || '').toLowerCase();
+    const bio = (user.bio || '').toLowerCase();
+    
+    // Categorize based on profession, skills, and bio
+    if (profession.includes('software') || profession.includes('developer') || profession.includes('engineer') || 
+        skills.includes('programming') || skills.includes('javascript') || skills.includes('python')) {
+      categories['Technology'].push(user);
+    } else if (profession.includes('business') || profession.includes('consultant') || profession.includes('manager') ||
+               skills.includes('business') || skills.includes('strategy')) {
+      categories['Business'].push(user);
+    } else if (profession.includes('designer') || profession.includes('creative') || profession.includes('artist') ||
+               skills.includes('design') || skills.includes('creative')) {
+      categories['Creative'].push(user);
+    } else if (profession.includes('health') || profession.includes('fitness') || profession.includes('medical') ||
+               skills.includes('health') || skills.includes('fitness')) {
+      categories['Health'].push(user);
+    } else if (profession.includes('teacher') || profession.includes('tutor') || profession.includes('education') ||
+               skills.includes('teaching') || skills.includes('education')) {
+      categories['Education'].push(user);
+    } else if (profession.includes('finance') || profession.includes('accountant') || profession.includes('financial') ||
+               skills.includes('finance') || skills.includes('accounting')) {
+      categories['Finance'].push(user);
+    } else if (profession.includes('marketing') || profession.includes('digital') || profession.includes('seo') ||
+               skills.includes('marketing') || skills.includes('digital')) {
+      categories['Marketing'].push(user);
+    } else if (profession.includes('writer') || profession.includes('content') || profession.includes('copywriter') ||
+               skills.includes('writing') || skills.includes('content')) {
+      categories['Writing'].push(user);
+    } else {
+      // Default to Business if no clear category
+      categories['Business'].push(user);
+    }
+  });
+  
+  return categories;
+}
+
+// Load browse results when page loads with browse_all view
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.location.search.includes('view=browse_all')) {
+    loadBrowseResults('all');
+  }
+});
 
 function trackUserInteraction(targetUserId, interactionType) {
   fetch('/track_interaction', {

@@ -4,8 +4,10 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/duolingo-buttons.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/translations.js') }}"></script>
+<script src="{{ url_for('static', filename='js/duolingo-interactions.js') }}"></script>
 <style>
   /* Ensure dashboard page has consistent dark background matching homepage */
   body {
@@ -36,28 +38,28 @@
 
 {% block content %}
 <div class="dashboard-container">
-  <!-- Compact Quick Actions -->
-  <div class="compact-quick-actions">
-    <a href="{{ url_for('discover') }}" class="compact-action">
-      <div class="compact-action-icon">🔍</div>
-      <span class="compact-action-text" data-translate="dashboard.find_experts">Find</span>
+  <!-- Duolingo-Style Quick Actions -->
+  <div class="duolingo-quick-actions">
+    <a href="{{ url_for('discover') }}" class="duolingo-action find">
+      <div class="duolingo-action-icon">🔍</div>
+      <span class="duolingo-action-text" data-translate="dashboard.find_experts">Find</span>
     </a>
-    <a href="{{ url_for('profile') }}" class="compact-action">
-      <div class="compact-action-icon">👤</div>
-      <span class="compact-action-text" data-translate="dashboard.edit_profile">Profile</span>
+    <a href="{{ url_for('profile') }}" class="duolingo-action profile">
+      <div class="duolingo-action-icon">👤</div>
+      <span class="duolingo-action-text" data-translate="dashboard.edit_profile">Profile</span>
     </a>
-    <a href="{{ url_for('availability') }}" class="compact-action">
-      <div class="compact-action-icon">⏰</div>
-      <span class="compact-action-text" data-translate="dashboard.set_availability">Hours</span>
+    <a href="{{ url_for('availability') }}" class="duolingo-action hours">
+      <div class="duolingo-action-icon">⏰</div>
+      <span class="duolingo-action-text" data-translate="dashboard.set_availability">Hours</span>
     </a>
-    <a href="{{ url_for('bookings') }}" class="compact-action">
-      <div class="compact-action-icon">📅</div>
-      <span class="compact-action-text" data-translate="dashboard.view_bookings">Bookings</span>
+    <a href="{{ url_for('bookings') }}" class="duolingo-action bookings">
+      <div class="duolingo-action-icon">📅</div>
+      <span class="duolingo-action-text" data-translate="dashboard.view_bookings">Bookings</span>
     </a>
     {% if current_user.hourly_rate > 0 %}
-    <a href="{{ url_for('payment_setup') }}" class="compact-action">
-      <div class="compact-action-icon">💳</div>
-      <span class="compact-action-text" data-translate="dashboard.payment_setup">Payment</span>
+    <a href="{{ url_for('payment_setup') }}" class="duolingo-action payment">
+      <div class="duolingo-action-icon">💳</div>
+      <span class="duolingo-action-text" data-translate="dashboard.payment_setup">Payment</span>
     </a>
     {% endif %}
   </div>

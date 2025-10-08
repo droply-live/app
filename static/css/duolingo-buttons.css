@@ -1,0 +1,463 @@
+/* Duolingo-Style Quick Action Buttons with Tactile Press Effect */
+
+/* Define custom properties for keyboard-like buttons */
+:root {
+  --button-shadow-offset: 4px; /* Keyboard key depth */
+  --button-press-transition: 0.06s ease; /* Sharp, responsive key press */
+  --button-hover-transition: 0.15s ease; /* Smooth hover transitions */
+  --button-bevel: 2px; /* Beveled edge depth */
+}
+
+/* Base Duolingo Button Styles */
+.duolingo-quick-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 20px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.duolingo-quick-actions::-webkit-scrollbar {
+  display: none;
+}
+
+.duolingo-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.75rem;
+  background: #ffffff;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #1f2937;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  flex: 1;
+  min-width: 80px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  
+  /* Keyboard key styling */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
+  /* Keyboard-like button with beveled edges and realistic shadows */
+  box-shadow: 
+    /* Main depth shadow */
+    0 var(--button-shadow-offset) 0 rgba(0, 0, 0, 0.3),
+    /* Secondary depth */
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    /* Beveled top highlight */
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    /* Beveled left highlight */
+    inset 1px 0 0 rgba(255, 255, 255, 0.15),
+    /* Bottom shadow for bevel */
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    /* Right shadow for bevel */
+    inset -1px 0 0 rgba(0, 0, 0, 0.15);
+  
+  /* Smooth transitions for realistic key behavior */
+  transition: 
+    transform var(--button-press-transition),
+    box-shadow var(--button-press-transition),
+    background-color var(--button-hover-transition),
+    filter var(--button-press-transition);
+}
+
+/* Keyboard-like Color Variants with Realistic Key Shadows */
+.duolingo-action.find {
+  background: #58cc02;
+  color: white;
+  box-shadow: 
+    /* Main depth shadow */
+    0 var(--button-shadow-offset) 0 #4ba000,
+    /* Secondary depth */
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    /* Beveled highlights */
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 1px 0 0 rgba(255, 255, 255, 0.2),
+    /* Beveled shadows */
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    inset -1px 0 0 rgba(0, 0, 0, 0.2);
+}
+
+.duolingo-action.profile {
+  background: #1cb0f6;
+  color: white;
+  box-shadow: 
+    0 var(--button-shadow-offset) 0 #0ea5e9,
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    inset -1px 0 0 rgba(0, 0, 0, 0.2);
+}
+
+.duolingo-action.hours {
+  background: #ff9600;
+  color: white;
+  box-shadow: 
+    0 var(--button-shadow-offset) 0 #ff8c00,
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    inset -1px 0 0 rgba(0, 0, 0, 0.2);
+}
+
+.duolingo-action.bookings {
+  background: #ce82ff;
+  color: white;
+  box-shadow: 
+    0 var(--button-shadow-offset) 0 #b366ff,
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    inset -1px 0 0 rgba(0, 0, 0, 0.2);
+}
+
+.duolingo-action.payment {
+  background: #ff4b4b;
+  color: white;
+  box-shadow: 
+    0 var(--button-shadow-offset) 0 #ff3333,
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    inset -1px 0 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Hover Effects - Subtle color brightening */
+.duolingo-action:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Specific hover color brightening for each button */
+.duolingo-action.find:hover {
+  background: #6dd400;
+}
+
+.duolingo-action.profile:hover {
+  background: #38bdf8;
+}
+
+.duolingo-action.hours:hover {
+  background: #ffa726;
+}
+
+.duolingo-action.bookings:hover {
+  background: #d946ef;
+}
+
+.duolingo-action.payment:hover {
+  background: #ff6b6b;
+}
+
+/* REALISTIC KEYBOARD KEY PRESS EFFECT */
+.duolingo-action:active {
+  /* Remove depth shadows, keep only inset shadows for pressed key look */
+  box-shadow: 
+    /* Remove main depth shadow */
+    none,
+    /* Keep subtle inset shadows for pressed appearance */
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(0, 0, 0, 0.2);
+  transform: translateY(var(--button-shadow-offset));
+  /* Darken the key to show it's fully pressed */
+  filter: brightness(0.85);
+}
+
+/* Specific pressed key effects for each button type */
+.duolingo-action.find:active {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(0, 0, 0, 0.2);
+  transform: translateY(var(--button-shadow-offset));
+  background: #4ba000;
+  filter: brightness(0.8);
+}
+
+.duolingo-action.profile:active {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(0, 0, 0, 0.2);
+  transform: translateY(var(--button-shadow-offset));
+  background: #0ea5e9;
+  filter: brightness(0.8);
+}
+
+.duolingo-action.hours:active {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(0, 0, 0, 0.2);
+  transform: translateY(var(--button-shadow-offset));
+  background: #ff8c00;
+  filter: brightness(0.8);
+}
+
+.duolingo-action.bookings:active {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(0, 0, 0, 0.2);
+  transform: translateY(var(--button-shadow-offset));
+  background: #b366ff;
+  filter: brightness(0.8);
+}
+
+.duolingo-action.payment:active {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(0, 0, 0, 0.2);
+  transform: translateY(var(--button-shadow-offset));
+  background: #ff3333;
+  filter: brightness(0.8);
+}
+
+/* Icon Styles */
+.duolingo-action-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.duolingo-action:hover .duolingo-action-icon {
+  transform: scale(1.1) rotate(5deg);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Text Styles */
+.duolingo-action-text {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Ripple Effect */
+.duolingo-action::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.duolingo-action:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Bounce Animation for Engagement */
+@keyframes duolingo-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px);
+  }
+  60% {
+    transform: translateY(-4px);
+  }
+}
+
+.duolingo-action.animate-bounce {
+  animation: duolingo-bounce 1s ease-in-out;
+}
+
+/* Success State Animation */
+@keyframes duolingo-success {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.duolingo-action.success {
+  animation: duolingo-success 0.6s ease-in-out;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .duolingo-quick-actions {
+    gap: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 16px;
+    /* Enable horizontal scrolling on mobile */
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* Add momentum scrolling for iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .duolingo-quick-actions::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .duolingo-action {
+    padding: 0.75rem 0.5rem;
+    min-width: 70px;
+    border-radius: 12px;
+    /* Ensure buttons don't shrink too much */
+    flex-shrink: 0;
+  }
+  
+  .duolingo-action-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 1.25rem;
+  }
+  
+  .duolingo-action-text {
+    font-size: 0.75rem;
+    letter-spacing: 0.3px;
+  }
+  
+  /* Enhanced keyboard-like feedback for mobile */
+  .duolingo-action:active {
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(0, 0, 0, 0.2);
+    transform: translateY(var(--button-shadow-offset));
+    filter: brightness(0.8);
+  }
+}
+
+@media (max-width: 480px) {
+  .duolingo-quick-actions {
+    gap: 0.375rem;
+    padding: 0.5rem;
+  }
+  
+  .duolingo-action {
+    padding: 0.625rem 0.375rem;
+    min-width: 60px;
+    gap: 0.375rem;
+  }
+  
+  .duolingo-action-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 1rem;
+  }
+  
+  .duolingo-action-text {
+    font-size: 0.625rem;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .duolingo-quick-actions {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border-color: #374151;
+  }
+  
+  .duolingo-action {
+    background: #374151;
+    color: #f9fafb;
+    border-color: #4b5563;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .duolingo-action {
+    border-width: 4px;
+  }
+  
+  .duolingo-action-text {
+    font-weight: 800;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .duolingo-action {
+    transition: none;
+  }
+  
+  .duolingo-action:hover {
+    transform: none;
+  }
+  
+  .duolingo-action-icon {
+    transition: none;
+  }
+  
+  .duolingo-action:hover .duolingo-action-icon {
+    transform: none;
+  }
+}
+
+/* Focus States for Accessibility */
+.duolingo-action:focus {
+  outline: 3px solid #58cc02;
+  outline-offset: 2px;
+}
+
+.duolingo-action:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Loading State */
+.duolingo-action.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.duolingo-action.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
