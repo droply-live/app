@@ -63,9 +63,18 @@ jobs:
           # Start new container on different port
           NEW_CONTAINER_NAME="droply-web-new-$(date +%s)"
           docker run -d --name $NEW_CONTAINER_NAME \
-            -p 5001:5000 \
-            --env-file <(env | grep -E '^(SECRET_KEY|STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET|GOOGLE_CLIENT_ID|GOOGLE_CLIENT_SECRET|DAILY_API_KEY|YOUR_DOMAIN|FLASK_ENV|ENVIRONMENT|FLASK_DEBUG)=') \
-            $NEW_IMAGE_TAG
+          -p 5001:5000 \
+          -e SECRET_KEY='${{ secrets.SECRET_KEY }}' \
+          -e STRIPE_SECRET_KEY='${{ secrets.STRIPE_SECRET_KEY }}' \
+          -e STRIPE_WEBHOOK_SECRET='${{ secrets.STRIPE_WEBHOOK_SECRET }}' \
+          -e GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
+          -e GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
+          -e DAILY_API_KEY='${{ secrets.DAILY_API_KEY }}' \
+          -e YOUR_DOMAIN='https://droply.live' \
+          -e FLASK_ENV='production' \
+          -e ENVIRONMENT='production' \
+          -e FLASK_DEBUG='0' \
+          $NEW_IMAGE_TAG
           
           # Wait for new container to be healthy
           echo "⏳ Waiting for new container to be ready..."
@@ -80,9 +89,18 @@ jobs:
             docker stop $NEW_CONTAINER_NAME
             docker rm $NEW_CONTAINER_NAME
             docker run -d --name droply-web-1 \
-              -p 5000:5000 \
-              --env-file <(env | grep -E '^(SECRET_KEY|STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET|GOOGLE_CLIENT_ID|GOOGLE_CLIENT_SECRET|DAILY_API_KEY|YOUR_DOMAIN|FLASK_ENV|ENVIRONMENT|FLASK_DEBUG)=') \
-              $NEW_IMAGE_TAG
+            -p 5000:5000 \
+            -e SECRET_KEY='${{ secrets.SECRET_KEY }}' \
+            -e STRIPE_SECRET_KEY='${{ secrets.STRIPE_SECRET_KEY }}' \
+            -e STRIPE_WEBHOOK_SECRET='${{ secrets.STRIPE_WEBHOOK_SECRET }}' \
+            -e GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
+            -e GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
+            -e DAILY_API_KEY='${{ secrets.DAILY_API_KEY }}' \
+            -e YOUR_DOMAIN='https://droply.live' \
+            -e FLASK_ENV='production' \
+            -e ENVIRONMENT='production' \
+            -e FLASK_DEBUG='0' \
+            $NEW_IMAGE_TAG
             echo "🎉 Zero-downtime deployment completed!"
           else
             echo "❌ New container failed health check, rolling back..."

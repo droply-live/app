@@ -1434,34 +1434,36 @@ def availability():
 #     flash('Booking functionality is temporarily unavailable.', 'error')
 #     return redirect(url_for('homepage'))
 
+@app.route('/test-checkout/<int:booking_id>')
+def test_checkout(booking_id):
+    """Test endpoint to debug checkout issues"""
+    return f"Test endpoint reached with booking_id: {booking_id}"
+
 @app.route('/create-checkout-session/<int:booking_id>', methods=['POST', 'GET'])
 def create_checkout_session(booking_id):
     """Create Stripe checkout session"""
-    print(f"DEBUG: create_checkout_session called with booking_id: {booking_id}")
-    print(f"DEBUG: Stripe API key configured: {bool(stripe.api_key)}")
-    print(f"DEBUG: YOUR_DOMAIN: {YOUR_DOMAIN}")
-    print(f"DEBUG: Request method: {request.method}")
-    print(f"DEBUG: Request args: {dict(request.args)}")
-    print(f"DEBUG: Request form: {dict(request.form)}")
-    
-    # Production safeguard
-    if is_production_environment() and stripe.api_key.startswith('sk_test_'):
-        print("DEBUG: Production environment with test keys detected")
-        flash('Payment system temporarily unavailable. Please try again later.', 'error')
-        return redirect(url_for('homepage'))
-    
-    booking = Booking.query.get_or_404(booking_id)
-    print(f"DEBUG: Booking found - ID: {booking.id}, Amount: {booking.payment_amount}, Status: {booking.status}")
-    
     try:
-        # Get expert details for the checkout session
+        print(f"DEBUG: create_checkout_session called with booking_id: {booking_id}")
+        
+        # Basic validation
+        if not stripe.api_key:
+            print("DEBUG: Stripe API key not configured")
+            flash('Payment system not configured. Please contact support.', 'error')
+            return redirect(url_for('homepage'))
+        
+        # Get booking
+        booking = Booking.query.get(booking_id)
+        if not booking:
+            print(f"DEBUG: Booking {booking_id} not found")
+            flash('Booking not found. Please try again.', 'error')
+            return redirect(url_for('homepage'))
+        
+        # Get expert
         expert = User.query.get(booking.expert_id)
         if not expert:
             print("DEBUG: Expert not found for booking")
             flash('Expert not found', 'error')
             return redirect(url_for('homepage'))
-        
-        print(f"DEBUG: Expert found - {expert.username}, Rate: {expert.hourly_rate}")
         
         # Validate payment amount
         if not booking.payment_amount or booking.payment_amount <= 0:
@@ -1471,49 +1473,44 @@ def create_checkout_session(booking_id):
         
         print(f"DEBUG: Creating Stripe checkout session...")
         print(f"DEBUG: YOUR_DOMAIN: {YOUR_DOMAIN}")
-        print(f"DEBUG: Success URL: {YOUR_DOMAIN}/booking/success/{booking.id}")
-        print(f"DEBUG: Cancel URL: {YOUR_DOMAIN}/user/{expert.username}")
         
+        # Create checkout session with simplified error handling
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
-                    'currency': 'usd',  # Default to USD for now
+                    'currency': 'usd',
                     'product_data': {
                         'name': f'Session with {expert.full_name or expert.username}',
-                        'description': f'{booking.duration}-minute video consultation on {booking.start_time.strftime("%B %d, %Y at %I:%M %p")}',
+                        'description': f'{booking.duration}-minute video consultation',
                     },
-                    'unit_amount': int(booking.payment_amount * 100),  # Amount in cents
+                    'unit_amount': int(booking.payment_amount * 100),
                 },
                 'quantity': 1,
             }],
             mode='payment',
             success_url=f'{YOUR_DOMAIN}/booking/success/{booking.id}',
             cancel_url=f'{YOUR_DOMAIN}/user/{expert.username}',
-            metadata={
-                'booking_id': booking.id
-            }
+            metadata={'booking_id': booking.id}
         )
         
         print(f"DEBUG: Stripe checkout session created successfully: {checkout_session.id}")
-        print(f"DEBUG: Checkout URL: {checkout_session.url}")
         
         booking.stripe_session_id = checkout_session.id
         db.session.commit()
         
-        print(f"DEBUG: Redirecting to Stripe checkout...")
         return redirect(checkout_session.url, code=303)
         
     except stripe.StripeError as e:
         print(f"DEBUG: Stripe error: {str(e)}")
         flash(f'Payment system error: {str(e)}', 'error')
-        return redirect(url_for('user_profile', username=expert.username if expert else 'unknown'))
+        return redirect(url_for('homepage'))
     except Exception as e:
-        print(f"DEBUG: General error in create_checkout_session: {str(e)}")
+        print(f"DEBUG: General error: {str(e)}")
         import traceback
         traceback.print_exc()
-        flash(f'Payment error: {str(e)}', 'error')
-        return redirect(url_for('user_profile', username=expert.username if expert else 'unknown'))
+        flash('Payment processing error. Please try again or contact support.', 'error')
+        return redirect(url_for('homepage'))
 
 @app.route('/booking/success/<int:booking_id>')
 def booking_success(booking_id):
@@ -3004,10 +3001,17 @@ def booking_confirmation():
         
         print(f"DEBUG: Booking created with ID: {booking.id}")
         
-        # Redirect to Stripe checkout
+        # Redirect to Stripe checkout with error handling
         print(f"DEBUG: Redirecting to Stripe checkout for booking ID: {booking.id}")
-        print(f"DEBUG: Redirect URL: {url_for('create_checkout_session', booking_id=booking.id)}")
-        return redirect(url_for('create_checkout_session', booking_id=booking.id))
+        try:
+            checkout_url = url_for('create_checkout_session', booking_id=booking.id)
+            print(f"DEBUG: Redirect URL: {checkout_url}")
+            return redirect(checkout_url)
+        except Exception as e:
+            print(f"DEBUG: Error creating checkout URL: {e}")
+            # Fallback: redirect to booking success page with a message
+            flash('Booking created successfully. Payment processing is temporarily unavailable. Please contact support.', 'warning')
+            return redirect(url_for('booking_success', booking_id=booking.id))
 
 @app.route('/debug/calendar/<username>')
 @login_required
@@ -3858,6 +3862,91 @@ def meeting_status(booking_id):
         'start_time': booking.start_time.isoformat() if booking.start_time else None,
         'end_time': booking.end_time.isoformat() if booking.end_time else None
     })
+
+@app.route('/dev-video-call')
+def dev_video_call():
+    """Development-only route for testing video call UI without booking"""
+    # Only allow in development environment
+    if os.environ.get('FLASK_ENV') != 'development':
+        flash('This route is only available in development environment.', 'error')
+        return redirect(url_for('index'))
+    
+    # Create a mock booking for testing
+    mock_booking = type('MockBooking', (), {
+        'id': 999,
+        'meeting_room_id': 'dev-test-room',
+        'meeting_url': 'https://droply-test.daily.co/dev-test-room',
+        'start_time': datetime.now(EASTERN_TIMEZONE),
+        'end_time': datetime.now(EASTERN_TIMEZONE) + timedelta(minutes=30),
+        'status': 'confirmed',
+        'user_id': 1,
+        'expert_id': 2
+    })()
+    
+    # Create mock users
+    mock_user = type('MockUser', (), {
+        'id': 1,
+        'name': 'Test User',
+        'email': 'test@example.com'
+    })()
+    
+    mock_expert = type('MockExpert', (), {
+        'id': 2,
+        'name': 'Test Expert',
+        'email': 'expert@example.com'
+    })()
+    
+    # Generate meeting token
+    token, error = get_meeting_token('dev-test-room', 1, True)
+    if error:
+        print(f"Error generating token: {error}")
+        token = "dev-test-token"
+    
+    return render_template('meeting.html', 
+                         booking=mock_booking, 
+                         token=token, 
+                         room_name='dev-test-room',
+                         other_user=mock_expert,
+                         current_user=mock_user)
+
+@app.route('/dev-simple-video-call')
+def dev_simple_video_call():
+    """Development-only route for testing simple WebRTC video call UI"""
+    # Only allow in development environment
+    if os.environ.get('FLASK_ENV') != 'development':
+        flash('This route is only available in development environment.', 'error')
+        return redirect(url_for('index'))
+    
+    # Create a mock booking for testing
+    mock_booking = type('MockBooking', (), {
+        'id': 998,
+        'meeting_room_id': 'dev-simple-room',
+        'meeting_url': 'https://meet.daily.co/dev-simple-room',
+        'start_time': datetime.now(EASTERN_TIMEZONE),
+        'end_time': datetime.now(EASTERN_TIMEZONE) + timedelta(minutes=30),
+        'status': 'confirmed',
+        'user_id': 1,
+        'expert_id': 2
+    })()
+    
+    # Create mock users
+    mock_user = type('MockUser', (), {
+        'id': 1,
+        'name': 'Test User',
+        'email': 'test@example.com'
+    })()
+    
+    mock_expert = type('MockExpert', (), {
+        'id': 2,
+        'name': 'Test Expert',
+        'email': 'expert@example.com'
+    })()
+    
+    return render_template('meeting_simple.html', 
+                         booking=mock_booking, 
+                         room_name='dev-simple-room',
+                         other_user=mock_expert,
+                         current_user=mock_user)
 
 @app.route('/test-meeting/<int:booking_id>')
 def test_meeting(booking_id):
