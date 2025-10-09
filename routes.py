@@ -3195,7 +3195,7 @@ def expert_stripe_onboarding():
             )
             return redirect(login_link.url)
             
-        except stripe.error.StripeError as e:
+        except stripe.StripeError as e:
             flash(f'Error accessing Stripe account: {str(e)}', 'error')
             return redirect(url_for('expert_dashboard'))
     
@@ -3385,12 +3385,12 @@ def complete_verification():
                 redirect_url=f"{YOUR_DOMAIN}/expert/dashboard"
             )
             return redirect(login_link.url)
-        except stripe.error.StripeError as e:
+        except stripe.StripeError as e:
             # Fallback to direct URL if login link fails
             dashboard_url = f"https://connect.stripe.com/express/{current_user.stripe_account_id}/settings"
             return redirect(dashboard_url)
             
-    except stripe.error.StripeError as e:
+    except stripe.StripeError as e:
         flash(f'Error accessing Stripe account: {str(e)}', 'error')
     return redirect(url_for('expert_dashboard'))
 
