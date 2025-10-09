@@ -284,11 +284,7 @@ body.light-mode .person-title {
   max-width: none !important;
   margin: 0 !important;
   padding: 2rem !important;
-  background: #1f1f1f !important;
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+  background: #2a2a2a !important;
   z-index: 1000 !important;
   min-height: 100vh !important;
   transition: left 0.3s ease, width 0.3s ease !important;
@@ -660,31 +656,19 @@ body:has(.sidebar.collapsed) .main-content:has(.browse-interface) {
 <style>
 /* Ensure consistent background throughout the page matching homepage */
 html, body {
-  background: #1f1f1f !important;
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+  background: #2a2a2a !important;
   margin: 0 !important;
   padding: 0 !important;
 }
 
-/* Ensure main content area has consistent background matching homepage */
+/* Ensure main content area uses transparent background to show body background */
 .main-content, .content-wrapper {
-  background: #1f1f1f !important;
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+  background: transparent !important;
 }
 
 /* Clean, Minimal Discover Page */
 .discover-page {
-  background: #1f1f1f !important;
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+  background: transparent !important;
   min-height: 100vh;
   padding: 0;
   width: 100%;
@@ -693,11 +677,7 @@ html, body {
 
 /* Search Area - Clean and Simple */
 .search-area {
-  background: #1f1f1f !important;
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+  background: transparent !important;
   padding: 2rem 1rem;
   border-bottom: 1px solid #333;
   min-height: 100vh;
@@ -717,9 +697,6 @@ html, body {
 
 .discover-btn {
   background: #333;
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
-    linear-gradient(45deg, rgba(99, 102, 241, 0.02) 0%, transparent 40%);
   border: 1px solid #555;
   color: white;
   padding: 0.75rem 1.5rem;
@@ -1162,7 +1139,7 @@ html, body {
     width: 100% !important;
     max-width: 100% !important;
     overflow-x: hidden !important;
-    background: #1f1f1f !important;
+    background: #2a2a2a !important;
   }
   
   .search-area {
@@ -1174,7 +1151,7 @@ html, body {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    background: #1f1f1f !important;
+    background: #2a2a2a !important;
     position: relative;
   }
   
@@ -1280,7 +1257,7 @@ html, body {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    background: #1f1f1f !important;
+    background: #2a2a2a !important;
   }
   
   .experts-grid {
@@ -1348,7 +1325,7 @@ html, body {
 @media (max-width: 480px) {
   .search-area {
     padding: 1rem 0.5rem;
-    background: #1f1f1f !important;
+    background: #2a2a2a !important;
   }
   
   .page-title {
@@ -1411,7 +1388,7 @@ html, body {
   
   .results-area {
     padding: 1rem 0.5rem;
-    background: #1f1f1f !important;
+    background: #2a2a2a !important;
   }
 }
 </style>

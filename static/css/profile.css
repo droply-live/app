@@ -9,7 +9,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
-  background: #1f1f1f !important;
+  background: #2a2a2a !important;
   min-height: 100vh;
   color: #ffffff;
 }
@@ -55,15 +55,15 @@
 
 /* Ensure the main content area has dark background */
 body {
-  background: #1f1f1f !important;
+  background: #2a2a2a !important;
 }
 
 .main-content {
-  background: #1f1f1f !important;
+  background: #2a2a2a !important;
 }
 
 .content-wrapper {
-  background: #1f1f1f !important;
+  background: #2a2a2a !important;
 }
 
 /* Mobile Header */

@@ -2,7 +2,7 @@
 
 /* Base mobile styles */
 .availability-container {
-  background: #1f1f1f !important;
+  background: #2a2a2a !important;
   background-image: 
     radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
@@ -26,10 +26,10 @@
   display: flex;
   flex-direction: row;
   gap: 0.5rem;
-  background: #2a2a2a;
+  background: #1a1a1a;
   border-radius: 12px;
   padding: 0.5rem;
-  border: 1px solid #3a3a3a;
+  border: 1px solid #2a2a2a;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -119,8 +119,8 @@
 }
 
 .calendar-status-card {
-  background: #2a2a2a;
-  border: 1px solid #3a3a3a;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
   border-radius: 12px;
   padding: 1.5rem;
   background-image: 
@@ -174,8 +174,8 @@
 }
 
 .day-card {
-  background: #2a2a2a;
-  border: 1px solid #3a3a3a;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
   border-radius: 12px;
   padding: 1rem;
   transition: all 0.2s ease;
@@ -282,8 +282,8 @@
 }
 
 .settings-card {
-  background: #2a2a2a;
-  border: 1px solid #3a3a3a;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
   border-radius: 12px;
   padding: 1.5rem;
   background-image: 
@@ -301,11 +301,11 @@
 }
 
 .summary-card {
-  background: #2a2a2a;
+  background: #1a1a1a;
   background-image: 
     radial-gradient(circle at 25% 25%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
     linear-gradient(45deg, rgba(99, 102, 241, 0.02) 0%, transparent 40%);
-  border: 1px solid #3a3a3a;
+  border: 1px solid #2a2a2a;
   border-radius: 16px;
   padding: 1.5rem;
   position: relative;
@@ -388,12 +388,12 @@
 .form-select:focus {
   border-color: #10b981;
   box-shadow: 0 0 0 0.3rem rgba(16, 185, 129, 0.25), 0 4px 8px rgba(0, 0, 0, 0.1);
-  background: #1f1f1f;
+  background: #2a2a2a;
 }
 
 .form-select:hover {
   border-color: #6b7280;
-  background: #1f1f1f;
+  background: #2a2a2a;
 }
 
 .form-text {
@@ -529,11 +529,11 @@
 
 /* MOBILE DAY ROWS - ALWAYS SHOW TIME INPUTS */
 .day-row {
-  background: #2a2a2a;
+  background: #1a1a1a;
   background-image: 
     radial-gradient(circle at 30% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 60%),
     linear-gradient(135deg, rgba(99, 102, 241, 0.01) 0%, transparent 50%);
-  border: 1px solid #3a3a3a;
+  border: 1px solid #2a2a2a;
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1rem;
@@ -581,7 +581,7 @@
 }
 
 .day-info:active {
-  background: #1f1f1f;
+  background: #2a2a2a;
   transform: scale(0.98);
 }
 

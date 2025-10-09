@@ -2,7 +2,8 @@ html, body {
     margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box;
-    background: transparent !important;
+    background: #2a2a2a !important;
+    color: #ffffff !important;
 }
 
 /* Remove top margin/padding from main containers */
@@ -69,6 +70,11 @@ html, body {
 
 /* Remove duplicate background - now handled by body */
 .discover-search-section {
+    background: transparent !important;
+}
+
+/* Ensure main content areas are transparent to show body background */
+.main-content, .content-wrapper, .container {
     background: transparent !important;
 }
 
@@ -264,6 +270,11 @@ html, body {
     background: transparent !important;
 }
 
+/* Ensure all main page sections are transparent */
+.hero-section, .faq-section, .features, .dashboard-header {
+    background: transparent !important;
+}
+
 /* Remove any border or shadow from the very top of the page */
 body, html {
     border-top: none !important;
@@ -282,12 +293,8 @@ body, html {
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
-    color: #1a1a1a;
-    background: #ffffff;
-    background-image: 
-        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.03) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.03) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.02) 0%, transparent 50%);
+    color: #ffffff;
+    background: #2a2a2a !important;
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -437,18 +444,18 @@ body {
 }
 
 .hero-section:nth-child(1) {
-    background: #fff;
-    color: #1a1a1a;
+    background: transparent;
+    color: #ffffff;
 }
 
 .hero-section:nth-child(2) {
-    background: #fff;
-    color: #1a1a1a;
+    background: transparent;
+    color: #ffffff;
 }
 
 .hero-section:nth-child(3) {
-    background: #fff;
-    color: #1a1a1a;
+    background: transparent;
+    color: #ffffff;
 }
 
 .hero-text {
@@ -647,7 +654,7 @@ body {
     font-size: 1.25rem;
     font-weight: 600;
     color: #10b981;
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     margin-bottom: 1rem;
     cursor: pointer;
@@ -804,7 +811,7 @@ body {
 /* FAQ Section */
 .faq-section {
     padding: 6rem 0;
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .faq-container {
@@ -821,7 +828,7 @@ body {
 }
 
 .faq-item {
-    background: #ffffff;
+    background: transparent;
     border-radius: 12px;
     margin-bottom: 1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -994,7 +1001,7 @@ body {
 
 .discover-results {
     padding: 2rem 0;
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.1);
     min-height: 60vh;
 }
 
@@ -1285,10 +1292,7 @@ body {
 
 /* Cards */
 .card {
-    background: #ffffff;
-    background-image: 
-        radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.02) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.01) 0%, transparent 50%);
+    background: #2a2a2a;
     border-radius: 12px;
     padding: 2rem;
     margin-bottom: 2rem;
@@ -1341,7 +1345,7 @@ body {
     border-radius: 8px;
     font-size: 1rem;
     transition: all 0.2s ease;
-    background: #ffffff;
+    background: transparent;
 }
 
 /* Fix form label colors for better contrast */
@@ -1372,7 +1376,7 @@ body {
 }
 
 .alert-light {
-    background-color: #f8f9fa !important;
+    background-color: transparent !important;
     border-color: #e9ecef !important;
 }
 
@@ -1450,7 +1454,7 @@ small {
 .feature-card {
     text-align: center;
     padding: 2rem;
-    background: #ffffff;
+    background: transparent;
     border-radius: 12px;
     margin-bottom: 2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -1482,10 +1486,7 @@ small {
 
 /* Dashboard */
 .dashboard-header {
-    background: #ffffff;
-    background-image: 
-        radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
-        linear-gradient(135deg, rgba(99, 102, 241, 0.01) 0%, transparent 40%);
+    background: #2a2a2a;
     padding: 2rem;
     border-radius: 12px;
     margin-bottom: 2rem;
@@ -1501,15 +1502,12 @@ small {
 }
 
 .stat-card {
-    background: #ffffff;
-    background-image: 
-        radial-gradient(circle at 25% 25%, rgba(16, 185, 129, 0.02) 0%, transparent 50%),
-        linear-gradient(45deg, rgba(99, 102, 241, 0.01) 0%, transparent 40%);
+    background: #1a1a1a !important;
     padding: 1.5rem;
     border-radius: 8px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e5e5;
+    border: 1px solid #2a2a2a !important;
     transition: transform 0.2s ease;
 }
 
@@ -1573,7 +1571,7 @@ small {
 
 /* Booking cards */
 .booking-card {
-    background: #ffffff;
+    background: transparent;
     border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 1rem;
@@ -1629,7 +1627,7 @@ small {
 
 /* Search */
 .search-container {
-    background: #ffffff;
+    background: transparent;
     border-radius: 12px;
     padding: 2rem;
     margin-bottom: 2rem;
@@ -1643,7 +1641,7 @@ small {
     border: 2px solid #e5e5e5;
     border-radius: 8px;
     font-size: 1.1rem;
-    background: #ffffff;
+    background: transparent;
     transition: all 0.2s ease;
 }
 
@@ -1655,7 +1653,7 @@ small {
 
 /* Expert cards */
 .user-card {
-    background: #ffffff;
+    background: transparent;
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
@@ -1716,7 +1714,7 @@ small {
 
 /* Footer */
 .footer {
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.1);
     padding: 2rem 0;
     margin-top: 4rem;
     text-align: center;
@@ -1738,7 +1736,7 @@ small {
 
 /* Global Footer Styles - Overridden by base template */
 .global-footer {
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.1);
     border-top: 1px solid #e9ecef;
     padding: 2rem 0;
     margin-top: 3rem;
@@ -2278,7 +2276,7 @@ small {
     transition: background 0.2s, border 0.2s, color 0.2s, box-shadow 0.2s;
 }
 .stepper-tab.active {
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.1);
     border: 2px solid #10b981;
     color: #222;
     box-shadow: 0 4px 16px rgba(5, 150, 105, 0.10);
@@ -2295,7 +2293,7 @@ small {
     display: none;
     font-size: 0.98rem;
     color: #555;
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     padding: 0.7rem 1rem 0.7rem 2.2rem;
     margin-top: 0.2rem;
@@ -2438,7 +2436,7 @@ small {
     border-bottom-right-radius: 18px;
 }
 .connected-stepper .stepper-tab.active {
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.1);
     color: #10b981;
     font-weight: 600;
     position: relative;
@@ -3103,7 +3101,7 @@ small {
 }
 
 .profile-summary-card {
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 2rem;
@@ -3847,7 +3845,7 @@ small {
   .nav-brand-icon {
     width: 24px !important;
     height: 24px !important;
-    background: #10b981 !important;
+    background: #2a2a2a !important;
     border-radius: 6px !important;
     display: flex !important;
     align-items: center !important;

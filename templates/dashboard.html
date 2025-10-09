@@ -9,29 +9,13 @@
 <script src="{{ url_for('static', filename='js/translations.js') }}"></script>
 <script src="{{ url_for('static', filename='js/duolingo-interactions.js') }}"></script>
 <style>
-  /* Ensure dashboard page has consistent dark background matching homepage */
-  body {
-    background: #1f1f1f !important;
-    background-image: 
-      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
-  }
-  
+  /* Ensure dashboard page has transparent background */
   .main-content, .content-wrapper {
-    background: #1f1f1f !important;
-    background-image: 
-      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+    background: transparent !important;
   }
   
   .dashboard-container {
-    background: #1f1f1f !important;
-    background-image: 
-      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-      linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+    background: transparent !important;
   }
 </style>
 {% endblock %}
