@@ -24,6 +24,16 @@
 
     <!-- Video Container -->
     <div class="video-container-wrapper">
+        <!-- Waiting for Expert Banner -->
+        <div class="waiting-banner" id="waiting-banner" style="display: none;">
+            <div class="waiting-content">
+                <i class="fas fa-clock"></i>
+                <span>Waiting for {{ other_user.name }} to join...</span>
+                <div class="waiting-spinner"></div>
+            </div>
+            <p class="waiting-note">Timer will start when the expert arrives</p>
+        </div>
+        
         <div id="video-container" class="video-container"></div>
         
         <!-- Participant Names Overlay -->
@@ -40,46 +50,132 @@
         <div class="powered-by">
             <span>Powered by Droply</span>
         </div>
-    </div>
-
-    <!-- Bottom Control Bar -->
-    <div class="control-bar" id="main-control-bar" style="display: flex !important;">
-        <div class="control-left">
-            <button class="control-btn video-btn" onclick="toggleVideo()" id="video-btn">
-                <i class="fas fa-video"></i>
-            </button>
-            <button class="control-btn audio-btn" onclick="toggleAudio()" id="audio-btn">
-                <i class="fas fa-microphone"></i>
-            </button>
-            <button class="control-btn participants-btn" onclick="toggleParticipants()">
-                <i class="fas fa-users"></i>
-            </button>
-            <button class="control-btn share-btn" onclick="toggleShare()">
-                <i class="fas fa-share"></i>
-            </button>
-        </div>
         
-        <div class="control-center">
-            <div class="time-progress">
-                <div class="progress-bar" id="progress-bar">
-                    <div class="progress-fill" id="progress-fill"></div>
+        <!-- Pre-call Setup (shown before joining) -->
+        <div class="pre-call-setup" id="pre-call-setup">
+            <div class="setup-content">
+                <div class="setup-header">
+                    <h3>Are you ready to join?</h3>
+                    <button class="setup-btn primary join-btn" onclick="joinCall()" id="join-call-btn">
+                        <i class="fas fa-phone"></i>
+                        Join Call
+                    </button>
+                    <button class="setup-btn" onclick="debugCall()" style="margin-left: 10px; background: orange; color: white;">
+                        <i class="fas fa-bug"></i>
+                        Debug
+                    </button>
                 </div>
-                <div class="time-display" id="time-display">00:00</div>
+                
+                <div class="setup-preview">
+                    <div class="preview-video" id="preview-video">
+                        <video id="preview-camera" autoplay muted playsinline style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 6px; position: absolute; top: 0; left: 0;"></video>
+                        <div class="preview-placeholder" id="preview-placeholder">
+                            <i class="fas fa-video"></i>
+                            <p>Camera Preview</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setup-controls">
+                    <button class="control-btn video-btn" id="pre-video-btn" onclick="toggleVideo()">
+                        <i class="fas fa-video"></i>
+                        <span>Turn on</span>
+                    </button>
+                    <button class="control-btn audio-btn" id="pre-audio-btn" onclick="toggleAudio()">
+                        <i class="fas fa-microphone"></i>
+                        <span>Mute</span>
+                    </button>
+                    <button class="control-btn effects-btn" id="pre-effects-btn" onclick="toggleEffects()">
+                        <i class="fas fa-magic"></i>
+                        <span>Effects</span>
+                    </button>
+                    <button class="control-btn reduce-btn" id="pre-reduce-btn" onclick="toggleReduce()">
+                        <i class="fas fa-volume-down"></i>
+                        <span>Reduce</span>
+                    </button>
+                    <button class="control-btn more-btn" id="pre-more-btn" onclick="toggleMore()">
+                        <i class="fas fa-ellipsis-h"></i>
+                        <span>More</span>
+                    </button>
+                </div>
+                
+                <div class="setup-options">
+                    <div class="option-group">
+                        <label>Camera</label>
+                        <select id="camera-select" class="setup-select">
+                            <option value="default">Default Camera</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>Microphone</label>
+                        <select id="microphone-select" class="setup-select">
+                            <option value="default">Default Microphone</option>
+                        </select>
+                        <a href="#" class="test-link" onclick="testMicrophone()">Test your mic</a>
+                    </div>
+                    <div class="option-group">
+                        <label>Speakers</label>
+                        <select id="speakers-select" class="setup-select">
+                            <option value="default">Default Speakers</option>
+                        </select>
+                        <a href="#" class="test-link" onclick="testSpeakers()">Play test sound</a>
+                    </div>
+                    <div class="option-group">
+                        <label>Background</label>
+                        <select id="background-select" class="setup-select">
+                            <option value="none">None</option>
+                            <option value="blur">Blur</option>
+                            <option value="office">Office</option>
+                            <option value="nature">Nature</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <div class="control-right">
-            {% if is_owner %}
-            <button class="control-btn extend-btn" onclick="extendMeeting()" id="extend-btn" disabled>
-                <i class="fas fa-clock"></i>
-                <span class="btn-text">Extend</span>
-            </button>
-            {% endif %}
-            <button class="control-btn end-call-btn" onclick="endCall()">
-                <i class="fas fa-phone-slash"></i>
-            </button>
+
+        <!-- Custom Control Bar (shown during call) -->
+        <div class="control-bar" id="main-control-bar" style="display: none;">
+            <div class="control-left">
+                <button class="control-btn video-btn" id="video-btn">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="control-btn audio-btn" id="audio-btn">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="control-btn participants-btn" onclick="toggleParticipants()">
+                    <i class="fas fa-users"></i>
+                </button>
+                <button class="control-btn share-btn" onclick="toggleShare()">
+                    <i class="fas fa-share"></i>
+                </button>
+                <button class="control-btn settings-btn" onclick="toggleSettings()">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+            
+            <div class="control-center">
+                <div class="time-progress">
+                    <div class="progress-bar" id="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="time-display" id="time-display">00:00</div>
+                </div>
+            </div>
+            
+            <div class="control-right">
+                {% if is_owner %}
+                <button class="control-btn extend-btn" onclick="extendMeeting()" id="extend-btn" disabled>
+                    <i class="fas fa-clock"></i>
+                    <span class="btn-text">Extend</span>
+                </button>
+                {% endif %}
+                <button class="control-btn end-call-btn" id="end-call-btn">
+                    <i class="fas fa-phone-slash"></i>
+                </button>
+            </div>
         </div>
     </div>
+
 
     <!-- Floating Control Bar (Fallback) -->
     <div class="floating-control-bar" id="floating-control-bar" style="display: none;">
@@ -100,19 +196,27 @@
     <!-- Say Goodbye Modal -->
     <div class="goodbye-modal" id="goodbye-modal" style="display: none;">
         <div class="goodbye-content">
-            <h3>Say goodbye</h3>
+            <h3>⏰ Time to say goodbye!</h3>
             <div class="goodbye-timer">
                 <div class="timer-circle" id="timer-circle">
                     <span id="goodbye-countdown">0:30</span>
                 </div>
             </div>
             <p class="goodbye-message">Call automatically ends in <span id="auto-end-timer">0:30</span></p>
+            <p class="goodbye-hint">👇 Use the pulsing red button below to hang up now</p>
             {% if is_owner %}
             <div class="goodbye-actions">
                 <button class="goodbye-btn extend-btn" onclick="extendMeeting()" id="goodbye-extend-btn">
                     <i class="fas fa-plus"></i>
                     <span>Extend +1min</span>
                 </button>
+                <button class="goodbye-btn close-btn" onclick="closeGoodbyeModal()">
+                    <i class="fas fa-times"></i>
+                    <span>Close</span>
+                </button>
+            </div>
+            {% else %}
+            <div class="goodbye-actions">
                 <button class="goodbye-btn close-btn" onclick="closeGoodbyeModal()">
                     <i class="fas fa-times"></i>
                     <span>Close</span>
@@ -137,6 +241,9 @@ let maxExtensions = 3;
 let goodbyeModalShown = false;
 let totalMeetingTime = 30 * 60 * 1000; // 30 minutes in milliseconds
 let meetingStartTime = null;
+let isExpert = {{ 'true' if is_owner else 'false' }};
+let expertHasJoined = false;
+let timerStarted = false;
 
 // Parse the meeting end time properly
 let meetingEndTime;
@@ -249,35 +356,171 @@ function debugButtonVisibility() {
     console.log('=== END DEBUG ===');
 }
 
+// Debug function to check call state
+function debugCall() {
+    console.log('🐛 DEBUG CALL STATE:');
+    console.log('================================');
+    console.log('1. Basic Info:');
+    console.log('- Current user:', '{{ current_user.username }}');
+    console.log('- Is owner:', {{ 'true' if is_owner else 'false' }});
+    console.log('- Room URL:', '{{ meeting.daily_room_url }}');
+    console.log('- Meeting end time:', '{{ meeting.end_time }}');
+    console.log('');
+    
+    console.log('2. Daily.co Status:');
+    console.log('- DailyIframe loaded:', typeof DailyIframe !== 'undefined');
+    console.log('- callObject exists:', !!callObject);
+    console.log('');
+    
+    console.log('3. Current State:');
+    console.log('- isVideoOn:', isVideoOn);
+    console.log('- isMuted:', isMuted);
+    console.log('- isExpert:', isExpert);
+    console.log('- expertHasJoined:', expertHasJoined);
+    console.log('- timerStarted:', timerStarted);
+    console.log('');
+    
+    console.log('4. DOM Elements:');
+    console.log('- pre-call-setup:', !!document.getElementById('pre-call-setup'));
+    console.log('- main-control-bar:', !!document.getElementById('main-control-bar'));
+    console.log('- video-container:', !!document.getElementById('video-container'));
+    console.log('- pre-video-btn:', !!document.getElementById('pre-video-btn'));
+    console.log('- pre-audio-btn:', !!document.getElementById('pre-audio-btn'));
+    console.log('');
+    
+    console.log('5. Meeting Times:');
+    console.log('- Current time:', new Date().toISOString());
+    console.log('- Meeting start:', meetingStartTime ? new Date(meetingStartTime).toISOString() : 'Not set');
+    console.log('- Meeting end:', meetingEndTime ? new Date(meetingEndTime).toISOString() : 'Not set');
+    console.log('================================');
+    
+    // Try to manually start timer if call object exists
+    if (callObject && !timerStarted) {
+        console.log('🕐 Attempting to manually start timer...');
+        startCountdown();
+    }
+}
+
+// Join call function
+async function joinCall() {
+    console.log('🎬 JOIN CALL CLICKED!');
+    console.log('Current state before joining:');
+    console.log('- isVideoOn:', isVideoOn);
+    console.log('- isMuted:', isMuted);
+    console.log('- callObject:', !!callObject);
+    
+    // Get current camera and audio states from pre-call setup
+    const videoBtn = document.getElementById('pre-video-btn');
+    const audioBtn = document.getElementById('pre-audio-btn');
+    
+    console.log('Pre-call setup buttons found:');
+    console.log('- videoBtn:', !!videoBtn);
+    console.log('- audioBtn:', !!audioBtn);
+    
+    // Store the states before joining
+    const shouldStartWithVideo = videoBtn && videoBtn.classList.contains('active');
+    const shouldStartWithAudio = audioBtn && audioBtn.classList.contains('active');
+    
+    console.log('Pre-call states:');
+    console.log('- shouldStartWithVideo:', shouldStartWithVideo);
+    console.log('- shouldStartWithAudio:', shouldStartWithAudio);
+    
+    console.log('Pre-call states:', {
+        shouldStartWithVideo,
+        shouldStartWithAudio,
+        isVideoOn,
+        isAudioOn
+    });
+    
+    // Hide pre-call setup
+    const preCallSetup = document.getElementById('pre-call-setup');
+    if (preCallSetup) {
+        preCallSetup.style.display = 'none';
+    }
+    
+    // Show control bar
+    const controlBar = document.getElementById('main-control-bar');
+    if (controlBar) {
+        controlBar.style.display = 'flex';
+    }
+    
+    // Force hide any Daily.co pre-call UI
+    setTimeout(() => {
+        const dailyPreJoin = document.querySelector('[data-daily-prejoin]');
+        if (dailyPreJoin) {
+            dailyPreJoin.style.display = 'none !important';
+        }
+        
+        // Hide any Daily.co overlays
+        const dailyOverlays = document.querySelectorAll('[class*="daily"]');
+        dailyOverlays.forEach(overlay => {
+            if (overlay.style && overlay.style.display !== 'none') {
+                overlay.style.display = 'none';
+            }
+        });
+    }, 100);
+    
+    // Don't clean up preview stream immediately - let Daily.co handle it
+    // if (previewStream) {
+    //     previewStream.getTracks().forEach(track => track.stop());
+    //     previewStream = null;
+    // }
+    
+    // Initialize the actual call
+    await initializeCall();
+    
+    // Apply pre-call settings after joining
+    setTimeout(() => {
+        if (callObject) {
+            console.log('Applying pre-call settings to Daily.co call...');
+            
+            // First, ensure we have video enabled if it was on in preview
+            if (shouldStartWithVideo) {
+                console.log('Enabling video in Daily.co call...');
+                callObject.setLocalVideo(true);
+                isVideoOn = true;
+                
+                // Also try setting it again after a short delay
+                setTimeout(() => {
+                    if (callObject) {
+                        callObject.setLocalVideo(true);
+                        console.log('Video re-enabled in call (retry)');
+                    }
+                }, 500);
+                
+                console.log('Video enabled in call');
+            } else {
+                callObject.setLocalVideo(false);
+                isVideoOn = false;
+                console.log('Video disabled in call');
+            }
+            
+            // Set audio state
+            if (shouldStartWithAudio) {
+                callObject.setLocalAudio(true);
+                isMuted = false;
+                console.log('Audio enabled in call');
+            } else {
+                callObject.setLocalAudio(false);
+                isMuted = true;
+                console.log('Audio disabled in call');
+            }
+            
+            // Apply background settings
+            applyBackgroundSettings();
+            
+            // Apply device settings
+            applyDeviceSettings();
+            
+            // Update toolbar button states
+            updateToolbarButtons();
+        }
+    }, 2000); // Increased delay to ensure Daily.co is fully ready
+}
+
 // Initialize the call
 async function initializeCall() {
     try {
-        // Ensure control bars are visible
-        console.log('Ensuring control bars are visible...');
-        const mainControlBar = document.getElementById('main-control-bar');
-        const floatingControlBar = document.getElementById('floating-control-bar');
-        
-        if (mainControlBar) {
-            mainControlBar.style.display = 'flex';
-            mainControlBar.style.position = 'fixed';
-            mainControlBar.style.bottom = '0';
-            mainControlBar.style.left = '0';
-            mainControlBar.style.right = '0';
-            mainControlBar.style.width = '100%';
-            mainControlBar.style.zIndex = '1000';
-            mainControlBar.style.visibility = 'visible';
-            mainControlBar.style.opacity = '1';
-            console.log('Main control bar set to visible with fixed positioning');
-        }
-        
-        if (floatingControlBar) {
-            floatingControlBar.style.display = 'none';
-            console.log('Floating control bar set to hidden');
-        }
-        
-        // Debug button visibility
-        setTimeout(debugButtonVisibility, 1000);
-        
         // Check if room URL is available
         const roomUrl = '{{ room_url }}';
         if (!roomUrl || roomUrl === 'None' || roomUrl === '') {
@@ -292,12 +535,21 @@ async function initializeCall() {
                 height: '100%',
                 border: '0'
             },
-            showLeaveButton: true,
-            showFullscreenButton: true,
-            showLocalVideo: true,
+            showLeaveButton: false,
+            showFullscreenButton: false,
+            showLocalVideo: true,   // Start with video on to avoid black screen
+            showParticipantsBar: false,
+            showJoinLeaveEvents: true,
+            showControls: false,
+            showMeetingToolbar: false,
+            showPreJoinUI: false,  // Completely disable Daily.co's pre-call setup
+            localVideo: true,      // Start with video on
+            localAudio: true,      // Start with audio on
+            videoSource: 'camera', // Explicitly specify camera source
+            audioSource: 'microphone', // Explicitly specify microphone source
             {% if is_owner %}
             // Expert view - more controls
-            showParticipantsBar: true,
+            showParticipantsBar: false,
             {% else %}
             // Client view - simplified controls
             showParticipantsBar: false,
@@ -306,11 +558,106 @@ async function initializeCall() {
 
         // Set up event listeners
         callObject.on('joined-meeting', () => {
-            console.log('Joined meeting successfully');
-            startCountdown();
+            console.log('🎉 JOINED MEETING SUCCESSFULLY!');
+            console.log('isExpert:', isExpert);
+            console.log('expertHasJoined:', expertHasJoined);
+            console.log('timerStarted:', timerStarted);
+            
+            // If this is the expert joining, start the timer immediately
+            if (isExpert) {
+                console.log('✅ Expert joined - starting timer immediately');
+                expertHasJoined = true;
+                startCountdown();
+            } else {
+                console.log('⏳ Client joined - waiting for expert to start timer');
+                // Client joined first, show waiting message
+                showWaitingForExpert();
+            }
             
             // Check control bar visibility after joining
             setTimeout(checkControlBarVisibility, 1000);
+            
+            // Apply pre-call settings after joining
+            setTimeout(() => {
+                console.log('Applying settings after joined-meeting event...');
+                applyPreCallSettingsToCall();
+            }, 1500);
+            
+            // Force camera activation after joining
+            setTimeout(() => {
+                console.log('Force activating camera after joining...');
+                if (callObject) {
+                    // Try multiple methods to activate camera
+                    callObject.setLocalVideo(true);
+                    console.log('Camera force activated (method 1)');
+                    
+                    // Try with explicit camera request
+                    setTimeout(async () => {
+                        try {
+                            const stream = await navigator.mediaDevices.getUserMedia({ 
+                                video: true, 
+                                audio: false 
+                            });
+                            console.log('Got camera stream for Daily.co:', stream);
+                            
+                            // Try to set the stream directly
+                            if (callObject) {
+                                callObject.setLocalVideo(true);
+                                console.log('Camera activated with stream (method 2)');
+                            }
+                            
+                            // Stop the stream after setting it
+                            setTimeout(() => {
+                                stream.getTracks().forEach(track => track.stop());
+                            }, 2000);
+                        } catch (error) {
+                            console.error('Failed to get camera stream:', error);
+                        }
+                    }, 500);
+                    
+                    // Try again with different method
+                    setTimeout(() => {
+                        if (callObject) {
+                            callObject.setLocalVideo({
+                                video: true,
+                                audio: false
+                            });
+                            console.log('Camera activated with constraints (method 3)');
+                        }
+                    }, 1000);
+                    
+                    // Final attempt
+                    setTimeout(() => {
+                        if (callObject) {
+                            callObject.setLocalVideo(true);
+                            console.log('Camera activated final attempt (method 4)');
+                        }
+                    }, 2000);
+                }
+            }, 3000);
+            
+            // Debug Daily.co iframe
+            setTimeout(() => {
+                const iframe = document.querySelector('iframe[src*="daily.co"]');
+                console.log('Daily.co iframe found:', !!iframe);
+                if (iframe) {
+                    console.log('Iframe src:', iframe.src);
+                    console.log('Iframe dimensions:', iframe.offsetWidth, 'x', iframe.offsetHeight);
+                }
+            }, 3000);
+        });
+        
+        // Listen for other participants joining
+        callObject.on('participant-joined', (event) => {
+            console.log('Participant joined:', event);
+            
+            // If client is already in and expert joins, start the timer
+            if (!isExpert && !timerStarted) {
+                console.log('Expert has arrived - starting timer');
+                expertHasJoined = true;
+                hideWaitingForExpert();
+                startCountdown();
+            }
         });
 
         callObject.on('left-meeting', () => {
@@ -321,29 +668,70 @@ async function initializeCall() {
 
         callObject.on('error', (error) => {
             console.error('Call error:', error);
-            alert('Error joining call: ' + (error.errorMsg || error.message || 'Unknown error'));
+            console.error('Error joining call: ' + (error.errorMsg || error.message || 'Unknown error'));
         });
 
         // Join the meeting without authentication
-        await callObject.join({
+        console.log('🚀 Attempting to join meeting with URL:', roomUrl);
+        const joinResult = await callObject.join({
             url: roomUrl,
             userName: '{{ current_user.full_name or current_user.username }}',
             showLocalVideo: true,
             showParticipantsBar: true
         });
+        console.log('📞 Join result:', joinResult);
 
     } catch (error) {
         console.error('Error initializing call:', error);
-        alert('Error initializing video call: ' + (error.message || 'Unknown error'));
+        console.error('Error initializing video call: ' + (error.message || 'Unknown error'));
+    }
+}
+
+// Show waiting for expert message
+function showWaitingForExpert() {
+    const timeDisplay = document.getElementById('time-display');
+    if (timeDisplay) {
+        timeDisplay.textContent = 'Waiting...';
+        timeDisplay.style.color = '#f59e0b';
+    }
+    
+    // Show the waiting banner
+    const banner = document.getElementById('waiting-banner');
+    if (banner) {
+        banner.style.display = 'flex';
+    }
+}
+
+// Hide waiting for expert message
+function hideWaitingForExpert() {
+    const timeDisplay = document.getElementById('time-display');
+    if (timeDisplay) {
+        timeDisplay.style.color = '#333';
+    }
+    
+    // Hide the waiting banner
+    const banner = document.getElementById('waiting-banner');
+    if (banner) {
+        banner.style.display = 'none';
     }
 }
 
 // Countdown timer with progress bar
 function startCountdown() {
-    console.log('Starting countdown...');
+    console.log('🕐 startCountdown() called');
+    console.log('timerStarted before:', timerStarted);
+    
+    // Prevent starting timer multiple times
+    if (timerStarted) {
+        console.log('⚠️ Timer already started, skipping...');
+        return;
+    }
+    
+    console.log('✅ Starting countdown...');
     console.log('Meeting end time:', new Date(meetingEndTime).toLocaleString());
     console.log('Current time:', new Date().toLocaleString());
     
+    timerStarted = true;
     meetingStartTime = new Date().getTime();
     
     countdownInterval = setInterval(() => {
@@ -432,6 +820,12 @@ function showGoodbyeModal(timeLeft) {
     
     modal.style.display = 'flex';
     
+    // Highlight the hangup button
+    const endCallBtns = document.querySelectorAll('.end-call-btn');
+    endCallBtns.forEach(btn => {
+        btn.classList.add('pulsing-highlight');
+    });
+    
     // Start countdown in modal
     let remainingTime = Math.floor(timeLeft / 1000);
     const modalCountdown = setInterval(() => {
@@ -457,6 +851,12 @@ function showGoodbyeModal(timeLeft) {
 function closeGoodbyeModal() {
     const modal = document.getElementById('goodbye-modal');
     modal.style.display = 'none';
+    
+    // Remove highlight from hangup buttons
+    const endCallBtns = document.querySelectorAll('.end-call-btn');
+    endCallBtns.forEach(btn => {
+        btn.classList.remove('pulsing-highlight');
+    });
 }
 
 // Extend meeting (Expert only)
@@ -473,7 +873,7 @@ async function extendMeeting() {
         extensionCount++;
         goodbyeModalShown = false; // Reset modal flag
         
-        // Close goodbye modal if open
+        // Close goodbye modal and remove highlight
         closeGoodbyeModal();
         
         // Update UI
@@ -509,30 +909,100 @@ function notifyClientExtension(count) {
 
 // Control functions
 function toggleVideo() {
-    if (callObject) {
-        isVideoOn = !isVideoOn;
+    if (!callObject) {
+        console.error('Call object not available');
+        return;
+    }
+    
+    console.log('Toggling video in call...');
+    isVideoOn = !isVideoOn;
+    
+    try {
         callObject.setLocalVideo(isVideoOn);
+        console.log('Video toggled in call:', isVideoOn);
         
         const btn = document.getElementById('video-btn');
-        if (isVideoOn) {
-            btn.classList.remove('disabled');
-        } else {
-            btn.classList.add('disabled');
+        if (btn) {
+            if (isVideoOn) {
+                btn.classList.remove('disabled');
+                btn.style.background = '#007bff';
+                btn.style.color = 'white';
+                btn.style.border = '2px solid #007bff';
+                console.log('Video button set to ACTIVE (blue)');
+            } else {
+                btn.classList.add('disabled');
+                btn.style.background = '#ffffff';
+                btn.style.color = '#007bff';
+                btn.style.border = '2px solid #007bff';
+                console.log('Video button set to INACTIVE (white)');
+            }
         }
+        
+        // Also update floating button if it exists
+        const floatingBtn = document.getElementById('floating-video-btn');
+        if (floatingBtn) {
+            if (isVideoOn) {
+                floatingBtn.classList.remove('disabled');
+                floatingBtn.style.background = '#007bff';
+                floatingBtn.style.color = 'white';
+            } else {
+                floatingBtn.classList.add('disabled');
+                floatingBtn.style.background = '#ffffff';
+                floatingBtn.style.color = '#007bff';
+            }
+        }
+    } catch (error) {
+        console.error('Error toggling video:', error);
+        isVideoOn = !isVideoOn; // Revert state on error
     }
 }
 
 function toggleAudio() {
-    if (callObject) {
-        isMuted = !isMuted;
+    if (!callObject) {
+        console.error('Call object not available');
+        return;
+    }
+    
+    console.log('Toggling audio in call...');
+    isMuted = !isMuted;
+    
+    try {
         callObject.setLocalAudio(!isMuted);
+        console.log('Audio toggled in call:', !isMuted);
         
         const btn = document.getElementById('audio-btn');
-        if (isMuted) {
-            btn.classList.add('disabled');
-        } else {
-            btn.classList.remove('disabled');
+        if (btn) {
+            if (isMuted) {
+                btn.classList.add('disabled');
+                btn.style.background = '#ef4444';
+                btn.style.color = 'white';
+                btn.style.border = '2px solid #ef4444';
+                console.log('Audio button set to MUTED (red)');
+            } else {
+                btn.classList.remove('disabled');
+                btn.style.background = '#ffffff';
+                btn.style.color = '#007bff';
+                btn.style.border = '2px solid #007bff';
+                console.log('Audio button set to UNMUTED (white)');
+            }
         }
+        
+        // Also update floating button if it exists
+        const floatingBtn = document.getElementById('floating-audio-btn');
+        if (floatingBtn) {
+            if (isMuted) {
+                floatingBtn.classList.add('disabled');
+                floatingBtn.style.background = '#ef4444';
+                floatingBtn.style.color = 'white';
+            } else {
+                floatingBtn.classList.remove('disabled');
+                floatingBtn.style.background = '#ffffff';
+                floatingBtn.style.color = '#007bff';
+            }
+        }
+    } catch (error) {
+        console.error('Error toggling audio:', error);
+        isMuted = !isMuted; // Revert state on error
     }
 }
 
@@ -610,7 +1080,254 @@ function endCall() {
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded - Initializing meeting interface...');
-    initializeCall();
+    
+    // Show pre-call setup first
+    const preCallSetup = document.getElementById('pre-call-setup');
+    const controlBar = document.getElementById('main-control-bar');
+    
+    if (preCallSetup) {
+        preCallSetup.style.display = 'block';
+        console.log('Pre-call setup shown');
+    }
+    
+    if (controlBar) {
+        controlBar.style.display = 'none';
+        console.log('Control bar hidden initially');
+    }
+    
+    // Load available cameras and microphones
+    loadMediaDevices();
+    
+    // Test if pre-call setup elements exist
+    setTimeout(() => {
+        console.log('Testing pre-call setup elements...');
+        const preCallSetup = document.getElementById('pre-call-setup');
+        const videoBtn = document.getElementById('pre-video-btn');
+        const previewVideo = document.getElementById('preview-camera');
+        
+        console.log('Pre-call setup elements:', {
+            preCallSetup: !!preCallSetup,
+            videoBtn: !!videoBtn,
+            previewVideo: !!previewVideo,
+            preCallSetupVisible: preCallSetup ? preCallSetup.style.display : 'not found'
+        });
+        
+        if (videoBtn) {
+            console.log('Video button found, testing click...');
+            // Test if button is clickable
+            videoBtn.style.border = '2px solid red';
+            setTimeout(() => {
+                videoBtn.style.border = '';
+            }, 2000);
+            
+            // Add a simple click test
+            videoBtn.addEventListener('click', function(e) {
+                console.log('VIDEO BUTTON CLICKED!', e);
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Toggle the button state visually
+                if (this.classList.contains('active')) {
+                    this.classList.remove('active');
+                    this.style.background = '#333';
+                    this.innerHTML = '<i class="fas fa-video"></i><span>Turn on</span>';
+                } else {
+                    this.classList.add('active');
+                    this.style.background = '#007bff';
+                    this.innerHTML = '<i class="fas fa-video"></i><span>Turn off</span>';
+                }
+                
+                console.log('Video button toggled! Check the button color.');
+            });
+        }
+        
+        // Test all buttons
+        const allButtons = document.querySelectorAll('.setup-controls .control-btn');
+        console.log('Found setup buttons:', allButtons.length);
+        allButtons.forEach((btn, index) => {
+            console.log(`Button ${index}:`, btn.id, btn.className);
+            btn.addEventListener('click', function(e) {
+                console.log(`BUTTON ${index} CLICKED!`, this.id);
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Toggle button state visually
+                if (this.classList.contains('active')) {
+                    this.classList.remove('active');
+                    this.style.background = '#333';
+                } else {
+                    this.classList.add('active');
+                    this.style.background = '#007bff';
+                }
+                
+                // Update button text based on state
+                const span = this.querySelector('span');
+                if (span) {
+                    if (this.id === 'pre-audio-btn') {
+                        span.textContent = this.classList.contains('active') ? 'Unmute' : 'Mute';
+                    } else if (this.id === 'pre-video-btn') {
+                        span.textContent = this.classList.contains('active') ? 'Turn off' : 'Turn on';
+                    }
+                }
+                
+                console.log(`Button ${this.id} toggled! Check the button color.`);
+            });
+        });
+    }, 1000);
+    
+    // Add immediate debugging
+    console.log('🔍 DEBUGGING INFO:');
+    console.log('Current user:', '{{ current_user.username }}');
+    console.log('Is owner:', {{ 'true' if is_owner else 'false' }});
+    console.log('Room URL:', '{{ meeting.daily_room_url }}');
+    console.log('Meeting end time:', '{{ meeting.end_time }}');
+    console.log('Current time:', new Date().toISOString());
+    
+    // Check if Daily.co is loaded
+    console.log('Daily.co script loaded:', typeof DailyIframe !== 'undefined');
+    console.log('DailyIframe object:', DailyIframe);
+    
+    // Add event listeners for pre-call setup buttons
+    console.log('Setting up pre-call button listeners...');
+    
+    const videoBtn = document.getElementById('pre-video-btn');
+    const audioBtn = document.getElementById('pre-audio-btn');
+    const effectsBtn = document.getElementById('pre-effects-btn');
+    const reduceBtn = document.getElementById('pre-reduce-btn');
+    const moreBtn = document.getElementById('pre-more-btn');
+    
+    console.log('Button elements found:', {
+        videoBtn: !!videoBtn,
+        audioBtn: !!audioBtn,
+        effectsBtn: !!effectsBtn,
+        reduceBtn: !!reduceBtn,
+        moreBtn: !!moreBtn
+    });
+    
+    if (videoBtn) {
+        videoBtn.addEventListener('click', function(e) {
+            console.log('Video button clicked via event listener');
+            e.preventDefault();
+            toggleVideo();
+        });
+        console.log('Video button listener added');
+    } else {
+        console.error('Video button not found!');
+    }
+    
+    if (audioBtn) {
+        audioBtn.addEventListener('click', function(e) {
+            console.log('Audio button clicked via event listener');
+            e.preventDefault();
+            toggleAudio();
+        });
+        console.log('Audio button listener added');
+    } else {
+        console.error('Audio button not found!');
+    }
+    
+    if (effectsBtn) {
+        effectsBtn.addEventListener('click', function(e) {
+            console.log('Effects button clicked via event listener');
+            e.preventDefault();
+            toggleEffects();
+        });
+        console.log('Effects button listener added');
+    } else {
+        console.error('Effects button not found!');
+    }
+    
+    if (reduceBtn) {
+        reduceBtn.addEventListener('click', function(e) {
+            console.log('Reduce button clicked via event listener');
+            e.preventDefault();
+            toggleReduce();
+        });
+        console.log('Reduce button listener added');
+    } else {
+        console.error('Reduce button not found!');
+    }
+    
+    if (moreBtn) {
+        moreBtn.addEventListener('click', function(e) {
+            console.log('More button clicked via event listener');
+            e.preventDefault();
+            toggleMore();
+        });
+        console.log('More button listener added');
+    } else {
+        console.error('More button not found!');
+    }
+    
+    // Add event listeners for test buttons
+    const testMicLink = document.querySelector('a[onclick="testMicrophone()"]');
+    const testSpeakersLink = document.querySelector('a[onclick="testSpeakers()"]');
+    
+    if (testMicLink) {
+        testMicLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            testMicrophone();
+        });
+        console.log('Test microphone listener added');
+    }
+    
+    if (testSpeakersLink) {
+        testSpeakersLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            testSpeakers();
+        });
+        console.log('Test speakers listener added');
+    }
+    
+    // Add event listeners for device selection dropdowns
+    const cameraSelect = document.getElementById('camera-select');
+    const microphoneSelect = document.getElementById('microphone-select');
+    const speakersSelect = document.getElementById('speakers-select');
+    const backgroundSelect = document.getElementById('background-select');
+    
+    if (cameraSelect) {
+        cameraSelect.addEventListener('change', function() {
+            console.log('Camera changed to:', this.value);
+            if (previewStream && this.value !== 'default') {
+                // Apply camera change to preview
+                navigator.mediaDevices.getUserMedia({
+                    video: { deviceId: { exact: this.value } },
+                    audio: false
+                }).then(newStream => {
+                    previewStream.getVideoTracks().forEach(track => track.stop());
+                    previewStream = newStream;
+                    const previewVideo = document.getElementById('preview-camera');
+                    if (previewVideo) {
+                        previewVideo.srcObject = newStream;
+                    }
+                }).catch(error => {
+                    console.error('Error switching camera:', error);
+                });
+            }
+        });
+        console.log('Camera select listener added');
+    }
+    
+    if (microphoneSelect) {
+        microphoneSelect.addEventListener('change', function() {
+            console.log('Microphone changed to:', this.value);
+        });
+        console.log('Microphone select listener added');
+    }
+    
+    if (speakersSelect) {
+        speakersSelect.addEventListener('change', function() {
+            console.log('Speakers changed to:', this.value);
+        });
+        console.log('Speakers select listener added');
+    }
+    
+    if (backgroundSelect) {
+        backgroundSelect.addEventListener('change', function() {
+            console.log('Background changed to:', this.value);
+        });
+        console.log('Background select listener added');
+    }
     
     // Check control bar visibility on scroll and resize
     window.addEventListener('scroll', checkControlBarVisibility);
@@ -619,12 +1336,694 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check every 2 seconds as fallback
     setInterval(checkControlBarVisibility, 2000);
     
-    // Additional debug after everything loads
+    // Add event listeners for toolbar buttons
+    console.log('Setting up toolbar button event listeners...');
+    
+    const toolbarVideoBtn = document.getElementById('video-btn');
+    const toolbarAudioBtn = document.getElementById('audio-btn');
+    const endCallBtn = document.getElementById('end-call-btn');
+    
+    if (toolbarVideoBtn) {
+        toolbarVideoBtn.addEventListener('click', function(e) {
+            console.log('TOOLBAR VIDEO BUTTON CLICKED!');
+            e.preventDefault();
+            e.stopPropagation();
+            toggleVideoInCall();
+        });
+        console.log('Toolbar video button listener attached');
+    }
+    
+    if (toolbarAudioBtn) {
+        toolbarAudioBtn.addEventListener('click', function(e) {
+            console.log('TOOLBAR AUDIO BUTTON CLICKED!');
+            e.preventDefault();
+            e.stopPropagation();
+            toggleAudioInCall();
+        });
+        console.log('Toolbar audio button listener attached');
+    }
+    
+    if (endCallBtn) {
+        endCallBtn.addEventListener('click', function(e) {
+            console.log('TOOLBAR END CALL BUTTON CLICKED!');
+            e.preventDefault();
+            e.stopPropagation();
+            endCall();
+        });
+        console.log('Toolbar end call button listener attached');
+    }
+    
+    // Test toolbar buttons after a delay
     setTimeout(() => {
-        console.log('Running final button visibility check...');
-        debugButtonVisibility();
-    }, 2000);
+        console.log('Testing toolbar button functionality...');
+        
+        if (toolbarVideoBtn) {
+            console.log('Toolbar video button found:', toolbarVideoBtn);
+            // Add visual test
+            toolbarVideoBtn.style.border = '3px solid green';
+            setTimeout(() => {
+                toolbarVideoBtn.style.border = '';
+            }, 2000);
+        }
+        
+        if (toolbarAudioBtn) {
+            console.log('Toolbar audio button found:', toolbarAudioBtn);
+            // Add visual test
+            toolbarAudioBtn.style.border = '3px solid orange';
+            setTimeout(() => {
+                toolbarAudioBtn.style.border = '';
+            }, 2000);
+        }
+    }, 5000);
 });
+
+// Load available media devices
+async function loadMediaDevices() {
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameraSelect = document.getElementById('camera-select');
+        const microphoneSelect = document.getElementById('microphone-select');
+        const speakersSelect = document.getElementById('speakers-select');
+        
+        // Clear existing options
+        if (cameraSelect) {
+            cameraSelect.innerHTML = '';
+        }
+        if (microphoneSelect) {
+            microphoneSelect.innerHTML = '';
+        }
+        if (speakersSelect) {
+            speakersSelect.innerHTML = '';
+        }
+        
+        // Add device options
+        devices.forEach(device => {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.textContent = device.label || `${device.kind} ${device.deviceId.substring(0, 8)}`;
+            
+            if (device.kind === 'videoinput' && cameraSelect) {
+                cameraSelect.appendChild(option);
+            } else if (device.kind === 'audioinput' && microphoneSelect) {
+                microphoneSelect.appendChild(option);
+            } else if (device.kind === 'audiooutput' && speakersSelect) {
+                speakersSelect.appendChild(option);
+            }
+        });
+        
+        console.log('Media devices loaded:', devices.length);
+        
+    } catch (error) {
+        console.error('Error loading media devices:', error);
+    }
+}
+
+// Test microphone
+async function testMicrophone() {
+    console.log('Testing microphone...');
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('Microphone test successful');
+        
+        // Create audio context for testing
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        source.connect(analyser);
+        
+        // Check if we're getting audio input
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        
+        const hasAudio = dataArray.some(value => value > 0);
+        
+        // Stop the stream
+        stream.getTracks().forEach(track => track.stop());
+        
+        if (hasAudio) {
+            console.log('✅ Microphone test successful! Your microphone is working.');
+        } else {
+            console.log('⚠️ Microphone detected but no audio input. Check your microphone settings.');
+        }
+    } catch (error) {
+        console.error('Microphone test failed:', error);
+        console.error('❌ Microphone test failed. Please check your microphone permissions.');
+    }
+}
+
+// Test speakers
+async function testSpeakers() {
+    console.log('Testing speakers...');
+    
+    try {
+        // Create audio context for testing
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Create a simple test tone
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Low volume
+        
+        oscillator.start();
+        
+        // Stop after 1 second
+        setTimeout(() => {
+            oscillator.stop();
+            console.log('🔊 Speaker test complete! Did you hear a tone?');
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Speaker test failed:', error);
+        console.error('❌ Speaker test failed. Please check your audio settings.');
+    }
+}
+
+// Toggle effects
+function toggleEffects() {
+    console.log('Toggle effects clicked!');
+    const btn = document.getElementById('pre-effects-btn');
+    if (btn) {
+        btn.classList.toggle('active');
+        
+        if (btn.classList.contains('active')) {
+            btn.style.background = '#007bff';
+            console.log('Effects enabled');
+            console.log('✨ Effects enabled! (This would show effects panel)');
+        } else {
+            btn.style.background = '#333';
+            console.log('Effects disabled');
+            console.log('Effects disabled');
+        }
+    }
+}
+
+// Toggle reduce
+function toggleReduce() {
+    console.log('Toggle reduce clicked!');
+    const btn = document.getElementById('pre-reduce-btn');
+    if (btn) {
+        btn.classList.toggle('active');
+        
+        if (btn.classList.contains('active')) {
+            btn.style.background = '#007bff';
+            console.log('Reduce enabled');
+            console.log('🔊 Reduce motion enabled! (This would reduce animations)');
+        } else {
+            btn.style.background = '#333';
+            console.log('Reduce disabled');
+            console.log('Reduce motion disabled');
+        }
+    }
+}
+
+// Toggle more options
+function toggleMore() {
+    console.log('Toggle more clicked!');
+    const btn = document.getElementById('pre-more-btn');
+    if (btn) {
+        btn.classList.toggle('active');
+        
+        if (btn.classList.contains('active')) {
+            btn.style.background = '#007bff';
+            console.log('More options enabled');
+            console.log('⚙️ More options opened! (This would show advanced settings)');
+        } else {
+            btn.style.background = '#333';
+            console.log('More options disabled');
+            console.log('More options closed');
+        }
+    }
+}
+
+// Global variables for media streams
+let previewStream = null;
+let isAudioOn = false;
+
+// Apply all pre-call settings to Daily.co call
+function applyPreCallSettingsToCall() {
+    console.log('Applying all pre-call settings to Daily.co call...');
+    
+    if (!callObject) {
+        console.error('Call object not available');
+        return;
+    }
+    
+    // Get current states from pre-call setup (stored in global variables)
+    const shouldStartWithVideo = isVideoOn;
+    const shouldStartWithAudio = !isMuted;
+    
+    console.log('Pre-call states:', {
+        shouldStartWithVideo,
+        shouldStartWithAudio,
+        isVideoOn,
+        isMuted
+    });
+    
+    try {
+        // Set video state
+        if (shouldStartWithVideo) {
+            console.log('Enabling video in Daily.co call...');
+            
+            // Try multiple approaches to ensure video works
+            callObject.setLocalVideo(true);
+            isVideoOn = true;
+            
+            // Also try setting it with constraints
+            setTimeout(() => {
+                if (callObject) {
+                    callObject.setLocalVideo({
+                        video: true,
+                        audio: false
+                    });
+                    console.log('Video enabled with constraints');
+                }
+            }, 500);
+            
+            // Try again after another delay
+            setTimeout(() => {
+                if (callObject) {
+                    callObject.setLocalVideo(true);
+                    console.log('Video re-enabled (final attempt)');
+                }
+            }, 1000);
+            
+            // Force camera access as fallback
+            setTimeout(async () => {
+                try {
+                    console.log('Forcing camera access as fallback...');
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: true, 
+                        audio: false 
+                    });
+                    console.log('Fallback camera stream obtained:', stream);
+                    
+                    // Try to apply this stream to Daily.co
+                    if (callObject) {
+                        // This might not work with Daily.co, but worth trying
+                        console.log('Attempting to apply fallback stream to Daily.co');
+                    }
+                } catch (error) {
+                    console.error('Fallback camera access failed:', error);
+                }
+            }, 2000);
+            
+            console.log('Video enabled in call');
+        } else {
+            callObject.setLocalVideo(false);
+            isVideoOn = false;
+            console.log('Video disabled in call');
+        }
+        
+        // Set audio state
+        if (shouldStartWithAudio) {
+            callObject.setLocalAudio(true);
+            isMuted = false;
+            console.log('Audio enabled in call');
+        } else {
+            callObject.setLocalAudio(false);
+            isMuted = true;
+            console.log('Audio disabled in call');
+        }
+        
+        // Apply background settings
+        applyBackgroundSettings();
+        
+        // Apply device settings
+        applyDeviceSettings();
+        
+        // Update toolbar button states
+        updateToolbarButtons();
+        
+    } catch (error) {
+        console.error('Error applying pre-call settings:', error);
+    }
+}
+
+// Apply background settings to Daily.co call
+function applyBackgroundSettings() {
+    console.log('Applying background settings...');
+    
+    const backgroundSelect = document.getElementById('background-select');
+    if (backgroundSelect && callObject) {
+        const selectedBackground = backgroundSelect.value;
+        console.log('Selected background:', selectedBackground);
+        
+        try {
+            switch (selectedBackground) {
+                case 'blur':
+                    callObject.setLocalVideo({
+                        background: 'blur'
+                    });
+                    console.log('Applied blur background');
+                    break;
+                case 'office':
+                    callObject.setLocalVideo({
+                        background: 'office'
+                    });
+                    console.log('Applied office background');
+                    break;
+                case 'nature':
+                    callObject.setLocalVideo({
+                        background: 'nature'
+                    });
+                    console.log('Applied nature background');
+                    break;
+                case 'none':
+                default:
+                    callObject.setLocalVideo({
+                        background: 'none'
+                    });
+                    console.log('Applied no background');
+                    break;
+            }
+        } catch (error) {
+            console.error('Error applying background:', error);
+        }
+    }
+}
+
+// Apply device settings to Daily.co call
+function applyDeviceSettings() {
+    console.log('Applying device settings...');
+    
+    const cameraSelect = document.getElementById('camera-select');
+    const microphoneSelect = document.getElementById('microphone-select');
+    const speakersSelect = document.getElementById('speakers-select');
+    
+    if (callObject) {
+        try {
+            // Apply camera selection
+            if (cameraSelect && cameraSelect.value !== 'default') {
+                callObject.setLocalVideo({
+                    cameraId: cameraSelect.value
+                });
+                console.log('Applied camera:', cameraSelect.value);
+            }
+            
+            // Apply microphone selection
+            if (microphoneSelect && microphoneSelect.value !== 'default') {
+                callObject.setLocalAudio({
+                    microphoneId: microphoneSelect.value
+                });
+                console.log('Applied microphone:', microphoneSelect.value);
+            }
+            
+            // Apply speaker selection (if supported)
+            if (speakersSelect && speakersSelect.value !== 'default') {
+                callObject.setLocalAudio({
+                    speakerId: speakersSelect.value
+                });
+                console.log('Applied speakers:', speakersSelect.value);
+            }
+        } catch (error) {
+            console.error('Error applying device settings:', error);
+        }
+    }
+}
+
+// Update toolbar button states
+function updateToolbarButtons() {
+    console.log('Updating toolbar button states...');
+    
+    const videoBtn = document.getElementById('video-btn');
+    const audioBtn = document.getElementById('audio-btn');
+    
+    if (videoBtn) {
+        if (isVideoOn) {
+            videoBtn.classList.add('active');
+            videoBtn.style.background = '#007bff';
+        } else {
+            videoBtn.classList.remove('active');
+            videoBtn.style.background = '#ffffff';
+        }
+    }
+    
+    if (audioBtn) {
+        if (isMuted) {
+            audioBtn.classList.add('active');
+            audioBtn.style.background = '#ef4444';
+        } else {
+            audioBtn.classList.remove('active');
+            audioBtn.style.background = '#ffffff';
+        }
+    }
+    
+    console.log('Toolbar buttons updated:', { isVideoOn, isMuted });
+}
+
+// Test camera access
+async function testCameraAccess() {
+    try {
+        console.log('Testing camera access...');
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        console.log('Camera test successful:', stream);
+        stream.getTracks().forEach(track => track.stop());
+        return true;
+    } catch (error) {
+        console.error('Camera test failed:', error);
+        return false;
+    }
+}
+
+// Toggle video in main call (toolbar button)
+function toggleVideoInCall() {
+    console.log('Toggle video in call clicked!');
+    isVideoOn = !isVideoOn;
+    
+    if (!callObject) {
+        console.error('Call object not available');
+        return;
+    }
+    
+    try {
+        callObject.setLocalVideo(isVideoOn);
+        console.log('Video toggled in call:', isVideoOn);
+        
+        const btn = document.getElementById('video-btn');
+        if (btn) {
+            if (isVideoOn) {
+                btn.classList.remove('disabled');
+                btn.style.background = '#007bff';
+                btn.style.color = 'white';
+                btn.style.border = '2px solid #007bff';
+                console.log('Video button set to ACTIVE (blue)');
+            } else {
+                btn.classList.add('disabled');
+                btn.style.background = '#ffffff';
+                btn.style.color = '#007bff';
+                btn.style.border = '2px solid #007bff';
+                console.log('Video button set to INACTIVE (white)');
+            }
+        }
+        
+        // Also update floating button if it exists
+        const floatingBtn = document.getElementById('floating-video-btn');
+        if (floatingBtn) {
+            if (isVideoOn) {
+                floatingBtn.classList.remove('disabled');
+                floatingBtn.style.background = '#007bff';
+                floatingBtn.style.color = 'white';
+            } else {
+                floatingBtn.classList.add('disabled');
+                floatingBtn.style.background = '#ffffff';
+                floatingBtn.style.color = '#007bff';
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error toggling video:', error);
+    }
+}
+
+// Toggle audio in main call (toolbar button)
+function toggleAudioInCall() {
+    console.log('Toggle audio in call clicked!');
+    isMuted = !isMuted;
+    
+    if (!callObject) {
+        console.error('Call object not available');
+        return;
+    }
+    
+    try {
+        callObject.setLocalAudio(!isMuted);
+        console.log('Audio toggled in call:', !isMuted);
+        
+        const btn = document.getElementById('audio-btn');
+        if (btn) {
+            if (isMuted) {
+                btn.classList.add('disabled');
+                btn.style.background = '#ef4444';
+                btn.style.color = 'white';
+                btn.style.border = '2px solid #ef4444';
+                console.log('Audio button set to MUTED (red)');
+            } else {
+                btn.classList.remove('disabled');
+                btn.style.background = '#ffffff';
+                btn.style.color = '#007bff';
+                btn.style.border = '2px solid #007bff';
+                console.log('Audio button set to UNMUTED (white)');
+            }
+        }
+        
+        // Also update floating button if it exists
+        const floatingBtn = document.getElementById('floating-audio-btn');
+        if (floatingBtn) {
+            if (isMuted) {
+                floatingBtn.classList.add('disabled');
+                floatingBtn.style.background = '#ef4444';
+                floatingBtn.style.color = 'white';
+            } else {
+                floatingBtn.classList.remove('disabled');
+                floatingBtn.style.background = '#ffffff';
+                floatingBtn.style.color = '#007bff';
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error toggling audio:', error);
+    }
+}
+
+// Toggle video in pre-call setup
+async function toggleVideo() {
+    console.log('Toggle video clicked!');
+    const btn = document.getElementById('pre-video-btn');
+    const previewVideo = document.getElementById('preview-camera');
+    const previewPlaceholder = document.getElementById('preview-placeholder');
+    
+    if (!btn) {
+        console.error('Video button not found!');
+        return;
+    }
+    
+    if (!previewVideo) {
+        console.error('Preview video element not found!');
+        return;
+    }
+    
+    if (!previewPlaceholder) {
+        console.error('Preview placeholder element not found!');
+        return;
+    }
+    
+    if (!isVideoOn) {
+        // Turn on video
+        try {
+            console.log('Requesting camera access...');
+            
+            // Test camera access first (but don't block if it fails)
+            const cameraWorks = await testCameraAccess();
+            if (!cameraWorks) {
+                console.warn('Camera access test failed, but continuing anyway. Camera may work in the actual call.');
+            }
+            
+            previewStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: { ideal: 320 },
+                    height: { ideal: 240 }
+                }, 
+                audio: false 
+            });
+            console.log('Camera stream obtained:', previewStream);
+            
+            // Show video stream
+            previewVideo.srcObject = previewStream;
+            previewVideo.style.display = 'block';
+            previewPlaceholder.style.display = 'none';
+            
+            // Wait for video to load
+            previewVideo.onloadedmetadata = () => {
+                console.log('Video metadata loaded');
+                previewVideo.play();
+            };
+            
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fas fa-video"></i><span>Turn off</span>';
+            btn.style.background = '#007bff';
+            isVideoOn = true;
+            
+            console.log('Video turned on');
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            console.error('Error accessing camera: ' + error.message);
+        }
+    } else {
+        // Turn off video
+        if (previewStream) {
+            previewStream.getVideoTracks().forEach(track => track.enabled = false);
+        }
+        
+        previewVideo.style.display = 'none';
+        previewPlaceholder.style.display = 'flex';
+        
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-video"></i><span>Turn on</span>';
+        btn.style.background = '#333';
+        isVideoOn = false;
+        
+        console.log('Video turned off');
+    }
+}
+
+// Toggle audio in pre-call setup
+async function toggleAudio() {
+    console.log('Toggle audio clicked!');
+    const btn = document.getElementById('pre-audio-btn');
+    
+    if (!btn) {
+        console.error('Audio button not found!');
+        return;
+    }
+    
+    if (!isAudioOn) {
+        // Turn on audio
+        try {
+            if (!previewStream) {
+                previewStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 320 },
+                        height: { ideal: 240 }
+                    }, 
+                    audio: true 
+                });
+            }
+            
+            // Enable audio tracks
+            if (previewStream) {
+                previewStream.getAudioTracks().forEach(track => track.enabled = true);
+            }
+            
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fas fa-microphone-slash"></i><span>Unmute</span>';
+            btn.style.background = '#007bff';
+            isAudioOn = true;
+            
+            console.log('Audio turned on');
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            console.error('Error accessing microphone. Please check permissions.');
+        }
+    } else {
+        // Turn off audio
+        if (previewStream) {
+            previewStream.getAudioTracks().forEach(track => track.enabled = false);
+        }
+        
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-microphone"></i><span>Mute</span>';
+        btn.style.background = '#333';
+        isAudioOn = false;
+        
+        console.log('Audio turned off');
+    }
+}
 
 // Also run debug on window load
 window.addEventListener('load', function() {
@@ -725,10 +2124,10 @@ body {
     position: relative;
     background: #000;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 0; /* Allow flex shrinking */
-    padding-bottom: 120px !important; /* Make room for control bar */
 }
 
 .video-container {
@@ -782,27 +2181,292 @@ body {
     z-index: 10;
 }
 
-/* Control Bar */
-.control-bar {
-    background: white;
-    padding: 1.25rem 1.5rem;
-    display: flex !important;
+/* Waiting for Expert Banner */
+.waiting-banner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 2rem 3rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.waiting-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.waiting-content i {
+    font-size: 1.5rem;
+    color: #f59e0b;
+    animation: pulse-clock 2s infinite;
+}
+
+.waiting-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #e5e5e5;
+    border-top-color: #f59e0b;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.waiting-note {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-clock {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Pre-call Setup */
+.pre-call-setup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.setup-content {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 0.75rem;
+    max-width: 400px;
+    width: 85%;
+    max-height: 60vh;
+    color: white;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.setup-header {
+    display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 2px solid #007bff;
-    gap: 1.25rem;
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+    margin-bottom: 0.75rem;
+}
+
+.setup-header h3 {
+    color: white;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.join-btn {
+    background: #10b981;
+    color: white;
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+}
+
+.join-btn:hover {
+    background: #059669;
+}
+
+.setup-preview {
+    margin-bottom: 1rem;
+}
+
+.preview-video {
+    width: 100%;
+    height: 120px;
+    background: #333;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #444;
+    position: relative;
+    overflow: hidden;
+}
+
+.preview-placeholder {
+    text-align: center;
+    color: #666;
+}
+
+.preview-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.setup-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.setup-controls .control-btn {
+    background: #333;
+    border: 1px solid #555;
+    color: white;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 45px;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.setup-controls .control-btn:hover {
+    background: #444;
+    border-color: #666;
+}
+
+.setup-controls .control-btn.active {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.setup-controls .control-btn i {
+    font-size: 1rem;
+}
+
+.setup-controls .control-btn span {
+    font-size: 0.7rem;
+}
+
+.setup-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.option-group label {
+    font-weight: 600;
+    color: white;
+    font-size: 0.8rem;
+}
+
+.setup-select {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #333;
+    color: white;
+    font-size: 0.8rem;
+}
+
+.setup-select option {
+    background: #333;
+    color: white;
+}
+
+.test-link {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.test-link:hover {
+    text-decoration: underline;
+}
+
+/* Force hide Daily.co pre-call UI */
+[data-daily-prejoin],
+[class*="daily-prejoin"],
+[class*="prejoin"],
+iframe[src*="daily.co"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    z-index: -1 !important;
+}
+
+/* Control Bar - Fixed alignment */
+.control-bar {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    padding: 1rem 1.5rem !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-top: 1px solid rgba(0, 123, 255, 0.2) !important;
+    gap: 1.25rem !important;
+    position: relative !important;
     width: 100% !important;
-    z-index: 1000 !important;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
-    min-height: 100px;
+    z-index: 100 !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1) !important;
+    min-height: 80px !important;
+    border-radius: 0 0 12px 12px !important;
     visibility: visible !important;
     opacity: 1 !important;
     transform: none !important;
     margin: 0 !important;
+    margin-top: auto !important;
+}
+
+/* Force control bar to be visible */
+#main-control-bar {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    width: 100% !important;
+    z-index: 99999 !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border-top: 1px solid rgba(0, 123, 255, 0.2) !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1) !important;
+    min-height: 80px !important;
+    padding: 1rem 1.5rem !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1.25rem !important;
+    border-radius: 0 0 12px 12px !important;
 }
 
 .control-left,
@@ -825,15 +2489,20 @@ body {
     align-items: center;
     gap: 1rem;
     min-width: 200px;
+    padding: 0.5rem;
+    background: rgba(0, 123, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 123, 255, 0.1);
 }
 
 .progress-bar {
     flex: 1;
-    height: 4px;
-    background: #e5e5e5;
-    border-radius: 2px;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
     overflow: hidden;
     transition: all 0.3s ease;
+    min-width: 100px;
 }
 
 .progress-bar.green .progress-fill {
@@ -853,6 +2522,7 @@ body {
     background: #10b981;
     transition: width 1s ease;
     width: 0%;
+    border-radius: 3px;
 }
 
 .time-display {
@@ -995,6 +2665,28 @@ body {
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
+/* Pulsing highlight for hangup button */
+.end-call-btn.pulsing-highlight {
+    animation: pulse-red 1.5s infinite;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.8) !important;
+    transform: scale(1.1);
+}
+
+@keyframes pulse-red {
+    0% { 
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.9);
+        transform: scale(1.1);
+    }
+    50% { 
+        box-shadow: 0 0 20px 10px rgba(239, 68, 68, 0.4);
+        transform: scale(1.15);
+    }
+    100% { 
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.9);
+        transform: scale(1.1);
+    }
+}
+
 /* Goodbye Modal */
 .goodbye-modal {
     position: fixed;
@@ -1044,8 +2736,21 @@ body {
 
 .goodbye-message {
     color: #666;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
     font-size: 0.9rem;
+}
+
+.goodbye-hint {
+    color: #ef4444;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    animation: fade-pulse 2s infinite;
+}
+
+@keyframes fade-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
 }
 
 .goodbye-actions {
@@ -1258,12 +2963,12 @@ body {
     }
 }
 
-/* Force control bar visibility for all viewport sizes */
+/* Video call wrapper */
 .video-call-wrapper {
     position: relative;
     min-height: 100vh;
-    padding-bottom: 120px !important; /* Ensure space for control bar */
 }
+
 
 /* Ensure control bar is always visible in windowed mode */
 .video-call-wrapper .control-bar {
