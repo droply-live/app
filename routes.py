@@ -1744,7 +1744,7 @@ def cancel_booking_by_client(booking_id):
                     refund_reason = 'cancelled_by_client_full'
                 else:
                     # Partial refund (platform fee is non-refundable)
-                    platform_fee = max(5.0, booking.payment_amount * 0.10)
+                    platform_fee = booking.payment_amount * 0.10  # 10% platform fee
                     refund_amount = int((booking.payment_amount - platform_fee) * 100)
                     refund_reason = 'cancelled_by_client_partial'
                 
@@ -2904,7 +2904,7 @@ def booking_confirmation():
         session_price = expert.hourly_rate or 0  # This field now stores session price directly
         # All sessions are 30 minutes, so session fee equals the session price
         session_fee = session_price
-        platform_fee = max(5.0, session_fee * 0.10)  # 10% platform fee, minimum $5
+        platform_fee = session_fee * 0.10  # 10% platform fee
         total_amount = session_fee + platform_fee
         
         return render_template('booking_confirmation.html',
@@ -2978,7 +2978,7 @@ def booking_confirmation():
         session_price = expert.hourly_rate or 0  # This field now stores session price directly
         # All sessions are 30 minutes, so session fee equals the session price
         session_fee = session_price
-        platform_fee = max(5.0, session_fee * 0.10)
+        platform_fee = session_fee * 0.10  # 10% platform fee
         total_amount = session_fee + platform_fee
         
         print(f"DEBUG: Pricing calculated - Session fee: {session_fee}, Platform fee: {platform_fee}, Total: {total_amount}")

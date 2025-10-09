@@ -105,8 +105,7 @@ This will add:
 
 The current implementation uses:
 - **10% platform fee** on all transactions
-- **Minimum $5 platform fee** per transaction
-- **90% goes to expert** (after platform fee)
+- **No minimum fee**
 
 Example:
 - Session price: $100
@@ -190,7 +189,6 @@ Before going live:
 
 ### Your Platform Fees
 - **10% platform fee** (configurable)
-- **Minimum $5 per transaction**
 
 ### Example Calculation
 - Client pays: $100
