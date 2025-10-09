@@ -3,7 +3,7 @@
 {% block title %}Profile Editor - Droply{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-editor-ultra-simple.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-editor-ultra-simple-v2.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -137,6 +137,7 @@
         <div class="preview-panel">
             <div class="phone-container">
                 <div class="phone-frame">
+                    <div class="phone-right-panel"></div>
                     <div class="phone-screen">
                         <div class="phone-header">
                             <div class="phone-notch"></div>
@@ -208,7 +209,7 @@ function updatePreview() {
     const previewHTML = `
         <div class="profile-container" style="width: 100%; padding: 0.75rem; background: #1f1f1f; color: #ffffff; min-height: 100vh;">
             <!-- Profile Header -->
-            <div class="profile-header" style="background: #2a2a2a; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3); border: 1px solid #3a3a3a; color: #ffffff; text-align: center;">
+            <div class="profile-header" style="background: #2a2a2a; border-radius: 12px; padding: 1rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3); color: #ffffff; text-align: center;">
                 <div class="profile-image-container" style="position: relative; margin-bottom: 0.75rem; display: inline-block;">
                     <img src="${profileImage}" 
                          alt="${fullName}" 
@@ -233,7 +234,7 @@ function updatePreview() {
             </div>
 
             <!-- Book Now Section -->
-            <div class="booking-section" style="background: #2a2a2a; border-radius: 12px; padding: 1rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3); border: 1px solid #3a3a3a; color: #ffffff; text-align: center;">
+            <div class="booking-section" style="background: #2a2a2a; border-radius: 12px; padding: 1rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3); color: #ffffff; text-align: center;">
                 <div class="booking-header" style="margin-bottom: 0.75rem;">
                     <h2 class="booking-title" style="font-size: 1rem; font-weight: 700; color: #ffffff; margin: 0 0 0.25rem 0;">Book a Session</h2>
                     <div class="availability-status" style="display: flex; align-items: center; justify-content: center; gap: 0.25rem; color: #10b981; font-weight: 600; font-size: 0.75rem;">
