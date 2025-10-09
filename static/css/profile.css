@@ -114,13 +114,11 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .action-btn:hover {
   background: #10b981;
   color: white;
-  transform: scale(1.05);
 }
 
 .favorite-btn.favorited {
@@ -153,11 +151,9 @@ body {
   object-fit: cover;
   border: 4px solid #3a3a3a;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s ease;
 }
 
 .profile-hero-image:hover {
-  transform: scale(1.05);
 }
 
 .verified-badge {
@@ -222,7 +218,6 @@ body {
   border: 1px solid #4a4a4a;
   color: #9ca3af;
   text-decoration: none;
-  transition: all 0.2s ease;
   font-size: 1.1rem;
 }
 
@@ -230,7 +225,6 @@ body {
   background: #10b981;
   color: white;
   border-color: #10b981;
-  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
   text-decoration: none;
 }
@@ -294,11 +288,9 @@ body {
   background: #3a3a3a;
   border-radius: 12px;
   border: 1px solid #4a4a4a;
-  transition: all 0.3s ease;
 }
 
 .skill-card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
   border-color: #10b981;
 }
@@ -337,7 +329,6 @@ body {
   justify-content: center;
   color: #9ca3af;
   border: 2px dashed #4a4a4a;
-  transition: all 0.3s ease;
 }
 
 .portfolio-placeholder:hover {
@@ -390,7 +381,6 @@ body {
   border-radius: 12px;
   border: 1px solid #4a4a4a;
   margin-bottom: 1rem;
-  transition: all 0.2s ease;
 }
 
 .service-item:hover {
@@ -498,7 +488,6 @@ body {
   color: #ffffff;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
   font-size: 0.9rem;
 }
 
@@ -571,7 +560,6 @@ body {
   font-size: 1.1rem;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.2s ease;
   margin-bottom: 1rem;
 }
 
@@ -579,7 +567,6 @@ body {
   background: #047857;
   color: white;
   text-decoration: none;
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
@@ -772,32 +759,6 @@ body {
   }
 }
 
-/* Animation and Transitions */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.profile-header,
-.content-section,
-.services-section,
-.booking-section,
-.testimonials-section {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.profile-header { animation-delay: 0.1s; }
-.content-section:nth-child(1) { animation-delay: 0.2s; }
-.content-section:nth-child(2) { animation-delay: 0.3s; }
-.services-section { animation-delay: 0.4s; }
-.booking-section { animation-delay: 0.5s; }
-.testimonials-section { animation-delay: 0.6s; }
 
 /* Focus States for Accessibility */
 .action-btn:focus,
@@ -823,11 +784,3 @@ body {
   }
 }
 
-/* Reduced Motion Support */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}

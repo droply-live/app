@@ -541,7 +541,9 @@ def search_suggestions():
                     'text': user.full_name,
                     'value': user.full_name,
                     'subtitle': user.profession or 'Expert',
-                    'icon': '👤'
+                    'icon': '👤',
+                    'user_id': user.id,
+                    'username': user.username
                 })
         return jsonify(suggestions)
     
@@ -630,7 +632,9 @@ def search_suggestions():
             'rate': f"${user.hourly_rate:.0f}/hr" if user.hourly_rate and user.hourly_rate > 0 else None,
             'rating': user.rating if user.rating > 0 else None,
             'icon': icon,
-            'category': category
+            'category': category,
+            'user_id': user.id,
+            'username': user.username
         })
     
     return jsonify(suggestions)

@@ -273,6 +273,248 @@ body.light-mode .person-name {
 body.light-mode .person-title {
   color: #6b7280;
 }
+
+/* Browse Interface Styles */
+.browse-interface {
+  position: absolute;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  width: calc(100vw - var(--sidebar-width));
+  max-width: none;
+  margin: 0;
+  padding: 2rem;
+  background: #1f1f1f;
+  z-index: 10;
+  min-height: 100vh;
+  transition: left 0.3s ease, width 0.3s ease;
+  box-sizing: border-box;
+}
+
+/* Adjust browse interface when sidebar is collapsed */
+.sidebar.collapsed + .main-content .browse-interface,
+.sidebar.collapsed ~ .main-content .browse-interface,
+body:has(.sidebar.collapsed) .browse-interface {
+  left: var(--sidebar-collapsed-width);
+  width: calc(100vw - var(--sidebar-collapsed-width));
+}
+
+/* Ensure main content is also responsive and covers full page */
+.main-content {
+  transition: margin-left 0.3s ease, width 0.3s ease;
+  margin-left: var(--sidebar-width);
+  width: calc(100vw - var(--sidebar-width));
+  max-width: none;
+  min-height: 100vh;
+}
+
+/* When sidebar is collapsed, adjust main content */
+.sidebar.collapsed + .main-content,
+.sidebar.collapsed ~ .main-content,
+body:has(.sidebar.collapsed) .main-content {
+  margin-left: var(--sidebar-collapsed-width);
+  width: calc(100vw - var(--sidebar-collapsed-width));
+}
+
+/* When browse interface is active, ensure main content adapts */
+.main-content:has(.browse-interface) {
+  margin-left: var(--sidebar-width);
+  width: calc(100vw - var(--sidebar-width));
+  max-width: none;
+}
+
+.sidebar.collapsed + .main-content:has(.browse-interface),
+.sidebar.collapsed ~ .main-content:has(.browse-interface),
+body:has(.sidebar.collapsed) .main-content:has(.browse-interface) {
+  margin-left: var(--sidebar-collapsed-width);
+  width: calc(100vw - var(--sidebar-collapsed-width));
+}
+
+/* Ensure discover page covers full area */
+.discover-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #1f1f1f;
+}
+
+.search-area {
+  width: 100%;
+  min-height: 100vh;
+  background: #1f1f1f;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.search-wrapper {
+  width: 100%;
+  max-width: none;
+}
+
+.browse-header {
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.search-bar-container {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.category-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.category-tab {
+  background: #333;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.category-tab:hover {
+  background: #444;
+  color: #fff;
+  border-color: #10b981;
+}
+
+.category-tab.active {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.browse-results {
+  min-height: 400px;
+}
+
+.loading-message, .error-message {
+  text-align: center;
+  padding: 2rem;
+  color: #ccc;
+  font-size: 1.1rem;
+}
+
+.error-message {
+  color: #ef4444;
+}
+
+.category-section {
+  margin-bottom: 3rem;
+}
+
+.category-section-title {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #10b981;
+}
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.person-card {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.person-card:hover {
+  transform: translateY(-2px);
+  border-color: #10b981;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+}
+
+.person-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 1rem;
+  display: block;
+}
+
+.person-name {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.person-title {
+  color: #ccc;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.person-rate {
+  color: #10b981;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.person-actions {
+  margin-top: 1rem;
+}
+
+.action-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #10b981;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #059669;
+  color: white;
+  text-decoration: none;
+}
+
+.no-results {
+  text-align: center;
+  padding: 3rem;
+  color: #ccc;
+}
+
+.no-results-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #666;
+}
+
+.no-results h3 {
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.no-results p {
+  color: #999;
+}
 </style>
 
 <div class="discover-page">
@@ -1152,7 +1394,13 @@ function clearSearch() {
 }
 
 function viewHistorical(viewType) {
-  window.location.href = "{{ url_for('discover') }}?view=" + viewType;
+  if (viewType === 'browse_all') {
+    // Show browse all interface dynamically like homepage
+    showBrowseAll();
+  } else {
+    // For recent and favorites, redirect to discover page
+    window.location.href = "{{ url_for('discover') }}?view=" + viewType;
+  }
 }
 
 // Browse functionality
@@ -1163,8 +1411,38 @@ function filterByCategory(category) {
   });
   event.target.classList.add('active');
   
-  // Load results for this category
-  loadBrowseResults(category);
+  // Update current category
+  currentCategory = category;
+  
+  // If there's a search term, filter the search results by category
+  if (currentSearchTerm) {
+    // Filter the current search results by the selected category
+    const searchFilteredResults = currentResults.filter(user => {
+      const name = (user.full_name || '').toLowerCase();
+      const profession = (user.profession || '').toLowerCase();
+      const skills = (user.skills || '').toLowerCase();
+      const bio = (user.bio || '').toLowerCase();
+      
+      // First apply search filter
+      const matchesSearch = name.includes(currentSearchTerm) || 
+                          profession.includes(currentSearchTerm) || 
+                          skills.includes(currentSearchTerm) || 
+                          bio.includes(currentSearchTerm);
+      
+      if (!matchesSearch) return false;
+      
+      // Then apply category filter using the new categorization logic
+      if (category === 'all') return true;
+      
+      const userCategory = categorizeUser(user);
+      return userCategory.toLowerCase() === category;
+    });
+    
+    displayBrowseResults(searchFilteredResults, category);
+  } else {
+    // Load results for this category
+    loadBrowseResults(category);
+  }
 }
 
 function loadBrowseResults(category) {
@@ -1173,10 +1451,19 @@ function loadBrowseResults(category) {
   
   resultsContainer.innerHTML = '<div class="loading-message">Loading people...</div>';
   
+  // Clear search term when loading new category
+  currentSearchTerm = '';
+  const searchInput = document.getElementById('browse-search-input');
+  if (searchInput) {
+    searchInput.value = '';
+  }
+  
   // Fetch users for this category
   fetch(`/api/browse-users?category=${category}`)
     .then(response => response.json())
     .then(data => {
+      // Store current results for filtering
+      currentResults = data;
       displayBrowseResults(data, category);
     })
     .catch(error => {
@@ -1238,6 +1525,131 @@ function displayBrowseResults(users, category) {
   resultsContainer.innerHTML = html;
 }
 
+// Store current results for filtering
+let currentResults = [];
+let currentCategory = 'all';
+let currentSearchTerm = '';
+
+// Function to get category keywords
+function getCategoryKeywords(category) {
+  const categoryMapping = {
+    'technology': ['technology', 'development', 'programming', 'coding', 'software', 'web', 'app', 'tech', 'developer', 'engineer', 'computer', 'it'],
+    'business': ['business', 'consulting', 'strategy', 'management', 'entrepreneur', 'startup', 'finance', 'marketing', 'sales'],
+    'creative': ['creative', 'design', 'ui', 'ux', 'graphic', 'visual', 'art', 'branding', 'illustration', 'style', 'beauty', 'fashion', 'photography'],
+    'health': ['health', 'fitness', 'wellness', 'nutrition', 'medical', 'therapy', 'coaching', 'mental health', 'wellness'],
+    'education': ['education', 'teaching', 'tutoring', 'training', 'learning', 'academic', 'course', 'mentor', 'astrology', 'spiritual'],
+    'finance': ['finance', 'accounting', 'investment', 'financial', 'tax', 'budget', 'money', 'wealth'],
+    'marketing': ['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand', 'growth', 'content'],
+    'writing': ['writing', 'content', 'copywriting', 'blogging', 'journalism', 'editing', 'proofreading', 'author']
+  };
+  
+  return categoryMapping[category] || [];
+}
+
+// Function to categorize a user
+function categorizeUser(user) {
+  const profession = (user.profession || '').toLowerCase();
+  const skills = (user.skills || '').toLowerCase();
+  const bio = (user.bio || '').toLowerCase();
+  
+  // Priority-based categorization (order matters - first match wins)
+  
+  // 1. Technology (highest priority for tech roles)
+  if (['software', 'developer', 'engineer', 'programmer', 'coder', 'architect', 'data scientist', 'product manager', 'tech lead', 'cto', 'cio'].some(keyword => profession.includes(keyword))) {
+    return 'Technology';
+  }
+  if (['javascript', 'python', 'java', 'react', 'node.js', 'programming', 'coding', 'software development', 'web development', 'mobile development', 'machine learning', 'ai', 'data science'].some(keyword => skills.includes(keyword))) {
+    return 'Technology';
+  }
+  
+  // 2. Health (high priority for health roles)
+  if (['doctor', 'nurse', 'therapist', 'counselor', 'psychologist', 'psychiatrist', 'nutritionist', 'dietitian', 'fitness trainer', 'personal trainer', 'yoga instructor', 'massage therapist', 'chiropractor', 'dentist', 'veterinarian'].some(keyword => profession.includes(keyword))) {
+    return 'Health';
+  }
+  if (['fitness', 'nutrition', 'wellness', 'mental health', 'therapy', 'counseling', 'yoga', 'meditation', 'health coaching'].some(keyword => skills.includes(keyword))) {
+    return 'Health';
+  }
+  
+  // 3. Creative (high priority for creative roles)
+  if (['designer', 'artist', 'photographer', 'videographer', 'graphic designer', 'ui designer', 'ux designer', 'interior designer', 'fashion designer', 'illustrator', 'animator', 'video editor', 'creative director'].some(keyword => profession.includes(keyword))) {
+    return 'Creative';
+  }
+  if (['design', 'ui', 'ux', 'graphic design', 'photography', 'video editing', 'illustration', 'branding', 'visual design', 'creative writing', 'art', 'drawing', 'painting'].some(keyword => skills.includes(keyword))) {
+    return 'Creative';
+  }
+  
+  // 4. Education (high priority for education roles)
+  if (['teacher', 'professor', 'instructor', 'tutor', 'trainer', 'educator', 'academic', 'researcher', 'librarian', 'curriculum developer', 'education consultant'].some(keyword => profession.includes(keyword))) {
+    return 'Education';
+  }
+  if (['teaching', 'education', 'tutoring', 'training', 'mentoring', 'coaching', 'curriculum development', 'academic writing', 'research'].some(keyword => skills.includes(keyword))) {
+    return 'Education';
+  }
+  
+  // 5. Finance (specific finance roles)
+  if (['accountant', 'financial advisor', 'investment advisor', 'financial analyst', 'banker', 'insurance agent', 'tax preparer', 'financial planner', 'wealth manager', 'cfo', 'controller'].some(keyword => profession.includes(keyword))) {
+    return 'Finance';
+  }
+  if (['accounting', 'financial planning', 'investment', 'tax preparation', 'budgeting', 'financial analysis', 'wealth management', 'insurance'].some(keyword => skills.includes(keyword))) {
+    return 'Finance';
+  }
+  
+  // 6. Marketing (specific marketing roles)
+  if (['marketing manager', 'marketing director', 'digital marketing', 'social media manager', 'seo specialist', 'content marketer', 'brand manager', 'advertising', 'public relations', 'pr specialist'].some(keyword => profession.includes(keyword))) {
+    return 'Marketing';
+  }
+  if (['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand management', 'content marketing', 'growth hacking', 'email marketing', 'ppc'].some(keyword => skills.includes(keyword))) {
+    return 'Marketing';
+  }
+  
+  // 7. Writing (specific writing roles)
+  if (['writer', 'author', 'journalist', 'copywriter', 'content writer', 'blogger', 'editor', 'proofreader', 'technical writer', 'content creator'].some(keyword => profession.includes(keyword))) {
+    return 'Writing';
+  }
+  if (['writing', 'content writing', 'copywriting', 'blogging', 'journalism', 'editing', 'proofreading', 'technical writing', 'creative writing', 'ghostwriting'].some(keyword => skills.includes(keyword))) {
+    return 'Writing';
+  }
+  
+  // 8. Business (catch-all for business-related roles)
+  if (['business', 'consultant', 'manager', 'director', 'executive', 'entrepreneur', 'founder', 'ceo', 'coo', 'vp', 'strategy', 'operations', 'sales'].some(keyword => profession.includes(keyword))) {
+    return 'Business';
+  }
+  if (['business strategy', 'consulting', 'management', 'leadership', 'operations', 'sales', 'business development', 'project management'].some(keyword => skills.includes(keyword))) {
+    return 'Business';
+  }
+  
+  // Default to Business if no clear category
+  return 'Business';
+}
+
+// Function to filter current results by search term
+function filterCurrentResults(searchTerm) {
+  // Store the current search term
+  currentSearchTerm = searchTerm;
+  
+  if (!searchTerm) {
+    // If no search term, show all current results for the category
+    displayBrowseResults(currentResults, currentCategory);
+    return;
+  }
+  
+  // Filter current results by search term
+  const searchFilteredResults = currentResults.filter(user => {
+    const name = (user.full_name || '').toLowerCase();
+    const profession = (user.profession || '').toLowerCase();
+    const skills = (user.skills || '').toLowerCase();
+    const bio = (user.bio || '').toLowerCase();
+    
+    return name.includes(searchTerm) || 
+           profession.includes(searchTerm) || 
+           skills.includes(searchTerm) || 
+           bio.includes(searchTerm);
+  });
+  
+  // Display filtered results with proper category handling
+  displayBrowseResults(searchFilteredResults, currentCategory);
+}
+
 function groupUsersByCategory(users) {
   const categories = {
     'Technology': [],
@@ -1251,37 +1663,10 @@ function groupUsersByCategory(users) {
   };
   
   users.forEach(user => {
-    const profession = (user.profession || '').toLowerCase();
-    const skills = (user.skills || '').toLowerCase();
-    const bio = (user.bio || '').toLowerCase();
-    
-    // Categorize based on profession, skills, and bio
-    if (profession.includes('software') || profession.includes('developer') || profession.includes('engineer') || 
-        skills.includes('programming') || skills.includes('javascript') || skills.includes('python')) {
-      categories['Technology'].push(user);
-    } else if (profession.includes('business') || profession.includes('consultant') || profession.includes('manager') ||
-               skills.includes('business') || skills.includes('strategy')) {
-      categories['Business'].push(user);
-    } else if (profession.includes('designer') || profession.includes('creative') || profession.includes('artist') ||
-               skills.includes('design') || skills.includes('creative')) {
-      categories['Creative'].push(user);
-    } else if (profession.includes('health') || profession.includes('fitness') || profession.includes('medical') ||
-               skills.includes('health') || skills.includes('fitness')) {
-      categories['Health'].push(user);
-    } else if (profession.includes('teacher') || profession.includes('tutor') || profession.includes('education') ||
-               skills.includes('teaching') || skills.includes('education')) {
-      categories['Education'].push(user);
-    } else if (profession.includes('finance') || profession.includes('accountant') || profession.includes('financial') ||
-               skills.includes('finance') || skills.includes('accounting')) {
-      categories['Finance'].push(user);
-    } else if (profession.includes('marketing') || profession.includes('digital') || profession.includes('seo') ||
-               skills.includes('marketing') || skills.includes('digital')) {
-      categories['Marketing'].push(user);
-    } else if (profession.includes('writer') || profession.includes('content') || profession.includes('copywriter') ||
-               skills.includes('writing') || skills.includes('content')) {
-      categories['Writing'].push(user);
+    const category = categorizeUser(user);
+    if (categories[category]) {
+      categories[category].push(user);
     } else {
-      // Default to Business if no clear category
       categories['Business'].push(user);
     }
   });
@@ -1289,8 +1674,212 @@ function groupUsersByCategory(users) {
   return categories;
 }
 
-// Load browse results when page loads with browse_all view
+// Function to show browse all interface (same as homepage)
+function showBrowseAll() {
+  // Hide the three buttons and show browse interface
+  const discoverButtons = document.querySelector('.discover-buttons-header');
+  const searchWrapper = document.querySelector('.search-wrapper');
+  
+  if (discoverButtons) {
+    discoverButtons.style.display = 'none';
+  }
+  
+  // Hide the original search form
+  const originalSearchForm = document.querySelector('.search-form');
+  if (originalSearchForm) {
+    originalSearchForm.style.display = 'none';
+  }
+  
+  // Create browse interface
+  const browseInterface = document.createElement('div');
+  browseInterface.className = 'browse-interface';
+  browseInterface.innerHTML = `
+    <div class="browse-header">
+      <div class="search-bar-container">
+        <form method="GET" action="{{ url_for('discover') }}" class="search-form">
+          <div class="search-input-wrapper">
+            <input 
+              type="text" 
+              name="search" 
+              placeholder="Search for people..." 
+              class="search-input"
+              id="browse-search-input"
+              autocomplete="off"
+            >
+            <button type="submit" class="search-button">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="category-tabs">
+        <button class="category-tab active" onclick="filterByCategory('all')">All</button>
+        <button class="category-tab" onclick="filterByCategory('technology')">Technology</button>
+        <button class="category-tab" onclick="filterByCategory('business')">Business</button>
+        <button class="category-tab" onclick="filterByCategory('creative')">Creative</button>
+        <button class="category-tab" onclick="filterByCategory('health')">Health</button>
+        <button class="category-tab" onclick="filterByCategory('education')">Education</button>
+        <button class="category-tab" onclick="filterByCategory('finance')">Finance</button>
+        <button class="category-tab" onclick="filterByCategory('marketing')">Marketing</button>
+        <button class="category-tab" onclick="filterByCategory('writing')">Writing</button>
+      </div>
+    </div>
+    <div class="browse-results" id="browse-results">
+      <div class="loading-message">Loading people...</div>
+    </div>
+  `;
+  
+  searchWrapper.appendChild(browseInterface);
+  
+  // Load all users initially
+  loadBrowseResults('all');
+  
+  // Add search functionality - simple filtering
+  const searchInput = document.getElementById('browse-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      filterCurrentResults(searchTerm);
+    });
+  }
+  
+  // Update layout when Browse All interface is shown
+  setTimeout(updateBrowseAllLayout, 50);
+  setTimeout(updateBrowseAllLayout, 200);
+  
+  // Ensure layout is properly initialized
+  setTimeout(function() {
+    updateBrowseAllLayout();
+  }, 300);
+}
+
+// Function to update layout for browse all interface
+function updateBrowseAllLayout() {
+  const mainContent = document.querySelector('.main-content');
+  const sidebar = document.querySelector('.sidebar');
+  const browseInterface = document.querySelector('.browse-interface');
+  
+  if (mainContent && sidebar) {
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    console.log('Updating Browse All layout, sidebar collapsed:', isCollapsed);
+    
+    // Get CSS variable values
+    const sidebarWidth = getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width').trim();
+    const sidebarCollapsedWidth = getComputedStyle(document.documentElement).getPropertyValue('--sidebar-collapsed-width').trim();
+    
+    // Update main content to cover full area
+    mainContent.style.removeProperty('margin-left');
+    mainContent.style.removeProperty('width');
+    mainContent.style.removeProperty('max-width');
+    mainContent.style.removeProperty('min-height');
+    
+    if (isCollapsed) {
+      mainContent.style.setProperty('margin-left', sidebarCollapsedWidth, 'important');
+      mainContent.style.setProperty('width', `calc(100vw - ${sidebarCollapsedWidth})`, 'important');
+      mainContent.style.setProperty('max-width', 'none', 'important');
+      mainContent.style.setProperty('min-height', '100vh', 'important');
+    } else {
+      mainContent.style.setProperty('margin-left', sidebarWidth, 'important');
+      mainContent.style.setProperty('width', `calc(100vw - ${sidebarWidth})`, 'important');
+      mainContent.style.setProperty('max-width', 'none', 'important');
+      mainContent.style.setProperty('min-height', '100vh', 'important');
+    }
+    
+    // Update browse interface if it exists
+    if (browseInterface) {
+      browseInterface.style.removeProperty('left');
+      browseInterface.style.removeProperty('width');
+      
+      if (isCollapsed) {
+        browseInterface.style.setProperty('left', sidebarCollapsedWidth, 'important');
+        browseInterface.style.setProperty('width', `calc(100vw - ${sidebarCollapsedWidth})`, 'important');
+      } else {
+        browseInterface.style.setProperty('left', sidebarWidth, 'important');
+        browseInterface.style.setProperty('width', `calc(100vw - ${sidebarWidth})`, 'important');
+      }
+      
+      console.log('Browse interface updated - left:', browseInterface.style.left, 'width:', browseInterface.style.width);
+    }
+    
+    // Force a reflow to ensure changes take effect
+    mainContent.offsetHeight;
+    if (browseInterface) browseInterface.offsetHeight;
+    console.log('Layout updated - marginLeft:', mainContent.style.marginLeft, 'width:', mainContent.style.width);
+  } else {
+    console.log('Main content or sidebar not found:', { mainContent, sidebar });
+  }
+}
+
+// Function to ensure discover page covers full area by default
+function ensureFullPageCoverage() {
+  const mainContent = document.querySelector('.main-content');
+  const sidebar = document.querySelector('.sidebar');
+  
+  if (mainContent && sidebar) {
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    
+    // Get CSS variable values
+    const sidebarWidth = getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width').trim();
+    const sidebarCollapsedWidth = getComputedStyle(document.documentElement).getPropertyValue('--sidebar-collapsed-width').trim();
+    
+    // Ensure main content covers full area
+    if (isCollapsed) {
+      mainContent.style.setProperty('margin-left', sidebarCollapsedWidth, 'important');
+      mainContent.style.setProperty('width', `calc(100vw - ${sidebarCollapsedWidth})`, 'important');
+    } else {
+      mainContent.style.setProperty('margin-left', sidebarWidth, 'important');
+      mainContent.style.setProperty('width', `calc(100vw - ${sidebarWidth})`, 'important');
+    }
+    
+    mainContent.style.setProperty('max-width', 'none', 'important');
+    mainContent.style.setProperty('min-height', '100vh', 'important');
+  }
+}
+
+// Use MutationObserver to watch for sidebar class changes
 document.addEventListener('DOMContentLoaded', function() {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          // Ensure full page coverage when sidebar changes
+          ensureFullPageCoverage();
+          
+          const browseInterface = document.querySelector('.browse-interface');
+          if (browseInterface) {
+            updateBrowseAllLayout();
+          }
+        }
+      });
+    });
+    
+    observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+  }
+  
+  // Handle window resize events
+  window.addEventListener('resize', function() {
+    // Ensure full page coverage on resize
+    ensureFullPageCoverage();
+    
+    const browseInterface = document.querySelector('.browse-interface');
+    if (browseInterface) {
+      updateBrowseAllLayout();
+    }
+  });
+  
+  // Initialize layout on page load
+  setTimeout(function() {
+    // Ensure full page coverage by default
+    ensureFullPageCoverage();
+    
+    const browseInterface = document.querySelector('.browse-interface');
+    if (browseInterface) {
+      updateBrowseAllLayout();
+    }
+  }, 100);
+  
+  // Load browse results when page loads with browse_all view
   if (window.location.search.includes('view=browse_all')) {
     loadBrowseResults('all');
   }

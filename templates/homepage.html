@@ -3094,11 +3094,21 @@
             }
 
             function selectSuggestion(suggestion) {
-                searchInput.value = suggestion.value;
-                hideSuggestions();
-                stopAnimation();
-                // Auto-submit the form
-                searchInput.form.submit();
+                // Check if this is a user suggestion (has username)
+                if (suggestion.username) {
+                    // Navigate to the user's profile
+                    // Use private route if user is authenticated, public route otherwise
+                    const isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
+                    const profileRoute = isAuthenticated ? `/user/${suggestion.username}/private` : `/user/${suggestion.username}`;
+                    window.location.href = profileRoute;
+                } else {
+                    // For non-user suggestions, fill the search input and submit
+                    searchInput.value = suggestion.value;
+                    hideSuggestions();
+                    stopAnimation();
+                    // Auto-submit the form
+                    searchInput.form.submit();
+                }
             }
 
             // Combined input event handler for both animation and suggestions
