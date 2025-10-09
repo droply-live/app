@@ -32,8 +32,8 @@
         <button class="action-btn share-btn" title="Share Profile">
           <i class="fas fa-share-alt"></i>
         </button>
-        <button class="action-btn favorite-btn" title="Save to Favorites">
-          <i class="far fa-heart"></i>
+        <button class="action-btn favorite-btn {% if is_favorited %}favorited{% endif %}" title="{% if is_favorited %}Remove from Favorites{% else %}Add to Favorites{% endif %}">
+          <i class="{% if is_favorited %}fas{% else %}far{% endif %} fa-heart"></i>
         </button>
       </div>
     </div>
@@ -268,17 +268,61 @@ document.addEventListener('DOMContentLoaded', function() {
     favoriteBtn.addEventListener('click', function(e) {
       e.preventDefault();
       const icon = this.querySelector('i');
+      const isCurrentlyFavorited = icon.classList.contains('fas');
       
-      // Toggle heart
-      if (icon.classList.contains('fas')) {
-        icon.classList.remove('fas');
-        icon.classList.add('far');
-        this.classList.remove('favorited');
-      } else {
-        icon.classList.remove('far');
-        icon.classList.add('fas');
-        this.classList.add('favorited');
-      }
+      // Call the API to toggle favorite status
+      fetch('/api/favorites/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: {{ user.id }},
+          user_username: '{{ user.username }}'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Update UI based on API response
+          if (data.action === 'added') {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            this.classList.add('favorited');
+            this.title = 'Remove from Favorites';
+          } else if (data.action === 'removed') {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            this.classList.remove('favorited');
+            this.title = 'Add to Favorites';
+          }
+        } else {
+          console.error('Error toggling favorite:', data.error);
+          // Revert visual change on error
+          if (isCurrentlyFavorited) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            this.classList.add('favorited');
+          } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            this.classList.remove('favorited');
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        // Revert visual change on error
+        if (isCurrentlyFavorited) {
+          icon.classList.remove('far');
+          icon.classList.add('fas');
+          this.classList.add('favorited');
+        } else {
+          icon.classList.remove('fas');
+          icon.classList.add('far');
+          this.classList.remove('favorited');
+        }
+      });
     });
   }
 

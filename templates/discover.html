@@ -276,27 +276,31 @@ body.light-mode .person-title {
 
 /* Browse Interface Styles */
 .browse-interface {
-  position: absolute;
-  top: 0;
-  left: var(--sidebar-width);
-  right: 0;
-  width: calc(100vw - var(--sidebar-width));
-  max-width: none;
-  margin: 0;
-  padding: 2rem;
-  background: #1f1f1f;
-  z-index: 10;
-  min-height: 100vh;
-  transition: left 0.3s ease, width 0.3s ease;
-  box-sizing: border-box;
+  position: fixed !important;
+  top: 0 !important;
+  left: var(--sidebar-width) !important;
+  right: 0 !important;
+  width: calc(100vw - var(--sidebar-width)) !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 2rem !important;
+  background: #1f1f1f !important;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+  z-index: 1000 !important;
+  min-height: 100vh !important;
+  transition: left 0.3s ease, width 0.3s ease !important;
+  box-sizing: border-box !important;
 }
 
 /* Adjust browse interface when sidebar is collapsed */
 .sidebar.collapsed + .main-content .browse-interface,
 .sidebar.collapsed ~ .main-content .browse-interface,
 body:has(.sidebar.collapsed) .browse-interface {
-  left: var(--sidebar-collapsed-width);
-  width: calc(100vw - var(--sidebar-collapsed-width));
+  left: var(--sidebar-collapsed-width) !important;
+  width: calc(100vw - var(--sidebar-collapsed-width)) !important;
 }
 
 /* Ensure main content is also responsive and covers full page */
@@ -515,6 +519,19 @@ body:has(.sidebar.collapsed) .main-content:has(.browse-interface) {
 .no-results p {
   color: #999;
 }
+
+.no-results-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.no-results-actions .action-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  min-height: 44px;
+}
 </style>
 
 <div class="discover-page">
@@ -531,52 +548,28 @@ body:has(.sidebar.collapsed) .main-content:has(.browse-interface) {
             <button class="discover-btn" onclick="viewHistorical('favorites')">
               <i class="fas fa-heart"></i> Favorites
             </button>
-            <button class="discover-btn browse-all" onclick="viewHistorical('browse_all')">
+            <button class="discover-btn browse-all" onclick="showBrowseAll()">
               <i class="fas fa-globe"></i> Browse All
             </button>
           </div>
         {% else %}
           <h1 class="page-title">Discover People</h1>
         {% endif %}
-      {% elif request.args.get('view') == 'browse_all' %}
-        <!-- Browse All Interface -->
-        <div class="browse-interface">
-          <h1 class="page-title">Browse All People</h1>
-          
-          <div class="search-bar-container">
-            <form method="GET" action="{{ url_for('discover') }}" class="search-form">
-              <div class="search-input-wrapper">
-                <input 
-                  type="text" 
-                  name="search" 
-                  placeholder="Search for people..." 
-                  class="search-input"
-                  id="browse-search-input"
-                  value="{{ request.args.get('search', '') }}"
-                  autocomplete="off"
-                >
-                <button type="submit" class="search-button">
-                  <i class="fas fa-search"></i>
-                </button>
-              </div>
-            </form>
-          </div>
-          
-          <div class="category-tabs">
-            <button class="category-tab active" onclick="filterByCategory('all')">All</button>
-            <button class="category-tab" onclick="filterByCategory('technology')">Technology</button>
-            <button class="category-tab" onclick="filterByCategory('business')">Business</button>
-            <button class="category-tab" onclick="filterByCategory('creative')">Creative</button>
-            <button class="category-tab" onclick="filterByCategory('health')">Health</button>
-            <button class="category-tab" onclick="filterByCategory('education')">Education</button>
-            <button class="category-tab" onclick="filterByCategory('finance')">Finance</button>
-            <button class="category-tab" onclick="filterByCategory('marketing')">Marketing</button>
-            <button class="category-tab" onclick="filterByCategory('writing')">Writing</button>
-          </div>
-        </div>
       {% else %}
         <div class="search-results-header">
-          <span class="results-count">{{ users|length }} results</span>
+          {% if view_type == 'recent' %}
+            <h2 class="results-title">
+              <i class="fas fa-history"></i> Recent Views
+            </h2>
+            <span class="results-count">{{ users|length }} recent view{{ 's' if users|length != 1 else '' }}</span>
+          {% elif view_type == 'favorites' %}
+            <h2 class="results-title">
+              <i class="fas fa-heart"></i> Your Favorites
+            </h2>
+            <span class="results-count">{{ users|length }} favorite{{ 's' if users|length != 1 else '' }}</span>
+          {% else %}
+            <span class="results-count">{{ users|length }} results</span>
+          {% endif %}
           <button class="back-btn" onclick="clearSearch()">
             <i class="fas fa-arrow-left"></i> Back
           </button>
@@ -607,16 +600,11 @@ body:has(.sidebar.collapsed) .main-content:has(.browse-interface) {
     </div>
   </div>
 
-  <!-- Browse Results Section -->
-  {% if request.args.get('view') == 'browse_all' %}
-  <div class="browse-results" id="browse-results">
-    <div class="loading-message">Loading people...</div>
-  </div>
-  {% endif %}
 
   <!-- Results Section -->
   {% if request.args.get('search') or view_type or users %}
   <div class="results-area">
+    {% if users %}
     <div class="experts-grid">
       {% for user in users %}
       <div class="expert-card">
@@ -638,6 +626,33 @@ body:has(.sidebar.collapsed) .main-content:has(.browse-interface) {
       </div>
       {% endfor %}
     </div>
+    {% elif view_type == 'recent' and no_recent_views %}
+    <div class="no-results">
+      <div class="no-results-icon">
+        <i class="fas fa-history"></i>
+      </div>
+      <h3>No Recent Views</h3>
+      <p>You haven't viewed any profiles recently. Start exploring to see your recent views here!</p>
+      <div class="no-results-actions">
+        <button class="action-btn primary" onclick="showBrowseAll()">
+          <i class="fas fa-globe"></i> Browse All People
+        </button>
+      </div>
+    </div>
+    {% elif view_type == 'favorites' and (not users or no_favorites) %}
+    <div class="no-results">
+      <div class="no-results-icon">
+        <i class="fas fa-heart"></i>
+      </div>
+      <h3>No Favorites Yet</h3>
+      <p>You haven't favorited any profiles yet. Start exploring to add people to your favorites!</p>
+      <div class="no-results-actions">
+        <button class="action-btn primary" onclick="showBrowseAll()">
+          <i class="fas fa-globe"></i> Browse All People
+        </button>
+      </div>
+    </div>
+    {% endif %}
   </div>
   {% endif %}
 </div>
@@ -771,6 +786,20 @@ html, body {
   font-size: 1rem;
   color: #ccc;
   font-weight: 500;
+}
+
+.results-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.results-title i {
+  color: #10b981;
 }
 
 .back-btn {
@@ -1489,37 +1518,67 @@ function displayBrowseResults(users, category) {
     return;
   }
   
-  // Group users by category for better organization
-  const groupedUsers = groupUsersByCategory(users);
-  
+  // If category is 'all', group users by their actual categories
+  // If a specific category is selected, show users in a single section
   let html = '';
-  for (const [catName, catUsers] of Object.entries(groupedUsers)) {
-    if (catUsers.length > 0) {
-      // Limit to 2 rows (10 users max per category)
-      const limitedUsers = catUsers.slice(0, 10);
-      
-      html += `
-        <div class="category-section">
-          <h3 class="category-section-title">${catName} People</h3>
-          <div class="people-grid">
-            ${limitedUsers.map(user => `
-              <div class="person-card">
-                <img src="${user.profile_picture || '/static/img/default-avatar.svg'}" 
-                     alt="${user.full_name}" class="person-avatar">
-                <div class="person-info">
-                  <h4 class="person-name">${user.full_name}</h4>
-                  <p class="person-title">${user.profession || 'Professional'}</p>
-                  <span class="person-rate">$${Math.round(user.hourly_rate || 0)}/hr</span>
+  
+  if (category === 'all') {
+    // Group users by their actual categories
+    const groupedUsers = groupUsersByCategory(users);
+    
+    for (const [catName, catUsers] of Object.entries(groupedUsers)) {
+      if (catUsers.length > 0) {
+        // Limit to 2 rows (10 users max per category)
+        const limitedUsers = catUsers.slice(0, 10);
+        
+        html += `
+          <div class="category-section">
+            <h3 class="category-section-title">${catName}</h3>
+            <div class="people-grid">
+              ${limitedUsers.map(user => `
+                <div class="person-card">
+                  <img src="${user.profile_picture || '/static/img/default-avatar.svg'}" 
+                       alt="${user.full_name}" class="person-avatar">
+                  <div class="person-info">
+                    <h4 class="person-name">${user.full_name}</h4>
+                    <p class="person-title">${user.profession || 'Professional'}</p>
+                    <span class="person-rate">$${Math.round(user.hourly_rate || 0)}/hr</span>
+                  </div>
+                  <div class="person-actions">
+                    <a href="/user/${user.username}" class="action-btn primary" target="_blank">View Profile</a>
+                  </div>
                 </div>
-                <div class="person-actions">
-                  <a href="/user/${user.username}" class="action-btn primary">View Profile</a>
-                </div>
-              </div>
-            `).join('')}
+              `).join('')}
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
     }
+  } else {
+    // For specific categories, show users in a single section
+    const limitedUsers = users.slice(0, 20); // Limit to 20 users for specific category
+    
+    html += `
+      <div class="category-section">
+        <h3 class="category-section-title">${category.charAt(0).toUpperCase() + category.slice(1)}</h3>
+        <div class="people-grid">
+          ${limitedUsers.map(user => `
+            <div class="person-card">
+              <img src="${user.profile_picture || '/static/img/default-avatar.svg'}" 
+                   alt="${user.full_name}" class="person-avatar">
+              <div class="person-info">
+                <h4 class="person-name">${user.full_name}</h4>
+                <p class="person-title">${user.profession || 'Professional'}</p>
+                <span class="person-rate">$${Math.round(user.hourly_rate || 0)}/hr</span>
+              </div>
+              <div class="person-actions">
+                <a href="/user/${user.username}" class="action-btn primary" target="_blank">View Profile</a>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
   }
   
   resultsContainer.innerHTML = html;
@@ -1546,7 +1605,7 @@ function getCategoryKeywords(category) {
   return categoryMapping[category] || [];
 }
 
-// Function to categorize a user
+// Function to categorize a single user (matches backend logic)
 function categorizeUser(user) {
   const profession = (user.profession || '').toLowerCase();
   const skills = (user.skills || '').toLowerCase();
@@ -1598,27 +1657,27 @@ function categorizeUser(user) {
   if (['marketing manager', 'marketing director', 'digital marketing', 'social media manager', 'seo specialist', 'content marketer', 'brand manager', 'advertising', 'public relations', 'pr specialist'].some(keyword => profession.includes(keyword))) {
     return 'Marketing';
   }
-  if (['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand management', 'content marketing', 'growth hacking', 'email marketing', 'ppc'].some(keyword => skills.includes(keyword))) {
+  if (['digital marketing', 'social media', 'seo', 'content marketing', 'brand management', 'advertising', 'public relations', 'pr', 'growth hacking', 'email marketing'].some(keyword => skills.includes(keyword))) {
     return 'Marketing';
   }
   
   // 7. Writing (specific writing roles)
-  if (['writer', 'author', 'journalist', 'copywriter', 'content writer', 'blogger', 'editor', 'proofreader', 'technical writer', 'content creator'].some(keyword => profession.includes(keyword))) {
+  if (['writer', 'author', 'journalist', 'copywriter', 'content writer', 'blogger', 'editor', 'proofreader', 'technical writer', 'grant writer', 'screenwriter'].some(keyword => profession.includes(keyword))) {
     return 'Writing';
   }
-  if (['writing', 'content writing', 'copywriting', 'blogging', 'journalism', 'editing', 'proofreading', 'technical writing', 'creative writing', 'ghostwriting'].some(keyword => skills.includes(keyword))) {
+  if (['writing', 'copywriting', 'content writing', 'blogging', 'journalism', 'editing', 'proofreading', 'technical writing', 'creative writing', 'grant writing'].some(keyword => skills.includes(keyword))) {
     return 'Writing';
   }
   
   // 8. Business (catch-all for business-related roles)
-  if (['business', 'consultant', 'manager', 'director', 'executive', 'entrepreneur', 'founder', 'ceo', 'coo', 'vp', 'strategy', 'operations', 'sales'].some(keyword => profession.includes(keyword))) {
+  if (['manager', 'director', 'executive', 'consultant', 'advisor', 'analyst', 'coordinator', 'specialist', 'supervisor', 'lead', 'head', 'chief', 'president', 'ceo', 'coo', 'vp', 'vice president'].some(keyword => profession.includes(keyword))) {
     return 'Business';
   }
-  if (['business strategy', 'consulting', 'management', 'leadership', 'operations', 'sales', 'business development', 'project management'].some(keyword => skills.includes(keyword))) {
+  if (['management', 'leadership', 'strategy', 'consulting', 'project management', 'business development', 'sales', 'customer service', 'operations', 'administration'].some(keyword => skills.includes(keyword))) {
     return 'Business';
   }
   
-  // Default to Business if no clear category
+  // Default to business if no clear category
   return 'Business';
 }
 
@@ -1664,17 +1723,13 @@ function groupUsersByCategory(users) {
   
   users.forEach(user => {
     const category = categorizeUser(user);
-    if (categories[category]) {
-      categories[category].push(user);
-    } else {
-      categories['Business'].push(user);
-    }
+    categories[category].push(user);
   });
   
   return categories;
 }
 
-// Function to show browse all interface (same as homepage)
+// Function to show browse all interface (exact copy from homepage)
 function showBrowseAll() {
   // Hide the three buttons and show browse interface
   const discoverButtons = document.querySelector('.discover-buttons-header');
@@ -1747,9 +1802,14 @@ function showBrowseAll() {
   setTimeout(updateBrowseAllLayout, 50);
   setTimeout(updateBrowseAllLayout, 200);
   
-  // Ensure layout is properly initialized
+  // Ensure the browse interface is properly positioned
   setTimeout(function() {
-    updateBrowseAllLayout();
+    const browseInterface = document.querySelector('.browse-interface');
+    if (browseInterface) {
+      // Force a reflow to ensure the CSS positioning takes effect
+      browseInterface.offsetHeight;
+      console.log('Browse interface positioned - left:', getComputedStyle(browseInterface).left, 'width:', getComputedStyle(browseInterface).width);
+    }
   }, 300);
 }
 
@@ -1787,18 +1847,10 @@ function updateBrowseAllLayout() {
     
     // Update browse interface if it exists
     if (browseInterface) {
-      browseInterface.style.removeProperty('left');
-      browseInterface.style.removeProperty('width');
+      // Force a reflow to ensure CSS changes take effect
+      browseInterface.offsetHeight;
       
-      if (isCollapsed) {
-        browseInterface.style.setProperty('left', sidebarCollapsedWidth, 'important');
-        browseInterface.style.setProperty('width', `calc(100vw - ${sidebarCollapsedWidth})`, 'important');
-      } else {
-        browseInterface.style.setProperty('left', sidebarWidth, 'important');
-        browseInterface.style.setProperty('width', `calc(100vw - ${sidebarWidth})`, 'important');
-      }
-      
-      console.log('Browse interface updated - left:', browseInterface.style.left, 'width:', browseInterface.style.width);
+      console.log('Browse interface updated - sidebar collapsed:', isCollapsed);
     }
     
     // Force a reflow to ensure changes take effect

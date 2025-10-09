@@ -110,6 +110,20 @@
                     <div class="form-section">
                         <h4>Booking Settings</h4>
                         <div class="form-group">
+                            <label>Availability Status</label>
+                            <div class="toggle-container" style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem;">
+                                <label class="toggle-switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
+                                    <input type="checkbox" id="isAvailable" {{ 'checked' if current_user.is_available else '' }} style="opacity: 0; width: 0; height: 0;">
+                                    <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;">
+                                        <span class="toggle-knob" style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+                                    </span>
+                                </label>
+                                <span id="availabilityText" style="font-weight: 500; color: {{ '#10b981' if current_user.is_available else '#ef4444' }};">
+                                    {{ 'Available for bookings' if current_user.is_available else 'Not available' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label>Hourly Rate ($)</label>
                             <input type="number" id="hourlyRate" value="{{ current_user.hourly_rate or 0 }}" min="0" step="0.01">
                         </div>
@@ -121,10 +135,6 @@
         
         <!-- Right Panel: Live Preview -->
         <div class="preview-panel">
-            <div class="panel-header">
-                <h3>Live Preview</h3>
-            </div>
-            
             <div class="preview-content">
                 <div class="preview-frame">
                     <div class="profile-preview" id="profilePreview">
@@ -287,14 +297,15 @@ async function saveProfile() {
     try {
         // Collect all form data
         const formData = new FormData();
-        formData.append('full_name', document.getElementById('fullName').value);
+        formData.append('fullName', document.getElementById('fullName').value);
         formData.append('profession', document.getElementById('profession').value);
         formData.append('location', document.getElementById('location').value);
         formData.append('industry', document.getElementById('industry').value);
-        formData.append('hourly_rate', document.getElementById('hourlyRate').value);
-        formData.append('linkedin', document.getElementById('linkedinUrl').value);
-        formData.append('twitter', document.getElementById('twitterUrl').value);
-        formData.append('github', document.getElementById('githubUrl').value);
+        formData.append('hourlyRate', document.getElementById('hourlyRate').value);
+        formData.append('linkedinUrl', document.getElementById('linkedinUrl').value);
+        formData.append('twitterUrl', document.getElementById('twitterUrl').value);
+        formData.append('githubUrl', document.getElementById('githubUrl').value);
+        formData.append('isAvailable', document.getElementById('isAvailable').checked);
         
         // Handle profile image if changed
         const imageInput = document.getElementById('profileImageUpload');
@@ -337,9 +348,35 @@ async function saveProfile() {
     }
 }
 
+// Handle availability toggle
+function handleAvailabilityToggle() {
+    const toggle = document.getElementById('isAvailable');
+    const text = document.getElementById('availabilityText');
+    const slider = document.querySelector('.toggle-slider');
+    
+    if (toggle.checked) {
+        text.textContent = 'Available for bookings';
+        text.style.color = '#10b981';
+        slider.style.backgroundColor = '#10b981';
+    } else {
+        text.textContent = 'Not available';
+        text.style.color = '#ef4444';
+        slider.style.backgroundColor = '#ccc';
+    }
+    
+    updatePreview();
+    enableSaveButton();
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     updatePreview();
+    
+    // Add event listener for availability toggle
+    const availabilityToggle = document.getElementById('isAvailable');
+    if (availabilityToggle) {
+        availabilityToggle.addEventListener('change', handleAvailabilityToggle);
+    }
     
     // Add event listeners to all form fields for immediate updates
     const formFields = ['fullName', 'profession', 'location', 'industry', 'hourlyRate', 'linkedinUrl', 'twitterUrl', 'githubUrl'];

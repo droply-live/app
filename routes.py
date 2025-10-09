@@ -1130,7 +1130,16 @@ def user_profile(username):
     # Get user's availability for booking
     availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
     
-    return render_template('user_profile.html', user=user, availability_rules=availability_rules)
+    # Check if current user has favorited this user
+    is_favorited = False
+    if current_user.is_authenticated:
+        favorite = Favorite.query.filter_by(
+            user_id=current_user.id, 
+            favorited_user_id=user.id
+        ).first()
+        is_favorited = favorite is not None
+    
+    return render_template('user_profile.html', user=user, availability_rules=availability_rules, is_favorited=is_favorited)
 
 @app.route('/user/<username>/book')
 @login_required
@@ -1272,102 +1281,116 @@ def api_profile_update():
         else:
             # Get form data
             full_name = request.form.get('fullName', '').strip()
-        profession = request.form.get('profession', '').strip()
-        bio = request.form.get('bio', '').strip()
-        location = request.form.get('location', '').strip()
-        industry = request.form.get('industry', '').strip()
-        expertise_tags = request.form.get('expertiseTags', '').strip()
+            profession = request.form.get('profession', '').strip()
+            bio = request.form.get('bio', '').strip()
+            location = request.form.get('location', '').strip()
+            industry = request.form.get('industry', '').strip()
+            expertise_tags = request.form.get('expertiseTags', '').strip()
+            hourly_rate = request.form.get('hourlyRate', '').strip()
+            
+            # Social media URLs
+            linkedin_url = request.form.get('linkedinUrl', '').strip()
+            twitter_url = request.form.get('twitterUrl', '').strip()
+            github_url = request.form.get('githubUrl', '').strip()
+            instagram_url = request.form.get('instagramUrl', '').strip()
+            youtube_url = request.form.get('youtubeUrl', '').strip()
+            website_url = request.form.get('websiteUrl', '').strip()
+            
+            # Appearance settings
+            primary_color = request.form.get('primaryColor', '').strip()
+            secondary_color = request.form.get('secondaryColor', '').strip()
+            background_color = request.form.get('backgroundColor', '').strip()
+            font_family = request.form.get('fontFamily', '').strip()
+            font_size = request.form.get('fontSize', '').strip()
+            
+            # Content settings
+            service_description = request.form.get('serviceDescription', '').strip()
+            session_duration = request.form.get('sessionDuration', '').strip()
+            content_description = request.form.get('contentDescription', '').strip()
+            content_categories = request.form.get('contentCategories', '').strip()
+            
+            # Boolean settings
+            is_available = request.form.get('isAvailable')
+            if isinstance(is_available, str):
+                is_available = is_available.lower() == 'true'
+            else:
+                is_available = bool(is_available)
+            email_notifications = request.form.get('emailNotifications') == 'true'
+            show_services = request.form.get('showServices') == 'true'
+            show_content = request.form.get('showContent') == 'true'
         
-        # Social media URLs
-        linkedin_url = request.form.get('linkedinUrl', '').strip()
-        twitter_url = request.form.get('twitterUrl', '').strip()
-        github_url = request.form.get('githubUrl', '').strip()
-        instagram_url = request.form.get('instagramUrl', '').strip()
-        youtube_url = request.form.get('youtubeUrl', '').strip()
-        website_url = request.form.get('websiteUrl', '').strip()
+            # Update user profile
+            if full_name:
+                current_user.full_name = full_name
+            if profession:
+                current_user.profession = profession
+            if bio:
+                current_user.bio = bio
+            if location:
+                current_user.location = location
+            if industry:
+                current_user.industry = industry
+            if expertise_tags:
+                current_user.specialty_tags = expertise_tags
+            if hourly_rate:
+                try:
+                    current_user.hourly_rate = float(hourly_rate)
+                except ValueError:
+                    pass
         
-        # Appearance settings
-        primary_color = request.form.get('primaryColor', '').strip()
-        secondary_color = request.form.get('secondaryColor', '').strip()
-        background_color = request.form.get('backgroundColor', '').strip()
-        font_family = request.form.get('fontFamily', '').strip()
-        font_size = request.form.get('fontSize', '').strip()
+            # Update social media URLs
+            if linkedin_url:
+                current_user.linkedin_url = linkedin_url
+            if twitter_url:
+                current_user.twitter_url = twitter_url
+            if github_url:
+                current_user.github_url = github_url
+            if instagram_url:
+                current_user.instagram_url = instagram_url
+            if youtube_url:
+                current_user.youtube_url = youtube_url
+            if website_url:
+                current_user.website_url = website_url
         
-        # Content settings
-        service_description = request.form.get('serviceDescription', '').strip()
-        session_duration = request.form.get('sessionDuration', '').strip()
-        content_description = request.form.get('contentDescription', '').strip()
-        content_categories = request.form.get('contentCategories', '').strip()
+            # Update appearance settings
+            if primary_color:
+                current_user.primary_color = primary_color
+            if secondary_color:
+                current_user.secondary_color = secondary_color
+            if background_color:
+                current_user.background_color = background_color
+            if font_family:
+                current_user.font_family = font_family
+            if font_size:
+                try:
+                    current_user.font_size = int(font_size)
+                except ValueError:
+                    pass
+            
+            # Update content settings
+            if service_description:
+                current_user.service_description = service_description
+            if session_duration:
+                try:
+                    current_user.session_duration = int(session_duration)
+                except ValueError:
+                    pass
+            if content_description:
+                current_user.content_description = content_description
+            if content_categories:
+                current_user.content_categories = content_categories
+            
+            # Update boolean settings
+            current_user.is_available = is_available
+            current_user.email_notifications = email_notifications
         
-        # Boolean settings
-        is_available = request.form.get('isAvailable') == 'true'
-        email_notifications = request.form.get('emailNotifications') == 'true'
-        show_services = request.form.get('showServices') == 'true'
-        show_content = request.form.get('showContent') == 'true'
-        
-        # Update user profile
-        if full_name:
-            current_user.full_name = full_name
-        if profession:
-            current_user.profession = profession
-        if bio:
-            current_user.bio = bio
-        if location:
-            current_user.location = location
-        if industry:
-            current_user.industry = industry
-        if expertise_tags:
-            current_user.specialty_tags = expertise_tags
-        
-        # Update social media URLs
-        if linkedin_url:
-            current_user.linkedin_url = linkedin_url
-        if twitter_url:
-            current_user.twitter_url = twitter_url
-        if github_url:
-            current_user.github_url = github_url
-        if instagram_url:
-            current_user.instagram_url = instagram_url
-        if youtube_url:
-            current_user.youtube_url = youtube_url
-        if website_url:
-            current_user.website_url = website_url
-        
-        # Update appearance settings
-        if primary_color:
-            current_user.primary_color = primary_color
-        if secondary_color:
-            current_user.secondary_color = secondary_color
-        if background_color:
-            current_user.background_color = background_color
-        if font_family:
-            current_user.font_family = font_family
-        if font_size:
-            try:
-                current_user.font_size = int(font_size)
-            except ValueError:
-                pass
-        
-        # Update content settings
-        if service_description:
-            current_user.service_description = service_description
-        if session_duration:
-            try:
-                current_user.session_duration = int(session_duration)
-            except ValueError:
-                pass
-        if content_description:
-            current_user.content_description = content_description
-        if content_categories:
-            current_user.content_categories = content_categories
-        
-        # Update boolean settings
-        current_user.is_available = is_available
-        current_user.email_notifications = email_notifications
-        
-        # Handle profile image upload
-        if 'profile_image' in request.files:
-            profile_image = request.files['profile_image']
+            # Handle profile image upload
+            profile_image = None
+            if 'profile_image' in request.files:
+                profile_image = request.files['profile_image']
+            elif 'profile_picture' in request.files:
+                profile_image = request.files['profile_picture']
+            
             if profile_image and profile_image.filename:
                 # Generate unique filename
                 import time
@@ -1389,14 +1412,14 @@ def api_profile_update():
                 
                 # Update user's profile picture path
                 current_user.profile_picture = f"/static/uploads/{unique_filename}"
-        
-        # Commit changes
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Profile updated successfully'
-        })
+            
+            # Commit changes
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Profile updated successfully'
+            })
         
     except Exception as e:
         db.session.rollback()
@@ -1734,7 +1757,6 @@ def watch():
                 query = query.filter(User.is_featured_user == True)
             elif category == 'favorites':
                 # Special case for favorites - filter by user's favorites
-                from models import Favorite
                 favorites = Favorite.query.filter_by(user_id=current_user.id).all()
                 expert_ids = [f.favorited_user_id for f in favorites]
                 
@@ -1838,7 +1860,6 @@ def watch():
     # Get current user's favorites for template
     current_user_favorites = []
     if current_user.is_authenticated:
-        from models import Favorite
         favorites = Favorite.query.filter_by(user_id=current_user.id).all()
         current_user_favorites = [f.favorited_user_id for f in favorites]
 
@@ -1882,14 +1903,15 @@ def discover():
             recent_user_ids = [interaction.target_user_id for interaction in recent_interactions]
             query = query.filter(User.id.in_(recent_user_ids))
         else:
-            # No recent views, return empty results
+            # No recent views, return empty results with a message
             experts = []
             return render_template('discover.html', 
                                  users=experts,
                                  now=datetime.now(), 
                                  timedelta=timedelta,
                                  current_user_favorites=[],
-                                 view_type=view_type)
+                                 view_type=view_type,
+                                 no_recent_views=True)
     
     elif view_type == 'favorites' and current_user.is_authenticated:
         # Get user's favorites
@@ -1899,14 +1921,15 @@ def discover():
         if expert_ids:
             query = query.filter(User.id.in_(expert_ids))
         else:
-            # No favorites, return empty results
+            # No favorites, return empty results with a message
             experts = []
             return render_template('discover.html', 
                                  users=experts,
                                  now=datetime.now(), 
                                  timedelta=timedelta,
                                  current_user_favorites=[],
-                                 view_type=view_type)
+                                 view_type=view_type,
+                                 no_favorites=True)
     
     elif view_type == 'browse_all':
         # Browse all users without any filters - just get all available users
@@ -1932,7 +1955,6 @@ def discover():
             if category == 'top':
                 query = query.filter(User.is_featured_user == True)
             elif category == 'favorites':
-                from models import Favorite
                 favorites = Favorite.query.filter_by(user_id=current_user.id).all()
                 expert_ids = [f.favorited_user_id for f in favorites]
                 
@@ -2019,7 +2041,6 @@ def discover():
     # Handle favorites for authenticated users only
     current_user_favorites = []
     if current_user.is_authenticated:
-        from models import Favorite
         favorites = Favorite.query.filter_by(user_id=current_user.id).all()
         current_user_favorites = [f.favorited_user_id for f in favorites]
     
@@ -3210,7 +3231,6 @@ def api_favorites_toggle():
             return jsonify({'success': False, 'error': 'User not found'})
         
         # Check if already favorited
-        from models import Favorite
         existing_favorite = Favorite.query.filter_by(
             user_id=current_user.id, 
             favorited_user_id=user_id

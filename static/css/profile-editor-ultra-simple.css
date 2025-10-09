@@ -9,8 +9,8 @@
 .editor-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    height: calc(100vh - 140px);
+    gap: 1.5rem;
+    height: calc(100vh - 120px);
     max-width: 1600px;
     margin: 0 auto;
 }
@@ -19,15 +19,15 @@
 .form-panel {
     background: #2a2a2a;
     border-radius: 16px;
-    padding: 1.5rem;
+    padding: 1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     border: 1px solid #3a3a3a;
     overflow-y: auto;
 }
 
 .panel-header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
     border-bottom: 1px solid #3a3a3a;
 }
 
@@ -49,7 +49,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .tab-btn {
@@ -94,7 +94,7 @@
 
 /* Form Sections */
 .form-section {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .form-section h4 {
@@ -116,7 +116,7 @@
 }
 
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .form-group label {
@@ -264,21 +264,14 @@
 .preview-panel {
     background: #2a2a2a;
     border-radius: 16px;
-    padding: 1.5rem;
+    padding: 1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     border: 1px solid #3a3a3a;
     display: flex;
     flex-direction: column;
 }
 
-.preview-panel .panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #3a3a3a;
-}
+/* Removed preview panel header styles since header was removed */
 
 .preview-controls {
     display: flex;
@@ -322,11 +315,9 @@
     border-radius: 8px;
     overflow: hidden;
     background: white;
-    min-height: 400px;
-    transform: scale(0.8);
-    transform-origin: top left;
-    width: 125%; /* Compensate for scale */
-    height: 125%; /* Compensate for scale */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .profile-preview {

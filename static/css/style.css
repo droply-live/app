@@ -67,10 +67,9 @@ html, body {
     --money-gradient-premium: linear-gradient(135deg, #D4AF37 0%, #1B4332 100%);
 }
 
-/* Ensure discover-search-section gradient starts at the very top */
+/* Remove duplicate background - now handled by body */
 .discover-search-section {
-    background: linear-gradient(135deg, #1B4332 0%, #2D5A3D 100%) !important;
-    background-position: top;
+    background: transparent !important;
 }
 
 /* Profile Page - Whop Style Overrides - HIGH SPECIFICITY */
@@ -260,10 +259,9 @@ html, body {
     box-shadow: var(--shadow-md);
 }
 
-/* Ensure profile-hero gradient starts at the very top */
+/* Remove duplicate background - now handled by body */
 .profile-hero {
-    background: linear-gradient(135deg, #1B4332 0%, #2D5A3D 100%) !important;
-    background-position: top;
+    background: transparent !important;
 }
 
 /* Remove any border or shadow from the very top of the page */
@@ -883,7 +881,7 @@ body {
 .discover-search-section {
     padding: 1.5rem 0;
     margin-top: 120px !important; /* Ensures search bar is below the nav */
-    background: linear-gradient(135deg, #1B4332 0%, #2D5A3D 100%);
+    background: transparent;
     color: white;
 }
 
@@ -2732,8 +2730,7 @@ small {
 .profile-hero {
     padding-top: 140px !important;
     margin-top: 0 !important;
-    background: linear-gradient(135deg, #1B4332 0%, #2D5A3D 100%) !important;
-    background-position: top !important;
+    background: transparent !important;
 }
 @media (max-width: 768px) {
     .profile-hero {
@@ -3223,7 +3220,7 @@ small {
 .account-main-content {
     flex: 1;
     padding: 0 2rem 2rem 2rem;
-    background: white;
+    background: transparent;
     min-height: calc(100vh - 120px - 120px); /* Subtract header and footer height */
     border-left: 1px solid #e5e5e5;
 }
