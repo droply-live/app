@@ -12,7 +12,7 @@ import json
 # import numpy as np  # Temporarily disabled
 import os
 import stripe
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, time
 
 # Configure timezone to Eastern Time
 EASTERN_TIMEZONE = timezone(timedelta(hours=-4))  # EDT (UTC-4)
@@ -529,7 +529,7 @@ def search_suggestions():
         if len(all_users) == 0:
             # No users in database, return fallback suggestions
             suggestions = [
-                {'text': 'Find experts...', 'value': 'Find experts...', 'subtitle': 'Search for skills', 'icon': '🔍'},
+                {'text': 'Find users...', 'value': 'Find users...', 'subtitle': 'Search for skills', 'icon': '🔍'},
                 {'text': 'Search for skills...', 'value': 'Search for skills...', 'subtitle': 'Discover talent', 'icon': '💡'},
                 {'text': 'Discover talent...', 'value': 'Discover talent...', 'subtitle': 'Find professionals', 'icon': '👥'}
             ]
@@ -808,9 +808,9 @@ def homepage():
                 query = query.filter(or_(*category_conditions))
     
     # Get results
-    experts = query.limit(20).all()
+    users = query.limit(20).all()
     
-    return render_template('homepage.html', users=experts)
+    return render_template('homepage.html', users=users)
 
 
 
@@ -960,7 +960,7 @@ def onboarding():
     print("Rendering onboarding template")
     print(f"User profile data: profession={current_user.profession}, bio={current_user.bio}, industry={current_user.industry}")
     form = OnboardingForm()
-    return render_template('onboarding.html', form=form, expertise_mapping=SKILLS_MAPPING)
+    return render_template('onboarding.html', form=form, skills_mapping=SKILLS_MAPPING)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1028,7 +1028,7 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('homepage'))
 
-# Removed /profile/<username> route - use /expert/<username> instead
+# Removed /profile/<username> route - use /user/<username> instead
 
 @app.route('/edit-profile', methods=['GET', 'POST'])
 @login_required
@@ -1107,7 +1107,7 @@ def profile_preview(username):
         flash('You can only preview your own profile.', 'error')
         return redirect(url_for('profile_setup'))
     
-    # Show the expert profile view for preview
+    # Show the user profile view for preview
     availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
     return render_template('user_profile.html', user=user, availability_rules=availability_rules)
 
@@ -1151,6 +1151,14 @@ def user_booking_times(username):
         # Get user's availability rules
         availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
         
+        # If user has no availability rules, set up default 9-5 weekdays
+        if not availability_rules:
+            print(f"User {user.username} has no availability rules, setting up default 9-5 weekdays")
+            setup_default_availability(user)
+            db.session.commit()
+            # Refresh availability rules
+            availability_rules = AvailabilityRule.query.filter_by(user_id=user.id).all()
+        
         # Get current user's timezone for display
         current_user_timezone = current_user.timezone or 'America/New_York'
         user_timezone = user.timezone or 'America/New_York'
@@ -1174,7 +1182,7 @@ def user_booking_times(username):
                                 'formatted_date': slot['date'].strftime('%B %d, %Y'),
                                 'formatted_time': slot['formatted_time'],
                                 'iso_datetime': slot['start_time'].replace(tzinfo=None).isoformat(),
-                                'user_time': slot['expert_time']
+                                'user_time': slot['provider_time']
                             })
                 except Exception as e:
                     print(f"Error generating slots for date {check_date}: {e}")
@@ -1192,15 +1200,15 @@ def user_booking_times(username):
         return redirect(url_for('user_profile', username=username))
 
 
-@app.route('/expert/<username>/book-immediate')
+@app.route('/user/<username>/book-immediate')
 @login_required
 def book_immediate_meeting(username):
-    """Book an immediate meeting with an expert"""
-    expert = User.query.filter_by(username=username).first_or_404()
+    """Book an immediate meeting with a user"""
+    user = User.query.filter_by(username=username).first_or_404()
     
-    # Check if expert is available
-    if not expert.is_available:
-        flash('This expert is not currently available for immediate meetings.', 'error')
+    # Check if user is available
+    if not user.is_available:
+        flash('This user is not currently available for immediate meetings.', 'error')
         return redirect(url_for('user_profile', username=username))
     
     # Create immediate meeting time (starts in 5 minutes)
@@ -1213,13 +1221,13 @@ def book_immediate_meeting(username):
     datetime_str = meeting_start.isoformat()
     
     # Debug logging
-    print(f"DEBUG: Book Now - Expert: {expert.username}")
+    print(f"DEBUG: Book Now - User: {user.username}")
     print(f"DEBUG: Book Now - Meeting start: {meeting_start}")
     print(f"DEBUG: Book Now - Datetime string: {datetime_str}")
     
     # Redirect to the normal booking confirmation flow
     return redirect(url_for('booking_confirmation', 
-                          user=expert.username, 
+                          user=user.username, 
                           datetime=datetime_str, 
                           duration=30))
 
@@ -1232,8 +1240,8 @@ def profile():
 @app.route('/profile/<username>')
 def public_profile(username):
     """Public profile page for viewing someone's store"""
-    expert = User.query.filter_by(username=username).first_or_404()
-    return render_template('public_profile.html', user=expert)
+    user = User.query.filter_by(username=username).first_or_404()
+    return render_template('public_profile.html', user=user)
 
 @app.route('/settings')
 @login_required
@@ -1270,7 +1278,7 @@ def api_profile_update():
             current_user.service_description = data.get('serviceDescription', current_user.service_description)
             current_user.session_duration = int(data.get('sessionDuration', current_user.session_duration or 30))
             current_user.hourly_rate = float(data.get('hourlyRate', current_user.hourly_rate or 0))
-            current_user.specialty_tags = data.get('expertiseTags', current_user.specialty_tags)
+            current_user.specialty_tags = data.get('skillsTags', current_user.specialty_tags)
             current_user.linkedin_url = data.get('linkedinUrl', current_user.linkedin_url)
             current_user.twitter_url = data.get('twitterUrl', current_user.twitter_url)
             current_user.github_url = data.get('githubUrl', current_user.github_url)
@@ -1285,7 +1293,7 @@ def api_profile_update():
             bio = request.form.get('bio', '').strip()
             location = request.form.get('location', '').strip()
             industry = request.form.get('industry', '').strip()
-            expertise_tags = request.form.get('expertiseTags', '').strip()
+            skills_tags = request.form.get('skillsTags', '').strip()
             hourly_rate = request.form.get('hourlyRate', '').strip()
             
             # Social media URLs
@@ -1330,8 +1338,8 @@ def api_profile_update():
                 current_user.location = location
             if industry:
                 current_user.industry = industry
-            if expertise_tags:
-                current_user.specialty_tags = expertise_tags
+            if skills_tags:
+                current_user.specialty_tags = skills_tags
             if hourly_rate:
                 try:
                     current_user.hourly_rate = float(hourly_rate)
@@ -2254,7 +2262,7 @@ def dashboard():
         pending_actions.append({
             'type': 'stripe',
             'message': 'Set up payments to receive earnings',
-            'url': url_for('expert_stripe_onboarding'),
+            'url': url_for('user_stripe_onboarding'),
             'priority': 'high'
         })
     
@@ -4262,9 +4270,9 @@ def request_payout():
     
     return redirect(url_for('expert_dashboard'))
 
-@app.route('/expert/stripe-onboarding', methods=['GET', 'POST'])
+@app.route('/user/stripe-onboarding', methods=['GET', 'POST'])
 @login_required
-def expert_stripe_onboarding():
+def user_stripe_onboarding():
     """Handle Stripe onboarding for experts"""
     if request.method == 'POST':
         try:
@@ -4303,10 +4311,10 @@ def expert_stripe_onboarding():
         except Exception as e:
             print(f"Error creating Stripe account: {e}")
             flash('Error setting up payment processing. Please try again.', 'error')
-            return redirect(url_for('expert_stripe_onboarding'))
+            return redirect(url_for('user_stripe_onboarding'))
     
     # GET request - show the onboarding page
-    return render_template('expert_stripe_onboarding.html')
+    return render_template('user_stripe_onboarding.html')
 
 @app.route('/expert/complete-verification')
 @login_required
