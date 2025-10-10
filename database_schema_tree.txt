@@ -1,0 +1,264 @@
+Database Schema Tree - Droply App (Merged develop + optimize)
+
+📊 DATABASE STRUCTURE
+├── User (Main user table)
+│   ├── Basic Info
+│   │   ├── id (Primary Key)
+│   │   ├── username (Unique)
+│   │   ├── email (Unique)
+│   │   ├── password_hash
+│   │   ├── full_name
+│   │   ├── phone
+│   │   ├── bio
+│   │   ├── industry
+│   │   ├── profession
+│   │   └── location
+│   ├── Skills & Expertise
+│   │   ├── skills (Legacy field)
+│   │   ├── skills_1 (Primary skill)
+│   │   ├── skills_2 (Secondary skill)
+│   │   ├── skills_3 (Tertiary skill)
+│   │   └── specialty_tags (JSON)
+│   ├── Appearance & Branding
+│   │   ├── profile_picture
+│   │   ├── background_color
+│   │   ├── primary_color
+│   │   ├── secondary_color
+│   │   ├── font_family
+│   │   ├── font_size
+│   │   └── profile_layout
+│   ├── Business & Pricing
+│   │   ├── hourly_rate
+│   │   ├── currency
+│   │   ├── rating
+│   │   ├── rating_count
+│   │   ├── is_available
+│   │   └── is_featured_user
+│   ├── Stripe Payment Integration
+│   │   ├── stripe_account_id
+│   │   ├── stripe_account_status
+│   │   ├── payout_enabled
+│   │   ├── payout_schedule
+│   │   ├── total_earnings
+│   │   ├── total_payouts
+│   │   └── pending_balance
+│   ├── Social Media
+│   │   ├── linkedin_url
+│   │   ├── twitter_url
+│   │   ├── github_url
+│   │   ├── instagram_url
+│   │   ├── facebook_url
+│   │   ├── youtube_url
+│   │   ├── snapchat_url
+│   │   └── website_url
+│   ├── Content & Services
+│   │   ├── service_description
+│   │   ├── session_duration
+│   │   ├── content_description
+│   │   └── content_categories
+│   ├── Google Calendar Integration
+│   │   ├── google_calendar_connected
+│   │   ├── google_calendar_token
+│   │   ├── google_calendar_refresh_token
+│   │   └── google_calendar_id
+│   ├── Referral System
+│   │   ├── referral_code
+│   │   ├── referred_by
+│   │   ├── total_referral_earnings
+│   │   └── referral_count
+│   └── Preferences
+│       ├── language
+│       ├── timezone
+│       └── email_notifications
+
+├── Booking (Service bookings)
+│   ├── Basic Info
+│   │   ├── id (Primary Key)
+│   │   ├── user_id (Booker)
+│   │   ├── provider_id (Service provider)
+│   │   ├── start_time
+│   │   ├── end_time
+│   │   ├── duration
+│   │   ├── status
+│   │   └── created_at
+│   ├── Payment Info
+│   │   ├── payment_status
+│   │   ├── payment_amount
+│   │   ├── stripe_payment_intent_id
+│   │   ├── stripe_session_id
+│   │   ├── client_name
+│   │   ├── client_email
+│   │   └── client_message
+│   └── Video Call Info
+│       ├── meeting_room_id
+│       ├── meeting_url
+│       ├── meeting_started_at
+│       ├── meeting_ended_at
+│       ├── meeting_duration
+│       └── recording_url
+
+├── Favorite (User favorites)
+│   ├── id (Primary Key)
+│   ├── user_id (User who favorited)
+│   ├── favorited_user_id (User being favorited)
+│   └── created_at
+
+├── UserInteraction (Track user behavior)
+│   ├── id (Primary Key)
+│   ├── user_id (User who performed action)
+│   ├── target_user_id (User being viewed/clicked)
+│   ├── interaction_type (view, click, favorite, etc.)
+│   └── created_at
+
+├── AvailabilityRule (User availability)
+│   ├── id (Primary Key)
+│   ├── user_id
+│   ├── weekday
+│   ├── start
+│   ├── end
+│   ├── is_active
+│   ├── created_at
+│   └── updated_at
+
+├── AvailabilityException (Blocked/available times)
+│   ├── id (Primary Key)
+│   ├── user_id
+│   ├── start
+│   ├── end
+│   ├── reason
+│   ├── is_blocked
+│   └── created_at
+
+├── Payout (User earnings)
+│   ├── id (Primary Key)
+│   ├── user_id
+│   ├── amount
+│   ├── currency
+│   ├── stripe_transfer_id
+│   ├── stripe_payout_id
+│   ├── status
+│   ├── created_at
+│   └── paid_at
+
+├── Referral (User referrals)
+│   ├── id (Primary Key)
+│   ├── referrer_id (User who made referral)
+│   ├── referred_user_id (User who was referred)
+│   ├── referral_code
+│   ├── created_at
+│   └── status
+
+├── ReferralReward (Referral earnings)
+│   ├── id (Primary Key)
+│   ├── referrer_id
+│   ├── referred_user_id
+│   ├── booking_id
+│   ├── reward_amount
+│   ├── reward_type
+│   ├── status
+│   ├── created_at
+│   └── paid_at
+
+├── Content (User-created content)
+│   ├── id (Primary Key)
+│   ├── user_id (Content creator)
+│   ├── title
+│   ├── description
+│   ├── content_type
+│   ├── price
+│   ├── file_path
+│   ├── file_size
+│   ├── thumbnail_path
+│   ├── preview_available
+│   ├── preview_path
+│   ├── status
+│   ├── views
+│   ├── purchases
+│   ├── earnings
+│   ├── created_at
+│   └── updated_at
+
+├── ContentPurchase (Content sales)
+│   ├── id (Primary Key)
+│   ├── buyer_id
+│   ├── content_id
+│   ├── amount_paid
+│   ├── payment_status
+│   ├── stripe_payment_intent_id
+│   └── created_at
+
+├── DropinSession (Live Q&A sessions)
+│   ├── id (Primary Key)
+│   ├── host_id
+│   ├── topic
+│   ├── description
+│   ├── max_participants
+│   ├── current_participants
+│   ├── is_active
+│   ├── is_anonymous
+│   ├── session_code
+│   ├── created_at
+│   ├── started_at
+│   ├── ended_at
+│   └── duration_minutes
+
+├── DropinParticipant (Session participants)
+│   ├── id (Primary Key)
+│   ├── session_id
+│   ├── user_id (Nullable for anonymous)
+│   ├── anonymous_name
+│   ├── joined_at
+│   ├── left_at
+│   └── is_active
+
+├── DropinMessage (Session messages)
+│   ├── id (Primary Key)
+│   ├── session_id
+│   ├── participant_id
+│   ├── message_type
+│   ├── content
+│   ├── is_anonymous
+│   └── created_at
+
+├── AIMatch (AI-powered matching)
+│   ├── id (Primary Key)
+│   ├── user_id
+│   ├── matched_user_id
+│   ├── query
+│   ├── match_score
+│   ├── match_reasons
+│   ├── created_at
+│   ├── is_viewed
+│   └── is_acted_upon
+
+└── Category (Content categories)
+    ├── id (Primary Key)
+    ├── name
+    ├── category_type
+    └── is_active
+
+🔗 KEY RELATIONSHIPS:
+- User → Booking (as user_id and provider_id)
+- User → Favorite (as user_id and favorited_user_id)
+- User → UserInteraction (as user_id and target_user_id)
+- User → AvailabilityRule (one-to-many)
+- User → AvailabilityException (one-to-many)
+- User → Payout (one-to-many)
+- User → Referral (as referrer_id and referred_user_id)
+- User → Content (one-to-many)
+- Booking → ReferralReward (one-to-many)
+- DropinSession → DropinParticipant (one-to-many)
+- DropinSession → DropinMessage (one-to-many)
+
+🎯 KEY FEATURES SUPPORTED:
+✅ User profiles with customizable branding
+✅ Stripe payment integration
+✅ Video calling with Daily.co + WebRTC fallback
+✅ Google Calendar integration
+✅ AI-powered user matching
+✅ Drop-in Q&A sessions
+✅ Content creation and sales
+✅ Referral system with rewards
+✅ Availability management
+✅ User interaction tracking
+✅ Earnings and payout management

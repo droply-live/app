@@ -810,7 +810,7 @@ def homepage():
     # Get results
     users = query.limit(20).all()
     
-    return render_template('homepage.html', users=users)
+    return render_template('homepage.html', users=users, search_query=search_query, category=category)
 
 
 
@@ -1227,7 +1227,7 @@ def book_immediate_meeting(username):
     
     # Redirect to the normal booking confirmation flow
     return redirect(url_for('booking_confirmation', 
-                          user=user.username, 
+                          expert=user.username, 
                           datetime=datetime_str, 
                           duration=30))
 
@@ -2442,11 +2442,12 @@ def booking_success(booking_id):
     """Booking success page - redirects to bookings with success message"""
     booking = Booking.query.get_or_404(booking_id)
     booking.payment_status = 'paid'
-    # Do NOT auto-confirm; leave as 'pending' for expert to accept/decline
+    booking.status = 'confirmed'  # Auto-confirm for immediate meetings
     db.session.commit()
     
+    print(f"DEBUG: Booking {booking_id} updated - payment_status: {booking.payment_status}, status: {booking.status}")
     
-    flash('🎉 Payment successful! Your booking request has been sent to the expert for approval.', 'success')
+    flash('🎉 Payment successful! Your booking is confirmed.', 'success')
     return redirect(url_for('bookings'))
 
 @app.route('/booking/cancel/<int:booking_id>')
@@ -2488,44 +2489,49 @@ def export_calendar(username):
 def bookings():
     """View user's bookings and calendar"""
     from models import Booking, User
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
     from sqlalchemy import func
     
     now = datetime.now(EASTERN_TIMEZONE)
     
     # Bookings where the user is the booker (client) - only show paid bookings
+    # Use a more flexible time comparison to handle timezone issues
     upcoming_as_client = Booking.query.filter(
         (Booking.user_id == current_user.id) &
-        (func.datetime(Booking.start_time) >= now.replace(tzinfo=None)) &
+        (Booking.start_time >= now.replace(tzinfo=None) - timedelta(hours=1)) &  # Allow 1 hour buffer
         (Booking.payment_status == 'paid')
     ).order_by(Booking.start_time.asc()).all()
     
     past_as_client = Booking.query.filter(
         (Booking.user_id == current_user.id) &
-        (func.datetime(Booking.start_time) < now.replace(tzinfo=None)) &
+        (Booking.start_time < now.replace(tzinfo=None) - timedelta(hours=1)) &  # Allow 1 hour buffer
         (Booking.payment_status == 'paid')
     ).order_by(Booking.start_time.desc()).all()
     
     # Bookings where the user is the expert (provider) - only show paid bookings
     upcoming_as_expert = Booking.query.filter(
         (Booking.provider_id == current_user.id) &
-        (func.datetime(Booking.start_time) >= now.replace(tzinfo=None)) &
+        (Booking.start_time >= now.replace(tzinfo=None) - timedelta(hours=1)) &  # Allow 1 hour buffer
         (Booking.payment_status == 'paid')
     ).order_by(Booking.start_time.asc()).all()
     
     past_as_expert = Booking.query.filter(
         (Booking.provider_id == current_user.id) &
-        (func.datetime(Booking.start_time) < now.replace(tzinfo=None)) &
+        (Booking.start_time < now.replace(tzinfo=None) - timedelta(hours=1)) &  # Allow 1 hour buffer
         (Booking.payment_status == 'paid')
     ).order_by(Booking.start_time.desc()).all()
     
     # Debug prints
     print(f"DEBUG: Current user ID: {current_user.id}")
     print(f"DEBUG: Current time: {now}")
+    print(f"DEBUG: Upcoming as client count: {len(upcoming_as_client)}")
     print(f"DEBUG: Upcoming as expert count: {len(upcoming_as_expert)}")
+    print(f"DEBUG: Past as client count: {len(past_as_client)}")
     print(f"DEBUG: Past as expert count: {len(past_as_expert)}")
+    for booking in upcoming_as_client:
+        print(f"DEBUG: Upcoming client booking ID {booking.id}, start_time: {booking.start_time}, status: {booking.status}")
     for booking in upcoming_as_expert:
-        print(f"DEBUG: Upcoming booking ID {booking.id}, start_time: {booking.start_time}, status: {booking.status}")
+        print(f"DEBUG: Upcoming expert booking ID {booking.id}, start_time: {booking.start_time}, status: {booking.status}")
     
     # Convert times to local timezone for display
     def convert_booking_times(booking_list):
@@ -2539,6 +2545,7 @@ def bookings():
     upcoming_as_expert = convert_booking_times(upcoming_as_expert)
     past_as_expert = convert_booking_times(past_as_expert)
     
+    print("🚨🚨🚨 BOOKINGS ROUTE CALLED - TEMPLATE SHOULD BE UPDATED 🚨🚨🚨")
     return render_template('bookings.html', 
                          user=current_user, 
                          upcoming_as_client=upcoming_as_client,
@@ -3913,6 +3920,36 @@ def booking_confirmation():
         print(f"DEBUG: Redirect URL: {url_for('create_checkout_session', booking_id=booking.id)}")
         return redirect(url_for('create_checkout_session', booking_id=booking.id))
 
+@app.route('/debug/booking/<int:booking_id>')
+@login_required
+def debug_booking(booking_id):
+    """Debug booking status"""
+    booking = Booking.query.get_or_404(booking_id)
+    return f"""
+    <h3>Booking Debug Info</h3>
+    <p>ID: {booking.id}</p>
+    <p>Status: {booking.status}</p>
+    <p>Payment Status: {booking.payment_status}</p>
+    <p>Start Time: {booking.start_time}</p>
+    <p>End Time: {booking.end_time}</p>
+    <p>User ID: {booking.user_id}</p>
+    <p>Provider ID: {booking.provider_id}</p>
+    <p>Can Join: {booking.can_join_meeting()}</p>
+    <p>Is Ongoing: {booking.is_ongoing()}</p>
+    <p>Payment Amount: {booking.payment_amount}</p>
+    <p><a href="/fix-booking/{booking_id}">Fix Payment Status</a></p>
+    """
+
+@app.route('/fix-booking/<int:booking_id>')
+@login_required
+def fix_booking(booking_id):
+    """Manually fix booking payment status"""
+    booking = Booking.query.get_or_404(booking_id)
+    booking.payment_status = 'paid'
+    booking.status = 'confirmed'
+    db.session.commit()
+    return redirect(url_for('bookings'))
+
 @app.route('/debug/calendar/<username>')
 @login_required
 def debug_calendar(username):
@@ -4820,7 +4857,7 @@ def join_meeting(booking_id):
     
     # Determine the other participant
     if current_user.id == booking.user_id:
-        other_user = booking.expert
+        other_user = booking.provider
         is_owner = False
     else:
         other_user = booking.user
@@ -4836,11 +4873,14 @@ def join_meeting(booking_id):
                              booking=booking, 
                              other_user=other_user)
     
-    # For now, always use simple WebRTC to ensure controls are visible
-    print(f"[DEBUG] Using simple WebRTC for guaranteed control visibility")
-    return render_template('meeting_simple.html', 
+    # Use Daily.co for enhanced video calling features
+    print(f"[DEBUG] Using Daily.co for enhanced video calling")
+    return render_template('meeting_daily.html', 
                          booking=booking, 
-                         other_user=other_user)
+                         other_user=other_user,
+                         room_url=booking.meeting_url,
+                         room_name=booking.meeting_room_id,
+                         is_owner=is_owner)
     
     # Use the Daily.co template for video calling (commented out for now)
     # return render_template('meeting_daily.html', 
@@ -4935,7 +4975,7 @@ def test_meeting(booking_id):
             token = "test-token"
         
         # Determine the other participant
-        other_user = booking.expert
+        other_user = booking.provider
         
         # Use Daily.co template
         template_name = 'meeting.html'
@@ -4962,7 +5002,7 @@ def simple_test_meeting(booking_id):
         db.session.commit()
         
         # Determine the other participant
-        other_user = booking.expert
+        other_user = booking.provider
         
         # Always use simple template
         return render_template('meeting_simple.html', 
@@ -4988,7 +5028,7 @@ def force_simple_meeting(booking_id):
         
         # Determine the other participant
         if current_user.id == booking.user_id:
-            other_user = booking.expert
+            other_user = booking.provider
         else:
             other_user = booking.user
         
@@ -5052,7 +5092,7 @@ def daily_test(booking_id):
         db.session.commit()
         
         # Determine the other participant
-        other_user = booking.expert
+        other_user = booking.provider
         
         return render_template('meeting.html', 
                              booking=booking, 
@@ -5128,7 +5168,7 @@ def test_meeting_auth(booking_id):
             db.session.refresh(booking)
         
         # Get the other participant
-        other_user = booking.expert
+        other_user = booking.provider
         
         # Use the working Daily.co template
         return render_template('meeting_daily.html', 

@@ -30,13 +30,15 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 # For local development, use HTTP; for production, use HTTPS
 if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG') == '1':
     app.config['PREFERRED_URL_SCHEME'] = 'http'
-    app.config['SERVER_NAME'] = 'localhost:5001'
+    # Removed SERVER_NAME to avoid routing issues in development
+    print("✅ Running in DEVELOPMENT mode - SERVER_NAME not set")
 else:
     app.config['PREFERRED_URL_SCHEME'] = 'https'
     # Set production domain if provided
     production_domain = os.environ.get('YOUR_DOMAIN', '').replace('https://', '').replace('http://', '')
     if production_domain:
         app.config['SERVER_NAME'] = production_domain
+        print(f"⚠️  Running in PRODUCTION mode - SERVER_NAME set to: {production_domain}")
 
 # Debug: Print loaded credentials (remove in production)
 print(f"Loaded GOOGLE_CLIENT_ID: {app.config['GOOGLE_CLIENT_ID']}")

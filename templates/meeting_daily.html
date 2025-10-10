@@ -180,6 +180,8 @@ async function initializeCall() {
         }
 
         console.log('Initializing call with room URL:', roomUrl);
+        console.log('Room URL type:', typeof roomUrl);
+        console.log('Room URL value:', roomUrl);
 
         callObject = DailyIframe.createFrame(document.getElementById('video-container'), {
             iframeStyle: {

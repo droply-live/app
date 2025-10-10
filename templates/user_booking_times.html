@@ -881,7 +881,7 @@ function selectTimeSlot(time, container) {
   confirmBtn.textContent = 'Confirm';
   confirmBtn.onclick = (e) => {
     e.stopPropagation();
-    window.location.href = `/booking/confirm?user=${window.userUsername}&datetime=${time.iso_datetime}&duration=30`;
+    window.location.href = `/booking/confirm?expert=${window.userUsername}&datetime=${time.iso_datetime}&duration=30`;
   };
   
   // Adjust time slot styling and make it non-interactive
