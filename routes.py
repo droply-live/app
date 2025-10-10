@@ -3778,7 +3778,7 @@ def join_meeting(booking_id):
     
     # Determine the other participant
     if current_user.id == booking.user_id:
-        other_user = booking.expert
+        other_user = booking.provider
         is_owner = False
     else:
         other_user = booking.user
@@ -3972,7 +3972,7 @@ def test_meeting(booking_id):
             token = "test-token"
         
         # Determine the other participant
-        other_user = booking.expert
+        other_user = booking.provider
         
         # Use Daily.co template
         template_name = 'meeting.html'
@@ -3999,7 +3999,7 @@ def simple_test_meeting(booking_id):
         db.session.commit()
         
         # Determine the other participant
-        other_user = booking.expert
+        other_user = booking.provider
         
         # Always use simple template
         return render_template('meeting_simple.html', 
@@ -4025,7 +4025,7 @@ def force_simple_meeting(booking_id):
         
         # Determine the other participant
         if current_user.id == booking.user_id:
-            other_user = booking.expert
+            other_user = booking.provider
         else:
             other_user = booking.user
         
@@ -4089,7 +4089,7 @@ def daily_test(booking_id):
         db.session.commit()
         
         # Determine the other participant
-        other_user = booking.expert
+        other_user = booking.provider
         
         return render_template('meeting.html', 
                              booking=booking, 
@@ -4165,7 +4165,7 @@ def test_meeting_auth(booking_id):
             db.session.refresh(booking)
         
         # Get the other participant
-        other_user = booking.expert
+        other_user = booking.provider
         
         # Use the working Daily.co template
         return render_template('meeting_daily.html', 
