@@ -1,0 +1,786 @@
+/* Modern Profile Page - Dark Theme Design Following Earnings Page Patterns */
+
+/* Reset and Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+.profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  background: #2a2a2a !important;
+  min-height: 100vh;
+  color: #ffffff;
+}
+
+/* Force dark theme for all profile page elements */
+.profile-container * {
+  color: inherit;
+}
+
+.profile-container h1,
+.profile-container h2,
+.profile-container h3,
+.profile-container h4,
+.profile-container h5,
+.profile-container h6 {
+  color: #ffffff !important;
+}
+
+.profile-container p,
+.profile-container span,
+.profile-container div {
+  color: #ffffff !important;
+}
+
+.profile-container .text-muted {
+  color: #9ca3af !important;
+}
+
+.profile-container .text-secondary {
+  color: #6b7280 !important;
+}
+
+/* Override any white backgrounds that might be inherited */
+.profile-container,
+.profile-container > *,
+.profile-container .profile-header,
+.profile-container .profile-content,
+.profile-container .services-section,
+.profile-container .booking-section,
+.profile-container .testimonials-section {
+  background: transparent !important;
+}
+
+/* Ensure the main content area has dark background */
+body {
+  background: #2a2a2a !important;
+}
+
+.main-content {
+  background: #2a2a2a !important;
+}
+
+.content-wrapper {
+  background: #2a2a2a !important;
+}
+
+/* Mobile Header */
+.mobile-header {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-title i {
+  color: #10b981;
+  font-size: 1.5rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: #3a3a3a;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.action-btn:hover {
+  background: #10b981;
+  color: white;
+}
+
+.favorite-btn.favorited {
+  background: #ef4444;
+  color: white;
+}
+
+/* Profile Header Section */
+.profile-header {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
+  text-align: center;
+}
+
+.profile-image-container {
+  position: relative;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+}
+
+.profile-hero-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #3a3a3a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.profile-hero-image:hover {
+}
+
+.verified-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  background: #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: 3px solid #2a2a2a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 1rem;
+}
+
+.profile-hero-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+}
+
+.profile-hero-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #9ca3af;
+}
+
+.profile-hero-location {
+  font-size: 1rem;
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #9ca3af;
+}
+
+/* Social Media Icons */
+.profile-social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #3a3a3a;
+  border: 1px solid #4a4a4a;
+  color: #9ca3af;
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+
+.social-icon:hover {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  text-decoration: none;
+}
+
+/* Profile Content Grid */
+.profile-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Content Sections */
+.content-section {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  border-radius: 2px;
+}
+
+/* Bio Content */
+.bio-content p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #d1d5db;
+  margin: 0;
+}
+
+/* Expertise Grid */
+.userise-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.skill-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #3a3a3a;
+  border-radius: 12px;
+  border: 1px solid #4a4a4a;
+}
+
+.skill-card:hover {
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+}
+
+.skill-card i {
+  color: #10b981;
+  font-size: 1.2rem;
+}
+
+.skill-card span {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+/* Portfolio Grid */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.portfolio-item {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.portfolio-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #3a3a3a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  border: 2px dashed #4a4a4a;
+}
+
+.portfolio-placeholder:hover {
+  background: #4a4a4a;
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.portfolio-placeholder i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.portfolio-placeholder span {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Services Section */
+.services-section {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
+}
+
+.services-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.services-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.service-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  background: #3a3a3a;
+  border-radius: 12px;
+  border: 1px solid #4a4a4a;
+  margin-bottom: 1rem;
+}
+
+.service-item:hover {
+  border-color: #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+}
+
+.service-item:last-child {
+  margin-bottom: 0;
+}
+
+.service-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.service-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.service-info {
+  flex: 1;
+}
+
+.service-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 0.25rem 0;
+}
+
+.service-desc {
+  color: #9ca3af;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.service-price {
+  text-align: right;
+}
+
+.price-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.price-unit {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin-left: 0.25rem;
+}
+
+.service-item.charity {
+  background: linear-gradient(135deg, #3a3a3a 0%, #4a4a4a 100%);
+  border-color: #f59e0b;
+}
+
+.service-item.charity .service-icon {
+  background: #f59e0b;
+}
+
+/* Tip Jar */
+.tip-jar {
+  background: #3a3a3a;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid #4a4a4a;
+  margin-top: 1rem;
+}
+
+.tip-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+}
+
+.tip-desc {
+  color: #9ca3af;
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+}
+
+.tip-amounts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.tip-btn {
+  padding: 0.75rem 1rem;
+  background: #2a2a2a;
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.tip-btn:hover {
+  background: #4a4a4a;
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.tip-btn.custom {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.tip-btn.custom:hover {
+  background: #047857;
+}
+
+/* Booking Section */
+.booking-section {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
+}
+
+.booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.booking-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.availability-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.availability-status i {
+  color: #10b981;
+  font-size: 0.8rem;
+}
+
+.book-now-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 1rem;
+}
+
+.book-now-btn:hover {
+  background: #047857;
+  color: white;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.booking-footer {
+  text-align: center;
+}
+
+.booking-note {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.booking-note i {
+  color: #10b981;
+}
+
+/* Industry Badge */
+.industry-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+.industry-content {
+  margin-top: 0.5rem;
+}
+
+/* Testimonials Section */
+.testimonials-section {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a3a;
+  color: #ffffff;
+}
+
+.testimonials-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+}
+
+.testimonial-item {
+  background: #3a3a3a;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid #4a4a4a;
+}
+
+.testimonial-content {
+  margin-bottom: 1rem;
+}
+
+.testimonial-content p {
+  color: #d1d5db;
+  font-style: italic;
+  margin: 0;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.author-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.author-info {
+  flex: 1;
+}
+
+.author-name {
+  font-weight: 600;
+  color: #ffffff;
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.testimonial-rating {
+  display: flex;
+  gap: 0.125rem;
+}
+
+.testimonial-rating i {
+  color: #fbbf24;
+  font-size: 0.8rem;
+}
+
+/* Responsive Design */
+@media (min-width: 640px) {
+  .profile-container {
+    padding: 2rem;
+  }
+  
+  .profile-content {
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+  }
+  
+  .userise-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .portfolio-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .tip-amounts {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .profile-container {
+    padding: 2.5rem;
+  }
+  
+  .profile-header {
+    padding: 2.5rem;
+  }
+  
+  .content-section,
+  .services-section,
+  .booking-section,
+  .testimonials-section {
+    padding: 2rem;
+  }
+  
+  .profile-hero-image {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .profile-hero-name {
+    font-size: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .profile-container {
+    padding: 3rem;
+  }
+  
+  .profile-content {
+    gap: 2.5rem;
+  }
+  
+  .userise-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .portfolio-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .profile-hero-image {
+    width: 180px;
+    height: 180px;
+  }
+  
+  .profile-hero-name {
+    font-size: 2.25rem;
+  }
+}
+
+
+/* Focus States for Accessibility */
+.action-btn:focus,
+.social-icon:focus,
+.tip-btn:focus,
+.book-now-btn:focus {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .content-section,
+  .services-section,
+  .booking-section,
+  .testimonials-section {
+    border: 2px solid #000;
+  }
+  
+  .service-item,
+  .testimonial-item {
+    border: 1px solid #000;
+  }
+}
+

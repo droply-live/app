@@ -2,925 +2,416 @@
 
 {% block title %}Bookings - Droply{% endblock %}
 
-{% block content %}
-<div class="container-fluid h-100 d-flex align-items-start justify-content-center" style="min-height: 100vh; overflow: hidden; padding-top: 2vh;">
-    <div class="container">
-        <!-- Bookings Content -->
-        <div class="row" id="bookings-content" style="opacity: 0; transition: opacity 0.3s ease;">
-            <!-- Main Bookings Card -->
-            <div class="col-12">
-                <div class="card bookings-card">
-                    <div class="card-header">
-                        <h6 class="mb-0 text-center">
-                            <i class="fas fa-calendar-check me-2"></i>
-                            Bookings Management
-                        </h6>
-  </div>
-                    <div class="card-body">
-                        <!-- Flash Messages -->
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                            {% if messages %}
-                                <div class="flash-messages-container">
-                                    {% for category, message in messages %}
-                                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} flash-message">
-                                            {{ message }}
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        {% endwith %}
-                        <!-- Three Column Layout -->
-                        <div class="bookings-columns-container">
-                            <!-- Received Bookings Column -->
-                            <div class="bookings-column">
-                                <div class="column-header">
-                                    <h6 class="column-title text-center">
-                                        <i class="fas fa-users me-2"></i>
-                                        Received
-        {% set pending_count = (upcoming_as_expert|selectattr('status', 'equalto', 'pending')|list|length) %}
-        {% if pending_count > 0 %}
-                                        <span class="header-badge warning">{{ pending_count }}</span>
-        {% endif %}
-                                    </h6>
-    </div>
-                                <div class="column-content">
-        {% set pending_bookings = upcoming_as_expert|selectattr('status', 'equalto', 'pending')|list %}
-        {% set confirmed_upcoming = upcoming_as_expert|selectattr('status', 'equalto', 'confirmed')|list %}
-        
-        {% if not pending_bookings and not confirmed_upcoming %}
-                                    <div class="empty-state-compact">
-                                        <div class="empty-icon-compact">
-          <i class="fas fa-users"></i>
-                                        </div>
-                                        <h6>No Bookings Received</h6>
-                                        <p>When clients book sessions with you, they'll appear here.</p>
-        </div>
-        {% else %}
-                                    
-        <!-- Pending Bookings Section -->
-        {% if pending_bookings %}
-                                    <div class="bookings-section-compact">
-                                        <h6 class="section-title-compact">
-                                            <i class="fas fa-clock me-2"></i>
-                                            Pending ({{ pending_bookings|length }})
-                                        </h6>
-                                        <div class="bookings-list-compact">
-            {% for booking in pending_bookings %}
-                                            <div class="booking-item pending">
-                                                <div class="booking-item-header">
-                                                    <div class="client-info-compact">
-                                                        <div class="client-avatar-compact">
-                                                            <i class="fas fa-user"></i>
-                                                        </div>
-                                                        <div class="client-details-compact">
-                                                            <h6 class="client-name-compact">{{ booking.user.full_name or booking.user.username }}</h6>
-                                                            <p class="booking-time-compact">
-                                                                {{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}
-                                                            </p>
-                                                        </div>
-                </div>
-                  {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
-                                                    <div class="payment-amount-compact">${{ "%.2f"|format(booking.payment_amount) }}</div>
-                  {% endif %}
-                </div>
-                                                
-              {% if booking.client_message %}
-                                                <div class="booking-message-compact">
-                                                    <i class="fas fa-comment me-1"></i>
-                                                    {{ booking.client_message }}
-              </div>
-              {% endif %}
-                                                
-                                                <div class="booking-actions-compact">
-                <!-- DEBUG: Booking ID: {{ booking.id }}, Status: {{ booking.status }}, Can Join: {{ booking.can_join_meeting() }}, Is Ongoing: {{ booking.is_ongoing() }} -->
-                {% if booking.can_join_meeting() %}
-                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
-                                                       class="btn btn-primary btn-xs">
-                                                        <i class="fas fa-video"></i> Join
-                </a>
-                {% elif booking.is_ongoing() %}
-                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
-                                                       class="btn btn-primary btn-xs">
-                                                        <i class="fas fa-video"></i> Join
-                </a>
-                {% endif %}
-                <a href="{{ url_for('accept_booking', booking_id=booking.id) }}" 
-                                                       class="btn btn-success btn-xs"
-                   onclick="return confirm('Accept this booking request?')">
-                  <i class="fas fa-check"></i> Accept
-                </a>
-                <a href="{{ url_for('decline_booking', booking_id=booking.id) }}" 
-                                                       class="btn btn-outline-danger btn-xs"
-                   onclick="return confirm('Decline this booking request? Payment will be refunded.')">
-                  <i class="fas fa-times"></i> Decline
-                </a>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- Confirmed Upcoming Bookings Section -->
-        {% if confirmed_upcoming %}
-                                    <div class="bookings-section-compact">
-                                        <h6 class="section-title-compact">
-                                            <i class="fas fa-calendar-check me-2"></i>
-                                            Confirmed ({{ confirmed_upcoming|length }})
-                                        </h6>
-                                        <div class="bookings-list-compact">
-            {% for booking in confirmed_upcoming %}
-                                            <div class="booking-item confirmed">
-                                                <div class="booking-item-header">
-                                                    <div class="client-info-compact">
-                                                        <div class="client-avatar-compact">
-                                                            <i class="fas fa-user"></i>
-                                                        </div>
-                                                        <div class="client-details-compact">
-                                                            <h6 class="client-name-compact">{{ booking.user.full_name or booking.user.username }}</h6>
-                                                            <p class="booking-time-compact">
-                                                                {{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}
-                                                            </p>
-                                                        </div>
-                </div>
-                  {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
-                                                    <div class="payment-amount-compact">${{ "%.2f"|format(booking.payment_amount) }}</div>
-                  {% endif %}
-                </div>
-                                                
-                                                <div class="booking-actions-compact">
-                <!-- DEBUG: Booking ID: {{ booking.id }}, Status: {{ booking.status }}, Can Join: {{ booking.can_join_meeting() }}, Is Ongoing: {{ booking.is_ongoing() }} -->
-                {% if booking.can_join_meeting() %}
-                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
-                                                       class="btn btn-success btn-xs">
-                                                        <i class="fas fa-video"></i> Join
-                </a>
-                {% elif booking.is_ongoing() %}
-                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
-                                                       class="btn btn-success btn-xs">
-                                                        <i class="fas fa-video"></i> Join
-                </a>
-                {% else %}
-                                                    <span class="meeting-status-compact">
-                                                        <i class="fas fa-clock me-1"></i>
-                  {% if (booking.start_time|to_eastern) > now %}
-                                                            {{ (((booking.start_time|to_eastern) - now).total_seconds() / 3600)|round(1) }}h
-                  {% else %}
-                                                            Passed
-                  {% endif %}
-                </span>
-                {% endif %}
-                <button onclick="cancelBooking({{ booking.id }}, 'expert')" 
-                                                       class="btn btn-outline-danger btn-xs">
-                                                        <i class="fas fa-times"></i> Cancel
-                </button>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-        {% endif %}
-          </div>
-        </div>
-
-                            <!-- Scheduled Sessions Column -->
-                            <div class="bookings-column">
-                                <div class="column-header">
-                                    <h6 class="column-title text-center">
-                                        <i class="fas fa-calendar me-2"></i>
-                                        Scheduled
-                                        {% set my_bookings_count = upcoming_as_client|length %}
-                                        {% if my_bookings_count > 0 %}
-                                        <span class="header-badge">{{ my_bookings_count }}</span>
-                                        {% endif %}
-                                    </h6>
-                                </div>
-                                <div class="column-content">
-        {% if upcoming_as_client %}
-                                    <div class="bookings-section-compact">
-                                        <h6 class="section-title-compact">
-                                            <i class="fas fa-calendar me-2"></i>
-                                            Upcoming ({{ upcoming_as_client|length }})
-                                        </h6>
-                                        <div class="bookings-list-compact">
-            {% for booking in upcoming_as_client %}
-                                            <div class="booking-item confirmed">
-                                                <div class="booking-item-header">
-                                                    <div class="client-info-compact">
-                                                        <div class="client-avatar-compact">
-                                                            <i class="fas fa-user-tie"></i>
-                                                        </div>
-                                                        <div class="client-details-compact">
-                                                            <h6 class="client-name-compact">{{ booking.expert.full_name or booking.expert.username }}</h6>
-                                                            <p class="booking-time-compact">
-                                                                {{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}
-                                                            </p>
-                                                        </div>
-                </div>
-                  {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
-                                                    <div class="payment-amount-compact">${{ "%.2f"|format(booking.payment_amount) }}</div>
-                  {% endif %}
-                </div>
-                                                
-                                                <div class="booking-actions-compact">
-                <!-- DEBUG: Booking ID: {{ booking.id }}, Status: {{ booking.status }}, Can Join: {{ booking.can_join_meeting() }}, Is Ongoing: {{ booking.is_ongoing() }} -->
-                {% if booking.can_join_meeting() %}
-                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
-                                                       class="btn btn-success btn-xs">
-                                                        <i class="fas fa-video"></i> Join
-                </a>
-                {% elif booking.is_ongoing() %}
-                <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
-                                                       class="btn btn-success btn-xs">
-                                                        <i class="fas fa-video"></i> Join
-                </a>
-                {% else %}
-                                                    <span class="meeting-status-compact">
-                                                        <i class="fas fa-clock me-1"></i>
-                  {% if (booking.start_time|to_eastern) > now %}
-                                                            {{ (((booking.start_time|to_eastern) - now).total_seconds() / 3600)|round(1) }}h
-                  {% else %}
-                                                            Passed
-                  {% endif %}
-                </span>
-                {% endif %}
-                <button onclick="cancelBooking({{ booking.id }}, 'client')" 
-                                                       class="btn btn-outline-danger btn-xs">
-                                                        <i class="fas fa-times"></i> Cancel
-                </button>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% else %}
-                                    <div class="empty-state-compact">
-                                        <div class="empty-icon-compact">
-          <i class="fas fa-calendar"></i>
-                                        </div>
-                                        <h6>No Bookings Yet</h6>
-                                        <p>You haven't booked any sessions yet.</p>
-                                        <a href="{{ url_for('search') }}" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-search me-1"></i>
-            Search Users
-          </a>
-        </div>
-        {% endif %}
-          </div>
-        </div>
-
-                            <!-- Past Sessions Column -->
-                            <div class="bookings-column">
-                                <div class="column-header">
-                                    <h6 class="column-title text-center">
-                                        <i class="fas fa-history me-2"></i>
-                                        Past Sessions
-                                    </h6>
-                                </div>
-                                <div class="column-content">
-                                    <div class="empty-state-compact">
-                                        <div class="empty-icon-compact">
-          <i class="fas fa-history"></i>
-                                        </div>
-                                        <h6>No Past Sessions</h6>
-          <p>Your completed sessions will appear here once you have some sessions under your belt.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bookings.css') }}?v={{ range(1000, 9999) | random }}">
 <style>
-/* Page Layout - Prevent Scrolling and Center Content */
-body {
-    overflow: hidden;
-    height: 100vh;
-}
-
-.container-fluid {
-    padding: 0;
-    margin: 0;
-}
-
-/* Bookings Card */
-.bookings-card {
-    border: 1px solid #e9ecef;
-    border-radius: 12px;
-    box-shadow: none;
-    max-height: 80vh;
-    overflow: hidden;
-}
-
-/* Flash Messages */
-.flash-messages-container {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-    width: 90%;
-    max-width: 500px;
-    pointer-events: none;
-}
-
-.flash-message {
-    border-radius: 8px;
-    border: none;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 12px 16px;
-    margin-bottom: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    position: relative;
-    z-index: 1000;
-    animation: slideDown 0.3s ease-out;
-    pointer-events: auto;
-    text-align: center;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.alert-danger {
-    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-    color: #dc2626;
-    border-left: 4px solid #ef4444;
-}
-
-.alert-success {
-    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-    color: #16a34a;
-    border-left: 4px solid #22c55e;
-}
-
-.alert-warning {
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-    color: #d97706;
-    border-left: 4px solid #f59e0b;
-}
-
-.bookings-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-    transform: none !important;
-}
-
-.bookings-card .card-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-bottom: 1px solid #dee2e6;
-    border-radius: 12px 12px 0 0;
-    padding: 20px 24px;
-}
-
-.bookings-card .card-header h6 {
-    color: #495057;
-    font-weight: 600;
-    font-size: 18px;
-}
-
-.bookings-card .card-body {
-    padding: 24px;
-}
-
-/* Three Column Layout */
-.bookings-columns-container {
-    display: flex;
-    gap: 0;
-    height: 100%;
-    width: 100%;
-}
-
-.bookings-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid #e9ecef;
-    min-height: 500px;
-    position: relative;
-    width: 33.333%;
-}
-
-.bookings-column:last-child {
-    border-right: none;
-}
-
-.column-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-bottom: 1px solid #dee2e6;
-    padding: 16px 20px;
-    margin: -24px 0 20px 0;
-    border-radius: 0;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.column-title {
-    color: #495057;
-    font-weight: 600;
-    font-size: 16px;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    width: 100%;
-}
-
-.header-badge {
-    background: #dc3545;
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 10px;
-    min-width: 18px;
-    text-align: center;
-    margin-left: 8px;
-}
-
-.header-badge.warning {
-    background: #ffc107;
-    color: #212529;
-}
-
-.column-content {
-    flex: 1;
-    padding: 0 20px 0 12px;
-    overflow-y: auto;
-    max-height: 60vh;
-    margin-right: -24px;
-    padding-right: 20px;
-}
-
-.bookings-column:last-child .column-content {
-    padding-right: 0;
-    margin-right: 0;
-}
-
-/* Compact Bookings Sections */
-.bookings-section-compact {
-    margin-bottom: 20px;
-    padding-right: 8px;
-}
-
-.section-title-compact {
-    color: #495057;
-    font-weight: 600;
-    font-size: 14px;
-    margin: 0 0 12px 0;
-    display: flex;
-    align-items: center;
-}
-
-.bookings-list-compact {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.booking-item {
-    background: white;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 16px;
-    transition: all 0.2s ease;
-}
-
-.booking-item:hover {
-    border-color: #adb5bd;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.booking-item.pending {
-    border-left: 4px solid #ffc107;
-}
-
-.booking-item.confirmed {
-    border-left: 4px solid #28a745;
-}
-
-.booking-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
-}
-
-.client-info-compact {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-}
-
-.client-avatar-compact {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.client-details-compact {
-    flex: 1;
-    min-width: 0;
-}
-
-.client-name-compact {
-    font-weight: 600;
-    color: #495057;
-    margin: 0 0 4px 0;
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.booking-time-compact {
-    color: #6c757d;
-    font-size: 12px;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.payment-amount-compact {
-    font-weight: 600;
-    color: #28a745;
-    font-size: 13px;
-    text-align: right;
-    flex-shrink: 0;
-}
-
-.booking-message-compact {
-    background: #f8f9fa;
-    border-radius: 6px;
-    padding: 8px 12px;
-    margin-bottom: 12px;
-    font-size: 12px;
-    color: #495057;
-    border-left: 3px solid #007bff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.booking-actions-compact {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.meeting-status-compact {
-    color: #6c757d;
-    font-size: 11px;
-    font-style: italic;
-    display: flex;
-    align-items: center;
-    flex: 1;
-    min-width: 0;
-}
-
-.empty-state-compact {
-    text-align: center;
-    padding: 40px 20px;
-    color: #6c757d;
-}
-
-.empty-icon-compact {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-    font-size: 24px;
-    color: #adb5bd;
-}
-
-.empty-state-compact h6 {
-    color: #495057;
-    font-weight: 600;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.empty-state-compact p {
-    margin-bottom: 16px;
-    font-size: 12px;
-    line-height: 1.4;
-}
-
-/* Bookings Sections */
-.bookings-section {
-    margin-bottom: 32px;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.section-title {
-    color: #495057;
-    font-weight: 600;
-    font-size: 16px;
-    margin: 0;
-}
-
-.section-actions {
-    display: flex;
-    gap: 8px;
-}
-
-/* Bookings Grid */
-.bookings-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 16px;
-}
-
-/* Booking Cards */
-.booking-card {
-    background: white;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 20px;
-    transition: all 0.2s ease;
-}
-
-.booking-card:hover {
-    border-color: #adb5bd;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.booking-card.pending {
-    border-left: 4px solid #ffc107;
-}
-
-.booking-card.confirmed {
-    border-left: 4px solid #28a745;
-}
-
-.booking-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 16px;
-}
-
-.client-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-}
-
-.client-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 16px;
-}
-
-.client-details {
-    flex: 1;
-}
-
-.client-name {
-    font-weight: 600;
-    color: #495057;
-    margin: 0 0 4px 0;
-    font-size: 16px;
-}
-
-.booking-time {
-    color: #6c757d;
-    font-size: 13px;
-    margin: 0;
-    display: flex;
-    align-items: center;
-}
-
-.booking-status {
-    text-align: right;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.status-badge.pending {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.status-badge.confirmed {
-    background: #d4edda;
-    color: #155724;
-}
-
-.payment-amount {
-    font-weight: 600;
-    color: #28a745;
-    font-size: 14px;
-    margin-top: 4px;
-}
-
-.booking-message {
-    background: #f8f9fa;
-    border-radius: 6px;
-    padding: 12px;
-    margin-bottom: 16px;
-    font-size: 14px;
-    color: #495057;
-    border-left: 3px solid #007bff;
-}
-
-.booking-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.meeting-status {
-    color: #6c757d;
-    font-size: 13px;
-    font-style: italic;
-    display: flex;
-    align-items: center;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #6c757d;
-}
-
-.empty-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 24px;
-    font-size: 32px;
-    color: #adb5bd;
-}
-
-.empty-state h4 {
-    color: #495057;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-.empty-state p {
-    margin-bottom: 24px;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Buttons */
-.btn {
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 10px 20px;
-    border: none;
-    transition: none;
-    min-width: 120px;
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    transform: none;
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
-    transform: none;
-}
-
-.btn-outline-danger {
-    color: #dc3545;
-    border: 1px solid #dc3545;
-    background: transparent;
-}
-
-.btn-outline-danger:hover {
-    background: #dc3545;
-    color: white;
-    transform: none;
-}
-
-.btn-sm {
-    padding: 8px 16px;
-    font-size: 13px;
-    min-width: 100px;
-    height: 32px;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .bookings-columns-container {
-        flex-direction: column;
-    }
-    
-    .bookings-column {
-        border-right: none;
-        border-bottom: 1px solid #e9ecef;
-        min-height: auto;
-    }
-    
-    .bookings-column:last-child {
-        border-bottom: none;
-    }
-    
-    .column-content {
-        padding-right: 0;
-        max-height: none;
-    }
-    
-    .booking-item-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .booking-actions-compact {
-        width: 100%;
-        justify-content: flex-start;
-    }
-}
+  /* Ensure bookings page uses transparent backgrounds to show body background */
+  .main-content, .content-wrapper {
+    background: #2a2a2a !important;
+  }
+  
+  .bookings-container {
+    background: #2a2a2a !important;
+  }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="bookings-container">
+
+  <!-- Bookings Summary Cards -->
+  <div class="summary-grid">
+    <div class="summary-card my-bookings">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="fas fa-calendar-plus"></i>
+        </div>
+        <div class="card-title">My Bookings</div>
+      </div>
+      <div class="card-value">{{ upcoming_as_client|length }}</div>
+      <div class="card-subtitle">Scheduled sessions</div>
+    </div>
+
+    <div class="summary-card received-bookings">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="card-title">Received Bookings</div>
+      </div>
+      <div class="card-value">{{ upcoming_as_expert|length }}</div>
+      <div class="card-subtitle">Incoming sessions</div>
+    </div>
+
+    <div class="summary-card total-upcoming">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="card-title">Total Upcoming</div>
+      </div>
+      <div class="card-value">{{ upcoming_as_expert|length + upcoming_as_client|length }}</div>
+      <div class="card-subtitle">All upcoming sessions</div>
+    </div>
+  </div>
+
+  <!-- Bookings Tab Container -->
+  <div class="bookings-tab-container">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} flash-message">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+        <button class="tab-btn active" data-tab="upcoming">
+            <i class="fas fa-calendar-check me-2"></i>
+            Upcoming
+            {% set total_upcoming = upcoming_as_expert|length + upcoming_as_client|length %}
+            {% if total_upcoming > 0 %}
+            <span class="tab-badge">{{ total_upcoming }}</span>
+            {% endif %}
+        </button>
+        <button class="tab-btn" data-tab="history">
+            <i class="fas fa-history me-2"></i>
+            History
+        </button>
+    </div>
+    
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Upcoming Bookings Tab -->
+        <div class="tab-panel active" id="upcoming-tab">
+            {% set pending_bookings = upcoming_as_expert|selectattr('status', 'equalto', 'pending')|list %}
+            {% set confirmed_upcoming = upcoming_as_expert|selectattr('status', 'equalto', 'confirmed')|list %}
+            {% set my_upcoming_bookings = upcoming_as_client|list %}
+            
+            {% if not pending_bookings and not confirmed_upcoming and not my_upcoming_bookings %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h4>No Upcoming Sessions</h4>
+                    <p>Your upcoming meetings will appear here.</p>
+                </div>
+            {% else %}
+                <!-- My Bookings Section (Sessions I'm paying for) -->
+                {% if my_upcoming_bookings %}
+                    <div class="bookings-section">
+                        <div class="bookings-grid">
+                            {% for booking in my_upcoming_bookings %}
+                                <div class="booking-card my-booking">
+                                    <div class="booking-header">
+                                        <div class="client-info">
+                                            <div class="client-avatar">
+                                                <i class="fas fa-calendar-plus"></i>
+                                            </div>
+                                            <div class="client-details">
+                                                <h6 class="client-name">{{ booking.provider.full_name }}</h6>
+                                                <p class="booking-time">
+                                                    <i class="fas fa-calendar"></i>
+                                                    {{ booking.start_time.strftime('%b %d, %Y at %I:%M %p') }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="payment-amount">${{ "%.2f"|format(booking.payment_amount) }}</div>
+                                    </div>
+                                    <!-- JOIN BUTTON -->
+                                    <div class="join-meeting-section" style="margin: 1rem 0;">
+                                        <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                                           class="btn btn-success join-meeting-btn"
+                                           style="width: 100%; 
+                                                  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+                                                  color: white;
+                                                  padding: 12px 20px;
+                                                  border: none;
+                                                  border-radius: 8px;
+                                                  font-weight: 600;
+                                                  font-size: 14px;
+                                                  text-align: center;
+                                                  text-decoration: none;
+                                                  display: block;
+                                                  transition: all 0.3s ease;
+                                                  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+                                            <i class="fas fa-video" style="margin-right: 8px;"></i>
+                                            Join Meeting
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="booking-actions">
+                                        <button class="btn btn-outline-danger cancel-booking-btn" 
+                                                data-booking-id="{{ booking.id }}" 
+                                                data-user-type="client">
+                                            <i class="fas fa-times"></i>
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Pending Bookings Section -->
+                {% if pending_bookings %}
+                    <div class="bookings-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-clock"></i>
+                            Pending Requests
+                            <span class="section-subtitle">Awaiting your response</span>
+                        </h5>
+                        <div class="bookings-grid">
+                            {% for booking in pending_bookings %}
+                                <div class="booking-card pending">
+                                    <div class="booking-header">
+                                        <div class="client-info">
+                                            <div class="client-avatar">
+                                                <i class="fas fa-clock"></i>
+                                            </div>
+                                            <div class="client-details">
+                                                <h6 class="client-name">{{ booking.user.full_name or booking.user.username }}</h6>
+                                                <p class="booking-time">
+                                                    <i class="fas fa-calendar"></i>
+                                                    {{ booking.start_time.strftime('%b %d, %Y at %I:%M %p') }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
+                                            <div class="payment-amount">${{ "%.2f"|format(booking.payment_amount) }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if booking.client_message %}
+                                        <div class="booking-message">
+                                            <i class="fas fa-comment"></i>
+                                            {{ booking.client_message }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="booking-actions">
+                                        <a href="{{ url_for('accept_booking', booking_id=booking.id) }}" 
+                                           class="btn btn-success"
+                                           onclick="return confirm('Accept this booking request?')">
+                                            <i class="fas fa-check"></i> Accept
+                                        </a>
+                                        <a href="{{ url_for('decline_booking', booking_id=booking.id) }}" 
+                                           class="btn btn-outline-danger"
+                                           onclick="return confirm('Decline this booking request? Payment will be refunded.')">
+                                            <i class="fas fa-times"></i> Decline
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Confirmed Upcoming Bookings Section -->
+                {% if confirmed_upcoming %}
+                    <div class="bookings-section">
+                        <h5 class="section-title">
+                            <i class="fas fa-calendar-check"></i>
+                            Confirmed Sessions
+                            <span class="section-subtitle">Incoming sessions</span>
+                        </h5>
+                        <div class="bookings-grid">
+                            {% for booking in confirmed_upcoming %}
+                                <div class="booking-card confirmed">
+                                    <div class="booking-header">
+                                        <div class="client-info">
+                                            <div class="client-avatar">
+                                                <i class="fas fa-calendar-check"></i>
+                                            </div>
+                                            <div class="client-details">
+                                                <h6 class="client-name">{{ booking.user.full_name or booking.user.username }}</h6>
+                                                <p class="booking-time">
+                                                    <i class="fas fa-calendar"></i>
+                                                    {{ booking.start_time.strftime('%b %d, %Y at %I:%M %p') }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
+                                            <div class="payment-amount">${{ "%.2f"|format(booking.payment_amount) }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="booking-actions" style="display: flex !important; gap: 10px !important; width: 100% !important;">
+                                        <!-- DEBUG: Booking {{ booking.id }} - Status: {{ booking.status }}, Payment: {{ booking.payment_status }}, Can Join: {{ booking.can_join_meeting() }} -->
+                                        <div style="background: red; color: white; padding: 10px; margin: 10px 0; font-size: 16px; width: 100%; border: 3px solid yellow; text-align: center; font-weight: bold;">
+                                            🚨 JOIN BUTTON SHOULD BE VISIBLE NOW! 🚨
+                                        </div>
+                                        <div style="background: yellow; color: black; padding: 5px; margin: 5px 0; font-size: 12px; width: 100%;">
+                                            DEBUG: Booking {{ booking.id }} - Status: {{ booking.status }}, Payment: {{ booking.payment_status }}, Can Join: {{ booking.can_join_meeting() }}, Time until start: {{ ((booking.start_time|to_eastern) - now).total_seconds() / 60|round(1) }}m - UPDATED 2025-01-20
+                                        </div>
+                                        
+                                        <!-- JOIN BUTTON - LEFT SIDE -->
+                                        {% set time_until_start = ((booking.start_time|to_eastern) - now).total_seconds() / 60 %}
+                                        {% set can_join_now = True %}
+                                        
+                                        <!-- ALWAYS SHOW JOIN BUTTON -->
+                                        <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                                           class="btn btn-success" 
+                                           style="flex: 1 !important; 
+                                                  background: #10b981 !important; 
+                                                  color: white !important; 
+                                                  padding: 15px 25px !important; 
+                                                  margin: 10px 0 !important; 
+                                                  display: block !important; 
+                                                  text-decoration: none !important; 
+                                                  border-radius: 8px !important; 
+                                                  font-weight: bold !important;
+                                                  text-align: center !important;
+                                                  border: 3px solid yellow !important;
+                                                  min-height: 50px !important;
+                                                  font-size: 16px !important;">
+                                            <i class="fas fa-video"></i> 🚨 JOIN MEETING 🚨
+                                        </a>
+                                        
+                                        <!-- CANCEL BUTTON - RIGHT SIDE -->
+                                        <button data-booking-id="{{ booking.id }}" 
+                                                data-user-type="expert" 
+                                                class="btn btn-outline-danger cancel-booking-btn"
+                                                style="flex: 1 !important; 
+                                                       background: transparent !important; 
+                                                       color: #ef4444 !important; 
+                                                       border: 2px solid #ef4444 !important; 
+                                                       padding: 12px 20px !important; 
+                                                       margin: 0 !important; 
+                                                       border-radius: 8px !important; 
+                                                       font-weight: bold !important;
+                                                       min-height: 44px !important;">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- Scheduled Bookings Tab -->
+        <div class="tab-panel" id="scheduled-tab">
+            {% if upcoming_as_client %}
+                <div class="bookings-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-calendar"></i>
+                        Your Scheduled Sessions ({{ upcoming_as_client|length }})
+                    </h5>
+                    <div class="bookings-grid">
+                        {% for booking in upcoming_as_client %}
+                            <div class="booking-card confirmed">
+                                <div class="booking-header">
+                                    <div class="client-info">
+                                        <div class="client-avatar">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </div>
+                                        <div class="client-details">
+                                            <h6 class="client-name">{{ booking.provider.full_name or booking.provider.username }}</h6>
+                                            <p class="booking-time">
+                                                <i class="fas fa-calendar"></i>
+                                                {{ booking.start_time|format_datetime }} - {{ booking.end_time.strftime('%I:%M %p') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {% if booking.payment_amount is not none and booking.payment_amount > 0 %}
+                                        <div class="payment-amount">${{ "%.2f"|format(booking.payment_amount) }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- JOIN BUTTON -->
+                                <div class="join-meeting-section" style="margin: 1rem 0;">
+                                    <a href="{{ url_for('join_meeting', booking_id=booking.id) }}" 
+                                       class="btn btn-success join-meeting-btn"
+                                       style="width: 100%; 
+                                              background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+                                              color: white;
+                                              padding: 12px 20px;
+                                              border: none;
+                                              border-radius: 8px;
+                                              font-weight: 600;
+                                              font-size: 14px;
+                                              text-align: center;
+                                              text-decoration: none;
+                                              display: block;
+                                              transition: all 0.3s ease;
+                                              box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+                                        <i class="fas fa-video" style="margin-right: 8px;"></i>
+                                        Join Meeting
+                                    </a>
+                                </div>
+                                
+                                <div class="booking-actions">
+                                    <button data-booking-id="{{ booking.id }}" 
+                                            data-user-type="client" 
+                                            class="btn btn-outline-danger cancel-booking-btn">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <h4>No Bookings Yet</h4>
+                    <p>You haven't booked any sessions yet.</p>
+                    <a href="{{ url_for('discover') }}" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        Search Users
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- History Tab -->
+        <div class="tab-panel" id="history-tab">
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h4>No Session History</h4>
+                <p>Your completed sessions will appear here, organized by whether you paid for them or others paid to talk with you.</p>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Show content with smooth fade-in
-    const content = document.getElementById('bookings-content');
-    if (content) {
-        setTimeout(() => {
-            content.style.opacity = '1';
-        }, 100);
-    }
+    // Simple tab functionality
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Remove active class from all buttons and panels
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanels.forEach(panel => panel.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding panel
+            this.classList.add('active');
+            const targetPanel = document.getElementById(targetTab + '-tab');
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+            }
+        });
+    });
     
     // Auto-dismiss flash messages after 5 seconds
     const flashMessages = document.querySelectorAll('.flash-message');
@@ -934,13 +425,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
         }, 5000);
     });
+    
 });
 
 // AJAX function to cancel bookings
 function cancelBooking(bookingId, userType) {
     const url = userType === 'client' 
         ? `/api/booking/cancel-by-client/${bookingId}`
-        : `/api/booking/cancel-by-expert/${bookingId}`;
+        : `/api/booking/cancel-by-provider/${bookingId}`;
     
     // Show loading state
     const button = event.target.closest('button');
@@ -962,7 +454,7 @@ function cancelBooking(bookingId, userType) {
         
         // If successful, remove the booking from the page
         if (data.success) {
-            const bookingElement = button.closest('.booking-item');
+            const bookingElement = button.closest('.booking-card');
             if (bookingElement) {
                 bookingElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                 bookingElement.style.opacity = '0';
@@ -985,6 +477,22 @@ function cancelBooking(bookingId, userType) {
         button.disabled = false;
     });
 }
+
+// Add event listeners for cancel booking buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const cancelButtons = document.querySelectorAll('.cancel-booking-btn');
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const bookingId = this.getAttribute('data-booking-id');
+            const userType = this.getAttribute('data-user-type');
+            
+            if (confirm('Are you sure you want to cancel this booking?')) {
+                cancelBooking(bookingId, userType);
+            }
+        });
+    });
+});
 
 // Function to show flash messages
 function showFlashMessage(message, type) {
@@ -1016,4 +524,4 @@ function showFlashMessage(message, type) {
     }, 5000);
 }
 </script>
-{% endblock %} 
+{% endblock %}

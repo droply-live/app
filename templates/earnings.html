@@ -1,0 +1,334 @@
+{% extends "base_signed_in.html" %}
+
+{% block title %}Earnings - Droply{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/earnings.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  /* Ensure earnings page uses transparent backgrounds to show body background */
+  .main-content, .content-wrapper {
+    background: #2a2a2a !important;
+  }
+  
+  .earnings-container {
+    background: #2a2a2a !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="earnings-container">
+
+  <!-- Earnings Summary Cards -->
+  <div class="summary-grid">
+    <div class="summary-card total-earned">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <div class="card-title">Total Earned</div>
+      </div>
+      <div class="card-value">${{ "%.2f"|format((payouts|selectattr('status', 'equalto', 'paid')|sum(attribute='amount')) / 100) }}</div>
+      <div class="card-subtitle">Lifetime earnings</div>
+    </div>
+
+    <div class="summary-card available-balance">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="card-title">Available</div>
+      </div>
+      <div class="card-value">${{ "%.2f"|format((payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) / 100) }}</div>
+      <div class="card-subtitle">Ready to withdraw</div>
+    </div>
+
+    <div class="summary-card total-sessions">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="card-title">This Month</div>
+      </div>
+      <div class="card-value">${{ "%.2f"|format(monthly_earnings) }}</div>
+      <div class="card-subtitle">Current month earnings</div>
+    </div>
+  </div>
+
+  <!-- Additional Analytics Cards -->
+  <div class="analytics-grid">
+    <div class="analytics-card">
+      <div class="analytics-icon">
+        <i class="fas fa-calendar-week"></i>
+      </div>
+      <div class="analytics-content">
+        <div class="analytics-value">${{ "%.2f"|format(weekly_earnings) }}</div>
+        <div class="analytics-label">This Week</div>
+      </div>
+    </div>
+    
+    <div class="analytics-card">
+      <div class="analytics-icon">
+        <i class="fas fa-dollar-sign"></i>
+      </div>
+      <div class="analytics-content">
+        <div class="analytics-value">${{ "%.2f"|format(avg_session_value) }}</div>
+        <div class="analytics-label">Avg per Session</div>
+      </div>
+    </div>
+    
+    <div class="analytics-card">
+      <div class="analytics-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="analytics-content">
+        <div class="analytics-value">{{ payouts|selectattr('status', 'equalto', 'paid')|list|length }}</div>
+        <div class="analytics-label">Completed Sessions</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  {% set available_balance = (payouts|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')) %}
+  {% if available_balance > 0 %}
+  <div class="quick-actions">
+    <div class="action-card">
+      <div class="action-content">
+        <div class="action-icon">
+          <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <div class="action-details">
+          <h3>Withdraw Funds</h3>
+          <p>You have ${{ "%.2f"|format(available_balance / 100) }} available</p>
+        </div>
+        <button class="action-button" onclick="showWithdrawModal()">
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Earnings Chart -->
+  <div class="chart-section">
+    <div class="section-header">
+      <h2>Earnings Trend</h2>
+      <div class="chart-controls">
+        <button class="chart-btn active" data-period="7d">7D</button>
+        <button class="chart-btn" data-period="30d">30D</button>
+        <button class="chart-btn" data-period="90d">90D</button>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="earningsChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Recent Transactions -->
+  <div class="transactions-section">
+    <div class="section-header">
+      <h2>Recent Transactions</h2>
+      <button class="view-all-btn" onclick="showAllTransactions()">
+        View All <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+    
+    {% if payouts %}
+    <div class="transactions-list">
+      {% for payout in payouts[:5] %}
+      <div class="transaction-item">
+        <div class="transaction-icon {{ payout.status }}">
+          <i class="fas fa-{% if payout.status == 'paid' %}check{% elif payout.status == 'pending' %}clock{% else %}exclamation{% endif %}"></i>
+        </div>
+        <div class="transaction-details">
+          <div class="transaction-title">
+            {% if payout.status == 'paid' %}Payment Received{% elif payout.status == 'pending' %}Payment Pending{% else %}Payment Failed{% endif %}
+          </div>
+          <div class="transaction-date">{{ payout.created_at.strftime('%b %d, %Y') }}</div>
+        </div>
+        <div class="transaction-amount {{ payout.status }}">
+          ${{ "%.2f"|format(payout.amount / 100) }}
+        </div>
+        <div class="transaction-status">
+          <span class="status-badge {{ payout.status }}">{{ payout.status|title }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-receipt"></i>
+      </div>
+      <h3>No Transactions Yet</h3>
+      <p>Your earnings will appear here once you start completing sessions.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Withdrawal Modal -->
+<div class="modal-overlay" id="withdrawModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Withdraw Funds</h3>
+      <button class="modal-close" onclick="hideWithdrawModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="balance-display">
+        <div class="balance-label">Available Balance</div>
+        <div class="balance-amount">${{ "%.2f"|format(available_balance / 100) }}</div>
+      </div>
+      
+      <form action="{{ url_for('request_payout') }}" method="POST" class="withdrawal-form">
+        <div class="form-group">
+          <label for="withdraw_amount">Withdrawal Amount</label>
+          <div class="input-group">
+            <span class="input-prefix">$</span>
+            <input type="number" 
+                   id="withdraw_amount" 
+                   name="amount" 
+                   value="{{ "%.2f"|format(available_balance / 100) }}"
+                   max="{{ "%.2f"|format(available_balance / 100) }}"
+                   min="10"
+                   step="0.01"
+                   required>
+          </div>
+          <div class="form-help">Minimum withdrawal: $10.00</div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="hideWithdrawModal()">Cancel</button>
+          <button type="submit" class="btn-primary">
+            <i class="fas fa-dollar-sign"></i>
+            Request Withdrawal
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize earnings chart
+  initEarningsChart();
+  
+  // Chart period controls
+  const chartBtns = document.querySelectorAll('.chart-btn');
+  chartBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      chartBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      updateChart(this.dataset.period);
+    });
+  });
+  
+});
+
+function initEarningsChart() {
+  const ctx = document.getElementById('earningsChart').getContext('2d');
+  
+  // Use real data from backend
+  const earningsData = {
+    labels: {{ chart_labels|tojson|safe }},
+    datasets: [{
+      label: 'Earnings',
+      data: {{ chart_data|tojson|safe }},
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+      borderWidth: 3,
+      fill: true,
+      tension: 0.4
+    }]
+  };
+  
+  window.earningsChart = new Chart(ctx, {
+    type: 'line',
+    data: earningsData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      backgroundColor: '#2a2a2a',
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          },
+          ticks: {
+            color: '#ffffff',
+            callback: function(value) {
+              return '$' + value;
+            }
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: '#ffffff'
+          }
+        }
+      },
+      elements: {
+        point: {
+          radius: 6,
+          hoverRadius: 8
+        }
+      }
+    }
+  });
+}
+
+function updateChart(period) {
+  // Update chart based on selected period
+  console.log('Updating chart for period:', period);
+  
+  // Fetch new data from the API
+  fetch(`/api/earnings-chart-data?period=${period}`)
+    .then(response => response.json())
+    .then(data => {
+      // Update the chart with new data
+      if (window.earningsChart) {
+        window.earningsChart.data.labels = data.labels;
+        window.earningsChart.data.datasets[0].data = data.data;
+        window.earningsChart.update();
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching chart data:', error);
+    });
+}
+
+function showWithdrawModal() {
+  document.getElementById('withdrawModal').classList.add('active');
+}
+
+function hideWithdrawModal() {
+  document.getElementById('withdrawModal').classList.remove('active');
+}
+
+function showAllTransactions() {
+  // Navigate to full transactions view or show more transactions
+  console.log('Show all transactions');
+}
+
+// Close modal when clicking outside
+document.getElementById('withdrawModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    hideWithdrawModal();
+  }
+});
+</script>
+{% endblock %}

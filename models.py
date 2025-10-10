@@ -19,10 +19,10 @@ class User(UserMixin, db.Model):
     bio = db.Column(db.Text)
     industry = db.Column(db.String(100))
     profession = db.Column(db.String(100))
-    expertise = db.Column(db.String(200))  # Legacy field - keeping for backward compatibility
-    expertise_1 = db.Column(db.String(100))  # Primary expertise
-    expertise_2 = db.Column(db.String(100))  # Secondary expertise  
-    expertise_3 = db.Column(db.String(100))  # Tertiary expertise
+    skills = db.Column(db.String(200))  # Legacy field - keeping for backward compatibility
+    skills_1 = db.Column(db.String(100))  # Primary skill
+    skills_2 = db.Column(db.String(100))  # Secondary skill  
+    skills_3 = db.Column(db.String(100))  # Tertiary skill
     location = db.Column(db.String(100))
     background_image_url = db.Column(db.String(500))
     hourly_rate = db.Column(db.Float, default=0.0)
@@ -30,11 +30,16 @@ class User(UserMixin, db.Model):
     rating = db.Column(db.Float, default=0.0)
     rating_count = db.Column(db.Integer, default=0)
     is_available = db.Column(db.Boolean, default=True)
-    is_top_expert = db.Column(db.Boolean, default=False)
+    is_featured_user = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
     specialty_tags = db.Column(db.Text)  # JSON string of specialty tags
     profile_picture = db.Column(db.String(255))  # Path to profile picture
     background_color = db.Column(db.String(7), default='#f7faff')  # Hex color code
+    primary_color = db.Column(db.String(7), default='#667eea')  # Primary brand color
+    secondary_color = db.Column(db.String(7), default='#764ba2')  # Secondary brand color
+    font_family = db.Column(db.String(50), default='Inter')  # Font family preference
+    font_size = db.Column(db.Integer, default=16)  # Font size preference
+    profile_layout = db.Column(db.String(20), default='modern')  # Layout preference
     donation_text = db.Column(db.Text)  # Text for donation/booking info
     embedding = db.Column(db.LargeBinary)  # Store numpy array as binary
     # Social media URLs
@@ -47,10 +52,10 @@ class User(UserMixin, db.Model):
     snapchat_url = db.Column(db.String(200))
     website_url = db.Column(db.String(200))
 
-    # Stripe Connect fields for expert payouts
+    # Stripe Connect fields for user payouts
     stripe_account_id = db.Column(db.String(100))  # Stripe Connect account ID
     stripe_account_status = db.Column(db.String(50), default='pending')  # pending, active, restricted, disabled
-    payout_enabled = db.Column(db.Boolean, default=False)  # Whether expert can receive payouts
+    payout_enabled = db.Column(db.Boolean, default=False)  # Whether user can receive payouts
     payout_schedule = db.Column(db.String(20), default='weekly')  # daily, weekly, monthly
     total_earnings = db.Column(db.Float, default=0.0)  # Total earnings before platform fees
     total_payouts = db.Column(db.Float, default=0.0)  # Total amount paid out
@@ -60,6 +65,12 @@ class User(UserMixin, db.Model):
     language = db.Column(db.String(10), default='en')  # Language preference
     timezone = db.Column(db.String(50), default='America/New_York')  # Timezone preference
     email_notifications = db.Column(db.Boolean, default=True)  # Email notifications preference
+    
+    # Content and service fields
+    service_description = db.Column(db.Text)  # Description of 1-on-1 sessions
+    session_duration = db.Column(db.Integer, default=30)  # Session duration in minutes
+    content_description = db.Column(db.Text)  # Description of premium content
+    content_categories = db.Column(db.String(200))  # Categories of content offered
     
     # Google Calendar integration
     google_calendar_connected = db.Column(db.Boolean, default=False)  # Whether user has connected Google Calendar
@@ -131,21 +142,36 @@ class User(UserMixin, db.Model):
         return f'<User {self.username}>'
 
 class Favorite(db.Model):
-    """Track user favorites - which experts users have favorited"""
+    """Track user favorites - which users users have favorited"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The user who favorited
-    expert_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The expert being favorited
+    favorited_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The user being favorited
     created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
     
     # Relationships
     user = db.relationship('User', foreign_keys=[user_id], backref='favorites_as_user')
-    expert = db.relationship('User', foreign_keys=[expert_id], backref='favorites_as_expert')
+    favorited_user = db.relationship('User', foreign_keys=[favorited_user_id], backref='favorites_as_favorited')
     
     # Ensure unique combinations
-    __table_args__ = (db.UniqueConstraint('user_id', 'expert_id', name='_user_expert_favorite_uc'),)
+    __table_args__ = (db.UniqueConstraint('user_id', 'favorited_user_id', name='_user_favorited_user_favorite_uc'),)
     
     def __repr__(self):
-        return f'<Favorite {self.user_id} -> {self.expert_id}>'
+        return f'<Favorite {self.user_id} -> {self.favorited_user_id}>'
+
+class UserInteraction(db.Model):
+    """Track user interactions - profile views, clicks, etc."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The user who performed the action
+    target_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The user being viewed/clicked
+    interaction_type = db.Column(db.String(50), nullable=False)  # 'view', 'click', 'favorite', etc.
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='interactions_as_user')
+    target_user = db.relationship('User', foreign_keys=[target_user_id], backref='interactions_as_target')
+    
+    def __repr__(self):
+        return f'<UserInteraction {self.user_id} -> {self.target_user_id} ({self.interaction_type})>'
 
 class AvailabilityRule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -181,7 +207,7 @@ class AvailabilityException(db.Model):
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The person who booked
-    expert_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The expert
+    provider_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # The service provider
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
     duration = db.Column(db.Integer, nullable=False)  # in minutes
@@ -206,7 +232,7 @@ class Booking(db.Model):
     
     # Relationships
     user = db.relationship('User', foreign_keys=[user_id], backref='bookings_as_user')
-    expert = db.relationship('User', foreign_keys=[expert_id], backref='bookings_as_expert')
+    provider = db.relationship('User', foreign_keys=[provider_id], backref='bookings_as_provider')
 
     def __repr__(self):
         return f'<Booking {self.id} - {self.status}>'
@@ -261,16 +287,16 @@ class Booking(db.Model):
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    category_type = db.Column(db.String(20), nullable=False)  # industry, profession, expertise
+    category_type = db.Column(db.String(20), nullable=False)  # industry, profession, skills
     is_active = db.Column(db.Boolean, default=True)
     
     def __repr__(self):
         return f'<Category {self.name}>'
 
 class Payout(db.Model):
-    """Track payouts to experts"""
+    """Track payouts to users"""
     id = db.Column(db.Integer, primary_key=True)
-    expert_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     amount = db.Column(db.Float, nullable=False)  # Amount in cents
     currency = db.Column(db.String(3), default='usd')
     stripe_transfer_id = db.Column(db.String(100))  # Stripe transfer ID
@@ -280,7 +306,7 @@ class Payout(db.Model):
     paid_at = db.Column(db.DateTime)  # When payout was actually paid
     
     # Relationships
-    expert = db.relationship('User', backref='payouts')
+    user = db.relationship('User', backref='payouts')
     
     def __repr__(self):
         return f'<Payout {self.id} - ${self.amount/100:.2f} - {self.status}>'
@@ -323,3 +349,150 @@ class ReferralReward(db.Model):
     
     def __repr__(self):
         return f'<ReferralReward {self.id} - ${self.reward_amount:.2f} - {self.status}>'
+
+class Content(db.Model):
+    """Store user-created content (videos, courses, images)"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Content creator
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    content_type = db.Column(db.String(20), nullable=False)  # video, course, image
+    price = db.Column(db.Float, nullable=False, default=0.0)  # Price in dollars
+    file_path = db.Column(db.String(500))  # Path to uploaded file
+    file_size = db.Column(db.Integer)  # File size in bytes
+    thumbnail_path = db.Column(db.String(500))  # Path to thumbnail image
+    preview_available = db.Column(db.Boolean, default=False)  # Whether preview is available
+    preview_path = db.Column(db.String(500))  # Path to preview file
+    status = db.Column(db.String(20), default='draft')  # draft, published, archived
+    views = db.Column(db.Integer, default=0)  # Number of views
+    purchases = db.Column(db.Integer, default=0)  # Number of purchases
+    earnings = db.Column(db.Float, default=0.0)  # Total earnings from this content
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    updated_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE), onupdate=datetime.now(EASTERN_TIMEZONE))
+    
+    # Relationships
+    user = db.relationship('User', backref='content')
+    
+    def __repr__(self):
+        return f'<Content {self.id} - {self.title} ({self.content_type})>'
+
+class ContentPurchase(db.Model):
+    """Track purchases of premium content"""
+    id = db.Column(db.Integer, primary_key=True)
+    buyer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # User who bought
+    content_id = db.Column(db.Integer, db.ForeignKey('content.id'), nullable=False)  # Content purchased
+    amount_paid = db.Column(db.Float, nullable=False)  # Amount paid in dollars
+    payment_status = db.Column(db.String(20), default='pending')  # pending, paid, refunded
+    stripe_payment_intent_id = db.Column(db.String(100))  # Stripe payment intent ID
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    
+    # Relationships
+    buyer = db.relationship('User', foreign_keys=[buyer_id], backref='content_purchases')
+    content = db.relationship('Content', backref='content_purchases')
+    
+    # Ensure unique combinations (user can't buy same content twice)
+    __table_args__ = (db.UniqueConstraint('buyer_id', 'content_id', name='_buyer_content_purchase_uc'),)
+    
+    def __repr__(self):
+        return f'<ContentPurchase {self.id} - User {self.buyer_id} bought Content {self.content_id}>'
+
+
+class DropinSession(db.Model):
+    """Live Drop-in Q&A sessions"""
+    id = db.Column(db.Integer, primary_key=True)
+    host_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    topic = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    max_participants = db.Column(db.Integer, default=10)
+    current_participants = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    is_anonymous = db.Column(db.Boolean, default=True)  # Participants are anonymous
+    session_code = db.Column(db.String(10), unique=True, nullable=False)  # Short code for joining
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    started_at = db.Column(db.DateTime)
+    ended_at = db.Column(db.DateTime)
+    duration_minutes = db.Column(db.Integer, default=30)  # Expected duration
+    
+    # Relationships
+    host = db.relationship('User', backref='dropin_sessions')
+    participants = db.relationship('DropinParticipant', backref='session', cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<DropinSession {self.id} - {self.topic} by {self.host.full_name}>'
+    
+    @property
+    def is_live(self):
+        """Check if session is currently live"""
+        if not self.is_active or self.ended_at:
+            return False
+        if self.started_at:
+            elapsed = datetime.now(EASTERN_TIMEZONE) - self.started_at
+            return elapsed.total_seconds() < (self.duration_minutes * 60)
+        return False
+    
+    @property
+    def time_remaining(self):
+        """Get remaining time in minutes"""
+        if not self.is_live or not self.started_at:
+            return 0
+        elapsed = datetime.now(EASTERN_TIMEZONE) - self.started_at
+        remaining = (self.duration_minutes * 60) - elapsed.total_seconds()
+        return max(0, int(remaining / 60))
+
+
+class DropinParticipant(db.Model):
+    """Participants in Drop-in sessions"""
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('dropin_session.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Nullable for anonymous users
+    anonymous_name = db.Column(db.String(50))  # Display name for anonymous users
+    joined_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    left_at = db.Column(db.DateTime)
+    is_active = db.Column(db.Boolean, default=True)
+    
+    # Relationships
+    user = db.relationship('User', backref='dropin_participations')
+    
+    def __repr__(self):
+        name = self.user.full_name if self.user else self.anonymous_name
+        return f'<DropinParticipant {self.id} - {name} in session {self.session_id}>'
+
+
+class DropinMessage(db.Model):
+    """Messages in Drop-in sessions"""
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('dropin_session.id'), nullable=False)
+    participant_id = db.Column(db.Integer, db.ForeignKey('dropin_participant.id'), nullable=False)
+    message_type = db.Column(db.String(20), default='text')  # text, question, answer
+    content = db.Column(db.Text, nullable=False)
+    is_anonymous = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    
+    # Relationships
+    session = db.relationship('DropinSession', backref='messages')
+    participant = db.relationship('DropinParticipant', backref='messages')
+    
+    def __repr__(self):
+        return f'<DropinMessage {self.id} - {self.message_type} in session {self.session_id}>'
+
+
+class AIMatch(db.Model):
+    """AI-powered matching between users"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    matched_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    query = db.Column(db.Text, nullable=False)  # Original user query
+    match_score = db.Column(db.Float, nullable=False)  # AI-calculated match score (0-100)
+    match_reasons = db.Column(db.Text)  # JSON string of reasons for the match
+    created_at = db.Column(db.DateTime, default=datetime.now(EASTERN_TIMEZONE))
+    is_viewed = db.Column(db.Boolean, default=False)
+    is_acted_upon = db.Column(db.Boolean, default=False)  # User booked or contacted matched user
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='ai_matches_received')
+    matched_user = db.relationship('User', foreign_keys=[matched_user_id], backref='ai_matches_given')
+    
+    def __repr__(self):
+        return f'<AIMatch {self.id} - User {self.user_id} matched with User {self.matched_user_id} (score: {self.match_score})>'
+
+

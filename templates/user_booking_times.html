@@ -1,6 +1,6 @@
 {% extends "base_signed_in.html" %}
 
-{% block title %}Book {{ expert.full_name }} - Droply{% endblock %}
+{% block title %}Book {{ user.full_name }} - Droply{% endblock %}
 
 {% block content %}
 <!-- Calendar Booking Page -->
@@ -10,9 +10,9 @@
     <div class="breadcrumb-container">
       <a href="{{ url_for('dashboard') }}" class="breadcrumb-link">Droply</a>
       <span class="breadcrumb-separator">/</span>
-      <a href="{{ url_for('search') }}" class="breadcrumb-link">User Marketplace</a>
+      <a href="{{ url_for('discover') }}" class="breadcrumb-link">User Marketplace</a>
       <span class="breadcrumb-separator">/</span>
-      <a href="{{ url_for('user_profile', username=expert.username) }}" class="breadcrumb-link">{{ expert.full_name }}</a>
+      <a href="{{ url_for('user_profile', username=user.username) }}" class="breadcrumb-link">{{ user.full_name }}</a>
       <span class="breadcrumb-separator">/</span>
       <span class="breadcrumb-current">Book Session</span>
     </div>
@@ -71,10 +71,15 @@
           <h3 class="selected-date" id="selectedDate">Select a date to see available times</h3>
           
           {% if has_availability %}
+<<<<<<< HEAD
+            <!-- Book Now Button for Immediate Meeting -->
+            {% if user.is_available %}
+=======
             <!-- Book Now Button for Immediate Meeting - Only show in development -->
             {% if expert.is_available and config.get('FLASK_ENV') == 'development' %}
+>>>>>>> 7219ee7eb3ad47520123faad0ffb809a6a4667c9
             <div class="book-now-section">
-              <a href="{{ url_for('book_immediate_meeting', username=expert.username) }}" 
+              <a href="{{ url_for('book_immediate_meeting', username=user.username) }}" 
                  class="book-now-btn">
                 <div class="book-now-icon">
                   <i class="fas fa-bolt"></i>
@@ -101,8 +106,8 @@
                 <i class="fas fa-calendar-plus"></i>
               </div>
               <h3>No availability set</h3>
-              <p>This expert hasn't set up their availability yet. They need to configure their calendar before you can book a session.</p>
-              <a href="{{ url_for('user_profile', username=expert.username) }}" class="btn-secondary">
+              <p>This user hasn't set up their availability yet. They need to configure their calendar before you can book a session.</p>
+              <a href="{{ url_for('user_profile', username=user.username) }}" class="btn-secondary">
                 Back to Profile
               </a>
             </div>
@@ -116,8 +121,8 @@
 <!-- Hidden data for JavaScript -->
 <script>
   window.availableTimes = {{ available_times | tojson }};
-  window.expertUsername = "{{ expert.username }}";
-  window.expertName = "{{ expert.full_name }}";
+  window.userUsername = "{{ user.username }}";
+  window.userName = "{{ user.full_name }}";
 </script>
 
 <style>
@@ -881,7 +886,7 @@ function selectTimeSlot(time, container) {
   confirmBtn.textContent = 'Confirm';
   confirmBtn.onclick = (e) => {
     e.stopPropagation();
-    window.location.href = `/booking/confirm?expert=${window.expertUsername}&datetime=${time.iso_datetime}&duration=30`;
+    window.location.href = `/booking/confirm?expert=${window.userUsername}&datetime=${time.iso_datetime}&duration=30`;
   };
   
   // Adjust time slot styling and make it non-interactive

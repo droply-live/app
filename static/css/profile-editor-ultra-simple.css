@@ -1,0 +1,473 @@
+/* Ultra Simple Profile Editor Styles */
+.profile-editor-page {
+    min-height: 100vh;
+    background: transparent;
+    color: #ffffff;
+    padding: 1rem;
+}
+
+/* Override the dark background from base template */
+.profile-editor-page .content-wrapper {
+    background: transparent !important;
+}
+
+.profile-editor-page .main-content {
+    background: transparent !important;
+}
+
+.editor-container {
+    display: grid;
+    grid-template-columns: 500px 1fr;
+    gap: 1.5rem;
+    height: calc(100vh - 120px);
+    max-width: 1400px;
+    margin: 0 auto;
+    background: transparent;
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+}
+
+/* Form Panel */
+.form-panel {
+    background: #1a1a1a;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid #2a2a2a;
+    overflow: visible;
+    width: 100%;
+    max-width: 500px;
+}
+
+.panel-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+/* Tab Navigation */
+.tab-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #3a3a3a;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    color: #9ca3af;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    background: #4a4a4a;
+    color: #ffffff;
+}
+
+.tab-btn.active {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+/* Tab Content */
+.tab-content {
+    position: relative;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+/* Form Sections */
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.form-section h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section h4::before {
+    content: '';
+    width: 3px;
+    height: 18px;
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    border-radius: 2px;
+}
+
+.form-group {
+    margin-bottom: 0.75rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    background: #3a3a3a;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.form-group input::placeholder {
+    color: #6b7280;
+}
+
+/* Image Upload */
+.image-upload {
+    cursor: pointer;
+    border: 2px dashed #4a4a4a;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.image-upload:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.upload-preview img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+}
+
+.upload-placeholder {
+    color: #9ca3af;
+}
+
+.upload-placeholder i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.upload-placeholder p {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Save Button */
+.save-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: not-allowed;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.save-btn:not(:disabled):hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+}
+
+.save-btn:not(:disabled):active {
+    transform: translateY(0);
+}
+
+.save-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Small Image Upload */
+.image-upload-small {
+    cursor: pointer;
+    border: 2px dashed #4a4a4a;
+    border-radius: 8px;
+    padding: 0.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    max-width: 120px;
+    margin: 0 auto;
+}
+
+.image-upload-small:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.upload-preview-small img {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 8px;
+}
+
+.upload-placeholder-small {
+    color: #9ca3af;
+    padding: 0.5rem;
+}
+
+.upload-placeholder-small i {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.upload-placeholder-small p {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+/* Preview Panel */
+.preview-panel {
+    background: transparent;
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Phone Container */
+.phone-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+.phone-frame {
+    width: 320px;
+    height: 580px;
+    background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+    border-radius: 28px;
+    padding: 8px;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        0 8px 32px rgba(0, 0, 0, 0.4);
+    position: relative;
+    transform: rotateY(-8deg) rotateX(5deg);
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease;
+}
+
+.phone-frame:hover {
+    transform: rotateY(-5deg) rotateX(3deg);
+}
+
+
+.phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.phone-header {
+    height: 40px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.phone-notch {
+    width: 140px;
+    height: 25px;
+    background: #000;
+    border-radius: 12px;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.phone-content {
+    flex: 1;
+    background: transparent;
+    overflow-y: auto;
+    position: relative;
+}
+
+.phone-footer {
+    height: 30px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.phone-home-indicator {
+    width: 120px;
+    height: 5px;
+    background: #fff;
+    border-radius: 3px;
+    opacity: 0.3;
+}
+
+/* Removed preview panel header styles since header was removed */
+
+.preview-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.preview-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #3a3a3a;
+    border: 1px solid #4a4a4a;
+    border-radius: 6px;
+    color: #9ca3af;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.preview-btn:hover {
+    background: #4a4a4a;
+    color: #ffffff;
+}
+
+.preview-btn.active {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+/* Preview Content */
+.preview-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.preview-frame {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-preview {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #ffffff;
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .editor-container {
+        grid-template-columns: 1fr;
+        height: auto;
+        gap: 1rem;
+    }
+    
+    .phone-frame {
+        width: 300px;
+        height: 540px;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-editor-page {
+        padding: 0.5rem;
+    }
+    
+    .editor-container {
+        gap: 0.5rem;
+    }
+    
+    .form-panel,
+    .preview-panel {
+        padding: 1rem;
+    }
+    
+    .tab-nav {
+        grid-template-columns: 1fr;
+    }
+    
+    .phone-frame {
+        width: 280px;
+        height: 500px;
+    }
+}

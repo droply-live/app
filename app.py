@@ -48,13 +48,15 @@ app.config['ENVIRONMENT'] = os.environ.get('ENVIRONMENT', 'development')
 # For local development, use HTTP; for production, use HTTPS
 if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG') == '1':
     app.config['PREFERRED_URL_SCHEME'] = 'http'
-    app.config['SERVER_NAME'] = 'localhost:5001'
+    # Removed SERVER_NAME to avoid routing issues in development
+    print("✅ Running in DEVELOPMENT mode - SERVER_NAME not set")
 else:
     app.config['PREFERRED_URL_SCHEME'] = 'https'
     # Set production domain if provided
     production_domain = os.environ.get('YOUR_DOMAIN', '').replace('https://', '').replace('http://', '')
     if production_domain:
         app.config['SERVER_NAME'] = production_domain
+        print(f"⚠️  Running in PRODUCTION mode - SERVER_NAME set to: {production_domain}")
 
 # Debug: Print loaded credentials (remove in production)
 print(f"Loaded GOOGLE_CLIENT_ID: {app.config['GOOGLE_CLIENT_ID']}")
@@ -122,6 +124,15 @@ with app.app_context():
 
 # Import routes after app initialization
 from routes import *  # noqa: F401,F403
+
+# Initialize agentic system
+try:
+    from agents.flask_integration import init_agents
+    init_agents(app)
+    print("✅ ProcuraAI agentic system initialized successfully")
+except Exception as e:
+    print(f"⚠️  Warning: Could not initialize agentic system: {e}")
+    print("   The system will run without AI agents")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)

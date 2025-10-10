@@ -2,291 +2,2135 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Droply - Monetize Your Expertise</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Droply - Find What People Have to Offer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="{{ url_for('static', filename='js/translations.js') }}"></script>
     <style>
-        /* Global overflow prevention */
+        /* Whop.com Inspired Design - Discover Page Style */
         * {
             box-sizing: border-box;
         }
         
         html, body {
-            overflow-x: hidden;
-            width: 100%;
-            max-width: 100vw;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            background: #2a2a2a !important;
+            color: #fff !important;
+            overflow-x: hidden !important;
+            height: 100vh !important;
+        }
+
+        /* Light mode styles */
+        body.light-mode {
+            background: #fff !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .sidebar {
+            background: #f8f9fa !important;
+            border-right: 1px solid #e9ecef !important;
+        }
+
+        body.light-mode .sidebar-header {
+            border-bottom: 1px solid #e9ecef !important;
+        }
+
+        body.light-mode .nav-item {
+            color: #495057 !important;
+        }
+
+        body.light-mode .nav-item:hover {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+        }
+
+        body.light-mode .category-item {
+            color: #495057 !important;
+        }
+
+        body.light-mode .category-item:hover {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+        }
+
+        body.light-mode .main-content {
+            background: #fff !important;
+        }
+
+        body.light-mode .search-area {
+            background: #fff !important;
+        }
+
+        body.light-mode .page-title {
+            color: #000 !important;
+        }
+
+        body.light-mode .search-input-wrapper {
+            background: #f8f9fa !important;
+            border: 1px solid #dee2e6 !important;
+        }
+
+        body.light-mode .search-input {
+            color: #000 !important;
+            background: transparent !important;
+        }
+
+        body.light-mode .search-input::placeholder {
+            color: #6c757d !important;
+        }
+
+        body.light-mode .animated-placeholder {
+            color: #6c757d !important;
+            background: transparent !important;
+        }
+
+        /* Light mode toggle buttons - white background with black text */
+        body.light-mode .menu-dropdown-btn {
+            background: #fff !important;
+            border: 1px solid #dee2e6 !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .menu-dropdown-btn:hover {
+            background: #f8f9fa !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .language-toggle {
+            background: #fff !important;
+            border: 1px solid #dee2e6 !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .language-toggle:hover {
+            background: #f8f9fa !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .theme-toggle {
+            background: #fff !important;
+            border: 1px solid #dee2e6 !important;
+            color: #000 !important;
+        }
+
+        body.light-mode .theme-toggle:hover {
+            background: #f8f9fa !important;
+            color: #000 !important;
+        }
+
+        /* Light mode sidebar footer - white background */
+        body.light-mode .sidebar-footer {
+            background: #fff !important;
+            border-top: 1px solid #dee2e6 !important;
+        }
+
+        /* Light mode dropdown content - white backgrounds */
+        body.light-mode .menu-dropdown-content {
+            background: #fff !important;
+            border: 1px solid #dee2e6 !important;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1) !important;
+        }
+
+        body.light-mode .language-dropdown-content {
+            background: #fff !important;
+            border: 1px solid #dee2e6 !important;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Light mode dropdown items - black text */
+        body.light-mode .menu-dropdown-item {
+            color: #000 !important;
+        }
+
+        body.light-mode .menu-dropdown-item:hover {
+            background-color: #f8f9fa !important;
+            color: #10b981 !important;
+        }
+
+        body.light-mode .language-option {
+            color: #000 !important;
+        }
+
+        body.light-mode .language-option:hover {
+            background-color: #f8f9fa !important;
+            color: #10b981 !important;
+        }
+
+        /* Main Layout */
+        .app-container {
+            display: flex !important;
+            height: 100vh !important;
+            background: #2a2a2a !important;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            width: 240px !important;
+            background: #1a1a1a !important;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+                linear-gradient(45deg, rgba(99, 102, 241, 0.02) 0%, transparent 40%) !important;
+            border-right: 1px solid #333 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100vh !important;
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+            transition: all 0.3s cubic-bezier(.4,0,.2,1) !important;
         }
         
-        /* Top Navigation Bar - Always Visible */
-        .top-nav {
+        /* Collapsed sidebar state */
+        .sidebar.collapsed {
+            width: 80px !important;
+        }
+        
+        /* Hide text content when collapsed but keep positioning */
+        .sidebar.collapsed .nav-item,
+        .sidebar.collapsed .theme-toggle {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        /* Hide text nodes specifically */
+        .sidebar.collapsed .nav-item {
+            color: transparent !important;
+        }
+
+        /* Hide text spans in collapsed nav items */
+        .sidebar.collapsed .nav-item span {
+            display: none !important;
+        }
+        
+        .sidebar.collapsed .nav-item::after {
+            content: "" !important;
+        }
+        
+        /* Show only icons when collapsed */
+        .sidebar.collapsed .nav-item i,
+        .sidebar.collapsed .theme-toggle i {
+            font-size: 1.1rem !important;
+            color: #ccc !important;
+            line-height: normal !important;
+            display: inline-block !important;
+        }
+        
+        /* Hide logo when collapsed */
+        .sidebar.collapsed .sidebar-logo {
+            display: none !important;
+        }
+        
+        .sidebar.collapsed .logo-text {
+            display: none !important;
+        }
+        
+        
+        /* Light mode collapsed sidebar navigation icons only */
+        body.light-mode .sidebar.collapsed .nav-item i {
+            color: #333 !important;
+        }
+        
+        /* Keep navigation items in same position - don't center them */
+        .sidebar.collapsed .nav-item {
+            justify-content: flex-start !important;
+            padding: 0.75rem 1rem !important;
+            gap: 0.75rem !important;
+            min-height: 48px !important;
+            display: flex !important;
+            align-items: center !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+            font-size: 1.1rem !important;
+        }
+        
+        /* Keep logo in same position when collapsed */
+        .sidebar.collapsed .sidebar-logo {
+            justify-content: flex-start !important;
+        }
+        
+        /* Hide dropdown content when collapsed */
+        .sidebar.collapsed .menu-dropdown-content {
+            display: none !important;
+        }
+        
+        /* Adjust theme toggle when collapsed */
+        .sidebar.collapsed .theme-toggle {
+            justify-content: center !important;
+            padding: 0.75rem 0.5rem !important;
+        }
+        
+        .sidebar.collapsed .theme-toggle-switch {
+            display: none !important;
+        }
+        
+        /* Show only active theme icon when collapsed */
+        .sidebar.collapsed .theme-toggle .fa-sun {
+            display: none !important;
+        }
+        
+        .sidebar.collapsed .theme-toggle .fa-moon {
+            display: none !important;
+        }
+        
+        /* Show sun icon when in light mode and collapsed */
+        body.light-mode .sidebar.collapsed .theme-toggle .fa-sun {
+            display: block !important;
+            color: #000 !important;
+        }
+        
+        /* Show moon icon when in dark mode and collapsed (default state) */
+        .sidebar.collapsed .theme-toggle .fa-moon {
+            display: block !important;
+        }
+        
+        /* Hide moon icon when in light mode and collapsed */
+        body.light-mode .sidebar.collapsed .theme-toggle .fa-moon {
+            display: none !important;
+        }
+
+        /* Sidebar Header */
+        .sidebar-header {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 80px !important;
+            padding: 1.5rem 1rem 1rem 1rem !important;
+            border-bottom: 1px solid #333 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            z-index: 10 !important;
+        }
+
+        .sidebar-logo {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-decoration: none !important;
+            color: #10b981 !important;
+            font-weight: 700 !important;
+            font-size: 2.5rem !important;
+            letter-spacing: -2px !important;
+            width: 100% !important;
+        }
+
+        .logo-text {
+            color: #10b981 !important;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar-nav {
+            position: absolute !important;
+            top: 80px !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            padding: 0.5rem 0 !important;
+            overflow-y: auto !important;
+        }
+
+        /* Navigation Section */
+        .nav-section {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0 !important;
+            margin-bottom: 2rem !important;
+        }
+
+        .nav-section-title {
+            padding: 0 1rem 0.5rem 1rem !important;
+            font-size: 0.75rem !important;
+            font-weight: 600 !important;
+            color: #999 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        .nav-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.75rem 1rem !important;
+            color: #ccc !important;
+            text-decoration: none !important;
+            transition: background-color 0.2s ease, color 0.2s ease, border-left-color 0.2s ease !important;
+            border-left: 3px solid transparent !important;
+            font-size: 1.1rem !important;
+            min-height: 48px !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+        }
+
+        .nav-item:hover {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+            border-left-color: #10b981 !important;
+        }
+
+        .nav-item.active {
+            background: rgba(16, 185, 129, 0.15) !important;
+            color: #10b981 !important;
+            border-left-color: #10b981 !important;
+            font-weight: 600 !important;
+        }
+
+        .nav-item i {
+            margin-right: 0.75rem !important;
+            width: 20px !important;
+            text-align: center !important;
+            font-size: 1.1rem !important;
+            flex-shrink: 0 !important;
+        }
+
+        /* Categories in Sidebar */
+        .categories-nav {
+            padding: 1rem 0 !important;
+        }
+
+        .category-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.75rem 1rem !important;
+            color: #ccc !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            border-left: 3px solid transparent !important;
+        }
+
+        .category-item:hover {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+            border-left-color: #10b981 !important;
+        }
+
+        .category-item.active {
+            background: rgba(16, 185, 129, 0.15) !important;
+            color: #10b981 !important;
+            border-left-color: #10b981 !important;
+            font-weight: 600 !important;
+        }
+
+        .category-item i {
+            margin-right: 0.75rem !important;
+            width: 20px !important;
+            text-align: center !important;
+            font-size: 1.1rem !important;
+        }
+
+        /* Sidebar Toggle Button - ChatGPT Style */
+        .sidebar-toggle {
+            position: absolute !important;
+            top: 20px !important;
+            right: -12px !important;
+            background: #2a2a2a !important;
+            border: 1px solid #3a3a3a !important;
+            color: #ffffff !important;
+            font-size: 0.875rem !important;
+            border-radius: 6px !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+            padding: 0.5rem !important;
+            z-index: 1200 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            width: 24px !important;
+            height: 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            backdrop-filter: blur(10px) !important;
+        }
+        
+        /* Position toggle button where logo is when collapsed */
+        .sidebar.collapsed .sidebar-toggle {
+            position: absolute !important;
+            top: 1.5rem !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            background: #2a2a2a !important;
+            border-color: #3a3a3a !important;
+            width: 40px !important;
+            height: 40px !important;
+            font-size: 1rem !important;
+        }
+        
+        .sidebar-toggle:hover {
+            background: #3a3a3a !important;
+            border-color: #4a4a4a !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+        }
+        
+        /* Hover effect for collapsed toggle button */
+        .sidebar.collapsed .sidebar-toggle:hover {
+            transform: translateX(-50%) scale(1.05) !important;
+        }
+        
+        .sidebar-toggle:active {
+            transform: scale(0.95) !important;
+        }
+        
+        /* Active effect for collapsed toggle button */
+        .sidebar.collapsed .sidebar-toggle:active {
+            transform: translateX(-50%) scale(0.95) !important;
+        }
+        
+        .sidebar-toggle i {
+            transition: transform 0.2s ease !important;
+            font-size: 0.75rem !important;
+        }
+        
+        .sidebar.collapsed .sidebar-toggle i {
+            transform: rotate(180deg) !important;
+        }
+
+        /* Sidebar Close Button */
+        .sidebar-close-btn {
+            display: none !important;
+            background: transparent !important;
+            border: none !important;
+            color: #ccc !important;
+            padding: 0.5rem !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            font-size: 1.2rem !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .sidebar-close-btn:hover {
+            background: #333 !important;
+            color: #fff !important;
+        }
+
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 1rem !important;
+            border-top: 1px solid #333 !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+        }
+
+        /* Menu Dropdown Styles */
+        .menu-dropdown {
+            position: relative !important;
+            display: block !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .menu-dropdown-btn {
+            width: 100% !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            color: #ccc !important;
+            padding: 0.75rem 1rem !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            font-size: 0.9rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .menu-dropdown-btn:hover {
+            background: #444 !important;
+            color: #fff !important;
+        }
+
+        .menu-dropdown-content {
+            display: none !important;
+            position: absolute !important;
+            bottom: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            background-color: #1a1a1a !important;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2) !important;
+            z-index: 1002 !important;
+            border: 1px solid #333 !important;
+            border-radius: 8px !important;
+            padding: 0.5rem 0 !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .menu-dropdown-content.show {
+            display: block !important;
+        }
+
+        .menu-dropdown-item {
+            color: #ccc !important;
+            padding: 0.75rem 1rem !important;
+            text-decoration: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 0.75rem !important;
+            transition: all 0.2s ease !important;
+            font-size: 0.9rem !important;
+        }
+
+        .menu-dropdown-item:hover {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+        }
+
+        .menu-dropdown-item i {
+            width: 16px !important;
+            text-align: center !important;
+        }
+
+        /* Toggle Row Container */
+        .toggle-row {
+            display: flex !important;
+            gap: 0.5rem !important;
+            margin-top: 0.5rem !important;
+        }
+
+        /* Language Dropdown Container */
+        .language-dropdown {
+            position: relative !important;
+            flex: 1 !important;
+        }
+
+        /* Language Toggle */
+        .language-toggle {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            padding: 0.5rem 0.75rem !important;
+            color: #ccc !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+            width: 100% !important;
+            justify-content: flex-start !important;
+            height: 40px !important;
+            font-size: 0.85rem !important;
+        }
+        
+        .language-toggle:hover {
+            background-color: #444 !important;
+            color: #fff !important;
+        }
+
+        /* Language Dropdown Content */
+        .language-dropdown-content {
+            position: absolute !important;
+            bottom: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: #2a2a2a !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3) !important;
+            z-index: 1000 !important;
+            display: none !important;
+            margin-bottom: 0.25rem !important;
+        }
+
+        .language-dropdown-content.show {
+            display: block !important;
+        }
+
+        /* Language Options */
+        .language-option {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            padding: 0.75rem 1rem !important;
+            color: #ccc !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            font-size: 0.9rem !important;
+            font-weight: 500 !important;
+        }
+
+        .language-flag {
+            font-size: 1rem !important;
+            width: 20px !important;
+            text-align: center !important;
+        }
+
+        .language-option:hover {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+        }
+
+        .language-option:first-child {
+            border-radius: 8px 8px 0 0 !important;
+        }
+
+        .language-option:last-child {
+            border-radius: 0 0 8px 8px !important;
+        }
+
+        
+        /* Show toggle row when collapsed - only theme toggle visible */
+        .sidebar.collapsed .toggle-row {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+        }
+        
+        /* Only theme toggle visible when collapsed */
+        .sidebar.collapsed .theme-toggle {
+            margin-top: 0.5rem !important;
+        }
+        
+        /* Hide language text when collapsed */
+        .sidebar.collapsed .language-text {
+            display: none !important;
+        }
+        
+
+        /* Hide language dropdown when collapsed */
+        .sidebar.collapsed .language-dropdown-content {
+            display: none !important;
+        }
+
+        /* Hide menu dropdown and language toggle when collapsed - only show theme toggle */
+        .sidebar.collapsed .menu-dropdown-btn {
+            display: none !important;
+        }
+        
+        .sidebar.collapsed .language-toggle {
+            display: none !important;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            padding: 0.5rem 0.75rem !important;
+            color: #ccc !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+            flex: 1 !important;
+            height: 40px !important;
+            font-size: 0.85rem !important;
+        }
+
+        .theme-toggle:hover {
+            background-color: #444 !important;
+            color: #fff !important;
+        }
+
+        .theme-toggle-switch {
+            position: relative !important;
+            width: 40px !important;
+            height: 20px !important;
+            background: #333 !important;
+            border-radius: 20px !important;
+            transition: background 0.3s ease !important;
+        }
+
+        .theme-toggle-switch.active {
+            background: #10b981 !important;
+        }
+
+        .theme-toggle-slider {
+            position: absolute !important;
+            top: 2px !important;
+            left: 2px !important;
+            width: 16px !important;
+            height: 16px !important;
+            background: white !important;
+            border-radius: 50% !important;
+            transition: transform 0.3s ease !important;
+        }
+
+        .theme-toggle-switch.active .theme-toggle-slider {
+            transform: translateX(20px) !important;
+        }
+
+        /* Main Content Area - Identical to Discover Page */
+        .main-content {
+            flex: 1 !important;
+            margin-left: var(--sidebar-margin-left, 240px) !important;
+            width: var(--sidebar-width-calc, calc(100vw - 240px)) !important;
+            background: #2a2a2a !important;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+            min-height: 100vh !important;
+            transition: all 0.3s cubic-bezier(.4,0,.2,1) !important;
+        }
+        
+        /* Adjust main content when sidebar is collapsed */
+        .sidebar.collapsed + .main-content,
+        .sidebar.collapsed ~ .main-content,
+        body:has(.sidebar.collapsed) .main-content,
+        .main-content.sidebar-collapsed {
+            --sidebar-margin-left: 80px !important;
+            --sidebar-width-calc: calc(100vw - 80px) !important;
+        }
+
+        /* Search Area - Identical to Discover Page */
+        .search-area {
+            background: #2a2a2a !important;
+            background-image: 
+                radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.03) 0%, transparent 60%),
+                radial-gradient(circle at 70% 70%, rgba(99, 102, 241, 0.02) 0%, transparent 60%),
+                linear-gradient(135deg, rgba(16, 185, 129, 0.01) 0%, rgba(99, 102, 241, 0.01) 100%) !important;
+            padding: 2rem 1rem !important;
+            min-height: 100vh !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+        }
+
+        .search-wrapper {
+            max-width: 600px !important;
+            margin: 0 auto !important;
+            text-align: center !important;
+            width: 100% !important;
+        }
+
+        .page-title {
+            font-size: 2rem !important;
+            font-weight: 600 !important;
+            color: white !important;
+            margin-bottom: 1.5rem !important;
+            margin-top: 0 !important;
+        }
+
+        /* Search Input - Identical to Discover Page */
+        .search-input-wrapper {
+            display: flex !important;
+            align-items: center !important;
+            background: #333 !important;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
+                linear-gradient(45deg, rgba(99, 102, 241, 0.01) 0%, transparent 40%) !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+            padding: 0.5rem !important;
+            margin-bottom: 1rem !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .search-input-wrapper:focus-within {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1) !important;
+        }
+
+        .search-input {
+            flex: 1 !important;
+            border: none !important;
+            outline: none !important;
+            background: transparent !important;
+            font-size: 1rem !important;
+            padding: 0.5rem !important;
+            color: white !important;
+        }
+
+        .search-input::placeholder {
+            color: #999 !important;
+        }
+
+        /* Animated Placeholder Overlay */
+        .search-input-wrapper {
+            position: relative !important;
+        }
+
+        .animated-placeholder {
+            position: absolute !important;
+            top: 0.5rem !important;
+            left: 0.5rem !important;
+            color: #999 !important;
+            font-size: 1rem !important;
+            pointer-events: none !important;
+            z-index: 2 !important;
+            opacity: 0 !important;
+            transition: opacity 0.2s ease !important;
+            background: transparent !important;
+            padding: 0.5rem !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+        }
+
+        .animated-placeholder.show {
+            opacity: 1 !important;
+        }
+
+        .search-input:focus + .animated-placeholder,
+        .search-input:not(:placeholder-shown) + .animated-placeholder {
+            opacity: 0 !important;
+        }
+
+        /* Hide the original placeholder when animation is active */
+        .search-input-wrapper.animating .search-input::placeholder {
+            opacity: 0 !important;
+        }
+
+        /* Search Suggestions - Modern & Natural */
+        .search-suggestions {
+            position: absolute !important;
+            top: calc(100% + 2px) !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            max-height: 240px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            z-index: 1000 !important;
+            display: none !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            opacity: 0 !important;
+            transform: translateY(-8px) scale(0.95) !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .search-suggestions.show {
+            display: block !important;
+            opacity: 1 !important;
+            transform: translateY(0) scale(1) !important;
+        }
+
+        .suggestion-item {
+            padding: 0.75rem 1rem !important;
+            cursor: pointer !important;
+            border-bottom: 1px solid #f3f4f6 !important;
+            display: flex !important;
+            align-items: center !important;
+            transition: all 0.15s ease !important;
+            min-height: 48px !important;
+            position: relative !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+        }
+
+        .suggestion-item:hover {
+            background: #f0fdf4 !important;
+            transform: translateX(2px) !important;
+            border-left: 3px solid #10b981 !important;
+        }
+
+        .suggestion-item.selected {
+            background: #f0fdf4 !important;
+            border-left: 3px solid #10b981 !important;
+            transform: translateX(2px) !important;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none !important;
+            border-radius: 0 0 12px 12px !important;
+            margin-bottom: 0 !important;
+        }
+
+        .suggestion-item:first-child {
+            border-radius: 12px 12px 0 0 !important;
+        }
+
+        .suggestion-content {
+            flex: 1 !important;
+            min-width: 0 !important;
+            display: grid !important;
+            grid-template-columns: auto 1fr 1fr !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+        }
+
+        .suggestion-icon {
+            width: 20px !important;
+            height: 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 14px !important;
+            flex-shrink: 0 !important;
+        }
+
+        .suggestion-text {
+            color: #1f2937 !important;
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            text-align: left !important;
+            line-height: 1.4 !important;
+        }
+
+        .suggestion-subtitle {
+            color: #6b7280 !important;
+            font-size: 0.8rem !important;
+            white-space: nowrap !important;
+            text-align: left !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            line-height: 1.3 !important;
+        }
+
+        /* Custom scrollbar for suggestions */
+        .search-suggestions::-webkit-scrollbar {
+            width: 4px !important;
+        }
+
+        .search-suggestions::-webkit-scrollbar-track {
+            background: transparent !important;
+        }
+
+        .search-suggestions::-webkit-scrollbar-thumb {
+            background: #d1d5db !important;
+            border-radius: 2px !important;
+        }
+
+        .search-suggestions::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af !important;
+        }
+
+        .search-button {
+            background: #10b981 !important;
+            border: none !important;
+            color: white !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            font-size: 0.9rem !important;
+        }
+
+        .search-button:hover {
+            background: #047857 !important;
+        }
+
+        /* Results Area - Identical to Discover Page */
+        .results-area {
+            background: #2a2a2a !important;
+            padding: 2rem 1rem !important;
+        }
+
+        .results-header {
+            margin-bottom: 2rem !important;
+            text-align: center !important;
+        }
+
+        .results-title {
+            font-size: 1.5rem !important;
+            font-weight: 600 !important;
+            color: white !important;
+            margin: 0 0 0.5rem 0 !important;
+        }
+
+        .results-count {
+            font-size: 1rem !important;
+            color: #ccc !important;
+            margin: 0 !important;
+        }
+
+        /* No Results Section */
+        .no-results {
+            text-align: center !important;
+            padding: 3rem 1rem !important;
+            max-width: 500px !important;
+            margin: 0 auto !important;
+        }
+
+        .no-results-icon {
+            font-size: 3rem !important;
+            color: #666 !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .no-results-title {
+            font-size: 1.25rem !important;
+            font-weight: 600 !important;
+            color: white !important;
+            margin: 0 0 0.5rem 0 !important;
+        }
+
+        .no-results-text {
+            font-size: 1rem !important;
+            color: #ccc !important;
+            margin: 0 0 2rem 0 !important;
+            line-height: 1.5 !important;
+        }
+
+        .no-results-actions {
+            display: flex !important;
+            gap: 1rem !important;
+            justify-content: center !important;
+            flex-wrap: wrap !important;
+        }
+
+        .experts-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+            gap: 1.5rem !important;
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+        }
+
+        .expert-card {
+            background: #333 !important;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+                linear-gradient(45deg, rgba(99, 102, 241, 0.02) 0%, transparent 40%) !important;
+            border: 1px solid #555 !important;
+            border-radius: 12px !important;
+            padding: 1.5rem !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+        }
+
+        .expert-card:hover {
+            border-color: #10b981 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .expert-avatar {
+            width: 60px !important;
+            height: 60px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            border: 2px solid #e5e7eb !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .expert-info {
+            margin-bottom: 1rem !important;
+            width: 100% !important;
+        }
+
+        .expert-name {
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            color: white !important;
+            margin: 0 0 0.5rem 0 !important;
+        }
+
+        .expert-title {
+            font-size: 0.9rem !important;
+            color: #ccc !important;
+            margin: 0 0 0.5rem 0 !important;
+        }
+
+        .expert-rate {
+            font-size: 0.9rem !important;
+            color: #10b981 !important;
+            font-weight: 600 !important;
+        }
+
+        .expert-actions {
+            display: flex !important;
+            gap: 0.5rem !important;
+            width: 100% !important;
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem !important;
+            border-radius: 6px !important;
+            font-size: 0.8rem !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            text-decoration: none !important;
+            border: none !important;
+            font-weight: 500 !important;
+        }
+
+        .action-btn.primary {
+            background: #10b981 !important;
+            color: white !important;
+        }
+
+        .action-btn.primary:hover {
+            background: #047857 !important;
+            color: white !important;
+            text-decoration: none !important;
+        }
+
+        .action-btn.secondary {
+            background: #555 !important;
+            color: #ccc !important;
+            border: 1px solid #777 !important;
+        }
+
+        .action-btn.secondary:hover {
+            background: #666 !important;
+            color: white !important;
+        }
+
+        /* Desktop Layout */
+        @media (min-width: 769px) {
+            .sidebar-toggle {
+                display: flex !important;
+            }
+        }
+
+        /* Mobile Top Navigation Bar - Hidden on Desktop */
+        .mobile-top-nav {
+            display: none !important;
+        }
+
+        .mobile-nav-logo {
+            position: absolute !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            font-size: 1.5rem !important;
+            font-weight: 900 !important;
+            color: #10b981 !important;
+            letter-spacing: -1px !important;
+        }
+
+        .mobile-menu-btn {
+            background: transparent !important;
+            border: none !important;
+            color: #fff !important;
+            padding: 0.5rem !important;
+            cursor: pointer !important;
+            font-size: 1.2rem !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 6px !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .mobile-menu-btn:hover {
+            background: #333 !important;
+        }
+
+
+        .mobile-nav-right {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .mobile-signin-btn {
+            background: transparent !important;
+            color: #fff !important;
+            padding: 0.5rem !important;
+            border-radius: 6px !important;
+            text-decoration: none !important;
+            font-weight: 700 !important;
+            font-size: 1.2rem !important;
+            transition: all 0.2s ease !important;
+            min-height: 36px !important;
+            min-width: 36px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border: none !important;
+        }
+
+        .mobile-signin-btn:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
+            text-decoration: none !important;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar-toggle {
+                display: none !important;
+            }
+            
+            .mobile-top-nav {
+                display: flex !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                background: #1a1a1a !important;
+                border-bottom: 1px solid #333 !important;
+                padding: 1rem !important;
+                z-index: 1000 !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+            }
+
+            .mobile-nav-logo {
+                position: absolute !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                color: #10b981 !important;
+            }
+
+            .sidebar {
+                transform: translateX(-100%) !important;
+                transition: transform 0.3s ease !important;
+                width: 240px !important;
+                top: 0 !important;
+                height: 100vh !important;
+            }
+
+            .sidebar.open {
+                transform: translateX(0) !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+                margin-top: 80px !important; /* Account for top nav */
+            }
+
+            .search-area {
+                padding: 2rem 1rem !important;
+                min-height: calc(100vh - 80px) !important;
+            }
+
+            .page-title {
+                font-size: 1.5rem !important;
+                margin-bottom: 1rem !important;
+            }
+
+            .search-input-wrapper {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+                padding: 0.75rem !important;
+            }
+
+            .search-input {
+                font-size: 16px !important; /* Prevents zoom on iOS */
+                padding: 0.75rem !important;
+            }
+
+            .search-button {
+                width: 100% !important;
+                padding: 0.75rem !important;
+                font-size: 1rem !important;
+            }
+
+            /* Results Area Mobile */
+            .results-area {
+                padding: 1rem !important;
+            }
+
+            .results-title {
+                font-size: 1.25rem !important;
+            }
+
+            .results-count {
+                font-size: 0.9rem !important;
+            }
+
+            .experts-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            .expert-card {
+                padding: 1rem !important;
+            }
+
+            .expert-actions {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+
+            .action-btn {
+                width: 100% !important;
+                padding: 0.75rem !important;
+                font-size: 0.9rem !important;
+            }
+
+            /* No Results Mobile */
+            .no-results {
+                padding: 2rem 1rem !important;
+            }
+
+            .no-results-actions {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+            }
+
+            .no-results-actions .action-btn {
+                width: 100% !important;
+            }
+
+            /* Sidebar Mobile Improvements */
+            .sidebar-header {
+                padding: 1rem !important;
+            }
+
+            .sidebar-logo {
+                font-size: 2rem !important;
+            }
+
+            .nav-item, .category-item {
+                padding: 1rem !important;
+                font-size: 1.1rem !important;
+            }
+
+            .sidebar-close-btn {
+                display: block !important;
+            }
+
+            .sidebar-header {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+            }
+
+            .sidebar-footer {
+                padding: 1rem !important;
+            }
+
+            .menu-dropdown-btn, .theme-toggle, .language-toggle {
+                padding: 1rem !important;
+                font-size: 0.9rem !important;
+            }
+        }
+
+        /* Small Mobile (320px - 480px) */
+        @media (max-width: 480px) {
+            .search-area {
+                padding: 0.75rem !important;
+            }
+
+            .page-title {
+                font-size: 1.25rem !important;
+            }
+
+            .search-input-wrapper {
+                padding: 0.5rem !important;
+            }
+
+            .search-input {
+                padding: 0.5rem !important;
+                font-size: 16px !important;
+            }
+
+            .search-button {
+                padding: 0.5rem !important;
+            }
+
+            .results-area {
+                padding: 0.75rem !important;
+            }
+
+            .expert-card {
+                padding: 0.75rem !important;
+            }
+
+            .expert-avatar {
+                width: 50px !important;
+                height: 50px !important;
+            }
+
+            .expert-name {
+                font-size: 1rem !important;
+            }
+
+            .expert-title {
+                font-size: 0.85rem !important;
+            }
+
+            .expert-rate {
+                font-size: 0.85rem !important;
+            }
+
+            .mobile-menu-btn {
+                top: 0.75rem !important;
+                left: 0.75rem !important;
+                padding: 0.5rem !important;
+                min-width: 40px !important;
+                min-height: 40px !important;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-item, .category-item, .action-btn {
+                min-height: 44px !important;
+                display: flex !important;
+                align-items: center !important;
+            }
+
+            .search-button {
+                min-height: 44px !important;
+            }
+
+            .menu-dropdown-btn, .theme-toggle, .language-toggle {
+                min-height: 44px !important;
+            }
+        }
+
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .expert-avatar {
+                image-rendering: -webkit-optimize-contrast !important;
+                image-rendering: crisp-edges !important;
+            }
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            z-index: 999 !important;
+        }
+
+        .sidebar-overlay.open {
+            display: block !important;
+        }
+
+        /* Login Modal Styles */
+        .login-modal {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(229, 229, 229, 0.3);
-            z-index: 1001;
-            padding: 0.5rem 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
         }
 
-        .top-nav .container {
+        .login-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .login-modal-content {
+            position: relative;
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 0;
+            max-width: 400px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #333;
+        }
+
+        .login-modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
+            padding: 24px 24px 0 24px;
         }
 
-        .top-nav-brand {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #059669;
-            text-decoration: none;
-            letter-spacing: -1px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
 
-        .top-nav-brand-icon {
-            width: 32px;
-            height: 32px;
-            background: #059669;
+        .login-modal-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
             border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .login-modal-close:hover {
+            background: #374151;
+            color: #fff;
+        }
+
+        .login-modal-body {
+            padding: 8px 24px 24px 24px;
+        }
+
+        .login-modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 24px 0;
+            text-align: center;
+        }
+
+        .login-modal-brand {
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        .login-modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .login-modal-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .login-modal-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            margin: 0;
+        }
+
+        .login-modal-input {
+            padding: 12px 16px;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            background: #1f2937;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .login-modal-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .login-modal-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .login-modal-continue-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 8px;
+        }
+
+        .login-modal-continue-btn:hover {
+            background: #2563eb;
+        }
+
+        .login-modal-back-btn {
+            background: transparent;
+            color: #9ca3af;
+            border: 1px solid #374151;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        .login-modal-back-btn:hover {
+            background: #374151;
+            color: #fff;
+            border-color: #4b5563;
+        }
+
+        .login-modal-signup-link {
+            text-align: center;
+            margin-top: 16px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .login-modal-signup-btn {
+            background: none;
+            border: none;
+            color: #10b981;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            margin: 0;
+        }
+
+        .login-modal-signup-btn:hover {
+            color: #059669;
+        }
+
+        .login-modal-step {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .login-modal-separator {
+            position: relative;
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .login-modal-separator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #374151;
+        }
+
+        .login-modal-separator-text {
+            background: #1a1a1a;
+            color: #9ca3af;
+            padding: 0 16px;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .login-modal-social {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .login-modal-google-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            color: white;
-            font-weight: bold;
+            gap: 12px;
+            background: white;
+            color: #1f2937;
+            border: 1px solid #d1d5db;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .top-nav-links {
+        .login-modal-google-btn:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .login-modal-google-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .login-modal-footer {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .login-modal-terms {
+            font-size: 12px;
+            color: #9ca3af;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .login-modal-link {
+            color: #10b981;
+            text-decoration: underline;
+        }
+
+        .login-modal-link:hover {
+            color: #059669;
+        }
+
+        /* Light mode adjustments for login modal */
+        body.light-mode .login-modal-content {
+            background: #fff;
+            border-color: #e5e7eb;
+        }
+
+        body.light-mode .login-modal-title {
+            color: #1f2937;
+        }
+
+        body.light-mode .login-modal-label {
+            color: #1f2937;
+        }
+
+        body.light-mode .login-modal-input {
+            background: #fff;
+            border-color: #d1d5db;
+            color: #1f2937;
+        }
+
+        body.light-mode .login-modal-input:focus {
+            border-color: #10b981;
+        }
+
+        body.light-mode .login-modal-separator::before {
+            background: #d1d5db;
+        }
+
+        body.light-mode .login-modal-separator-text {
+            background: #fff;
+        }
+
+        body.light-mode .login-modal-terms {
+            color: #6b7280;
+        }
+
+        body.light-mode .login-modal-brand {
+            color: #10b981;
+        }
+
+        /* Discover Buttons Styles */
+        .discover-buttons-header {
             display: flex;
             gap: 1rem;
-            align-items: center;
+            margin-bottom: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
-        .top-nav-link {
-            color: #666;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
+        .discover-btn {
+            background: #333;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.75rem 1.5rem;
             border-radius: 8px;
+            cursor: pointer;
             transition: all 0.2s ease;
-        }
-
-        .top-nav-link:hover {
-            color: #059669;
-            background: rgba(5, 150, 105, 0.1);
-        }
-
-        .top-nav-link.btn-primary {
-            background: #059669;
-            color: white;
-            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
-        }
-
-        .top-nav-link.btn-primary:hover {
-            background: #047857;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
-        }
-
-        /* Adjust hero section to account for top nav */
-        .hero-section {
-            margin-top: 80px;
-        }
-
-        /* Mobile Navigation (only for mobile) */
-        .mobile-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(229, 229, 229, 0.3);
-            transition: all 0.3s ease;
-            display: none; /* Hidden by default */
-            min-height: 60px; /* Ensure minimum height */
-            /* Debug: Make it more visible */
-            background-color: #ffffff !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-            width: 100%;
-            max-width: 100vw;
-            overflow-x: hidden;
-        }
-
-        .nav-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            /* Debug: Make sure it's visible */
-            background-color: #f0f0f0 !important;
-            min-height: 50px !important;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .nav-brand {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #059669;
-            text-decoration: none;
-            letter-spacing: -1px;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-        }
-
-        .nav-brand-icon {
-            width: 32px;
-            height: 32px;
-            background: #059669;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: white;
-            font-weight: bold;
-        }
-
-        /* Mobile Login Button */
-        .mobile-login-btn {
-            background: #059669;
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-weight: 600;
             font-size: 0.9rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+            font-weight: 500;
         }
 
-        .mobile-login-btn:hover {
+        .discover-btn:hover {
+            background: #444;
+            color: #fff;
+            border-color: #10b981;
+            transform: translateY(-1px);
+        }
+
+        .discover-btn.browse-all {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .discover-btn.browse-all:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        /* Light mode styles for discover buttons */
+        body.light-mode .discover-btn {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            color: #495057;
+        }
+
+        body.light-mode .discover-btn:hover {
+            background: #e9ecef;
+            color: #10b981;
+            border-color: #10b981;
+        }
+
+        body.light-mode .discover-btn.browse-all {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        body.light-mode .discover-btn.browse-all:hover {
+            background: #047857;
+        }
+
+        /* Browse Interface Styles */
+        .browse-interface {
+            position: absolute;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            width: calc(100vw - var(--sidebar-width));
+            max-width: none;
+            margin: 0;
+            padding: 2rem;
+            background: #2a2a2a;
+            z-index: 10;
+            min-height: 100vh;
+            transition: left 0.3s ease, width 0.3s ease;
+        }
+        
+        /* Adjust browse interface when sidebar is collapsed */
+        .sidebar.collapsed + .main-content .browse-interface,
+        .sidebar.collapsed ~ .main-content .browse-interface,
+        body:has(.sidebar.collapsed) .browse-interface {
+            left: var(--sidebar-collapsed-width);
+            width: calc(100vw - var(--sidebar-collapsed-width));
+        }
+
+        .browse-header {
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .search-bar-container {
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .category-tab {
+            background: #333;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .category-tab:hover {
+            background: #444;
+            color: #fff;
+            border-color: #10b981;
+        }
+
+        .category-tab.active {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .browse-results {
+            min-height: 400px;
+        }
+
+        .loading-message, .error-message {
+            text-align: center;
+            padding: 2rem;
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+
+        .error-message {
+            color: #ef4444;
+        }
+
+        .category-section {
+            margin-bottom: 3rem;
+        }
+
+        .category-section-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #10b981;
+        }
+
+        .people-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        /* Responsive grid for different screen sizes */
+        @media (min-width: 1600px) {
+            .people-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .people-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .people-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .person-card {
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-height: 250px;
+            justify-content: space-between;
+        }
+
+        .person-card:hover {
+            border-color: #10b981;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .person-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+            margin-bottom: 1rem;
+        }
+
+        .person-info {
+            margin-bottom: 0.75rem;
+            width: 100%;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .person-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.2;
+        }
+
+        .person-title {
+            font-size: 0.85rem;
+            color: #ccc;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.2;
+        }
+
+        .person-rate {
+            font-size: 0.9rem;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .person-actions {
+            display: flex;
+            gap: 0.25rem;
+            width: 100%;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: none;
+            font-weight: 500;
+            width: 100%;
+            text-align: center;
+        }
+
+        .action-btn.primary {
+            background: #10b981;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
             background: #047857;
             color: white;
             text-decoration: none;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
         }
 
-
-
-
-
-
-
-        /* Responsive Design */
-        @media (max-width: 767px) {
-            /* Mobile: Show mobile nav */
-            .mobile-nav {
-                display: block !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-                width: 100vw !important;
-                max-width: 100vw !important;
-                overflow-x: hidden !important;
-            }
-            
-            .top-nav {
-                display: none !important;
-            }
-            
-            /* Ensure mobile nav is visible */
-            .nav-header {
-                display: flex !important;
-                visibility: visible !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 1rem !important;
-                box-sizing: border-box !important;
-            }
-            
-            /* Prevent horizontal scroll */
-            body {
-                overflow-x: hidden !important;
-                width: 100% !important;
-                max-width: 100vw !important;
-            }
-            
-            /* Fix hero sections to prevent overflow */
-            .hero-section {
-                width: 100% !important;
-                max-width: 100vw !important;
-                overflow-x: hidden !important;
-                padding: 4rem 1rem !important;
-            }
-            
-            .hero-content {
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 1rem !important;
-                overflow-x: hidden !important;
-            }
-            
-            .hero-images-features {
-                width: 100% !important;
-                max-width: 100% !important;
-                overflow-x: hidden !important;
-            }
-            
-            /* Fix all containers */
-            .container {
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 1rem !important;
-                overflow-x: hidden !important;
-            }
-            
-            /* Fix any animated elements */
-            .hero-animation,
-            .hero-stepper-layout,
-            .image-animated-bg-large {
-                width: 100% !important;
-                max-width: 100% !important;
-                overflow-x: hidden !important;
-            }
+        /* Light mode styles for browse interface */
+        body.light-mode .category-tab {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            color: #495057;
         }
 
-        @media (min-width: 768px) {
-            /* Desktop: Show top nav, hide mobile nav */
-            .mobile-nav {
-                display: none !important;
-            }
-            
-            .top-nav {
-                display: block;
-            }
+        body.light-mode .category-tab:hover {
+            background: #e9ecef;
+            color: #10b981;
+            border-color: #10b981;
         }
 
-        /* Large screens */
-        @media (min-width: 1024px) {
-            .nav-header {
-                padding: 1rem 3rem;
-            }
+        body.light-mode .category-tab.active {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
         }
+
+        body.light-mode .category-section-title {
+            color: #1f2937;
+        }
+
+        body.light-mode .person-card {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        body.light-mode .person-card:hover {
+            border-color: #10b981;
+        }
+
+        body.light-mode .person-name {
+            color: #1f2937;
+        }
+
+        body.light-mode .person-title {
+            color: #6b7280;
+        }
+
     </style>
 </head>
-<body>
-    <!-- Top Navigation Bar (Desktop) -->
-    <nav class="top-nav">
-        <div class="container">
-            <a href="{{ url_for('homepage') }}" class="top-nav-brand">
-                droply
+<body class="homepage">
+        <!-- Mobile Top Navigation Bar -->
+        <div class="mobile-top-nav">
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="{{ url_for('homepage') }}" class="mobile-nav-logo" style="display: flex; align-items: center; text-decoration: none;">
+                <span style="font-size: 1.5rem; font-weight: 900; color: #10b981 !important; letter-spacing: -1px;">droply</span>
             </a>
-            <div class="top-nav-links">
-                <a href="{{ url_for('homepage') }}" class="top-nav-link">Home</a>
-                <a href="{{ url_for('search') }}" class="top-nav-link">Search</a>
+            <div class="mobile-nav-right">
                 {% if current_user.is_authenticated %}
+<<<<<<< HEAD
+                    <a href="{{ url_for('dashboard') }}" class="mobile-signin-btn">
+                        <i class="fas fa-chart-line"></i>
+                    </a>
+=======
                     <a href="{{ url_for('dashboard') }}" class="top-nav-link">Dashboard</a>
                     {% if request.host != 'droply.live' %}
                         <a href="{{ url_for('test_video_call') }}" class="top-nav-link" style="color: #ff6b35; font-weight: bold;">🧪 Test Video</a>
@@ -294,285 +2138,1473 @@
                         <a href="{{ url_for('dev_simple_video_call') }}" class="top-nav-link" style="color: #3b82f6; font-weight: bold;">📞 Simple Video</a>
                     {% endif %}
                     <a href="{{ url_for('logout') }}" class="top-nav-link">Logout</a>
+>>>>>>> 7219ee7eb3ad47520123faad0ffb809a6a4667c9
                 {% else %}
-                    <a href="{{ url_for('login') }}" class="top-nav-link">Login</a>
-                    <a href="{{ url_for('register') }}" class="top-nav-link btn-primary">Register</a>
+                    <a href="{{ url_for('login') }}" class="mobile-signin-btn">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </a>
                 {% endif %}
             </div>
         </div>
-    </nav>
 
-    <!-- Mobile Navigation (only visible on mobile) -->
-    <nav class="mobile-nav">
-        <div class="nav-header">
-            <a href="{{ url_for('homepage') }}" class="nav-brand">
-                <div class="nav-brand-icon">D</div>
-                droply
-            </a>
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('dashboard') }}" class="mobile-login-btn">Dashboard</a>
-            {% else %}
-                <a href="{{ url_for('login') }}" class="mobile-login-btn">Login</a>
-            {% endif %}
-        </div>
-    </nav>
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+    <div class="app-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <!-- Sidebar Header -->
+            <div class="sidebar-header">
+                <a href="{{ url_for('homepage') }}" class="sidebar-logo">
+                    <span class="logo-text">droply</span>
+                </a>
+                <button class="sidebar-close-btn" id="sidebarCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Sidebar Toggle Button -->
+            <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
 
-
-    <!-- Modern Navigation Bar (Desktop only) -->
-    <div class="d-none d-md-block">
-        <nav class="navbar" id="navbar">
-            <div class="container">
-                <div class="d-flex justify-content-between align-items-center">
-                    <a href="{{ url_for('homepage') }}" class="navbar-brand">
-                        <div class="navbar-brand-icon">D</div>
-                        Droply
+            <!-- Sidebar Navigation -->
+            <div class="sidebar-nav">
+                <!-- Main Navigation -->
+                <div class="nav-section">
+                    <a href="{{ url_for('homepage') }}" class="nav-item active">
+                        <i class="fas fa-compass"></i>
+                        <span data-translate="nav.discover">Discover</span>
                     </a>
-                    <div class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="nav-item">
+                            <i class="fas fa-chart-line"></i>
+                            <span data-translate="nav.earnings">Start Earning</span>
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="nav-item">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span data-translate="nav.logout">Logout</span>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-item">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span data-translate="nav.login">Login</span>
+                        </a>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer">
+                <!-- Menu Button with Dropdown -->
+                <div class="menu-dropdown">
+                    <button class="menu-dropdown-btn" id="menuDropdownBtn">
+                        <i class="fas fa-bars"></i>
+                        <span data-translate="nav.menu">Menu</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    
+                    <div class="menu-dropdown-content" id="menuDropdownContent">
+                        <a href="#" class="menu-dropdown-item">
+                            <i class="fas fa-comment"></i>
+                            <span data-translate="menu.submit_feedback">Submit feedback</span>
+                        </a>
+                        <a href="{{ url_for('terms_of_service') }}" class="menu-dropdown-item" target="_blank">
+                            <i class="fas fa-file-contract"></i>
+                            <span data-translate="menu.terms_conditions">Terms and Conditions</span>
+                        </a>
+                        <a href="{{ url_for('privacy_policy') }}" class="menu-dropdown-item" target="_blank">
+                            <i class="fas fa-shield-alt"></i>
+                            <span data-translate="menu.privacy_policy">Privacy Policy</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Language and Theme Toggle Row -->
+                <div class="toggle-row">
+                <!-- Language Dropdown -->
+                <div class="language-dropdown">
+                    <button class="language-toggle" id="languageToggle" title="Switch Language">
+                        <i class="fas fa-globe"></i>
+                        <span class="language-text">EN</span>
+                    </button>
+                    
+                    <div class="language-dropdown-content" id="languageDropdownContent">
+                        <a href="#" class="language-option" data-lang="EN">
+                            <span class="language-flag">🇺🇸</span>
+                            EN
+                        </a>
+                        <a href="#" class="language-option" data-lang="FR">
+                            <span class="language-flag">🇫🇷</span>
+                            FR
+                        </a>
+                        <a href="#" class="language-option" data-lang="ES">
+                            <span class="language-flag">🇪🇸</span>
+                            ES
+                        </a>
+                        <a href="#" class="language-option" data-lang="AR">
+                            <span class="language-flag">🇸🇦</span>
+                            AR
+                        </a>
+                    </div>
+                </div>
+
+                    <!-- Theme Toggle -->
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-sun"></i>
+                        <div class="theme-toggle-switch active" id="themeToggleSwitch">
+                            <div class="theme-toggle-slider"></div>
+                        </div>
+                        <i class="fas fa-moon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area - Homepage with Results -->
+        <main class="main-content">
+            <div class="search-area">
+                <div class="search-wrapper">
+                    <h1 class="page-title" data-translate="home.title">Discover People</h1>
+                    
+                    <!-- Three buttons for all users -->
+                    <div class="discover-buttons-header">
                         {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
-                            <a href="{{ url_for('search') }}" class="nav-link">Search</a>
-                            <a href="{{ url_for('profile_view', username=current_user.username) }}" class="nav-link">Profile</a>
-                            <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+                            <button class="discover-btn" onclick="viewHistorical('recent')">
+                                <i class="fas fa-history"></i> Recent Views
+                            </button>
+                            <button class="discover-btn" onclick="viewHistorical('favorites')">
+                                <i class="fas fa-heart"></i> Favorites
+                            </button>
                         {% else %}
-                            <a href="{{ url_for('homepage') }}" class="nav-link {% if request.endpoint == 'homepage' %}active{% endif %}">Home</a>
-                            <a href="{{ url_for('search') }}" class="nav-link {% if request.endpoint == 'search' %}active{% endif %}">Search</a>
-                            <a href="{{ url_for('login') }}" class="nav-link btn btn-primary">START EARNING</a>
+                            <button class="discover-btn" onclick="showLoginModal()">
+                                <i class="fas fa-history"></i> Recent Views
+                            </button>
+                            <button class="discover-btn" onclick="showLoginModal()">
+                                <i class="fas fa-heart"></i> Favorites
+                            </button>
                         {% endif %}
+                        <button class="discover-btn browse-all" onclick="showBrowseAll()">
+                            <i class="fas fa-globe"></i> Browse All
+                        </button>
                     </div>
-                </div>
-            </div>
-        </nav>
-    </div>
-
-    <!-- Hero Section 1 - Feature Reveal (8 images) -->
-    <section class="hero-section hero-section-1">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <h1><span style="color: #059669;">Monetize</span> Your Expertise</h1>
-                    <p>Turn your professional skills into a revenue stream. Create your Droply profile in minutes and start earning from your expertise. No complex setup, just pure monetization.</p>
-                    <div class="hero-buttons">
-                        <a href="{{ url_for('register') }}" class="btn btn-outline">Create Your Profile</a>
-                    </div>
-                </div>
-                <div class="hero-animation">
-                    <div class="hero-images-features">
-                        <img src="{{ url_for('static', filename='img/section1/main-animation1.png') }}" alt="Main Feature" class="main-feature">
-                        <img src="{{ url_for('static', filename='img/section1/feature1.png') }}" alt="Feature 1" class="feature-item pos1">
-                        <img src="{{ url_for('static', filename='img/section1/feature2.png') }}" alt="Feature 2" class="feature-item pos2">
-                        <img src="{{ url_for('static', filename='img/section1/feature3.png') }}" alt="Feature 3" class="feature-item pos3">
-                        <img src="{{ url_for('static', filename='img/section1/feature4.png') }}" alt="Feature 4" class="feature-item pos4">
-                        <img src="{{ url_for('static', filename='img/section1/feature5.png') }}" alt="Feature 5" class="feature-item pos5">
-                        <img src="{{ url_for('static', filename='img/section1/feature6.png') }}" alt="Feature 6" class="feature-item pos6">
-                        <img src="{{ url_for('static', filename='img/section1/feature7.png') }}" alt="Feature 7" class="feature-item pos7">
-                        <img src="{{ url_for('static', filename='img/section1/feature8.png') }}" alt="Feature 8" class="feature-item pos8">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Divider: Section 1 to Section 2 (white to white) -->
-    <div class="section-divider">
-      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
-        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#fff"/>
-      </svg>
-    </div>
-
-    <!-- Hero Section 2 - Centered, White Background, Large Animated Box -->
-    <section class="hero-section hero-section-white-bg">
-        <div class="hero-stepper-layout">
-            <div class="hero-stepper-side">
-                <ul class="stepper-list connected-stepper">
-                    <li class="stepper-tab active" data-step="0">
-                        <span class="stepper-label"><span class="stepper-icon">📅</span> Connect your calendars</span>
-                        <div class="stepper-desc">Sync up to six calendars for real-time scheduling availability.</div>
-                        <div class="step-timer-bar"></div>
-                    </li>
-                    <li class="stepper-tab" data-step="1">
-                        <span class="stepper-label"><span class="stepper-icon">⏰</span> Add your availability</span>
-                        <div class="stepper-desc">Set your available hours so people can only book you when you want.</div>
-                        <div class="step-timer-bar"></div>
-                    </li>
-                    <li class="stepper-tab" data-step="2">
-                        <span class="stepper-label"><span class="stepper-icon">📹</span> Integrated video calls</span>
-                        <div class="stepper-desc">Built-in video conferencing - no external tools needed. Connect with clients instantly.</div>
-                        <div class="step-timer-bar"></div>
-                    </li>
-                    <li class="stepper-tab" data-step="3">
-                        <span class="stepper-label"><span class="stepper-icon">💰</span> Start making money</span>
-                        <div class="stepper-desc">Set your rates, share your profile, and start earning from your expertise.</div>
-                        <div class="step-timer-bar"></div>
-                    </li>
-                </ul>
-            </div>
-            <div class="hero-step-image-animated-box">
-                <div class="step-image-wrapper">
-                    <img id="step-image" src="{{ url_for('static', filename='img/section2/item1.png') }}" alt="Step Image" class="step-image-large pop-in">
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Divider: Section 2 to Section 3 (white to white) -->
-    <div class="section-divider">
-      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
-        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#fff"/>
-      </svg>
-    </div>
-
-    <!-- Hero Section 3 - Closed Cube -->
-    <section class="hero-section hero-section-cube">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <h1>Your Droply Profile, Your Revenue</h1>
-                    <p>Create your personalized Droply profile and share it everywhere. Every connection becomes a potential revenue stream. It's that simple to start earning.</p>
-                    <div class="hero-buttons">
-                        <a href="{{ url_for('register') }}" class="btn btn-outline">Get Your Droply Profile</a>
-                    </div>
-                </div>
-                <div class="hero-animation">
-                    <div class="hero-images-cube">
-                        <div class="cube">
-                            <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Expert View 1" class="cube-face">
-                            <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Expert View 2" class="cube-face">
-                            <img src="{{ url_for('static', filename='img/generated-icon.png') }}" alt="Expert View 3" class="cube-face">
-                            <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Expert View 4" class="cube-face">
-                            <img src="{{ url_for('static', filename='img/mockup-hero.png') }}" alt="Expert View 5" class="cube-face">
-                            <img src="{{ url_for('static', filename='img/mockup-hero-2.png') }}" alt="Expert View 6" class="cube-face">
+                    
+                    <form method="GET" action="{{ url_for('homepage') }}" class="search-form">
+                        <div class="search-input-wrapper">
+                            <input 
+                                type="text" 
+                                name="search" 
+                                placeholder="Search for experts..." 
+                                class="search-input"
+                                id="animated-search-input"
+                                value="{{ request.args.get('search', '') }}"
+                                autocomplete="off"
+                                required
+                                data-translate="home.search.placeholder"
+                            >
+                            <div id="animated-placeholder" class="animated-placeholder"></div>
+                            <div id="search-suggestions" class="search-suggestions"></div>
+                            <button type="submit" class="search-button">
+                                <i class="fas fa-search"></i>
+                            </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
-        </div>
-    </section>
-    <!-- Divider: Section 3 to Section 4 (white to white) -->
-    <div class="section-divider">
-      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
-        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#fff"/>
-      </svg>
-    </div>
 
-    <!-- Hero Section 4 - Stripe Payment Integration -->
-    <section class="hero-section hero-section-stripe" style="background: #fff; color: #1a1a1a;">
-        <div class="container">
-            <div class="hero-content hero-content-unified" style="gap: 4rem;">
-                <div class="hero-animation" style="flex:0 0 320px; text-align:center;">
-                    <img src="https://cdn.jsdelivr.net/gh/stripe/brand-assets/logo/stripe/stripe-logo.svg" alt="Stripe Logo" style="height: 64px; margin-bottom: 2rem;">
-                </div>
-                <div class="hero-text">
-                    <h1 style="font-size:2.5rem; font-weight:800; margin-bottom:1.5rem;">Easy, Secure Payments with Stripe</h1>
-                    <p style="font-size:1.3rem; margin-bottom:2rem; max-width:500px;">Droply integrates seamlessly with Stripe, so you can accept payments from clients worldwide with confidence. Fast setup, instant payouts, and industry-leading security—no technical hassle required.</p>
-                    <a href="https://stripe.com" target="_blank" class="btn btn-outline" style="background:transparent; color:#635bff; border-color:#635bff; min-width:220px;">Learn More About Stripe</a>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Divider: Section 4 to FAQ (white to white) -->
-    <div class="section-divider">
-      <svg viewBox="0 0 1440 80" width="100%" height="80" preserveAspectRatio="none">
-        <path d="M0,0 Q720,80 1440,0 L1440,80 L0,80 Z" fill="#fff"/>
-      </svg>
-    </div>
-
-    <!-- FAQ Section -->
-    <section class="faq-section">
-        <div class="container">
-            <div class="faq-container">
-                <h2 class="faq-title">Frequently Asked Questions</h2>
-                
-                <div class="faq-item">
-                    <div class="faq-question">How do I start earning on Droply?</div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            Simply create your profile, set your rates, and share your Droply profile. Clients can book sessions directly through your profile, and you'll receive payments automatically.
-                        </div>
-                    </div>
+            <!-- Results Section - Always show when searching or filtering -->
+            {% if request.args.get('search') or request.args.get('category') or users %}
+            <div class="results-area">
+                <div class="results-header">
+                    <h2 class="results-title">
+                        {% if request.args.get('search') %}
+                            Search results for "{{ request.args.get('search') }}"
+                        {% elif request.args.get('category') %}
+                            {% set category_names = {
+                                'technology': 'Technology & Development',
+                                'business': 'Business & Consulting', 
+                                'creative': 'Creative & Design',
+                                'health': 'Health & Wellness',
+                                'education': 'Education & Training',
+                                'finance': 'Finance & Investment',
+                                'marketing': 'Marketing & Growth',
+                                'writing': 'Writing & Content'
+                            } %}
+                            {{ category_names.get(request.args.get('category'), request.args.get('category').title()) }} Experts
+                        {% endif %}
+                    </h2>
+                    <p class="results-count">
+                        {% if users %}
+                            Showing {{ users|length }} result{{ 's' if users|length != 1 else '' }}
+                        {% else %}
+                            Showing 0 results
+                        {% endif %}
+                    </p>
                 </div>
                 
-                <div class="faq-item">
-                    <div class="faq-question">How much can I earn?</div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            You set your own rates and keep the majority of your earnings. Top professionals on Droply earn thousands per month. Your earning potential depends on your expertise and marketing.
+                {% if users %}
+                <div class="experts-grid">
+                    {% for user in users %}
+                    <div class="expert-card">
+                        <img src="{{ user.profile_picture or url_for('static', filename='img/default-avatar.svg') }}" 
+                             alt="{{ user.full_name }}" class="expert-avatar">
+                        <div class="expert-info">
+                            <h3 class="expert-name">{{ user.full_name }}</h3>
+                            <p class="expert-title">{{ user.profession or 'Expert' }}</p>
+                            <span class="expert-rate">${{ "%.0f"|format(user.hourly_rate or 0) }}/hr</span>
+                        </div>
+                        <div class="expert-actions">
+                            <a href="{{ url_for('public_user_profile', username=user.username) }}" class="action-btn primary" target="_blank" data-translate="expert.view">View Profile</a>
+                            <a href="{{ url_for('login', next=url_for('user_booking_times', username=user.username)) }}" class="action-btn secondary" data-translate="expert.login_to_book">Login to Book</a>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">What types of professionals can join?</div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            Anyone with valuable expertise can join: consultants, coaches, designers, developers, marketers, writers, trainers, and more. If you have skills others will pay for, you can earn on Droply.
-                        </div>
+                {% else %}
+                <div class="no-results">
+                    <div class="no-results-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3 class="no-results-title" data-translate="message.no_experts">No experts found</h3>
+                    <p class="no-results-text">
+                        {% if request.args.get('search') %}
+                            <span data-translate="message.try_different_search">Try searching with different keywords or browse our categories.</span>
+                        {% else %}
+                            <span data-translate="message.no_experts_category">No experts available in this category right now. Try another category or search for specific skills.</span>
+                        {% endif %}
+                    </p>
+                    <div class="no-results-actions">
+                        <a href="{{ url_for('homepage') }}" class="action-btn primary" data-translate="button.browse_categories">Browse All Categories</a>
+                        <button onclick="document.querySelector('.search-input').focus()" class="action-btn secondary" data-translate="button.try_different_search">Try Different Search</button>
                     </div>
                 </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">How do I get paid?</div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            Payments are processed automatically after each session. You can withdraw your earnings to your bank account or PayPal. We handle all the payment processing for you.
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">Is there a setup fee or monthly cost?</div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            No setup fees or monthly costs. You only pay a small percentage when you earn, so there's no risk to getting started. Create your profile and start earning immediately.
-                        </div>
-                    </div>
-                </div>
+                {% endif %}
             </div>
-        </div>
-    </section>
+            {% endif %}
 
-    {% include 'footer.html' %}
+        </main>
+    </div>
 
     <script>
-        // Mobile navigation is now simplified - just a login button
-        console.log('Mobile navigation simplified - login button only');
-
-        // FAQ functionality
-        document.querySelectorAll('.faq-question').forEach(question => {
-            question.addEventListener('click', () => {
-                const faqItem = question.parentElement;
-                const isActive = faqItem.classList.contains('active');
+        // Mobile sidebar functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        
+        // Desktop sidebar toggle functionality
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
                 
-                // Close all FAQ items
-                document.querySelectorAll('.faq-item').forEach(item => {
-                    item.classList.remove('active');
+                // Store sidebar state in localStorage
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebarCollapsed', isCollapsed);
+                
+                // Update layout for Browse All page immediately and with delays
+                updateBrowseAllLayout();
+                setTimeout(updateBrowseAllLayout, 50);
+                setTimeout(updateBrowseAllLayout, 200);
+                setTimeout(updateBrowseAllLayout, 500);
+            });
+        }
+        
+        // Restore sidebar state from localStorage
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+        
+        // Ensure layout is updated after restoring state
+        setTimeout(updateBrowseAllLayout, 100);
+        
+        // Function to update Browse All layout when sidebar changes
+        function updateBrowseAllLayout() {
+            const mainContent = document.querySelector('.main-content');
+            const sidebar = document.querySelector('.sidebar');
+            const browseInterface = document.querySelector('.browse-interface');
+            
+            if (mainContent && sidebar) {
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                console.log('Updating Browse All layout, sidebar collapsed:', isCollapsed);
+                
+                // Update main content
+                mainContent.style.removeProperty('margin-left');
+                mainContent.style.removeProperty('width');
+                mainContent.style.removeProperty('max-width');
+                
+                if (isCollapsed) {
+                    mainContent.style.setProperty('margin-left', '80px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 80px)', 'important');
+                    mainContent.style.setProperty('max-width', 'none', 'important');
+                } else {
+                    mainContent.style.setProperty('margin-left', '240px', 'important');
+                    mainContent.style.setProperty('width', 'calc(100vw - 240px)', 'important');
+                    mainContent.style.setProperty('max-width', 'none', 'important');
+                }
+                
+                // Update browse interface if it exists
+                if (browseInterface) {
+                    browseInterface.style.removeProperty('left');
+                    browseInterface.style.removeProperty('width');
+                    
+                    if (isCollapsed) {
+                        browseInterface.style.setProperty('left', '80px', 'important');
+                        browseInterface.style.setProperty('width', 'calc(100vw - 80px)', 'important');
+                    } else {
+                        browseInterface.style.setProperty('left', '240px', 'important');
+                        browseInterface.style.setProperty('width', 'calc(100vw - 240px)', 'important');
+                    }
+                    
+                    console.log('Browse interface updated - left:', browseInterface.style.left, 'width:', browseInterface.style.width);
+                }
+                
+                // Force a reflow to ensure changes take effect
+                mainContent.offsetHeight;
+                if (browseInterface) browseInterface.offsetHeight;
+                console.log('Layout updated - marginLeft:', mainContent.style.marginLeft, 'width:', mainContent.style.width);
+            } else {
+                console.log('Main content or sidebar not found:', { mainContent, sidebar });
+            }
+        }
+        
+        // Use MutationObserver to watch for sidebar class changes
+        if (sidebar) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        console.log('Sidebar class changed, updating layout');
+                        setTimeout(updateBrowseAllLayout, 10);
+                        setTimeout(updateBrowseAllLayout, 100);
+                        setTimeout(updateBrowseAllLayout, 300);
+                    }
                 });
-                
-                // Open clicked item if it wasn't active
-                if (!isActive) {
-                    faqItem.classList.add('active');
+            });
+            
+            observer.observe(sidebar, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+        
+        // Also watch for browse interface creation/removal
+        const searchWrapper = document.querySelector('.search-wrapper');
+        if (searchWrapper) {
+            const browseObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                        const browseInterface = document.querySelector('.browse-interface');
+                        if (browseInterface) {
+                            console.log('Browse interface detected, updating layout');
+                            setTimeout(updateBrowseAllLayout, 50);
+                            setTimeout(updateBrowseAllLayout, 200);
+                        }
+                    }
+                });
+            });
+            
+            browseObserver.observe(searchWrapper, {
+                childList: true,
+                subtree: true
+            });
+        }
+        
+        // Initial layout update
+        updateBrowseAllLayout();
+        
+        // Listen for window resize
+        window.addEventListener('resize', updateBrowseAllLayout);
+        
+        // Listen for sidebar state changes from localStorage
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'sidebarCollapsed') {
+                setTimeout(updateBrowseAllLayout, 100);
+            }
+        });
+        
+        // Listen for any sidebar toggle events from the base template
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#sidebar-toggle')) {
+                console.log('Sidebar toggle clicked via base template');
+                setTimeout(updateBrowseAllLayout, 100);
+                setTimeout(updateBrowseAllLayout, 300);
+                setTimeout(updateBrowseAllLayout, 600);
+            }
+        });
+        
+        // Also listen for any changes to the sidebar element
+        if (sidebar) {
+            sidebar.addEventListener('transitionend', function() {
+                console.log('Sidebar transition ended, updating layout');
+                updateBrowseAllLayout();
+            });
+        }
+        
+        // Language dropdown functionality
+        const languageToggle = document.getElementById('languageToggle');
+        const languageDropdown = document.querySelector('.language-dropdown');
+        const languageDropdownContent = document.getElementById('languageDropdownContent');
+        const languageOptions = document.querySelectorAll('.language-option');
+
+        if (languageToggle && languageDropdownContent) {
+            // Toggle dropdown
+            languageToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Close menu dropdown if it's open
+                if (menuDropdownContent) {
+                    menuDropdownContent.classList.remove('show');
+                }
+                // Toggle language dropdown
+                languageDropdownContent.classList.toggle('show');
+            });
+
+            // Handle language selection
+            languageOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const selectedLang = this.getAttribute('data-lang');
+                    const languageText = languageToggle.querySelector('.language-text');
+                    
+                    // Update button text
+                    languageText.textContent = selectedLang;
+                    
+                    // Store language preference
+                    localStorage.setItem('selectedLanguage', selectedLang);
+                    
+                    // Close dropdown
+                    languageDropdown.classList.remove('open');
+                    languageDropdownContent.classList.remove('show');
+                    
+                    // Translate the page to the selected language
+                    if (typeof translatePage === 'function') {
+                        translatePage(selectedLang);
+                    }
+                    console.log('Language switched to:', selectedLang);
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!languageDropdown.contains(e.target)) {
+                    languageDropdown.classList.remove('open');
+                    languageDropdownContent.classList.remove('show');
+                }
+            });
+        }
+        
+        // Restore language preference
+        const savedLanguage = localStorage.getItem('selectedLanguage');
+        if (savedLanguage && languageToggle) {
+            languageToggle.querySelector('.language-text').textContent = savedLanguage;
+        }
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('open');
+            // Prevent body scroll when sidebar is open
+            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleSidebar);
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+
+        if (sidebarCloseBtn) {
+            sidebarCloseBtn.addEventListener('click', closeSidebar);
+        }
+
+        // Close sidebar on window resize (if switching to desktop)
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
+        });
+
+        // Close sidebar when clicking on category items on mobile
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
                 }
             });
         });
 
-        // Navigation hide on scroll
-        let lastScrollTop = 0;
-        const navbar = document.getElementById('navbar');
-        
-        window.addEventListener('scroll', () => {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        // Handle touch events for better mobile experience
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const swipeDistance = touchEndX - touchStartX;
+
+            // Swipe right to open sidebar (only on mobile)
+            if (swipeDistance > swipeThreshold && window.innerWidth <= 768 && !sidebar.classList.contains('open')) {
+                toggleSidebar();
+            }
+            // Swipe left to close sidebar
+            else if (swipeDistance < -swipeThreshold && window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                closeSidebar();
+            }
+        }
+
+        // Auto-focus search input
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.search-input');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        });
+
+        // Menu dropdown functionality
+        const menuDropdownBtn = document.getElementById('menuDropdownBtn');
+        const menuDropdownContent = document.getElementById('menuDropdownContent');
+
+        if (menuDropdownBtn && menuDropdownContent) {
+            menuDropdownBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Close language dropdown if it's open
+                if (languageDropdownContent) {
+                    languageDropdownContent.classList.remove('show');
+                }
+                // Toggle menu dropdown
+                menuDropdownContent.classList.toggle('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!menuDropdownBtn.contains(e.target) && !menuDropdownContent.contains(e.target)) {
+                    menuDropdownContent.classList.remove('show');
+                }
+            });
+        }
+
+        // Theme toggle functionality - Fixed
+        const themeToggle = document.getElementById('themeToggle');
+        const themeToggleSwitch = document.getElementById('themeToggleSwitch');
+        let isDarkMode = true; // Default to dark mode
+
+        if (themeToggle && themeToggleSwitch) {
+            // Initialize theme from localStorage or default to dark
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                isDarkMode = false;
+                document.body.classList.add('light-mode');
+                themeToggleSwitch.classList.add('active');
+            }
+
+            themeToggle.addEventListener('click', function() {
+                isDarkMode = !isDarkMode;
+                
+                if (isDarkMode) {
+                    document.body.classList.remove('light-mode');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.body.classList.add('light-mode');
+                    localStorage.setItem('theme', 'light');
+                }
+                
+                themeToggleSwitch.classList.toggle('active', isDarkMode);
+            });
+        }
+
+    </script>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-modal-overlay" id="loginModalOverlay"></div>
+        <div class="login-modal-content">
+            <div class="login-modal-header">
+                <button class="login-modal-close" id="loginModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             
-            if (scrollTop > lastScrollTop && scrollTop > 100) {
-                // Scrolling down
-                navbar.classList.add('navbar-hidden');
-            } else {
-                // Scrolling up
-                navbar.classList.remove('navbar-hidden');
+            <div class="login-modal-body">
+                <h2 class="login-modal-title">Sign in to <span class="login-modal-brand">droply</span></h2>
+                
+                <form class="login-modal-form" method="POST" action="{{ url_for('login') }}">
+                    <!-- Step 1: Email Input -->
+                    <div class="login-modal-step" id="emailStep">
+                        <div class="login-modal-field">
+                            <label for="email" class="login-modal-label">Email</label>
+                            <input type="email" id="email" name="email" class="login-modal-input" placeholder="johnsmith@gmail.com" required>
+                        </div>
+                        
+                        <button type="button" class="login-modal-continue-btn" id="emailContinueBtn">Continue</button>
+                        <div class="login-modal-signup-link">
+                            Don't have an account? <button type="button" class="login-modal-signup-btn" id="emailSignupBtn">Sign up</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Password Input -->
+                    <div class="login-modal-step" id="passwordStep" style="display: none;">
+                        <div class="login-modal-field">
+                            <label for="password" class="login-modal-label">Password</label>
+                            <input type="password" id="password" name="password" class="login-modal-input" placeholder="Enter your password" required>
+                        </div>
+                        
+                        <button type="submit" class="login-modal-continue-btn">Sign In</button>
+                        <button type="button" class="login-modal-back-btn" id="backToEmailBtn">Back</button>
+                    </div>
+                    
+                    <!-- Sign Up Step: All three inputs at once -->
+                    <div class="login-modal-step" id="signupStep" style="display: none;">
+                        <div class="login-modal-field">
+                            <label for="signupEmail" class="login-modal-label">Email</label>
+                            <input type="email" id="signupEmail" name="email" class="login-modal-input" placeholder="johnsmith@gmail.com" required>
+                        </div>
+                        
+                        <div class="login-modal-field">
+                            <label for="signupPassword" class="login-modal-label">Password</label>
+                            <input type="password" id="signupPassword" name="password" class="login-modal-input" placeholder="Enter your password" required>
+                        </div>
+                        
+                        <div class="login-modal-field">
+                            <label for="signupPasswordConfirm" class="login-modal-label">Confirm Password</label>
+                            <input type="password" id="signupPasswordConfirm" name="passwordConfirm" class="login-modal-input" placeholder="Confirm your password" required>
+                        </div>
+                        
+                        <button type="submit" class="login-modal-continue-btn">Sign Up</button>
+                        <button type="button" class="login-modal-back-btn" id="backToEmailFromSignupBtn">Back</button>
+                    </div>
+                    
+                    <div class="login-modal-separator">
+                        <span class="login-modal-separator-text">OR</span>
+                    </div>
+                    
+                    <div class="login-modal-social">
+                        <button type="button" class="login-modal-google-btn" onclick="handleGoogleSignIn()">
+                            <svg class="login-modal-google-icon" viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Continue with Google
+                        </button>
+                    </div>
+                    
+                    <div class="login-modal-footer">
+                        <p class="login-modal-terms">
+                            By signing in you agree to droply's 
+                            <a href="{{ url_for('terms_of_service') }}" class="login-modal-link" target="_blank" rel="noopener noreferrer">Terms of Service</a> 
+                            and 
+                            <a href="{{ url_for('privacy_policy') }}" class="login-modal-link" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Login Modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginModal = document.getElementById('loginModal');
+            const loginModalOverlay = document.getElementById('loginModalOverlay');
+            const loginModalClose = document.getElementById('loginModalClose');
+            const loginLinks = document.querySelectorAll('a[href="{{ url_for("login") }}"]');
+            
+            // Show modal when login links are clicked
+            loginLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loginModal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+            
+            // Hide modal when close button or overlay is clicked
+            function hideModal() {
+                loginModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                // Reset to email step when modal is closed
+                resetLoginSteps();
             }
             
-            lastScrollTop = scrollTop;
+            loginModalClose.addEventListener('click', hideModal);
+            loginModalOverlay.addEventListener('click', hideModal);
+            
+            // Login/signup functionality
+            const emailStep = document.getElementById('emailStep');
+            const passwordStep = document.getElementById('passwordStep');
+            const signupStep = document.getElementById('signupStep');
+            const emailContinueBtn = document.getElementById('emailContinueBtn');
+            const emailSignupBtn = document.getElementById('emailSignupBtn');
+            const backToEmailBtn = document.getElementById('backToEmailBtn');
+            const backToEmailFromSignupBtn = document.getElementById('backToEmailFromSignupBtn');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            
+            function resetLoginSteps() {
+                emailStep.style.display = 'flex';
+                passwordStep.style.display = 'none';
+                signupStep.style.display = 'none';
+                emailInput.value = '';
+                passwordInput.value = '';
+                // Clear signup inputs
+                document.getElementById('signupEmail').value = '';
+                document.getElementById('signupPassword').value = '';
+                document.getElementById('signupPasswordConfirm').value = '';
+            }
+            
+            // Handle email continue button (login flow)
+            emailContinueBtn.addEventListener('click', function() {
+                if (emailInput.value.trim()) {
+                    emailStep.style.display = 'none';
+                    passwordStep.style.display = 'flex';
+                    passwordInput.focus();
+                }
+            });
+            
+            // Handle email signup button
+            emailSignupBtn.addEventListener('click', function() {
+                emailStep.style.display = 'none';
+                signupStep.style.display = 'flex';
+                document.getElementById('signupEmail').focus();
+            });
+            
+            // Handle back to email button (from password step)
+            backToEmailBtn.addEventListener('click', function() {
+                passwordStep.style.display = 'none';
+                emailStep.style.display = 'flex';
+                emailInput.focus();
+            });
+            
+            // Handle back to email button (from signup step)
+            backToEmailFromSignupBtn.addEventListener('click', function() {
+                signupStep.style.display = 'none';
+                emailStep.style.display = 'flex';
+                emailInput.focus();
+            });
+            
+            // Handle Enter key on email input
+            emailInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && emailInput.value.trim()) {
+                    emailStep.style.display = 'none';
+                    passwordStep.style.display = 'flex';
+                    passwordInput.focus();
+                }
+            });
+            
+            // Handle Google Sign In
+            function handleGoogleSignIn() {
+                const googleClientId = '{{ config.get("GOOGLE_CLIENT_ID", "") }}';
+                if (!googleClientId || googleClientId === 'YOUR_GOOGLE_CLIENT_ID') {
+                    alert('Google Sign-In is not configured. Please use the email form instead.');
+                    return;
+                }
+                window.location.href = '{{ url_for("auth_google") }}';
+            }
+            
+            // Make handleGoogleSignIn globally available
+            window.handleGoogleSignIn = handleGoogleSignIn;
         });
+
+        // Animated Search Bar with Random Names
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('animated-search-input');
+            const animatedPlaceholder = document.getElementById('animated-placeholder');
+            if (!searchInput || !animatedPlaceholder) return;
+
+            // Only animate if the input is empty (no search query)
+            // Clear any existing value to ensure animation starts
+            if (searchInput.value.trim() !== '') {
+                searchInput.value = '';
+            }
+
+            // Fetch real user names from the server
+            let randomNames = [];
+            
+            // Get real user names from the search suggestions API
+            fetch('/api/search-suggestions?q=')
+                .then(response => response.json())
+                .then(suggestions => {
+                    if (suggestions && suggestions.length > 0) {
+                        randomNames = suggestions.map(suggestion => suggestion.text);
+                    } else {
+                        // Fallback names if API fails
+                        randomNames = [
+                            'Find experts...',
+                            'Search for skills...',
+                            'Discover talent...'
+                        ];
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching real names:', error);
+                    // Fallback names if API fails
+                    randomNames = [
+                        'Find experts...',
+                        'Search for skills...',
+                        'Discover talent...'
+                    ];
+                });
+
+            let isAnimating = false;
+            let currentText = '';
+            let currentIndex = 0;
+            let isDeleting = false;
+            let animationTimeout;
+
+            function startAnimation() {
+                if (isAnimating || searchInput.value.trim() !== '') return;
+                
+                isAnimating = true;
+                searchInput.parentElement.classList.add('animating');
+                animatedPlaceholder.classList.add('show');
+                animateText();
+            }
+
+            function animateText() {
+                if (searchInput.value.trim() !== '') {
+                    isAnimating = false;
+                    animatedPlaceholder.classList.remove('show');
+                    return;
+                }
+
+                // Check if randomNames is available and not empty
+                if (!randomNames || randomNames.length === 0) {
+                    return;
+                }
+
+                const targetText = randomNames[currentIndex];
+                
+                if (!targetText) {
+                    return;
+                }
+                
+                if (isDeleting) {
+                    // Delete characters
+                    currentText = targetText.substring(0, currentText.length - 1);
+                    animatedPlaceholder.textContent = currentText;
+                    
+                    if (currentText.length === 0) {
+                        isDeleting = false;
+                        currentIndex = (currentIndex + 1) % randomNames.length;
+                        animationTimeout = setTimeout(animateText, 500); // Pause before next word
+                    } else {
+                        animationTimeout = setTimeout(animateText, 50); // Fast delete
+                    }
+                } else {
+                    // Type characters
+                    currentText = targetText.substring(0, currentText.length + 1);
+                    animatedPlaceholder.textContent = currentText;
+                    
+                    if (currentText === targetText) {
+                        isDeleting = true;
+                        animationTimeout = setTimeout(animateText, 2000); // Pause before deleting
+                    } else {
+                        animationTimeout = setTimeout(animateText, 100); // Typing speed
+                    }
+                }
+            }
+
+            function stopAnimation() {
+                isAnimating = false;
+                searchInput.parentElement.classList.remove('animating');
+                animatedPlaceholder.classList.remove('show');
+                if (animationTimeout) {
+                    clearTimeout(animationTimeout);
+                }
+            }
+
+            // Start animation when page loads, but wait for randomNames to be loaded
+            setTimeout(() => {
+                if (randomNames && randomNames.length > 0) {
+                    startAnimation();
+                } else {
+                    setTimeout(() => {
+                        if (randomNames && randomNames.length > 0) {
+                            startAnimation();
+                        }
+                    }, 1000);
+                }
+            }, 100);
+
+            // Smart Autocomplete System
+            const suggestionsContainer = document.getElementById('search-suggestions');
+            let debounceTimer;
+            let currentSuggestions = [];
+
+            function fetchSuggestions(query) {
+                if (query.length < 1) {
+                    hideSuggestions();
+                    return;
+                }
+
+                fetch(`/api/search-suggestions?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(suggestions => {
+                        currentSuggestions = suggestions;
+                        showSuggestions(suggestions);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching suggestions:', error);
+                        hideSuggestions();
+                    });
+            }
+
+            function showSuggestions(suggestions) {
+                if (!suggestions || suggestions.length === 0) {
+                    hideSuggestions();
+                    return;
+                }
+
+                let html = '';
+                suggestions.forEach((suggestion, index) => {
+                    html += `
+                        <div class="suggestion-item" data-index="${index}">
+                            <div class="suggestion-content">
+                                <div class="suggestion-icon">${suggestion.icon || '👤'}</div>
+                                <div class="suggestion-text">
+                                    <div class="suggestion-title">${suggestion.text}</div>
+                                    <div class="suggestion-subtitle">${suggestion.subtitle || ''}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                suggestionsContainer.innerHTML = html;
+                suggestionsContainer.classList.add('show');
+
+                // Add click handlers
+                suggestionsContainer.querySelectorAll('.suggestion-item').forEach((item, index) => {
+                    item.addEventListener('click', function() {
+                        selectSuggestion(currentSuggestions[index]);
+                    });
+                });
+            }
+
+            function hideSuggestions() {
+                suggestionsContainer.classList.remove('show');
+                suggestionsContainer.innerHTML = '';
+            }
+
+            function selectSuggestion(suggestion) {
+                // Check if this is a user suggestion (has username)
+                if (suggestion.username) {
+                    // Navigate to the user's profile
+                    // Use private route if user is authenticated, public route otherwise
+                    const isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
+                    const profileRoute = isAuthenticated ? `/user/${suggestion.username}/private` : `/user/${suggestion.username}`;
+                    window.location.href = profileRoute;
+                } else {
+                    // For non-user suggestions, fill the search input and submit
+                    searchInput.value = suggestion.value;
+                    hideSuggestions();
+                    stopAnimation();
+                    // Auto-submit the form
+                    searchInput.form.submit();
+                }
+            }
+
+            // Combined input event handler for both animation and suggestions
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                
+                // Stop animation when user types
+                if (query !== '') {
+                    stopAnimation();
+                }
+                
+                // Clear previous debounce timer
+                clearTimeout(debounceTimer);
+                
+                // Set new debounce timer
+                debounceTimer = setTimeout(() => {
+                    fetchSuggestions(query);
+                }, 50);
+            });
+
+            // Restart animation when user clears the input
+            searchInput.addEventListener('blur', function() {
+                if (this.value.trim() === '') {
+                    setTimeout(startAnimation, 500);
+                }
+            });
+
+            // Handle keyboard navigation
+            let selectedIndex = -1;
+            searchInput.addEventListener('keydown', function(e) {
+                // Handle Cmd+A / Ctrl+A to select all text
+                if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+                    e.preventDefault();
+                    this.select();
+                    return;
+                }
+                
+                if (!suggestionsContainer.classList.contains('show')) return;
+                
+                const items = suggestionsContainer.querySelectorAll('.suggestion-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (selectedIndex === -1) {
+                        selectedIndex = 0; // Start with first item
+                    } else {
+                        selectedIndex = (selectedIndex + 1) % items.length; // Cycle through items
+                    }
+                    updateSelection(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedIndex === -1) {
+                        selectedIndex = items.length - 1; // Go to last item
+                    } else {
+                        selectedIndex = (selectedIndex - 1 + items.length) % items.length; // Cycle through items
+                    }
+                    updateSelection(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && currentSuggestions[selectedIndex]) {
+                        selectSuggestion(currentSuggestions[selectedIndex]);
+                    } else {
+                        this.form.submit();
+                    }
+                } else if (e.key === 'Escape') {
+                    hideSuggestions();
+                    selectedIndex = -1;
+                }
+            });
+
+            function updateSelection(items) {
+                items.forEach((item, index) => {
+                    if (index === selectedIndex) {
+                        item.classList.add('selected');
+                    } else {
+                        item.classList.remove('selected');
+                    }
+                });
+            }
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                    hideSuggestions();
+                }
+            });
+
+        });
+
+        // Function to handle discover button clicks
+        function viewHistorical(viewType) {
+            if (viewType === 'recent' || viewType === 'favorites') {
+                // For recent views and favorites, redirect to discover page
+                window.location.href = `{{ url_for('discover') }}?view=${viewType}`;
+            } else if (viewType === 'browse_all') {
+                // For browse all, show categories and people on homepage
+                showBrowseAll();
+            }
+        }
+
+        // Function to show browse all interface
+        function showBrowseAll() {
+            // Hide the three buttons and show browse interface
+            const discoverButtons = document.querySelector('.discover-buttons-header');
+            const searchWrapper = document.querySelector('.search-wrapper');
+            
+            if (discoverButtons) {
+                discoverButtons.style.display = 'none';
+            }
+            
+            // Hide the original search form
+            const originalSearchForm = document.querySelector('.search-form');
+            if (originalSearchForm) {
+                originalSearchForm.style.display = 'none';
+            }
+            
+            // Create browse interface
+            const browseInterface = document.createElement('div');
+            browseInterface.className = 'browse-interface';
+            browseInterface.innerHTML = `
+                <div class="browse-header">
+                    <div class="search-bar-container">
+                        <form method="GET" action="{{ url_for('homepage') }}" class="search-form">
+                            <div class="search-input-wrapper">
+                                <input 
+                                    type="text" 
+                                    name="search" 
+                                    placeholder="Search for people..." 
+                                    class="search-input"
+                                    id="browse-search-input"
+                                    autocomplete="off"
+                                >
+                                <button type="submit" class="search-button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="category-tabs">
+                        <button class="category-tab active" onclick="filterByCategory('all')">All</button>
+                        <button class="category-tab" onclick="filterByCategory('technology')">Technology</button>
+                        <button class="category-tab" onclick="filterByCategory('business')">Business</button>
+                        <button class="category-tab" onclick="filterByCategory('creative')">Creative</button>
+                        <button class="category-tab" onclick="filterByCategory('health')">Health</button>
+                        <button class="category-tab" onclick="filterByCategory('education')">Education</button>
+                        <button class="category-tab" onclick="filterByCategory('finance')">Finance</button>
+                        <button class="category-tab" onclick="filterByCategory('marketing')">Marketing</button>
+                        <button class="category-tab" onclick="filterByCategory('writing')">Writing</button>
+                    </div>
+                </div>
+                <div class="browse-results" id="browse-results">
+                    <div class="loading-message">Loading people...</div>
+                </div>
+            `;
+            
+            searchWrapper.appendChild(browseInterface);
+            
+            // Load all users initially
+            loadBrowseResults('all');
+            
+            // Add search functionality - simple filtering
+            const searchInput = document.getElementById('browse-search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    filterCurrentResults(searchTerm);
+                });
+            }
+            
+            // Update layout when Browse All interface is shown
+            setTimeout(updateBrowseAllLayout, 50);
+            setTimeout(updateBrowseAllLayout, 200);
+        }
+
+        // Store current results for filtering
+        let currentResults = [];
+        let currentCategory = 'all';
+        let currentSearchTerm = '';
+
+        // Function to get category keywords
+        function getCategoryKeywords(category) {
+            const categoryMapping = {
+                'technology': ['technology', 'development', 'programming', 'coding', 'software', 'web', 'app', 'tech', 'developer', 'engineer', 'computer', 'it'],
+                'business': ['business', 'consulting', 'strategy', 'management', 'entrepreneur', 'startup', 'finance', 'marketing', 'sales'],
+                'creative': ['creative', 'design', 'ui', 'ux', 'graphic', 'visual', 'art', 'branding', 'illustration', 'style', 'beauty', 'fashion', 'photography'],
+                'health': ['health', 'fitness', 'wellness', 'nutrition', 'medical', 'therapy', 'coaching', 'mental health', 'wellness'],
+                'education': ['education', 'teaching', 'tutoring', 'training', 'learning', 'academic', 'course', 'mentor', 'astrology', 'spiritual'],
+                'finance': ['finance', 'accounting', 'investment', 'financial', 'tax', 'budget', 'money', 'wealth'],
+                'marketing': ['marketing', 'digital marketing', 'social media', 'seo', 'advertising', 'brand', 'growth', 'content'],
+                'writing': ['writing', 'content', 'copywriting', 'blogging', 'journalism', 'editing', 'proofreading', 'author']
+            };
+            
+            return categoryMapping[category] || [];
+        }
+
+        // Function to filter by category
+        function filterByCategory(category) {
+            // Update active tab
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update current category
+            currentCategory = category;
+            
+            // If there's a search term, filter the search results by category
+            if (currentSearchTerm) {
+                // Filter the current search results by the selected category
+                const searchFilteredResults = currentResults.filter(user => {
+                    const name = (user.full_name || '').toLowerCase();
+                    const profession = (user.profession || '').toLowerCase();
+                    const skills = (user.skills || '').toLowerCase();
+                    const bio = (user.bio || '').toLowerCase();
+                    
+                    // First apply search filter
+                    const matchesSearch = name.includes(currentSearchTerm) || 
+                                        profession.includes(currentSearchTerm) || 
+                                        skills.includes(currentSearchTerm) || 
+                                        bio.includes(currentSearchTerm);
+                    
+                    if (!matchesSearch) return false;
+                    
+                    // Then apply category filter using the new categorization logic
+                    if (category === 'all') return true;
+                    
+                    const userCategory = categorizeUser(user);
+                    return userCategory.toLowerCase() === category;
+                });
+                
+                displayBrowseResults(searchFilteredResults, category);
+            } else {
+                // Load results for this category
+                loadBrowseResults(category);
+            }
+        }
+
+        // Function to filter current results by search term
+        function filterCurrentResults(searchTerm) {
+            // Store the current search term
+            currentSearchTerm = searchTerm;
+            
+            if (!searchTerm) {
+                // If no search term, show all current results for the category
+                displayBrowseResults(currentResults, currentCategory);
+                return;
+            }
+            
+            // Filter current results by search term
+            const searchFilteredResults = currentResults.filter(user => {
+                const name = (user.full_name || '').toLowerCase();
+                const profession = (user.profession || '').toLowerCase();
+                const skills = (user.skills || '').toLowerCase();
+                const bio = (user.bio || '').toLowerCase();
+                
+                return name.includes(searchTerm) || 
+                       profession.includes(searchTerm) || 
+                       skills.includes(searchTerm) || 
+                       bio.includes(searchTerm);
+            });
+            
+            // Display filtered results with proper category handling
+            displayBrowseResults(searchFilteredResults, currentCategory);
+        }
+
+        // Function to load browse results
+        function loadBrowseResults(category) {
+            const resultsContainer = document.getElementById('browse-results');
+            if (!resultsContainer) return;
+            
+            resultsContainer.innerHTML = '<div class="loading-message">Loading people...</div>';
+            
+            // Clear search term when loading new category
+            currentSearchTerm = '';
+            const searchInput = document.getElementById('browse-search-input');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            // Fetch users for this category
+            fetch(`/api/browse-users?category=${category}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Store current results for filtering
+                    currentResults = data;
+                    displayBrowseResults(data, category);
+                })
+                .catch(error => {
+                    console.error('Error loading browse results:', error);
+                    resultsContainer.innerHTML = '<div class="error-message">Error loading people. Please try again.</div>';
+                });
+        }
+
+        // Function to display browse results
+        function displayBrowseResults(users, category) {
+            const resultsContainer = document.getElementById('browse-results');
+            if (!resultsContainer) return;
+            
+            if (users.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>No people found</h3>
+                        <p>No people available in this category right now.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // If category is 'all', group users by their actual categories
+            // If a specific category is selected, show users in a single section
+            let html = '';
+            
+            if (category === 'all') {
+                // Group users by their actual categories
+                const groupedUsers = groupUsersByCategory(users);
+                
+                for (const [catName, catUsers] of Object.entries(groupedUsers)) {
+                    if (catUsers.length > 0) {
+                        // Limit to 2 rows (10 users max per category)
+                        const limitedUsers = catUsers.slice(0, 10);
+                        
+                        html += `
+                            <div class="category-section">
+                                <h3 class="category-section-title">${catName}</h3>
+                                <div class="people-grid">
+                                    ${limitedUsers.map(user => `
+                                        <div class="person-card">
+                                            <img src="${user.profile_picture || '/static/img/default-avatar.svg'}" 
+                                                 alt="${user.full_name}" class="person-avatar">
+                                            <div class="person-info">
+                                                <h4 class="person-name">${user.full_name}</h4>
+                                                <p class="person-title">${user.profession || 'Professional'}</p>
+                                                <span class="person-rate">$${Math.round(user.hourly_rate || 0)}/hr</span>
+                                            </div>
+                                            <div class="person-actions">
+                                                <a href="/user/${user.username}" class="action-btn primary" target="_blank">View Profile</a>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            } else {
+                // For specific categories, show users in a single section
+                const limitedUsers = users.slice(0, 20); // Limit to 20 users for specific category
+                
+                html += `
+                    <div class="category-section">
+                        <h3 class="category-section-title">${category.charAt(0).toUpperCase() + category.slice(1)}</h3>
+                        <div class="people-grid">
+                            ${limitedUsers.map(user => `
+                                <div class="person-card">
+                                    <img src="${user.profile_picture || '/static/img/default-avatar.svg'}" 
+                                         alt="${user.full_name}" class="person-avatar">
+                                    <div class="person-info">
+                                        <h4 class="person-name">${user.full_name}</h4>
+                                        <p class="person-title">${user.profession || 'Professional'}</p>
+                                        <span class="person-rate">$${Math.round(user.hourly_rate || 0)}/hr</span>
+                                    </div>
+                                    <div class="person-actions">
+                                        <a href="/user/${user.username}" class="action-btn primary" target="_blank">View Profile</a>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            resultsContainer.innerHTML = html;
+        }
+
+        // Function to categorize a single user (matches backend logic)
+        function categorizeUser(user) {
+            const profession = (user.profession || '').toLowerCase();
+            const skills = (user.skills || '').toLowerCase();
+            const bio = (user.bio || '').toLowerCase();
+            
+            // Priority-based categorization (order matters - first match wins)
+            
+            // 1. Technology (highest priority for tech roles)
+            if (['software', 'developer', 'engineer', 'programmer', 'coder', 'architect', 'data scientist', 'product manager', 'tech lead', 'cto', 'cio'].some(keyword => profession.includes(keyword))) {
+                return 'Technology';
+            }
+            if (['javascript', 'python', 'java', 'react', 'node.js', 'programming', 'coding', 'software development', 'web development', 'mobile development', 'machine learning', 'ai', 'data science'].some(keyword => skills.includes(keyword))) {
+                return 'Technology';
+            }
+            
+            // 2. Health (high priority for health roles)
+            if (['doctor', 'nurse', 'therapist', 'counselor', 'psychologist', 'psychiatrist', 'nutritionist', 'dietitian', 'fitness trainer', 'personal trainer', 'yoga instructor', 'massage therapist', 'chiropractor', 'dentist', 'veterinarian'].some(keyword => profession.includes(keyword))) {
+                return 'Health';
+            }
+            if (['fitness', 'nutrition', 'wellness', 'mental health', 'therapy', 'counseling', 'yoga', 'meditation', 'health coaching'].some(keyword => skills.includes(keyword))) {
+                return 'Health';
+            }
+            
+            // 3. Creative (high priority for creative roles)
+            if (['designer', 'artist', 'photographer', 'videographer', 'graphic designer', 'ui designer', 'ux designer', 'interior designer', 'fashion designer', 'illustrator', 'animator', 'video editor', 'creative director'].some(keyword => profession.includes(keyword))) {
+                return 'Creative';
+            }
+            if (['design', 'ui', 'ux', 'graphic design', 'photography', 'video editing', 'illustration', 'branding', 'visual design', 'creative writing', 'art', 'drawing', 'painting'].some(keyword => skills.includes(keyword))) {
+                return 'Creative';
+            }
+            
+            // 4. Education (high priority for education roles)
+            if (['teacher', 'professor', 'instructor', 'tutor', 'trainer', 'educator', 'academic', 'researcher', 'librarian', 'curriculum developer', 'education consultant'].some(keyword => profession.includes(keyword))) {
+                return 'Education';
+            }
+            if (['teaching', 'education', 'tutoring', 'training', 'mentoring', 'coaching', 'curriculum development', 'academic writing', 'research'].some(keyword => skills.includes(keyword))) {
+                return 'Education';
+            }
+            
+            // 5. Finance (specific finance roles)
+            if (['accountant', 'financial advisor', 'investment advisor', 'financial analyst', 'banker', 'insurance agent', 'tax preparer', 'financial planner', 'wealth manager', 'cfo', 'controller'].some(keyword => profession.includes(keyword))) {
+                return 'Finance';
+            }
+            if (['accounting', 'financial planning', 'investment', 'tax preparation', 'budgeting', 'financial analysis', 'wealth management', 'insurance'].some(keyword => skills.includes(keyword))) {
+                return 'Finance';
+            }
+            
+            // 6. Marketing (specific marketing roles)
+            if (['marketing manager', 'marketing director', 'digital marketing', 'social media manager', 'seo specialist', 'content marketer', 'brand manager', 'advertising', 'public relations', 'pr specialist'].some(keyword => profession.includes(keyword))) {
+                return 'Marketing';
+            }
+            if (['digital marketing', 'social media', 'seo', 'content marketing', 'brand management', 'advertising', 'public relations', 'pr', 'growth hacking', 'email marketing'].some(keyword => skills.includes(keyword))) {
+                return 'Marketing';
+            }
+            
+            // 7. Writing (specific writing roles)
+            if (['writer', 'author', 'journalist', 'copywriter', 'content writer', 'blogger', 'editor', 'proofreader', 'technical writer', 'grant writer', 'screenwriter'].some(keyword => profession.includes(keyword))) {
+                return 'Writing';
+            }
+            if (['writing', 'copywriting', 'content writing', 'blogging', 'journalism', 'editing', 'proofreading', 'technical writing', 'creative writing', 'grant writing'].some(keyword => skills.includes(keyword))) {
+                return 'Writing';
+            }
+            
+            // 8. Business (catch-all for business-related roles)
+            if (['manager', 'director', 'executive', 'consultant', 'advisor', 'analyst', 'coordinator', 'specialist', 'supervisor', 'lead', 'head', 'chief', 'president', 'ceo', 'coo', 'vp', 'vice president'].some(keyword => profession.includes(keyword))) {
+                return 'Business';
+            }
+            if (['management', 'leadership', 'strategy', 'consulting', 'project management', 'business development', 'sales', 'customer service', 'operations', 'administration'].some(keyword => skills.includes(keyword))) {
+                return 'Business';
+            }
+            
+            // Default to business if no clear category
+            return 'Business';
+        }
+
+        // Function to group users by category
+        function groupUsersByCategory(users) {
+            const categories = {
+                'Technology': [],
+                'Business': [],
+                'Creative': [],
+                'Health': [],
+                'Education': [],
+                'Finance': [],
+                'Marketing': [],
+                'Writing': []
+            };
+            
+            users.forEach(user => {
+                const category = categorizeUser(user);
+                categories[category].push(user);
+            });
+            
+            return categories;
+        }
+
+        // Function to show login modal for non-authenticated users
+        function showLoginModal() {
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal) {
+                loginModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        // Make functions globally available
+        window.viewHistorical = viewHistorical;
+        window.showLoginModal = showLoginModal;
     </script>
-    {% block scripts %}
-    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
-    {% endblock %}
 </body>
-</html> 
+</html>

@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Privacy Policy - Droply</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Use the same styles as homepage */
+        * {
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            background: #000 !important;
+            color: #fff !important;
+            overflow-x: hidden !important;
+            height: 100vh !important;
+        }
+
+        /* Main Layout - Same as homepage */
+        .app-container {
+            display: flex !important;
+            height: 100vh !important;
+            background: #000 !important;
+        }
+
+        /* Left Sidebar - Exact same as homepage */
+        .sidebar {
+            width: 240px !important;
+            background: #1a1a1a !important;
+            border-right: 1px solid #333 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100vh !important;
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+            transition: all 0.3s cubic-bezier(.4,0,.2,1) !important;
+        }
+
+        /* Sidebar Header */
+        .sidebar-header {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 80px !important;
+            padding: 1.5rem 1rem 1rem 1rem !important;
+            border-bottom: 1px solid #333 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 10 !important;
+        }
+
+        .sidebar-logo {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-decoration: none !important;
+            color: #10b981 !important;
+            font-weight: 700 !important;
+            font-size: 2.5rem !important;
+            letter-spacing: -2px !important;
+            width: 100% !important;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar-nav {
+            position: absolute !important;
+            top: 80px !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            padding: 0.5rem 0 !important;
+            overflow-y: auto !important;
+        }
+
+        .nav-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.75rem 1rem !important;
+            color: #ccc !important;
+            text-decoration: none !important;
+            transition: background-color 0.2s ease, color 0.2s ease, border-left-color 0.2s ease !important;
+            border-left: 3px solid transparent !important;
+            font-size: 1.1rem !important;
+            min-height: 48px !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+        }
+
+        .nav-item:hover {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+            border-left-color: #10b981 !important;
+        }
+
+        .nav-item.active {
+            background: rgba(16, 185, 129, 0.15) !important;
+            color: #10b981 !important;
+            border-left-color: #10b981 !important;
+            font-weight: 600 !important;
+        }
+
+        .nav-item i {
+            margin-right: 0.75rem !important;
+            width: 20px !important;
+            text-align: center !important;
+            font-size: 1.1rem !important;
+            flex-shrink: 0 !important;
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 1rem !important;
+            border-top: 1px solid #333 !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+        }
+
+        /* Menu Dropdown Styles */
+        .menu-dropdown {
+            position: relative !important;
+            display: block !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .menu-dropdown-btn {
+            width: 100% !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            color: #ccc !important;
+            padding: 0.75rem 1rem !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            font-size: 0.9rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .menu-dropdown-btn:hover {
+            background: #444 !important;
+            color: #fff !important;
+        }
+
+        .menu-dropdown-content {
+            display: none !important;
+            position: absolute !important;
+            bottom: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            background-color: #1a1a1a !important;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2) !important;
+            z-index: 1002 !important;
+            border: 1px solid #333 !important;
+            border-radius: 8px !important;
+            padding: 0.5rem 0 !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .menu-dropdown-content.show {
+            display: block !important;
+        }
+
+        .menu-dropdown-item {
+            color: #ccc !important;
+            padding: 0.75rem 1rem !important;
+            text-decoration: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 0.75rem !important;
+            transition: all 0.2s ease !important;
+            font-size: 0.9rem !important;
+        }
+
+        .menu-dropdown-item:hover {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+        }
+
+        .menu-dropdown-item i {
+            width: 16px !important;
+            text-align: center !important;
+        }
+
+        /* Toggle Row Container */
+        .toggle-row {
+            display: flex !important;
+            gap: 0.5rem !important;
+            margin-top: 0.5rem !important;
+        }
+
+        /* Language Dropdown Container */
+        .language-dropdown {
+            position: relative !important;
+            flex: 1 !important;
+        }
+
+        /* Language Toggle */
+        .language-toggle {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            padding: 0.5rem 0.75rem !important;
+            color: #ccc !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+            width: 100% !important;
+            justify-content: flex-start !important;
+            height: 40px !important;
+            font-size: 0.85rem !important;
+        }
+        
+        .language-toggle:hover {
+            background-color: #444 !important;
+            color: #fff !important;
+        }
+
+        /* Language Dropdown Content */
+        .language-dropdown-content {
+            position: absolute !important;
+            bottom: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: #2a2a2a !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3) !important;
+            z-index: 1000 !important;
+            display: none !important;
+            margin-bottom: 0.25rem !important;
+        }
+
+        .language-dropdown-content.show {
+            display: block !important;
+        }
+
+        /* Language Options */
+        .language-option {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            padding: 0.75rem 1rem !important;
+            color: #ccc !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            font-size: 0.9rem !important;
+            font-weight: 500 !important;
+        }
+
+        .language-flag {
+            font-size: 1rem !important;
+            width: 20px !important;
+            text-align: center !important;
+        }
+
+        .language-option:hover {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            text-decoration: none !important;
+        }
+
+        .language-option:first-child {
+            border-radius: 8px 8px 0 0 !important;
+        }
+
+        .language-option:last-child {
+            border-radius: 0 0 8px 8px !important;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            padding: 0.5rem 0.75rem !important;
+            color: #ccc !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            border-radius: 8px !important;
+            flex: 1 !important;
+            height: 40px !important;
+            font-size: 0.85rem !important;
+        }
+
+        .theme-toggle:hover {
+            background-color: #444 !important;
+            color: #fff !important;
+        }
+
+        .theme-toggle-switch {
+            position: relative !important;
+            width: 40px !important;
+            height: 20px !important;
+            background: #333 !important;
+            border-radius: 20px !important;
+            transition: background 0.3s ease !important;
+        }
+
+        .theme-toggle-switch.active {
+            background: #10b981 !important;
+        }
+
+        .theme-toggle-slider {
+            position: absolute !important;
+            top: 2px !important;
+            left: 2px !important;
+            width: 16px !important;
+            height: 16px !important;
+            background: white !important;
+            border-radius: 50% !important;
+            transition: transform 0.3s ease !important;
+        }
+
+        .theme-toggle-switch.active .theme-toggle-slider {
+            transform: translateX(20px) !important;
+        }
+
+        /* Main Content Area - Same as homepage */
+        .main-content {
+            flex: 1 !important;
+            margin-left: 240px !important;
+            background: #1f1f1f !important;
+            min-height: 100vh !important;
+            transition: all 0.3s cubic-bezier(.4,0,.2,1) !important;
+        }
+
+        /* Policy Content Styles */
+        .policy-content {
+            background: #1f1f1f;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .policy-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .policy-header h1 {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .last-updated {
+            color: #999;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .policy-body {
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .policy-body h2 {
+            color: #10b981;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 0.5rem;
+        }
+
+        .policy-body h3 {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .policy-body p {
+            margin-bottom: 1rem;
+            color: #e0e0e0;
+        }
+
+        .policy-body ul {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        .policy-body li {
+            margin-bottom: 0.5rem;
+            color: #e0e0e0;
+        }
+
+        .policy-body a {
+            color: #10b981;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .policy-body a:hover {
+            color: #047857;
+            text-decoration: underline;
+        }
+
+        .policy-body strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%) !important;
+                transition: transform 0.3s ease !important;
+                width: 240px !important;
+                top: 0 !important;
+                height: 100vh !important;
+            }
+
+            .sidebar.open {
+                transform: translateX(0) !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+                margin-top: 80px !important;
+            }
+
+            .policy-content {
+                padding: 1rem 0.5rem;
+            }
+            
+            .policy-header h1 {
+                font-size: 2rem;
+            }
+            
+            .policy-body h2 {
+                font-size: 1.3rem;
+            }
+            
+            .policy-body h3 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body class="homepage">
+    <div class="app-container">
+        <!-- Left Sidebar - Exact same as homepage -->
+        <div class="sidebar" id="sidebar">
+            <!-- Sidebar Header -->
+            <div class="sidebar-header">
+                <a href="{{ url_for('homepage') }}" class="sidebar-logo">
+                    <span class="logo-text">droply</span>
+                </a>
+            </div>
+            
+            <!-- Sidebar Toggle Button -->
+            <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <!-- Sidebar Navigation -->
+            <div class="sidebar-nav">
+                <!-- Main Navigation -->
+                <div class="nav-section">
+                    <a href="{{ url_for('homepage') }}" class="nav-item">
+                        <i class="fas fa-compass"></i>
+                        Discover
+                    </a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="nav-item">
+                            <i class="fas fa-chart-line"></i>
+                            Start Earning
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="nav-item">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-item">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Login
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer">
+                <!-- Menu Button with Dropdown -->
+                <div class="menu-dropdown">
+                    <button class="menu-dropdown-btn" id="menuDropdownBtn">
+                        <i class="fas fa-bars"></i>
+                        Menu
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    
+                    <div class="menu-dropdown-content" id="menuDropdownContent">
+                        <a href="#" class="menu-dropdown-item">
+                            <i class="fas fa-comment"></i>
+                            Submit feedback
+                        </a>
+                        <a href="{{ url_for('dashboard_terms_of_service') }}" class="menu-dropdown-item">
+                            <i class="fas fa-file-contract"></i>
+                            Terms and Conditions
+                        </a>
+                        <a href="{{ url_for('dashboard_privacy_policy') }}" class="menu-dropdown-item">
+                            <i class="fas fa-shield-alt"></i>
+                            Privacy Policy
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Language and Theme Toggle Row -->
+                <div class="toggle-row">
+                <!-- Language Dropdown -->
+                <div class="language-dropdown">
+                    <button class="language-toggle" id="languageToggle" title="Switch Language">
+                        <i class="fas fa-globe"></i>
+                        <span class="language-text">EN</span>
+                    </button>
+                    
+                    <div class="language-dropdown-content" id="languageDropdownContent">
+                        <a href="#" class="language-option" data-lang="EN">
+                            <span class="language-flag">🇺🇸</span>
+                            EN
+                        </a>
+                        <a href="#" class="language-option" data-lang="FR">
+                            <span class="language-flag">🇫🇷</span>
+                            FR
+                        </a>
+                        <a href="#" class="language-option" data-lang="ES">
+                            <span class="language-flag">🇪🇸</span>
+                            ES
+                        </a>
+                        <a href="#" class="language-option" data-lang="AR">
+                            <span class="language-flag">🇸🇦</span>
+                            AR
+                        </a>
+                    </div>
+                </div>
+
+                    <!-- Theme Toggle -->
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-sun"></i>
+                        <div class="theme-toggle-switch active" id="themeToggleSwitch">
+                            <div class="theme-toggle-slider"></div>
+                        </div>
+                        <i class="fas fa-moon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area - Privacy Policy Content -->
+        <main class="main-content">
+            <div class="policy-content">
+                <div class="policy-header">
+                    <h1>Privacy Policy</h1>
+                    <p class="last-updated">Last updated: September 17, 2025</p>
+                </div>
+                
+                <div class="policy-body">
+      <h2>1. Introduction</h2>
+      <p>Welcome to Droply ("we," "our," or "us"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform that connects users with experts for consultations and services. Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site.</p>
+
+      <h2>2. Information We Collect</h2>
+      
+      <h3>2.1 Personal Information</h3>
+      <p>We may collect personal information that you voluntarily provide to us when you:</p>
+      <ul>
+          <li>Register for an account</li>
+          <li>Create a profile as an expert or user</li>
+          <li>Book consultations or services</li>
+          <li>Communicate with us or other users</li>
+          <li>Participate in surveys or promotions</li>
+      </ul>
+      <p>This information may include:</p>
+      <ul>
+          <li>Name and contact information (email address, phone number)</li>
+          <li>Profile information (bio, expertise areas, availability)</li>
+          <li>Payment information (processed securely through Stripe)</li>
+          <li>Communication preferences</li>
+          <li>Profile photos and other media you upload</li>
+      </ul>
+
+      <h3>2.2 Communication Recording</h3>
+      <p><strong>IMPORTANT:</strong> All interactions, calls, and communications conducted through the Droply platform are automatically recorded and stored, regardless of the type or purpose of the interaction. This includes but is not limited to:</p>
+      <ul>
+          <li>Video calls of any kind</li>
+          <li>Audio calls and conversations</li>
+          <li>Text messages and chat communications</li>
+          <li>Screen sharing sessions</li>
+          <li>Any other form of interaction or communication on our platform</li>
+      </ul>
+      <p>By using our platform, you consent to the recording of all your interactions and communications and acknowledge that these recordings may be used by Droply for any purpose, including but not limited to:</p>
+      <ul>
+          <li>Quality assurance and service improvement</li>
+          <li>Training and development purposes</li>
+          <li>Legal compliance and dispute resolution</li>
+          <li>Marketing and promotional activities</li>
+          <li>Research and analytics</li>
+          <li>Any other business purposes as determined by Droply</li>
+      </ul>
+
+      <h3>2.3 Automatically Collected Information</h3>
+      <p>We may automatically collect certain information about your device and usage patterns, including:</p>
+      <ul>
+          <li>IP address and location data</li>
+          <li>Browser type and version</li>
+          <li>Operating system</li>
+          <li>Pages visited and time spent on our platform</li>
+          <li>Referring website</li>
+          <li>Device identifiers</li>
+      </ul>
+
+      <h3>2.4 Third-Party Information</h3>
+      <p>We may receive information from third parties, including:</p>
+      <ul>
+          <li>Google OAuth (when you sign in with Google)</li>
+          <li>Stripe (for payment processing)</li>
+          <li>Social media platforms (if you choose to connect them)</li>
+      </ul>
+
+      <h2>3. How We Use Your Information</h2>
+      <p>We use the information we collect to:</p>
+      <ul>
+          <li>Provide, operate, and maintain our platform</li>
+          <li>Process transactions and payments</li>
+          <li>Facilitate connections between users and experts</li>
+          <li>Send you technical notices, updates, and support messages</li>
+          <li>Respond to your comments and questions</li>
+          <li>Improve our platform and develop new features</li>
+          <li>Monitor and analyze usage patterns</li>
+          <li>Detect, prevent, and address technical issues</li>
+          <li>Comply with legal obligations</li>
+      </ul>
+
+      <h2>4. Information Sharing and Disclosure</h2>
+      <p>We may share your information in the following circumstances:</p>
+      
+      <h3>4.1 With Other Users</h3>
+      <p>We share relevant information between users and experts to facilitate consultations, including:</p>
+      <ul>
+          <li>Profile information and expertise areas</li>
+          <li>Availability and scheduling information</li>
+          <li>Communication during consultations</li>
+      </ul>
+
+      <h3>4.2 With Service Providers</h3>
+      <p>We may share information with third-party service providers who assist us in operating our platform, including:</p>
+      <ul>
+          <li>Payment processors (Stripe)</li>
+          <li>Cloud hosting services</li>
+          <li>Analytics providers</li>
+          <li>Customer support tools</li>
+      </ul>
+
+      <h3>4.3 Legal Requirements</h3>
+      <p>We may disclose your information if required to do so by law or in response to valid requests by public authorities.</p>
+
+      <h2>5. Data Security</h2>
+      <p>We implement appropriate technical and organizational security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet or electronic storage is 100% secure.</p>
+
+      <h2>6. Data Retention</h2>
+      <p>We retain your personal information for as long as necessary to provide our services and fulfill the purposes outlined in this privacy policy, unless a longer retention period is required or permitted by law.</p>
+
+      <h2>7. Your Rights and Choices</h2>
+      <p>Depending on your location, you may have certain rights regarding your personal information, including:</p>
+      <ul>
+          <li>Access to your personal information</li>
+          <li>Correction of inaccurate information</li>
+          <li>Deletion of your personal information</li>
+          <li>Restriction of processing</li>
+          <li>Data portability</li>
+          <li>Objection to processing</li>
+      </ul>
+      <p>To exercise these rights, please contact us at <a href="mailto:admin@droply.live">admin@droply.live</a>.</p>
+
+      <h2>8. Cookies and Tracking Technologies</h2>
+      <p>We use cookies and similar tracking technologies to enhance your experience on our platform. You can control cookie settings through your browser preferences.</p>
+
+      <h2>9. Third-Party Links</h2>
+      <p>Our platform may contain links to third-party websites. We are not responsible for the privacy practices of these external sites.</p>
+
+      <h2>10. Children's Privacy</h2>
+      <p>Our platform is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.</p>
+
+      <h2>11. International Data Transfers</h2>
+      <p>Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place for such transfers.</p>
+
+      <h2>12. Changes to This Privacy Policy</h2>
+      <p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new privacy policy on this page and updating the "Last updated" date.</p>
+
+      <h2>13. Contact Us</h2>
+      <p>If you have any questions about this privacy policy, please contact us at:</p>
+                    <p>
+                        <strong>Email:</strong> <a href="mailto:admin@droply.live">admin@droply.live</a><br>
+                        <strong>Platform:</strong> Droply
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Desktop sidebar toggle functionality
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                
+                // Store sidebar state in localStorage
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebarCollapsed', isCollapsed);
+            });
+        }
+        
+        // Restore sidebar state from localStorage
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+        
+        // Language dropdown functionality
+        const languageToggle = document.getElementById('languageToggle');
+        const languageDropdown = document.querySelector('.language-dropdown');
+        const languageDropdownContent = document.getElementById('languageDropdownContent');
+        const languageOptions = document.querySelectorAll('.language-option');
+
+        if (languageToggle && languageDropdownContent) {
+            // Toggle dropdown
+            languageToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                languageDropdownContent.classList.toggle('show');
+            });
+
+            // Handle language selection
+            languageOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const selectedLang = this.getAttribute('data-lang');
+                    const languageText = languageToggle.querySelector('.language-text');
+                    
+                    // Update button text
+                    languageText.textContent = selectedLang;
+                    
+                    // Store language preference
+                    localStorage.setItem('selectedLanguage', selectedLang);
+                    
+                    // Close dropdown
+                    languageDropdown.classList.remove('open');
+                    languageDropdownContent.classList.remove('show');
+                    
+                    // Here you would typically implement actual language switching
+                    console.log('Language switched to:', selectedLang);
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!languageDropdown.contains(e.target)) {
+                    languageDropdown.classList.remove('open');
+                    languageDropdownContent.classList.remove('show');
+                }
+            });
+        }
+        
+        // Restore language preference
+        const savedLanguage = localStorage.getItem('selectedLanguage');
+        if (savedLanguage && languageToggle) {
+            languageToggle.querySelector('.language-text').textContent = savedLanguage;
+        }
+
+        // Menu dropdown functionality
+        const menuDropdownBtn = document.getElementById('menuDropdownBtn');
+        const menuDropdownContent = document.getElementById('menuDropdownContent');
+
+        if (menuDropdownBtn && menuDropdownContent) {
+            menuDropdownBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menuDropdownContent.classList.toggle('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!menuDropdownBtn.contains(e.target) && !menuDropdownContent.contains(e.target)) {
+                    menuDropdownContent.classList.remove('show');
+                }
+            });
+        }
+
+        // Theme toggle functionality - Fixed
+        const themeToggle = document.getElementById('themeToggle');
+        const themeToggleSwitch = document.getElementById('themeToggleSwitch');
+        let isDarkMode = true; // Default to dark mode
+
+        if (themeToggle && themeToggleSwitch) {
+            // Initialize theme from localStorage or default to dark
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                isDarkMode = false;
+                document.body.classList.add('light-mode');
+                themeToggleSwitch.classList.add('active');
+            }
+
+            themeToggle.addEventListener('click', function() {
+                isDarkMode = !isDarkMode;
+                
+                if (isDarkMode) {
+                    document.body.classList.remove('light-mode');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.body.classList.add('light-mode');
+                    localStorage.setItem('theme', 'light');
+                }
+                
+                themeToggleSwitch.classList.toggle('active', isDarkMode);
+            });
+        }
+    </script>
+</body>
+</html>

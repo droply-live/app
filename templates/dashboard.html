@@ -2,169 +2,224 @@
 
 {% block title %}Dashboard - Droply{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/duolingo-buttons.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/translations.js') }}"></script>
+<script src="{{ url_for('static', filename='js/duolingo-interactions.js') }}"></script>
+<style>
+  /* Ensure dashboard page has transparent background */
+  .main-content, .content-wrapper {
+    background: transparent !important;
+  }
+  
+  .dashboard-container {
+    background: transparent !important;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <!-- Dashboard Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="fw-bold mb-1">
-                <i data-feather="home" class="me-2"></i>Dashboard
-            </h2>
-            <p class="text-muted mb-0">Welcome back, {{ current_user.full_name or current_user.username }}!</p>
-        </div>
+<div class="dashboard-container">
+  <!-- Duolingo-Style Quick Actions -->
+  <div class="duolingo-quick-actions">
+    <a href="{{ url_for('discover') }}" class="duolingo-action find">
+      <div class="duolingo-action-icon">🔍</div>
+      <span class="duolingo-action-text" data-translate="dashboard.find_experts">Find</span>
+    </a>
+    <a href="{{ url_for('profile') }}" class="duolingo-action profile">
+      <div class="duolingo-action-icon">👤</div>
+      <span class="duolingo-action-text" data-translate="dashboard.edit_profile">Profile</span>
+    </a>
+    <a href="{{ url_for('availability') }}" class="duolingo-action hours">
+      <div class="duolingo-action-icon">⏰</div>
+      <span class="duolingo-action-text" data-translate="dashboard.set_availability">Hours</span>
+    </a>
+    <a href="{{ url_for('bookings') }}" class="duolingo-action bookings">
+      <div class="duolingo-action-icon">📅</div>
+      <span class="duolingo-action-text" data-translate="dashboard.view_bookings">Bookings</span>
+    </a>
+    {% if current_user.hourly_rate > 0 %}
+    <a href="{{ url_for('payment_setup') }}" class="duolingo-action payment">
+      <div class="duolingo-action-icon">💳</div>
+      <span class="duolingo-action-text" data-translate="dashboard.payment_setup">Payment</span>
+    </a>
+    {% endif %}
+  </div>
+  
+  <!-- Next Booking Highlight -->
+  {% if next_booking %}
+  <div class="next-booking">
+    <div class="next-booking-content">
+      <h6>📅 Next Session</h6>
+      <div class="next-booking-info">
+        <strong>{% if next_booking.provider_id == current_user.id %}{{ next_booking.user.full_name or next_booking.client_name }}{% else %}{{ next_booking.provider.full_name }}{% endif %}</strong><br>
+        {{ next_booking.start_time.strftime('%B %d at %I:%M %p') }}{% if next_booking.payment_amount %} • ${{ "%.0f"|format(next_booking.payment_amount) }}{% endif %}
+      </div>
     </div>
-    
-    <!-- Quick Stats -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="stat-card card text-center">
-                <div class="card-body">
-                    <i data-feather="calendar" class="text-primary mb-2" style="width: 32px; height: 32px;"></i>
-                    <h4 class="fw-bold mb-1">{{ time_slots|length }}</h4>
-                    <small class="text-muted">Time Slots</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="stat-card card text-center">
-                <div class="card-body">
-                    <i data-feather="users" class="text-success mb-2" style="width: 32px; height: 32px;"></i>
-                    <h4 class="fw-bold mb-1">{{ provider_bookings|length }}</h4>
-                    <small class="text-muted">Bookings Received</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="stat-card card text-center">
-                <div class="card-body">
-                    <i data-feather="bookmark" class="text-info mb-2" style="width: 32px; height: 32px;"></i>
-                    <h4 class="fw-bold mb-1">{{ client_bookings|length }}</h4>
-                    <small class="text-muted">Sessions Booked</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="stat-card card text-center">
-                <div class="card-body">
-                    <i data-feather="dollar-sign" class="text-warning mb-2" style="width: 32px; height: 32px;"></i>
-                    <h4 class="fw-bold mb-1">${{ "%.0f"|format(current_user.hourly_rate or 0) }}</h4>
-                    <small class="text-muted">Session Price</small>
-                </div>
-            </div>
-        </div>
+  </div>
+  {% endif %}
+  
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">{{ total_sessions }}</div>
+      <div class="stat-label">Total Sessions</div>
+      <div class="stat-change positive">+{{ recent_bookings }} this week</div>
     </div>
-    
-
-    
-    <div class="row">
-        <!-- Recent Bookings as Provider -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="fw-bold mb-0">
-                        <i data-feather="users" class="me-2"></i>Bookings Received
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if provider_bookings %}
-                    <div class="booking-list">
-                        {% for booking in provider_bookings[:5] %}
-                        <div class="booking-item d-flex justify-content-between align-items-center py-2 {% if not loop.last %}border-bottom{% endif %}">
-                            <div>
-                                <h6 class="mb-1">{{ booking.client_name or booking.user.full_name }}</h6>
-                                <small class="text-muted">Session with {{ booking.user.full_name }}</small>
-                                <br>
-                                <small class="text-muted">
-                                    <i data-feather="calendar" style="width: 12px; height: 12px;"></i>
-                                    {{ booking.start_time.strftime('%b %d, %Y at %I:%M %p') }}
-                                </small>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-{% if booking.status == 'confirmed' %}success{% elif booking.status == 'pending' %}warning{% else %}secondary{% endif %}">
-                                    {{ booking.status|title }}
-                                </span>
-                                {% if booking.payment_amount and booking.payment_amount > 0 %}
-                                <br><small class="text-muted">${{ "%.0f"|format(booking.payment_amount) }}</small>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    
-                    {% if provider_bookings|length > 5 %}
-                    <div class="text-center mt-3">
-                        <a href="#" class="btn btn-sm btn-outline-primary">View All ({{ provider_bookings|length }})</a>
-                    </div>
-                    {% endif %}
-                    
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i data-feather="x-circle" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
-                        <p class="text-muted mb-0">No bookings received yet</p>
-                        <small class="text-muted">Share your profile link to get started!</small>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <!-- Sessions Booked as Client -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="fw-bold mb-0">
-                        <i data-feather="bookmark" class="me-2"></i>My Bookings
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if client_bookings %}
-                    <div class="booking-list">
-                        {% for booking in client_bookings[:5] %}
-                        <div class="booking-item d-flex justify-content-between align-items-center py-2 {% if not loop.last %}border-bottom{% endif %}">
-                            <div>
-                                <h6 class="mb-1">Session with {{ booking.expert.full_name }}</h6>
-                                <small class="text-muted">{{ booking.expert.profession or 'Expert' }}</small>
-                                <br>
-                                <small class="text-muted">
-                                    <i data-feather="calendar" style="width: 12px; height: 12px;"></i>
-                                    {{ booking.start_time.strftime('%b %d, %Y at %I:%M %p') }}
-                                </small>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-{% if booking.status == 'confirmed' %}success{% elif booking.status == 'pending' %}warning{% else %}secondary{% endif %}">
-                                    {{ booking.status|title }}
-                                </span>
-                                {% if booking.payment_amount and booking.payment_amount > 0 %}
-                                <br><small class="text-muted">${{ "%.0f"|format(booking.payment_amount) }}</small>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    
-                    {% if client_bookings|length > 5 %}
-                    <div class="text-center mt-3">
-                        <a href="#" class="btn btn-sm btn-outline-primary">View All ({{ client_bookings|length }})</a>
-                    </div>
-                    {% endif %}
-                    
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i data-feather="search" class="text-muted mb-2" style="width: 48px; height: 48px;"></i>
-                        <p class="text-muted mb-0">No sessions booked yet</p>
-                        <small class="text-muted">
-                            <a href="{{ url_for('search') }}">Browse users</a> to book your first session!
-                        </small>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+    <div class="stat-card">
+      <div class="stat-number">${{ "%.0f"|format(total_earnings) }}</div>
+      <div class="stat-label">Total Earnings</div>
+      <div class="stat-change positive">${{ "%.0f"|format(this_week_earnings) }} this week</div>
     </div>
-    
-
+    <div class="stat-card">
+      <div class="stat-number">{{ total_provider_bookings }}</div>
+      <div class="stat-label">Sessions Given</div>
+      <div class="stat-change positive">{{ provider_bookings|length }} upcoming</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ total_client_bookings }}</div>
+      <div class="stat-label">Sessions Booked</div>
+      <div class="stat-change positive">{{ client_bookings|length }} upcoming</div>
+    </div>
+  </div>
+  
+  <!-- Full Width Earnings Chart -->
+  <div class="earnings-chart-card full-width">
+    <div class="earnings-chart-header">
+      <h6>📈 Earnings (Past 28 Days)</h6>
+    </div>
+    <div class="earnings-chart-body">
+      <div class="chart-container">
+        <canvas id="earningsChart" width="400" height="200"></canvas>
+      </div>
+      <div class="chart-summary">
+        <div class="chart-stat">
+          <span class="chart-stat-label">Total</span>
+          <span class="chart-stat-value">${{ "%.0f"|format(total_earnings) }}</span>
+        </div>
+        <div class="chart-stat">
+          <span class="chart-stat-label">This Week</span>
+          <span class="chart-stat-value">${{ "%.0f"|format(this_week_earnings) }}</span>
+        </div>
+        <div class="chart-stat">
+          <span class="chart-stat-label">Avg/Day</span>
+          <span class="chart-stat-value">${{ "%.0f"|format(total_earnings / 28) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  
+  // Initialize earnings chart
+  const ctx = document.getElementById('earningsChart');
+  if (ctx) {
+    // Generate sample data for the past 28 days
+    const labels = [];
+    const earnings = [];
+    const today = new Date();
+    
+    for (let i = 27; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      
+      // Generate sample earnings data (you can replace this with real data from your backend)
+      const baseEarnings = {{ total_earnings }} / 28;
+      const randomVariation = (Math.random() - 0.5) * baseEarnings * 0.5;
+      earnings.push(Math.max(0, baseEarnings + randomVariation));
+    }
+    
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Daily Earnings',
+          data: earnings,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              color: '#3a3a3a'
+            },
+            ticks: {
+              color: '#9ca3af',
+              maxTicksLimit: 7
+            }
+          },
+          y: {
+            grid: {
+              color: '#3a3a3a'
+            },
+            ticks: {
+              color: '#9ca3af',
+              callback: function(value) {
+                return '$' + value.toFixed(0);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  
+  // Enhanced hover effects for stat cards
+  const statCards = document.querySelectorAll('.stat-card');
+  statCards.forEach(card => {
+    card.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-2px)';
+      this.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
+    });
+  });
+  
+  // Enhanced click effects for quick actions
+  const quickActions = document.querySelectorAll('.quick-action');
+  quickActions.forEach(action => {
+    action.addEventListener('click', function(e) {
+      // Add a subtle click animation
+      this.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        this.style.transform = '';
+      }, 150);
+    });
+  });
+  
+  // Add loading states for better UX
+  const statusItems = document.querySelectorAll('.status-item');
+  statusItems.forEach(item => {
+    item.addEventListener('click', function() {
+      // Add subtle feedback for interactive elements
+      this.style.transform = 'scale(1.02)';
+      setTimeout(() => {
+        this.style.transform = 'scale(1)';
+      }, 150);
+    });
+  });
+});
+</script>
 {% endblock %}

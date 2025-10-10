@@ -4,39 +4,113 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - Droply</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        h1 {
+            color: #10b981;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .last-updated {
+            color: #999;
+            font-size: 1rem;
+            margin: 0 0 3rem 0;
+            text-align: center;
+        }
+
+        h2 {
+            color: #10b981;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: #e0e0e0;
+        }
+
+        ul {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: #e0e0e0;
+        }
+
+        a {
+            color: #10b981;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: #047857;
+            text-decoration: underline;
+        }
+
+        strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem 0.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            h3 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <nav class="top-nav">
-        <div class="container">
-            <a href="{{ url_for('homepage') }}" class="top-nav-brand">
-                droply
-            </a>
-            <div class="top-nav-links">
-                <a href="{{ url_for('homepage') }}" class="top-nav-link">Home</a>
-                <a href="{{ url_for('search') }}" class="top-nav-link">Search</a>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('dashboard') }}" class="top-nav-link">Dashboard</a>
-                    <a href="{{ url_for('logout') }}" class="top-nav-link">Logout</a>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="top-nav-link">Login</a>
-                    <a href="{{ url_for('register') }}" class="top-nav-link btn-primary">Register</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-
-    <div class="container mt-4" style="margin-top: 100px;">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h1 class="h3 mb-0">Privacy Policy</h1>
-                        <p class="text-muted mb-0">Last updated: September 17, 2025</p>
-                    </div>
-                    <div class="card-body">
+    <div class="container">
+        <h1>Privacy Policy</h1>
+        <p class="last-updated">Last updated: September 17, 2025</p>
                     <div class="privacy-content">
                         <h2>1. Introduction</h2>
                         <p>Welcome to Droply ("we," "our," or "us"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform that connects users with experts for consultations and services. Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site.</p>
@@ -175,58 +249,6 @@
                             <strong>Email:</strong> <a href="mailto:admin@droply.live">admin@droply.live</a><br>
                             <strong>Platform:</strong> Droply
                         </p>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
-</div>
-
-<style>
-.privacy-content h2 {
-    color: #2c3e50;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
-}
-
-.privacy-content h3 {
-    color: #34495e;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    font-weight: 500;
-}
-
-.privacy-content p {
-    margin-bottom: 1rem;
-    line-height: 1.6;
-}
-
-.privacy-content ul {
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
-}
-
-.privacy-content li {
-    margin-bottom: 0.5rem;
-    line-height: 1.5;
-}
-
-.privacy-content a {
-    color: #007bff;
-    text-decoration: none;
-}
-
-.privacy-content a:hover {
-    text-decoration: underline;
-}
-</style>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {% include 'footer.html' %}
 </body>
 </html>

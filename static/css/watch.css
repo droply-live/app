@@ -2,7 +2,7 @@
 
 /* Reset and override base template styles */
 html body.watch-page {
-    background: #000 !important;
+    background: #2a2a2a !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
@@ -15,7 +15,7 @@ html body.watch-page .main-content {
     width: 100vw !important;
     height: 100vh !important;
     overflow: hidden !important;
-    background: #000 !important;
+    background: #2a2a2a !important;
     position: relative !important;
 }
 
@@ -40,7 +40,7 @@ html body.watch-page .container-fluid {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
-    background: #000 !important;
+    background: #2a2a2a !important;
     z-index: 100 !important;
     margin: 0 !important;
     padding: 0 !important;

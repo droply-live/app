@@ -179,9 +179,9 @@ function initializeResultsHandling() {
         });
     }
     
-    // Handle expert card interactions
-    const expertCards = document.querySelectorAll('.expert-card');
-    expertCards.forEach(card => {
+    // Handle user card interactions
+    const userCards = document.querySelectorAll('.user-card');
+    userCards.forEach(card => {
         // Add hover effects
         card.addEventListener('mouseenter', function() {
             this.classList.add('shadow-lg');
@@ -195,8 +195,8 @@ function initializeResultsHandling() {
         const viewButton = card.querySelector('.btn');
         if (viewButton) {
             viewButton.addEventListener('click', function() {
-                const expertName = card.querySelector('.card-title').textContent;
-                trackExpertView(expertName);
+                const userName = card.querySelector('.card-title').textContent;
+                trackExpertView(userName);
             });
         }
     });
@@ -270,16 +270,16 @@ function debounce(func, delay) {
 }
 
 /**
- * Track expert profile views
+ * Track user profile views
  */
-function trackExpertView(expertName) {
+function trackExpertView(userName) {
     // In a real implementation, this would send analytics data
-    console.log('Expert profile viewed:', expertName);
+    console.log('Expert profile viewed:', userName);
     
     // Could send to Google Analytics, Mixpanel, etc.
     if (window.gtag) {
-        gtag('event', 'expert_profile_view', {
-            'expert_name': expertName,
+        gtag('event', 'user_profile_view', {
+            'user_name': userName,
             'page_title': document.title,
             'page_location': window.location.href
         });

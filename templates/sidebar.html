@@ -1,62 +1,95 @@
-<aside id="sidebar" class="sidebar d-flex flex-column justify-content-between">
-  <div>
-    <div class="sidebar-logo text-center py-4 mb-3">
-      <a href="{{ url_for('dashboard') }}" class="sidebar-logo-link" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
-        <div style="font-size: 12px; font-weight: 900; color: #059669; letter-spacing: -0.5px;">droply</div>
-      </a>
-    </div>
-    <nav class="sidebar-nav flex-grow-1">
-      <ul class="list-unstyled mb-0">
-        <li class="mb-2">
-          <a href="{{ url_for('dashboard') }}" class="sidebar-link-icon {% if request.endpoint == 'dashboard' %}active{% endif %}" title="Dashboard">
-            <i class="fas fa-home"></i>
-          </a>
-        </li>
-        <li class="mb-2">
-          <a href="{{ url_for('search') }}" class="sidebar-link-icon {% if request.endpoint == 'search' %}active{% endif %}" title="Search">
-            <i class="fas fa-search"></i>
-          </a>
-        </li>
-        <li class="mb-2">
-          <a href="{{ url_for('watch') }}" class="sidebar-link-icon {% if request.endpoint == 'watch' %}active{% endif %}" title="Watch">
-            <i class="fas fa-play-circle"></i>
-          </a>
-        </li>
-        <li class="mb-2">
-          <a href="{{ url_for('bookings') }}" class="sidebar-link-icon {% if request.endpoint == 'bookings' %}active{% endif %}" title="My Bookings">
-            <i class="fas fa-calendar"></i>
-          </a>
-        </li>
-        <li class="mb-2">
-          <a href="{{ url_for('availability') }}" class="sidebar-link-icon {% if request.endpoint == 'availability' %}active{% endif %}" title="Availability">
-            <i class="fas fa-calendar-check"></i>
-          </a>
-        </li>
-        <li class="mb-2">
-          <a href="{{ url_for('earnings') }}" class="sidebar-link-icon {% if request.endpoint == 'earnings' %}active{% endif %}" title="Earnings">
-            <i class="fas fa-dollar-sign"></i>
-          </a>
-        </li>
-        <li class="mb-2">
-          <a href="{{ url_for('referrals') }}" class="sidebar-link-icon {% if request.endpoint == 'referrals' %}active{% endif %}" title="Referrals">
-            <i class="fas fa-share-alt"></i>
-          </a>
-        </li>
-        <li class="mb-2">
-          <a href="{{ url_for('account') }}" class="sidebar-link-icon {% if request.endpoint == 'account' %}active{% endif %}" title="Account & Settings">
-            <i class="fas fa-user"></i>
-          </a>
-        </li>
-      </ul>
-    </nav>
-  </div>
-  
-  <!-- Logout Button -->
-  <div class="sidebar-logout">
-    <a href="{{ url_for('logout') }}" class="sidebar-link-icon logout-icon" title="Log Out">
-      <i class="fas fa-sign-out-alt"></i>
+<aside id="sidebar" class="sidebar">
+  <!-- Logo Section -->
+  <div class="sidebar-header">
+    <a href="{{ url_for('dashboard') }}" class="sidebar-logo">
+      <span class="logo-text">droply</span>
     </a>
   </div>
+
+  <!-- Navigation Menu -->
+  <nav class="sidebar-nav">
+    <ul class="nav-list">
+      <li class="nav-item">
+        <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" title="Dashboard">
+          <i class="nav-icon fas fa-home"></i>
+          <span class="nav-text">Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('discover') }}" class="nav-link {% if request.endpoint == 'discover' %}active{% endif %}" title="Discover">
+          <i class="nav-icon fas fa-compass"></i>
+          <span class="nav-text">Discover</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('watch') }}" class="nav-link {% if request.endpoint == 'watch' %}active{% endif %}" title="Watch">
+          <i class="nav-icon fas fa-play-circle"></i>
+          <span class="nav-text">Watch</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('bookings') }}" class="nav-link {% if request.endpoint == 'bookings' %}active{% endif %}" title="My Bookings">
+          <i class="nav-icon fas fa-calendar"></i>
+          <span class="nav-text">Bookings</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('availability') }}" class="nav-link {% if request.endpoint == 'availability' %}active{% endif %}" title="Availability">
+          <i class="nav-icon fas fa-calendar-check"></i>
+          <span class="nav-text">Availability</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('earnings') }}" class="nav-link {% if request.endpoint == 'earnings' %}active{% endif %}" title="Earnings">
+          <i class="nav-icon fas fa-dollar-sign"></i>
+          <span class="nav-text">Earnings</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('profile') }}" class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}" title="My Profile">
+          <i class="nav-icon fas fa-user"></i>
+          <span class="nav-text">Profile</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Bottom Section -->
+  <div class="sidebar-footer">
+    <!-- User Menu -->
+    <div class="user-menu">
+      <div class="user-info" id="userMenuToggle">
+        <div class="user-details">
+          <span class="username">{{ current_user.username or 'User' }}</span>
+          <i class="fas fa-chevron-down dropdown-icon"></i>
+        </div>
+      </div>
+      
+      <!-- User Dropdown Menu -->
+      <div class="user-dropdown" id="userDropdown">
+        <a href="{{ url_for('settings') }}" class="dropdown-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+        <a href="{{ url_for('privacy_policy') }}" class="dropdown-item" target="_blank">
+          <i class="fas fa-shield-alt"></i>
+          <span>Privacy Policy</span>
+        </a>
+        <a href="{{ url_for('terms_of_service') }}" class="dropdown-item" target="_blank">
+          <i class="fas fa-file-contract"></i>
+          <span>Terms of Service</span>
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="{{ url_for('logout') }}" class="dropdown-item logout-option">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </div>
+  </div>
   
-  <button id="sidebar-burger" class="d-md-none sidebar-burger" aria-label="Open sidebar">&#9776;</button>
+  <!-- Sidebar Toggle Button -->
+  <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+    <i class="fas fa-chevron-left"></i>
+  </button>
 </aside> 
